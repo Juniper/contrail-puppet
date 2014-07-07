@@ -9,7 +9,6 @@ def provision_bgp(bgp_params, api_server_ip, api_server_port, router_asn , mt_op
         sys.exit(0)
 
     if  mt_options != "None":
-        mt_options=mt_options[1:-1]
         multi_tenancy_list= mt_options.split(",")
         mt_options= "--admin_user %s --admin_password %s --admin_tenant_name %s" %(multi_tenancy_list[0],multi_tenancy_list[1],multi_tenancy_list[2])
     else :
