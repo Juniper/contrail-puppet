@@ -287,25 +287,6 @@ define contrail_config (
         content => template("$module_name/contrail-discovery.svc.erb"),
     }
 
-    # set high session timeout to survive glance led disk activity
-    file { "/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh":
-        ensure  => present,
-        mode => 0755,
-        owner => root,
-        group => root,
-        require => Package["contrail-openstack-config"],
-        source => "puppet:///modules/$module_name/config-zk-files-setup.sh"
-    }
-    $contrail_zk_ip_list_for_shell = inline_template('<%= contrail_zookeeper_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
-    $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $contrail_cfgm_index $contrail_zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail_config_exec.out"
-    notify { "contrail contrail_zk_exec_cmd is $contrail_zk_exec_cmd":; } 
-    exec { "setup-config-zk-files-setup" :
-        command => $contrail_zk_exec_cmd,
-        require => File["/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh"],
-        unless  => "grep -qx setup-config-zk-files-setup /etc/contrail/contrail_config_exec.out",
-        provider => shell,
-        logoutput => "true"
-    }
 
     # Handle rabbitmq.config changes
     $conf_file = "/etc/rabbitmq/rabbitmq.config"
@@ -450,7 +431,7 @@ define contrail_config (
     }
 
 
-    Exec["haproxy-exec"]->Exec["setup-rabbitmq-cluster"]->Exec["setup-config-zk-files-setup"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-quantum-in-keystone"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Exec["haproxy-exec"]->Exec["setup-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-quantum-in-keystone"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
