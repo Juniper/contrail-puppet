@@ -375,8 +375,6 @@ define contrail_config (
         $mt_options = "None" 
     } 
 
-    # Hard-coded to be taken as parameter of vnsi and multi-tenancy options need to be passed to contrail_control too.
-    $router_asn = "64512"
 
     file { "/etc/contrail/contrail_setup_utils/exec_provision_control.py" :
         ensure  => present,
@@ -387,7 +385,7 @@ define contrail_config (
     }
     $contrail_host_ip_list_for_shell = inline_template('<%= contrail_control_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
     $contrail_host_name_list_for_shell = inline_template('<%= contrail_control_name_list.map{ |name| "#{name}" }.join(",") %>')
-    $contrail_exec_provision_control = "python  exec_provision_control.py --api_server_ip $contrail_config_ip --api_server_port 8082 --host_name_list $contrail_host_name_list_for_shell --host_ip_list $contrail_host_ip_list_for_shell --router_asn $router_asn --mt_options $mt_options && echo exec-provision-control >> /etc/contrail/contrail_config_exec.out"
+    $contrail_exec_provision_control = "python  exec_provision_control.py --api_server_ip $contrail_config_ip --api_server_port 8082 --host_name_list $contrail_host_name_list_for_shell --host_ip_list $contrail_host_ip_list_for_shell --router_asn $contrail_router_asn --mt_options $mt_options && echo exec-provision-control >> /etc/contrail/contrail_config_exec.out"
     notify { "contrail contrail_exec_provision_control is $contrail_exec_provision_control":; }
 
     exec { "exec-provision-control" :
