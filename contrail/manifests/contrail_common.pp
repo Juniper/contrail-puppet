@@ -147,8 +147,6 @@ define contrail-setup-interface(
         
 	exec { "setup-intf-$contrail_device":
             command => $exec_full_cmd,
-        exec { "setup-intf-$contrail_device":
-            command => "/opt/contrail/contrail_installer/setup-vnc-interfaces.py --device $contrail_device --members \"[$contrail_intf_member_list_for_shell]\" --mode $contrail_mode --ip $contrail_ip --gw $contrail_gw && echo setup-intf${contrail_device} >> /etc/contrail/contrail_common_exec.out",
             provider => shell,
             logoutput => "true",
 	    require=> Package["ifenslave"],
