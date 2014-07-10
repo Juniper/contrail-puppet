@@ -117,7 +117,11 @@ define contrail_compute_part_2 (
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
         $contrail_amqp_server_ip="127.0.0.1",
-        $contrail_ks_auth_port="35357"
+        $contrail_ks_auth_port="35357",
+	$contrail_vm_ip,
+	$contrail_vm_username,
+	$contrail_vm_passwd,
+	$contrail_vswitch,
     ) {
     # Ensure all needed packages are present
     package { 'contrail-openstack-vrouter' : ensure => present,}
@@ -355,6 +359,13 @@ define contrail_compute_part_2 (
             logoutput => 'true'
         }
 
+	if ( $contrail_vm_ip != "" ) {
+		$hypervisor_type = "vmware"
+		$vm_physical_intf = "eth1"
+	} else {
+		$hypervisor_type = "kvm"
+		$vm_physical_intf = "eth1"
+	}
         compute-scripts { ["compute-server-setup"]: }
 
         # flag that part 2 is completed and reboot the system
@@ -424,7 +435,11 @@ define contrail_compute (
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
         $contrail_amqp_server_ip="127.0.0.1",
-        $contrail_ks_auth_port="35357"
+        $contrail_ks_auth_port="35357",
+	$contrail_vm_ip,
+	$contrail_vm_username,
+	$contrail_vm_passwd,
+	$contrail_vswitch,
     ) {
 
     if ($operatingsystem == "Ubuntu") {
@@ -449,7 +464,11 @@ define contrail_compute (
                 contrail_ks_auth_protocol => $contrail_ks_auth_protocol,
                 contrail_quantum_service_protocol => $contrail_quantum_service_protocol,
                 contrail_amqp_server_ip => $contrail_amqp_server_ip,
-                contrail_ks_auth_port => $contrail_ks_auth_port
+                contrail_ks_auth_port => $contrail_ks_auth_port,
+		contrail_vm_ip => $contrail_vm_ip,
+		contrail_vm_username => $contrail_vm_username,
+		contrail_vm_passwd => $contrail_vm_passwd,
+		contrail_vswitch => $contrail_vswitch,
             }
         }
         else {
@@ -497,7 +516,11 @@ define contrail_compute (
                 contrail_ks_auth_protocol => $contrail_ks_auth_protocol,
                 contrail_quantum_service_protocol => $contrail_quantum_service_protocol,
                 contrail_amqp_server_ip => $contrail_amqp_server_ip,
-                contrail_ks_auth_port => $contrail_ks_auth_port
+                contrail_ks_auth_port => $contrail_ks_auth_port,
+		contrail_vm_ip => $contrail_vm_ip,
+		contrail_vm_username => $contrail_vm_username,
+		contrail_vm_passwd => $contrail_vm_passwd,
+		contrail_vswitch => $contrail_vswitch,
             }
         }
         else {

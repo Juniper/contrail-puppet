@@ -32,6 +32,11 @@ define contrail_openstack (
         $contrail_ks_auth_port="35357"
     ) {
 
+    $contrail_vm_ip = ""
+    $contrail_vm_username = ""
+    $contrail_vm_passwd = ""
+    $contrail_vswitch = ""
+
     # list of packages
     package { 'contrail-openstack' : ensure => present,}
     # The above wrapper package should be broken down to the below packages

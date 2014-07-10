@@ -67,7 +67,11 @@ define contrail_config (
         $contrail_quantum_service_protocol="http",
         $contrail_ks_auth_port="35357"
     ) {
-
+    $contrail_vm_ip = ""
+    $contrail_vm_username = ""
+    $contrail_vm_passwd = ""
+    $contrail_vswitch = ""
+	
     if $contrail_use_certs == "yes" {
         $contrail_ifmap_server_port = '8444'
     }
