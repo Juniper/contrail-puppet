@@ -26,15 +26,16 @@ define database-template-scripts {
     }
 }
 
+# Following variables need to be set for this resource.
+#     $contrail_database_ip
+#     $contrail_database_dir
+#     $contrail_database_initial_token
+#     $contrail_cassandra_seeds
+#     $system_name
+#     $contrail_config_ip
+#     $contrail_zookeeper_ip_list
+#     $contrail_cfgm_index
 define contrail_database (
-        $contrail_database_ip,
-        $contrail_database_dir,
-        $contrail_database_initial_token,
-        $contrail_cassandra_seeds,
-        $system_name,
-        $contrail_config_ip,
-        $contrail_zookeeper_ip_list,
-        $contrail_cfgm_index,
     ) {
 
     # Ensure all needed packages are present
