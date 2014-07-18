@@ -444,10 +444,6 @@ define contrail_compute (
         $contrail_quantum_service_protocol="http",
         $contrail_amqp_server_ip="127.0.0.1",
         $contrail_ks_auth_port="35357",
-	$contrail_vm_ip,
-	$contrail_vm_username,
-	$contrail_vm_passwd,
-	$contrail_vswitch,
     ) {
 
     if ($operatingsystem == "Ubuntu") {
