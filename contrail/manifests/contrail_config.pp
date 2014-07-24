@@ -29,38 +29,47 @@ define config-template-scripts {
 }
 
 # Main module code
+# Following variables need to be set for this resource.
+# Those specified with value assiged are optional, if not
+# set the assigned value below is used.
+#     $contrail_config_ip
+#     $contrail_openstack_mgmt_ip
+#     $contrail_compute_ip
+#     $contrail_control_ip_list
+#     $contrail_control_name_list
+#     $contrail_collector_ip
+#     $contrail_cassandra_ip_list
+#     $contrail_cassandra_ip_port
+#     $contrail_openstack_ip
+#     $contrail_keystone_ip = $contrail_openstack_ip
+#     $contrail_use_certs
+#     $contrail_service_token
+#     $contrail_ks_admin_user
+#     $contrail_ks_admin_passwd
+#     $contrail_ks_admin_tenant
+#     $contrail_openstack_root_passwd
+#     $contrail_multi_tenancy
+#     $contrail_zookeeper_ip_list
+#     $contrail_zk_ip_port
+#     $contrail_redis_ip
+#     $contrail_cfgm_index
+#     $contrail_api_nworkers
+#     $contrail_supervisorctl_lines
+#     $contrail_haproxy
+#     $contrail_uuid
+#     $contrail_rmq_master
+#     $contrail_rmq_is_master
+#     $contrail_region_name
+#     $contrail_router_asn
+#     $contrail_encap_priority
+#     $contrail_bgp_params
+#     $contrail_ks_insecure_flag=false
+#     $contrail_hc_interval="5"
+#     $contrail_ks_auth_protocol="http"
+#     $contrail_quantum_service_protocol="http"
+#     $contrail_ks_auth_port="35357"
 define contrail_config (
-        $contrail_config_ip,
-        $contrail_openstack_mgmt_ip,
-        $contrail_compute_ip,
-        $contrail_control_ip_list,
-	$contrail_control_name_list,
-        $contrail_collector_ip,
-        $contrail_cassandra_ip_list,
-        $contrail_cassandra_ip_port,
-        $contrail_openstack_ip,
         $contrail_keystone_ip = $contrail_openstack_ip,
-        $contrail_use_certs,
-        $contrail_service_token,
-        $contrail_ks_admin_user,
-        $contrail_ks_admin_passwd,
-        $contrail_ks_admin_tenant,
-        $contrail_openstack_root_passwd,
-        $contrail_multi_tenancy,
-        $contrail_zookeeper_ip_list,
-        $contrail_zk_ip_port,
-        $contrail_redis_ip,
-        $contrail_cfgm_index,
-        $contrail_api_nworkers,
-        $contrail_supervisorctl_lines,
-	$contrail_haproxy,
-	$contrail_uuid,
-	$contrail_rmq_master,
-	$contrail_rmq_is_master,
-	$contrail_region_name,
-	$contrail_router_asn,
-	$contrail_encap_priority,
-	$contrail_bgp_params,
         $contrail_ks_insecure_flag=false,
         $contrail_hc_interval="5",
         $contrail_ks_auth_protocol="http",

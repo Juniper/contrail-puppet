@@ -9,15 +9,16 @@ define collector-template-scripts {
     }
 }
 
+# Following variables need to be set for this resource.
+#     $contrail_config_ip
+#     $contrail_collector_ip
+#     $contrail_redis_master_ip
+#     $contrail_redis_role
+#     $contrail_cassandra_ip_list
+#     $contrail_cassandra_ip_port
+#     $contrail_num_collector_nodes
+#     $contrail_analytics_data_ttl
 define contrail_collector (
-        $contrail_config_ip,
-        $contrail_collector_ip,
-        $contrail_redis_master_ip,
-        $contrail_redis_role,
-        $contrail_cassandra_ip_list,
-        $contrail_cassandra_ip_port,
-        $contrail_num_collector_nodes,
-        $contrail_analytics_data_ttl
     ) {
 
     # Ensure all needed packages are present

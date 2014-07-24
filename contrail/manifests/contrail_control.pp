@@ -9,22 +9,23 @@ define control-template-scripts {
     }
 }
 
+# Following variables need to be set for this resource.
+#     $contrail_control_ip
+#     $contrail_config_ip
+#     $contrail_config_port
+#     $contrail_config_user
+#     $contrail_config_passwd
+#     $contrail_collector_ip
+#     $contrail_collector_port
+#     $contrail_discovery_ip
+#     $hostname
+#     $host_ip
+#     $bgp_port
+#     $cert_ops
+#     $log_file
+#     $contrail_log_file
+#     $contrail_api_nworkers
 define contrail_control (
-        $contrail_control_ip,
-        $contrail_config_ip,
-        $contrail_config_port,
-        $contrail_config_user,
-        $contrail_config_passwd,
-        $contrail_collector_ip,
-        $contrail_collector_port,
-        $contrail_discovery_ip,
-        $hostname,
-        $host_ip,
-        $bgp_port,
-        $cert_ops,
-        $log_file,
-        $contrail_log_file,
-        $contrail_api_nworkers
     ) {
 
     # Ensure all needed packages are present

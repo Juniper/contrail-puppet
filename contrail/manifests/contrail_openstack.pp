@@ -17,15 +17,23 @@ define openstack-scripts {
     }
 }
 
+# Following variables need to be set for this resource.
+# Those specified with value assiged are optional, if not
+# set the assigned value below is used.
+#     $contrail_openstack_ip
+#     $contrail_keystone_ip = $contrail_openstack_ip
+#     $contrail_config_ip
+#     $contrail_compute_ip
+#     $contrail_openstack_mgmt_ip
+#     $contrail_service_token
+#     $contrail_ks_admin_passwd
+#     $contrail_haproxy
+#     $contrail_amqp_server_ip="127.0.0.1"
+#     $contrail_ks_auth_protocol="http"
+#     $contrail_quantum_service_protocol="http"
+#     $contrail_ks_auth_port="35357"
 define contrail_openstack (
-        $contrail_openstack_ip,
         $contrail_keystone_ip = $contrail_openstack_ip,
-        $contrail_config_ip,
-        $contrail_compute_ip,
-        $contrail_openstack_mgmt_ip,
-        $contrail_service_token,
-        $contrail_ks_admin_passwd,
-	$contrail_haproxy,
         $contrail_amqp_server_ip="127.0.0.1",
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",

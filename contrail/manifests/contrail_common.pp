@@ -27,7 +27,6 @@ define line($file, $line, $ensure = 'present') {
 }
 # End of macro line
 
-# To be reviewed - Abhay
 #source ha proxy files
 define haproxy-cfg($server_id) {
     file { "/etc/haproxy/haproxy.cfg":
@@ -51,8 +50,10 @@ define haproxy-cfg($server_id) {
         }
 }
 
-# To be reviewed - Abhay
-define contrail-cfg-zk($zk_ip_list, $zk_index) {
+# Following variables need to be set for this resource.
+#     $zk_ip_list
+#     $zk_index
+define contrail-cfg-zk() {
     package { 'zookeeper' : ensure => present,}
     package { 'zookeeperd' : ensure => present,}
 
@@ -78,7 +79,6 @@ define contrail-cfg-zk($zk_ip_list, $zk_index) {
     }
 }
 
-# To be reviewed - Abhay
 #source ha proxy files
 define contrail-exec-script($script_name, $args) {
     file { "/etc/contrail/${script_name}":
@@ -107,13 +107,12 @@ define create-interface-cb(
     }
 }
 
-# To be reviewed - Abhay
 define contrail-setup-interface(
-	$contrail_device,
-	$contrail_members,
-	$contrail_bond_opts,
-	$contrail_ip,
-	$contrail_gw
+        $contrail_device,
+        $contrail_members,
+        $contrail_bond_opts,
+        $contrail_ip,
+        $contrail_gw
     ) {
 
 
@@ -155,7 +154,7 @@ define contrail-setup-interface(
 }
 
 define contrail-setup-repo(
-	$contrail_repo_name,
+        $contrail_repo_name,
         $contrail_server_mgr_ip
     ) {
     if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
@@ -191,9 +190,10 @@ define contrail-setup-repo(
 }
 
 # macro to perform common functions
+# Following variables need to be set for this resource.
+#     $self_ip
+#     $system_name
 define contrail_common (
-        $self_ip,
-        $system_name
     ) {
 
     # Ensure /etc/hosts has an entry for self to map dns name to ip address

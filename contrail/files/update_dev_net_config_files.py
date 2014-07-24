@@ -9,6 +9,7 @@ import struct
 import tempfile
 import xml.etree.ElementTree as ET
 import commands
+import re
 
 def find_gateway(dev):
     gateway = ''

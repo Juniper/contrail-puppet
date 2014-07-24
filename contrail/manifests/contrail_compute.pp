@@ -414,32 +414,36 @@ define contrail_compute_part_2 (
     }
 }
 
+# Following variables need to be set for this resource.
+# Those specified with value assiged are optional, if not
+# set the assigned value below is used.
+#     $contrail_config_ip
+#     $contrail_compute_ip
+#     $contrail_compute_hostname
+#     $contrail_collector_ip
+#     $contrail_openstack_ip
+#     $contrail_keystone_ip = $contrail_openstack_ip
+#     $contrail_openstack_mgmt_ip
+#     $contrail_service_token
+#     $contrail_physical_interface
+#     $contrail_num_controls
+#     $contrail_non_mgmt_ip
+#     $contrail_non_mgmt_gw
+#     $contrail_ks_admin_user
+#     $contrail_ks_admin_user
+#     $contrail_ks_admin_passwd
+#     $contrail_ks_admin_tenant
+#     $contrail_haproxy
+#     $contrail_ks_auth_protocol="http"
+#     $contrail_quantum_service_protocol="http"
+#     $contrail_amqp_server_ip="127.0.0.1"
+#     $contrail_ks_auth_port="35357"
 define contrail_compute (
-        $contrail_config_ip,
-        $contrail_compute_ip,
-        $contrail_compute_hostname,
-        $contrail_collector_ip,
-        $contrail_openstack_ip,
         $contrail_keystone_ip = $contrail_openstack_ip,
-        $contrail_openstack_mgmt_ip,
-        $contrail_service_token,
-        $contrail_physical_interface,
-        $contrail_num_controls,
-        $contrail_non_mgmt_ip,
-        $contrail_non_mgmt_gw,
-        $contrail_ks_admin_user,
-        $contrail_ks_admin_user,
-        $contrail_ks_admin_passwd,
-        $contrail_ks_admin_tenant,
-	$contrail_haproxy,
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
         $contrail_amqp_server_ip="127.0.0.1",
         $contrail_ks_auth_port="35357",
-	$contrail_vm_ip,
-	$contrail_vm_username,
-	$contrail_vm_passwd,
-	$contrail_vswitch,
     ) {
 
     if ($operatingsystem == "Ubuntu") {

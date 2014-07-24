@@ -1,11 +1,15 @@
 class __$version__::contrail_webui {
 
+# Following variables need to be set for this resource.
+# Those specified with value assiged are optional, if not
+# set the assigned value below is used.
+#     $contrail_config_ip
+#     $contrail_collector_ip
+#     $contrail_openstack_ip
+#     $contrail_keystone_ip = $contrail_openstack_ip
+#     $contrail_cassandra_ip_list
 define contrail_webui (
-        $contrail_config_ip,
-        $contrail_collector_ip,
-        $contrail_openstack_ip,
-        $contrail_keystone_ip = $contrail_openstack_ip,
-        $contrail_cassandra_ip_list
+        $contrail_keystone_ip = $contrail_openstack_ip
     ) {
 
     # Ensure all needed packages are present
