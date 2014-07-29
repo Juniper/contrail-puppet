@@ -13,6 +13,8 @@ disc_server_ip=<%= contrail_config_ip %>
 disc_server_port=5998
 zk_server_ip=<%= contrail_zookeeper_ip_list.map{ |ip| "#{ip}:#{@contrail_zk_ip_port}" }.join(',') %>
 redis_server_ip=<%= contrail_redis_ip %>
+rabbit_server=<%= contrail_config_ip %>
+rabbit_port=5672
 
 [SECURITY]
 use_certs=<%= contrail_use_certs %>

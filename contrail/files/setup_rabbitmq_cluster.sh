@@ -42,10 +42,10 @@ eval "rabbitmqctl force_reset"
 if [ $is_master == "yes" ]; then
     eval "rabbitmqctl start_app"
 else
-    eval "rabbitmqctl cluster rabbit@$this_host rabbit@$master"
-    if [ $? != 0  ];then
-        exit 1
-    fi
+    #eval "rabbitmqctl cluster rabbit@$this_host rabbit@$master"
+    #if [ $? != 0  ];then
+    #    exit 1
+    #fi
     eval "rabbitmqctl start_app"
 fi
 rabbitmqctl cluster_status | grep $master

@@ -96,25 +96,25 @@ define contrail_openstack (
     }
 
     # Handle rabbitmq.conf changes
-    $conf_file = "/etc/rabbitmq/rabbitmq.config"
-    if ! defined(File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"]) {
-        file { "/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh" : 
-            ensure  => present,
-            mode => 0755,
-            owner => root,
-            group => root,
-            source => "puppet:///modules/$module_name/cfg-qpidd-rabbitmq.sh"
-        }
-    }
-    if ! defined(Exec["exec-cfg-qpidd-rabbitmq"]) {
-        exec { "exec-cfg-qpidd-rabbitmq" :
-            command => "/bin/bash /etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh $operatingsystem $conf_file && echo exec-cfg-qpidd-rabbitmq >> /etc/contrail/contrail_openstack_exec.out",
-            require =>  File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"],
-            unless  => "grep -qx exec-cfg-qpidd-rabbitmq /etc/contrail/contrail_openstack_exec.out",
-            provider => shell,
-            logoutput => 'true'
-        }
-    }
+    #$conf_file = "/etc/rabbitmq/rabbitmq.config"
+    #if ! defined(File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"]) {
+    #    file { "/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh" : 
+    #        ensure  => present,
+    #        mode => 0755,
+    #        owner => root,
+    #        group => root,
+    #        source => "puppet:///modules/$module_name/cfg-qpidd-rabbitmq.sh"
+    #    }
+    #}
+    #if ! defined(Exec["exec-cfg-qpidd-rabbitmq"]) {
+    #    exec { "exec-cfg-qpidd-rabbitmq" :
+    #        command => "/bin/bash /etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh $operatingsystem $conf_file && echo exec-cfg-qpidd-rabbitmq >> /etc/contrail/contrail_openstack_exec.out",
+    #        require =>  File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"],
+    #        unless  => "grep -qx exec-cfg-qpidd-rabbitmq /etc/contrail/contrail_openstack_exec.out",
+    #        provider => shell,
+    #        logoutput => 'true'
+    #    }
+    #}
 
     file { "/etc/contrail/contrail_setup_utils/api-paste.sh" : 
         ensure  => present,

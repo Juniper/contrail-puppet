@@ -122,6 +122,8 @@ define contrail_compute_part_2 (
 	$contrail_vm_username,
 	$contrail_vm_passwd,
 	$contrail_vswitch,
+        $contrail_amqp_server_ip,
+        $contrail_openstack_index,
     ) {
     # Ensure all needed packages are present
     package { 'contrail-openstack-vrouter' : ensure => present,}
@@ -473,6 +475,8 @@ define contrail_compute (
 		contrail_vm_username => $contrail_vm_username,
 		contrail_vm_passwd => $contrail_vm_passwd,
 		contrail_vswitch => $contrail_vswitch,
+                contrail_amqp_server_ip => $contrail_amqp_server_ip,
+                contrail_openstack_index => $contrail_openstack_index,
             }
         }
         else {
@@ -525,6 +529,8 @@ define contrail_compute (
 		contrail_vm_username => $contrail_vm_username,
 		contrail_vm_passwd => $contrail_vm_passwd,
 		contrail_vswitch => $contrail_vswitch,
+                contrail_amqp_server_ip => $contrail_amqp_server_ip,
+                contrail_openstack_index => $contrail_openstack_index,
             }
         }
         else {
