@@ -1,0 +1,110 @@
+#
+#   Copyright (C) 2014 Cloudwatt <libre.licensing@cloudwatt.com>
+#   Copyright (C) 2014 Nine Internet Solutions AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# Author: Loic Dachary <loic@dachary.org>
+# Author: David Gurtner <david@nine.ch>
+#
+### == Parameters
+# [*title*] The OSD data path.
+#   Mandatory. A path in which the OSD data is to be stored.
+#
+# [*ensure*] Installs ( present ) or remove ( absent ) an OSD
+#   Optional. Defaults to present.
+#   If set to absent, it will stop the OSD service and remove
+#   the associated data directory.
+#
+# [*journal*] The OSD journal path.
+#   Optional. Defaults to co-locating the journal with the data
+#   defined by *title*.
+#
+# [*cluster*] The ceph cluster
+#   Optional. Same default as ceph.
+#
+define ceph::osd (
+  $ensure = present,
+  $journal = undef,
+  $cluster = undef,
+  ) {
+
+    $data = $name
+
+    if $cluster {
+      $cluster_option = "--cluster ${cluster}"
+      $cluster_name = $cluster
+    } else {
+      $cluster_name = 'ceph'
+    }
+
+    if $ensure == present {
+
+      $ceph_mkfs = "ceph-osd-mkfs-${name}"
+
+
+    if (!defined(File["ceph-osd-setup-file"])) {
+        file { "ceph-osd-setup-file":
+	    path => "/opt/contrail/contrail_setup_utils/config-storage-add-osd.sh",
+            ensure  => present,
+            mode => 0755,
+            owner => root,
+            group => root,
+            source => "puppet:///modules/ceph/config-storage-add-osd.sh",
+    	}
+    }
+
+
+      Ceph_Config<||> -> Exec[$ceph_mkfs]
+      Ceph::Mon<||> -> Exec[$ceph_mkfs]
+      Ceph::Key<||> -> Exec[$ceph_mkfs]
+      # ceph-disk: prepare should be idempotent http://tracker.ceph.com/issues/7475
+      exec { $ceph_mkfs:
+        command   => "/bin/true  # comment to satisfy puppet syntax requirements
+set -ex
+/opt/contrail/contrail_setup_utils/config-storage-add-osd.sh ${data} ${hostname}
+",
+        logoutput => true,
+	require => File['ceph-osd-setup-file'] 
+      }
+
+    } else {
+
+      # ceph-disk: support osd removal http://tracker.ceph.com/issues/7454
+      exec { "remove-osd-${name}":
+        command   => "/bin/true  # comment to satisfy puppet syntax requirements
+set -ex
+if [ -z \"\$id\" ] ; then
+  id=\$(ceph-disk list | grep ' *${data}.*ceph data' | sed -ne 's/.*osd.\\([0-9][0-9]*\\).*/\\1/p')
+fi
+if [ -z \"\$id\" ] ; then
+  id=\$(ceph-disk list | grep ' *${data}.*mounted on' | sed -ne 's/.*osd.\\([0-9][0-9]*\\)\$/\\1/p')
+fi
+if [ -z \"\$id\" ] ; then
+  id=\$(ls -l /var/lib/ceph/osd/${cluster_name}-* | grep ' ${data}' | sed -ne 's:.*/${cluster_name}-\\([0-9][0-9]*\\) -> .*:\\1:p' || true)
+fi
+if [ \"\$id\" ] ; then
+  stop ceph-osd cluster=${cluster_name} id=\$id || true
+  service ceph stop osd.\$id || true
+  ceph ${cluster_option} osd rm \$id
+  ceph auth del osd.\$id
+  rm -fr /var/lib/ceph/osd/${cluster_name}-\$id/*
+  umount /var/lib/ceph/osd/${cluster_name}-\$id || true
+  rm -fr /var/lib/ceph/osd/${cluster_name}-\$id
+fi
+",
+        logoutput => true,
+      } -> Ceph::Mon<| ensure == absent |>
+    }
+
+}
