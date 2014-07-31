@@ -34,7 +34,7 @@ define openstack-scripts {
 #     $contrail_ks_auth_port="35357"
 define contrail_openstack (
         $contrail_keystone_ip = $contrail_openstack_ip,
-        $contrail_amqp_server_ip="127.0.0.1",
+        $contrail_amqp_server_ip= $contrail_amqp_server_ip,
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
         $contrail_ks_auth_port="35357"
