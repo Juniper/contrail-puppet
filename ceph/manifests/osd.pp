@@ -53,16 +53,6 @@ define ceph::osd (
       $ceph_mkfs = "ceph-osd-mkfs-${name}"
 
 
-    if (!defined(File["ceph-osd-setup-file"])) {
-        file { "ceph-osd-setup-file":
-	    path => "/opt/contrail/contrail_setup_utils/config-storage-add-osd.sh",
-            ensure  => present,
-            mode => 0755,
-            owner => root,
-            group => root,
-            source => "puppet:///modules/ceph/config-storage-add-osd.sh",
-    	}
-    }
 
 
       Ceph_Config<||> -> Exec[$ceph_mkfs]
