@@ -5,9 +5,11 @@ define contrail_storage (
 	$contrail_storage_mon_secret,
 	$contrail_storage_osd_bootstrap_key,
 	$contrail_storage_admin_key,
+	$contrail_storage_repo_id,
 	$contrail_openstack_ip,
 	$contrail_storage_virsh_uuid,
 	$contrail_storage_mon_hosts,
+	$contrail_storage_osd_disks = 'undef',
 	$contrail_storage_auth_type = 'cephx',
 	$contrail_mon_addr = $ipaddress,
 	$contrail_mon_port  = 6789,
@@ -15,11 +17,32 @@ define contrail_storage (
 	$contrail_storage_journal_size_mb = 1024
     ) {
 
-        package { 'contrail-storage-packages' : ensure => present,}
+	__$version__::contrail_common::contrail-setup-repo{contrail_storage_repo:
+		contrail_repo_name => $contrail_storage_repo_id,
+		contrail_server_mgr_ip => "10.87.132.135",
+	}
+        package { 'contrail-storage-packages' : ensure => present,
+		require => __$version__::Contrail_common::Contrail-setup-repo['contrail_storage_repo']
+	}
+
         package { 'contrail-storage' :
-		 ensure => present,
+		ensure => present,
 		require => Package['contrail-storage-packages']
 	}
+
+	file { 'contrail-setup-utils':
+		path => '/opt/contrail/contrail_setup_utils',
+		ensure => directory,
+	}
+        file { "ceph-osd-setup-file":
+	    path => "/opt/contrail/contrail_setup_utils/config-storage-add-osd.sh",
+            ensure  => present,
+            mode => 0755,
+            owner => root,
+            group => root,
+            source => "puppet:///modules/$module_name/config-storage-add-osd.sh",
+		require => File['contrail-setup-utils']
+    	}
 
 	class { 'ceph' : 
 		fsid => $contrail_storage_fsid,
@@ -49,9 +72,27 @@ define contrail_storage (
 		inject => true,
 	  }
 
-	ceph::osd { '/dev/sdb': }
-	ceph::osd { '/dev/sdc': }
-	ceph::osd { '/dev/sdd': }
+	if $contrail_storage_osd_disks != 'undef' {
+		ceph::osd { $contrail_storage_osd_disks: }
+	}
+
+	ceph::pool{'data': ensure => absent}
+	ceph::pool{'metadata': ensure => absent}
+	ceph::pool{'rbd': ensure => absent}
+
+  	$contrail_ceph_pg_num = 32 * $contrail_storage_num_osd
+	ceph::pool{'volumes': ensure => present,
+		size => 2,
+		pg_num => $contrail_ceph_pg_num,
+		pgp_num => $contrail_ceph_pg_num,
+	}
+
+	ceph::pool{'images': ensure => present,
+		size => 2,
+		pg_num => $contrail_ceph_pg_num,
+		pgp_num => $contrail_ceph_pg_num,
+	}
+
 
 	contrail_storage_config_files{'contrail-storage-config-files':
 		contrail_openstack_ip => $contrail_openstack_ip,
@@ -74,7 +115,6 @@ define contrail_storage_config_files(
 		mode => 0755,
 		owner => root,
 		group => root,
-		#require => Package["contrail-openstack-config"],
 		source => "puppet:///modules/$module_name/config-storage-openstack.sh"
 	    }
 
@@ -118,38 +158,16 @@ define contrail_storage_config_files(
 define contrail_storage_pools(
 	$contrail_storage_virsh_uuid
 	) {
-  exec { "pool_volumes":
-    command => "/usr/bin/rados mkpool volumes",
-    unless  => "/usr/bin/ceph osd dump | /bin/grep pool | /bin/grep -q volumes",
-  }
-
-  exec { "pool_images":
-    command => "/usr/bin/rados mkpool images",
-    unless  => "/usr/bin/ceph osd dump | /bin/grep pool | /bin/grep -q images",
-  }
-
-  exec { "volumes_set_pg_num":
-    command => "/usr/bin/ceph osd pool set volumes pg_num $ceph_pg_num",
-    require => Exec['pool_volumes']
-  }
-
-  exec { "volumes_set_pgp_num":
-    command => "/usr/bin/ceph osd pool set volumes pgp_num $ceph_pg_num",
-    require => [Exec['pool_volumes'], Exec['volumes_set_pg_num']]
-  }
 
 
   exec { 'ceph-volumes-key':
     command => "/usr/bin/ceph auth get-or-create client.volumes mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=volumes, allow rx pool=images' -o /etc/ceph/client.volumes.keyring",
     creates => '/etc/ceph/client.volumes.keyring',
-    require => Exec['volumes_set_pgp_num']
-
   }
 
   exec { 'ceph-images-key':
     command => "/usr/bin/ceph auth get-or-create client.images mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=images' -o /etc/ceph/client.images.keyring",
     creates => '/etc/ceph/client.images.keyring',
-    require => Exec['volumes_set_pgp_num']
   }
 
   exec { 'ceph-virsh-secret' : 
@@ -181,4 +199,5 @@ define contrail_storage_pools(
     subscribe => File['/etc/ceph/virsh.conf'],
   }
 
+}
 }
