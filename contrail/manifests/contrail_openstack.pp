@@ -86,6 +86,28 @@ define contrail_openstack (
         logoutput => 'true'
     }
 
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-nova-conf-file1" :
+        #command => "sudo sed -i 's/#rabbit_host\s*=\s*127.0.0.1/rabbit_host = $contrail_amqp_server_ip/g' /etc/nova/nova.conf && echo update-nova-conf-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        command => "openstack-config --set /etc/nova/nova.conf DEFAULT rabbit_host $contrail_amqp_server_ip && echo update-nova-conf-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        require =>  package["contrail-openstack"],
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-nova-conf-file1 /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-nova-conf-file2" :
+        #command => "sudo sed -i 's/#rabbit_host\s*=\s*127.0.0.1/rabbit_host = $contrail_amqp_server_ip/g' /etc/nova/nova.conf && echo update-nova-conf-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken rabbit_host $contrail_amqp_server_ip  && echo update-nova-conf-file2 >> /etc/contrail/contrail_openstack_exec.out",
+        require =>  package["contrail-openstack"],
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-nova-conf-file2 /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+
     exec { "update-cinder-conf-file" :
         command => "sudo sed -i 's/rpc_backend = cinder.openstack.common.rpc.impl_qpid/#rpc_backend = cinder.openstack.common.rpc.impl_qpid/g' /etc/cinder/cinder.conf && echo update-cinder-conf-file >> /etc/contrail/contrail_openstack_exec.out",
         require =>  package["contrail-openstack"],

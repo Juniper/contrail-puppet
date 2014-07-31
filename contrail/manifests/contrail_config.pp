@@ -317,7 +317,7 @@ define contrail_config (
         exec { "exec-cfg-qpidd-rabbitmq" :
             command => "/bin/bash /etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh $conf_file $self_ip $contrail_rabbit_user $contrail_cfgm_number && echo exec-cfg-qpidd-rabbitmq >> /etc/contrail/contrail_config_exec.out",
             require =>  File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"],
-            unless  => "grep -qx exec-qpidd-rabbitmq /etc/contrail/contrail_openstack_exec.out",
+            unless  => "grep -qx exec-qpidd-rabbitmq /etc/contrail/contrail_config_exec.out",
             provider => shell,
             logoutput => 'true'
         }
