@@ -62,7 +62,7 @@ ceph auth add osd.${osd_num} osd 'allow *' mon 'allow profile osd' -i /var/lib/c
 
 ## Add crush bucket
 ceph osd crush add-bucket ${hostname} host
-ceph osd crush move ubuntu-1204-n21 root=default
+ceph osd crush move ${hostname} root=default
 ceph osd crush add osd.${osd_num} 1.0 host=${hostname}
 
 
