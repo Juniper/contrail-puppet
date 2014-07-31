@@ -19,7 +19,7 @@ define contrail_storage (
 
 	__$version__::contrail_common::contrail-setup-repo{contrail_storage_repo:
 		contrail_repo_name => $contrail_storage_repo_id,
-		contrail_server_mgr_ip => "10.87.132.135",
+		contrail_server_mgr_ip => "$serverip",
 	}
 	 ->
         package { 'contrail-storage-packages' : ensure => present, }
