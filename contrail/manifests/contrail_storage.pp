@@ -21,40 +21,30 @@ define contrail_storage (
 		contrail_repo_name => $contrail_storage_repo_id,
 		contrail_server_mgr_ip => "10.87.132.135",
 	}
-        package { 'contrail-storage-packages' : ensure => present,
-		require => __$version__::Contrail_common::Contrail-setup-repo['contrail_storage_repo']
-	}
+	 ->
+        package { 'contrail-storage-packages' : ensure => present, }
+	 ->
+        package { 'contrail-storage' : ensure => present, }
 
-        package { 'contrail-storage' :
-		ensure => present,
-		require => Package['contrail-storage-packages']
-	}
-
-	file { 'contrail-setup-utils':
-		path => '/opt/contrail/contrail_setup_utils',
-		ensure => directory,
-	}
         file { "ceph-osd-setup-file":
-	    path => "/opt/contrail/contrail_setup_utils/config-storage-add-osd.sh",
+	    path => "/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh",
             ensure  => present,
             mode => 0755,
             owner => root,
             group => root,
             source => "puppet:///modules/$module_name/config-storage-add-osd.sh",
-		require => File['contrail-setup-utils']
     	}
+	#File<| title == 'ceph-osd-setup-file' |> -> Ceph::Osd <||>
 
 	class { 'ceph' : 
 		fsid => $contrail_storage_fsid,
 		mon_host => "$contrail_storage_mon_hosts",
 		keyring => '/etc/ceph/$cluster.$name.keyring',
 		require => Package['contrail-storage'],
-	}
-
-	ceph::mon{ $contrail_storage_hostname: 
+	} ->
+	ceph::mon { $contrail_storage_hostname: 
 		key => $contrail_storage_mon_secret
-	}
-
+	} -> 
 	ceph::key{'client.admin':
 		secret => $contrail_storage_admin_key,
 		cap_mon => 'allow *',
@@ -62,7 +52,7 @@ define contrail_storage (
 		inject_as_id => 'mon.',
 		inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
 		inject => true,
-	 }
+	 } ->
 
 	 ceph::key{'client.bootstrap-osd':
 		secret => $contrail_storage_osd_bootstrap_key,
@@ -74,32 +64,34 @@ define contrail_storage (
 
 	if $contrail_storage_osd_disks != 'undef' {
 		ceph::osd { $contrail_storage_osd_disks: }
+		## if no disks on this host, don't run pools related stuf
+		ceph::pool{'data': ensure => absent}
+		ceph::pool{'metadata': ensure => absent}
+		ceph::pool{'rbd': ensure => absent}
+
+		$contrail_ceph_pg_num = 32 * $contrail_storage_num_osd
+		Ceph::Osd<| |> -> Ceph::Pool['volumes']
+		Ceph::Osd<| |> -> Ceph::Pool['images']
+		ceph::pool{'volumes': ensure => present,
+			size => 2,
+			pg_num => $contrail_ceph_pg_num,
+			pgp_num => $contrail_ceph_pg_num,
+		}
+
+		ceph::pool{'images': ensure => present,
+			size => 2,
+			pg_num => $contrail_ceph_pg_num,
+			pgp_num => $contrail_ceph_pg_num,
+		}
 	}
-
-	ceph::pool{'data': ensure => absent}
-	ceph::pool{'metadata': ensure => absent}
-	ceph::pool{'rbd': ensure => absent}
-
-  	$contrail_ceph_pg_num = 32 * $contrail_storage_num_osd
-	ceph::pool{'volumes': ensure => present,
-		size => 2,
-		pg_num => $contrail_ceph_pg_num,
-		pgp_num => $contrail_ceph_pg_num,
-	}
-
-	ceph::pool{'images': ensure => present,
-		size => 2,
-		pg_num => $contrail_ceph_pg_num,
-		pgp_num => $contrail_ceph_pg_num,
-	}
-
 
 	contrail_storage_config_files{'contrail-storage-config-files':
 		contrail_openstack_ip => $contrail_openstack_ip,
 		contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
 	}
-	contrail_storage_pools{'config_storage_pools':
+	contrail_storage_pools{'config_storage_pool_key':
 		contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
+		require => [Package['contrail-storage']]
 	}
     }
 
@@ -159,6 +151,8 @@ define contrail_storage_pools(
 	$contrail_storage_virsh_uuid
 	) {
 
+	Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['ceph-volumes-key']
+	Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['ceph-images-key']
 
   exec { 'ceph-volumes-key':
     command => "/usr/bin/ceph auth get-or-create client.volumes mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=volumes, allow rx pool=images' -o /etc/ceph/client.volumes.keyring",
