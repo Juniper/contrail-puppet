@@ -53,8 +53,6 @@ define ceph::osd (
       $ceph_mkfs = "ceph-osd-mkfs-${name}"
 
 
-
-
       Ceph_Config<||> -> Exec[$ceph_mkfs]
       Ceph::Mon<||> -> Exec[$ceph_mkfs]
       Ceph::Key<||> -> Exec[$ceph_mkfs]
@@ -62,7 +60,7 @@ define ceph::osd (
       exec { $ceph_mkfs:
         command   => "/bin/true  # comment to satisfy puppet syntax requirements
 set -ex
-/opt/contrail/contrail_setup_utils/config-storage-add-osd.sh ${data} ${hostname}
+/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh ${data} ${hostname}
 ",
         logoutput => true,
 	require => File['ceph-osd-setup-file'] 
