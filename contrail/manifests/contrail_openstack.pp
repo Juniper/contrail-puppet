@@ -255,6 +255,16 @@ define contrail_openstack (
 			   before => Service["openstack-keystone"]
 	    }
     }
+    ##Chhandak Added this section to update /etc/mysql/my.cnf to remove bind address
+    exec { "update-mysql-file1" :
+        command => "sudo sed -i -e 's/bind-address/#bind-address/g' /etc/mysql/my.cnf && echo update-mysql-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        require =>  package["contrail-openstack"],
+        onlyif => "test -f /etc/mysql/my.cnf",
+        unless  => "grep -qx update-mysql-file1 /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => 'true',
+        before => Service["mysqld"]
+    }
     # Ensure the services needed are running.
     service { "mysqld" :
         enable => true,
