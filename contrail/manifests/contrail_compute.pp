@@ -205,19 +205,19 @@ define contrail_compute_part_2 (
     }
 
     ##Chhandak Added this section to update nova.conf with corect rabit_host ip
-    exec { "update-nova-conf-file1" :
-        command => "openstack-config --set /etc/nova/nova.conf DEFAULT rabbit_host $contrail_amqp_server_ip && echo update-nova-conf-file1 >> /etc/contrail/contrail_compute_exec.out",
+    exec { "update-compute-nova-conf-file1" :
+        command => "openstack-config --set /etc/nova/nova.conf DEFAULT rabbit_host $contrail_amqp_server_ip && echo update-compute-nova-conf-file1 >> /etc/contrail/contrail_compute_exec.out",
         onlyif => "test -f /etc/nova/nova.conf",
-        unless  => "grep -qx update-nova-conf-file1 /etc/contrail/contrail_compute_exec.out",
+        unless  => "grep -qx update-compute--nova-conf-file1 /etc/contrail/contrail_compute_exec.out",
         provider => shell,
         logoutput => 'true'
     }
 
     ##Chhandak Added this section to update nova.conf with corect rabit_host ip
-    exec { "update-nova-conf-file2" :
-        command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken rabbit_host $contrail_amqp_server_ip  && echo update-nova-conf-file2 >> /etc/contrail/contrail_compute_exec.out",
+    exec { "update-compute-nova-conf-file2" :
+        command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken rabbit_host $contrail_amqp_server_ip  && echo update-compute-nova-conf-file2 >> /etc/contrail/contrail_compute_exec.out",
         onlyif => "test -f /etc/nova/nova.conf",
-        unless  => "grep -qx update-nova-conf-file2 /etc/contrail/contrail_compute_exec.out",
+        unless  => "grep -qx update-compute-nova-conf-file2 /etc/contrail/contrail_compute_exec.out",
         provider => shell,
         logoutput => 'true'
     }
@@ -412,7 +412,7 @@ define contrail_compute_part_2 (
             provider => "shell",
             logoutput => 'true'
         }
-        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-nova-conf-file1"] -> Exec["update-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
+        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
     }
     else {
         file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
