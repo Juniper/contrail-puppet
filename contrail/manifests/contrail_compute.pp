@@ -203,6 +203,24 @@ define contrail_compute_part_2 (
         provider => shell,
        	logoutput => "true"
     }
+
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-nova-conf-file1" :
+        command => "openstack-config --set /etc/nova/nova.conf DEFAULT rabbit_host $contrail_amqp_server_ip && echo update-nova-conf-file1 >> /etc/contrail/contrail_compute_exec.out",
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-nova-conf-file1 /etc/contrail/contrail_compute_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-nova-conf-file2" :
+        command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken rabbit_host $contrail_amqp_server_ip  && echo update-nova-conf-file2 >> /etc/contrail/contrail_compute_exec.out",
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-nova-conf-file2 /etc/contrail/contrail_compute_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
     
     # Ensure ctrl-details file is present with right content.
     if ! defined(File["/etc/contrail/ctrl-details"]) {
@@ -443,7 +461,7 @@ define contrail_compute (
         $contrail_keystone_ip = $contrail_openstack_ip,
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
-        $contrail_amqp_server_ip="127.0.0.1",
+        $contrail_amqp_server_ip= $contrail_amqp_server_ip,
         $contrail_ks_auth_port="35357",
     ) {
 
