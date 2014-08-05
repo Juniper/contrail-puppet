@@ -116,12 +116,13 @@ define contrail_compute_part_2 (
 	$contrail_haproxy,
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
-        $contrail_amqp_server_ip="127.0.0.1",
         $contrail_ks_auth_port="35357",
 	$contrail_vm_ip,
 	$contrail_vm_username,
 	$contrail_vm_passwd,
 	$contrail_vswitch,
+        $contrail_amqp_server_ip,
+        $contrail_openstack_index,
     ) {
     # Ensure all needed packages are present
     package { 'contrail-openstack-vrouter' : ensure => present,}
@@ -201,6 +202,24 @@ define contrail_compute_part_2 (
                     "grep -qx exec-update-nova-conf /etc/contrail/contrail_common_exec.out"],
         provider => shell,
        	logoutput => "true"
+    }
+
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-compute-nova-conf-file1" :
+        command => "openstack-config --set /etc/nova/nova.conf DEFAULT rabbit_host $contrail_amqp_server_ip && echo update-compute-nova-conf-file1 >> /etc/contrail/contrail_compute_exec.out",
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-compute--nova-conf-file1 /etc/contrail/contrail_compute_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-compute-nova-conf-file2" :
+        command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken rabbit_host $contrail_amqp_server_ip  && echo update-compute-nova-conf-file2 >> /etc/contrail/contrail_compute_exec.out",
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-compute-nova-conf-file2 /etc/contrail/contrail_compute_exec.out",
+        provider => shell,
+        logoutput => 'true'
     }
     
     # Ensure ctrl-details file is present with right content.
@@ -393,7 +412,7 @@ define contrail_compute_part_2 (
             provider => "shell",
             logoutput => 'true'
         }
-        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
+        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
     }
     else {
         file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
@@ -442,7 +461,7 @@ define contrail_compute (
         $contrail_keystone_ip = $contrail_openstack_ip,
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
-        $contrail_amqp_server_ip="127.0.0.1",
+        $contrail_amqp_server_ip= $contrail_amqp_server_ip,
         $contrail_ks_auth_port="35357",
     ) {
 
@@ -467,12 +486,13 @@ define contrail_compute (
 		contrail_haproxy => $contrail_haproxy,
                 contrail_ks_auth_protocol => $contrail_ks_auth_protocol,
                 contrail_quantum_service_protocol => $contrail_quantum_service_protocol,
-                contrail_amqp_server_ip => $contrail_amqp_server_ip,
                 contrail_ks_auth_port => $contrail_ks_auth_port,
 		contrail_vm_ip => $contrail_vm_ip,
 		contrail_vm_username => $contrail_vm_username,
 		contrail_vm_passwd => $contrail_vm_passwd,
 		contrail_vswitch => $contrail_vswitch,
+                contrail_amqp_server_ip => $contrail_amqp_server_ip,
+                contrail_openstack_index => $contrail_openstack_index,
             }
         }
         else {
@@ -519,12 +539,13 @@ define contrail_compute (
 		contrail_haproxy => $contrail_haproxy,
                 contrail_ks_auth_protocol => $contrail_ks_auth_protocol,
                 contrail_quantum_service_protocol => $contrail_quantum_service_protocol,
-                contrail_amqp_server_ip => $contrail_amqp_server_ip,
                 contrail_ks_auth_port => $contrail_ks_auth_port,
 		contrail_vm_ip => $contrail_vm_ip,
 		contrail_vm_username => $contrail_vm_username,
 		contrail_vm_passwd => $contrail_vm_passwd,
 		contrail_vswitch => $contrail_vswitch,
+                contrail_amqp_server_ip => $contrail_amqp_server_ip,
+                contrail_openstack_index => $contrail_openstack_index,
             }
         }
         else {

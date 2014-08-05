@@ -303,24 +303,20 @@ define contrail_config (
 
     # Handle rabbitmq.config changes
     $conf_file = "/etc/rabbitmq/rabbitmq.config"
-    if ! defined(File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"]) {
-        file { "/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh" : 
-            ensure  => present,
-            mode => 0755,
-            owner => root,
-            group => root,
-            require => Package['contrail-openstack-config'],
-            source => "puppet:///modules/$module_name/cfg-qpidd-rabbitmq.sh"
-        }
+    file { "/etc/contrail/contrail_setup_utils/cfg-rabbitmq.sh" : 
+        ensure  => present,
+        mode => 0755,
+        owner => root,
+        group => root,
+        require => Package['contrail-openstack-config'],
+        source => "puppet:///modules/$module_name/cfg-qpidd-rabbitmq.sh"
     }
-    if ! defined(Exec["exec-cfg-qpidd-rabbitmq"]) {
-        exec { "exec-cfg-qpidd-rabbitmq" :
-            command => "/bin/bash /etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh $conf_file && echo exec-cfg-qpidd-rabbitmq >> /etc/contrail/contrail_openstack_exec.out",
-            require =>  File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"],
-            unless  => "grep -qx exec-qpidd-rabbitmq /etc/contrail/contrail_openstack_exec.out",
-            provider => shell,
-            logoutput => 'true'
-        }
+    exec { "exec-cfg-rabbitmq" :
+        command => "/bin/bash /etc/contrail/contrail_setup_utils/cfg-rabbitmq.sh $conf_file $self_ip $contrail_rabbit_user $contrail_cfgm_number && echo exec-cfg-rabbitmq >> /etc/contrail/contrail_config_exec.out",
+        require =>  File["/etc/contrail/contrail_setup_utils/cfg-rabbitmq.sh"],
+        unless  => "grep -qx exec-cfg-rabbitmq /etc/contrail/contrail_config_exec.out",
+        provider => shell,
+        logoutput => 'true'
     }
 
     file { "/etc/contrail/contrail_setup_utils/setup_rabbitmq_cluster.sh":
@@ -333,10 +329,33 @@ define contrail_config (
     }
 
     exec { "setup-rabbitmq-cluster" :
-        command => "/bin/bash /etc/contrail/contrail_setup_utils/setup_rabbitmq_cluster.sh $operatingsystem $contrail_uuid $contrail_rmq_master $contrail_rmq_is_master && echo setup_rabbitmq_cluster >> /etc/contrail/contrail_config_exec.out",
-       # command => "echo rabbit && echo setup_rabbitmq_cluster >> /etc/contrail/contrail_config_exec.out",
+        command => "/bin/bash /etc/contrail/contrail_setup_utils/setup_rabbitmq_cluster.sh $operatingsystem $contrail_uuid $contrail_rmq_master $contrail_rmq_is_master '$contrail_rabbithost_list_for_shell' && echo setup_rabbitmq_cluster >> /etc/contrail/contrail_config_exec.out",
         require => File["/etc/contrail/contrail_setup_utils/setup_rabbitmq_cluster.sh"],
         unless  => "grep -qx setup_rabbitmq_cluster /etc/contrail/contrail_config_exec.out",
+        provider => shell,
+        logoutput => "true"
+    }
+
+
+    file { "/etc/contrail/contrail_setup_utils/check_rabbitmq_cluster.sh":
+        ensure  => present,
+        mode => 0755,
+        owner => root,
+        group => root,
+        require => Package["contrail-openstack-config"],
+        source => "puppet:///modules/$module_name/check_rabbitmq_cluster.sh"
+    }
+    notify { $contrail_rabbit_user:; }  
+
+    $contrail_rabbithost_list_for_shell = inline_template('<%= contrail_rabbit_user.sub(/\,/, " ").delete "[]" %>')
+
+    notify { $contrail_rabbithost_list_for_shell:; }  
+    #Check to see if the rabbitmq cluster is fully formed,
+    #else dont process in the chain
+    exec { "check-rabbitmq-cluster" :
+        command => "/bin/bash /etc/contrail/contrail_setup_utils/check_rabbitmq_cluster.sh '$contrail_rabbithost_list_for_shell' && echo check_rabbitmq_cluster >> /etc/contrail/contrail_config_exec.out",
+        require => File["/etc/contrail/contrail_setup_utils/check_rabbitmq_cluster.sh"],
+        unless  => "grep -qx check_rabbitmq_cluster /etc/contrail/contrail_config_exec.out",
         provider => shell,
         logoutput => "true"
     }
@@ -442,7 +461,7 @@ define contrail_config (
     }
 
 
-    Exec["haproxy-exec"]->Exec["setup-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-quantum-in-keystone"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Exec["haproxy-exec"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-quantum-in-keystone"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name

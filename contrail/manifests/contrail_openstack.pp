@@ -34,7 +34,7 @@ define openstack-scripts {
 #     $contrail_ks_auth_port="35357"
 define contrail_openstack (
         $contrail_keystone_ip = $contrail_openstack_ip,
-        $contrail_amqp_server_ip="127.0.0.1",
+        $contrail_amqp_server_ip= $contrail_amqp_server_ip,
         $contrail_ks_auth_protocol="http",
         $contrail_quantum_service_protocol="http",
         $contrail_ks_auth_port="35357"
@@ -86,6 +86,28 @@ define contrail_openstack (
         logoutput => 'true'
     }
 
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-nova-conf-file1" :
+        #command => "sudo sed -i 's/#rabbit_host\s*=\s*127.0.0.1/rabbit_host = $contrail_amqp_server_ip/g' /etc/nova/nova.conf && echo update-nova-conf-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        command => "openstack-config --set /etc/nova/nova.conf DEFAULT rabbit_host $contrail_amqp_server_ip && echo update-nova-conf-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        require =>  package["contrail-openstack"],
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-nova-conf-file1 /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+
+    ##Chhandak Added this section to update nova.conf with corect rabit_host ip
+    exec { "update-nova-conf-file2" :
+        #command => "sudo sed -i 's/#rabbit_host\s*=\s*127.0.0.1/rabbit_host = $contrail_amqp_server_ip/g' /etc/nova/nova.conf && echo update-nova-conf-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken rabbit_host $contrail_amqp_server_ip  && echo update-nova-conf-file2 >> /etc/contrail/contrail_openstack_exec.out",
+        require =>  package["contrail-openstack"],
+        onlyif => "test -f /etc/nova/nova.conf",
+        unless  => "grep -qx update-nova-conf-file2 /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+
     exec { "update-cinder-conf-file" :
         command => "sudo sed -i 's/rpc_backend = cinder.openstack.common.rpc.impl_qpid/#rpc_backend = cinder.openstack.common.rpc.impl_qpid/g' /etc/cinder/cinder.conf && echo update-cinder-conf-file >> /etc/contrail/contrail_openstack_exec.out",
         require =>  package["contrail-openstack"],
@@ -96,25 +118,25 @@ define contrail_openstack (
     }
 
     # Handle rabbitmq.conf changes
-    $conf_file = "/etc/rabbitmq/rabbitmq.config"
-    if ! defined(File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"]) {
-        file { "/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh" : 
-            ensure  => present,
-            mode => 0755,
-            owner => root,
-            group => root,
-            source => "puppet:///modules/$module_name/cfg-qpidd-rabbitmq.sh"
-        }
-    }
-    if ! defined(Exec["exec-cfg-qpidd-rabbitmq"]) {
-        exec { "exec-cfg-qpidd-rabbitmq" :
-            command => "/bin/bash /etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh $operatingsystem $conf_file && echo exec-cfg-qpidd-rabbitmq >> /etc/contrail/contrail_openstack_exec.out",
-            require =>  File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"],
-            unless  => "grep -qx exec-cfg-qpidd-rabbitmq /etc/contrail/contrail_openstack_exec.out",
-            provider => shell,
-            logoutput => 'true'
-        }
-    }
+    #$conf_file = "/etc/rabbitmq/rabbitmq.config"
+    #if ! defined(File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"]) {
+    #    file { "/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh" : 
+    #        ensure  => present,
+    #        mode => 0755,
+    #        owner => root,
+    #        group => root,
+    #        source => "puppet:///modules/$module_name/cfg-qpidd-rabbitmq.sh"
+    #    }
+    #}
+    #if ! defined(Exec["exec-cfg-qpidd-rabbitmq"]) {
+    #    exec { "exec-cfg-qpidd-rabbitmq" :
+    #        command => "/bin/bash /etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh $operatingsystem $conf_file && echo exec-cfg-qpidd-rabbitmq >> /etc/contrail/contrail_openstack_exec.out",
+    #        require =>  File["/etc/contrail/contrail_setup_utils/cfg-qpidd-rabbitmq.sh"],
+    #        unless  => "grep -qx exec-cfg-qpidd-rabbitmq /etc/contrail/contrail_openstack_exec.out",
+    #        provider => shell,
+    #        logoutput => 'true'
+    #    }
+    #}
 
     file { "/etc/contrail/contrail_setup_utils/api-paste.sh" : 
         ensure  => present,
@@ -233,6 +255,23 @@ define contrail_openstack (
 			   before => Service["openstack-keystone"]
 	    }
     }
+    ##Chhandak Added this section to update /etc/mysql/my.cnf to remove bind address
+    exec { "update-mysql-file1" :
+        command => "sudo sed -i -e 's/bind-address/#bind-address/g' /etc/mysql/my.cnf && echo update-mysql-file1 >> /etc/contrail/contrail_openstack_exec.out",
+        require =>  package["contrail-openstack"],
+        onlyif => "test -f /etc/mysql/my.cnf",
+        unless  => "grep -qx update-mysql-file1 /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => 'true',
+        before => Service["mysqld"]
+    }
+
+    exec { "restart-supervisor-openstack":
+        command => "service supervisor-openstack restart && echo restart-supervisor-openstack >> /etc/contrail/contrail_openstack_exec.out",
+        unless  => "grep -qx restart-supervisor-openstack-exec /etc/contrail/contrail-openstack-exec.out",
+        provider => shell,
+        logoutput => "true"
+    }
     # Ensure the services needed are running.
     service { "mysqld" :
         enable => true,
@@ -251,7 +290,7 @@ define contrail_openstack (
         ensure => running,
     }
 
-    Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Service['mysqld']->Service['openstack-keystone']->Service['memcached']
+    Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['restart-supervisor-openstack']
 }
 # end of user defined type contrail_openstack.
 
