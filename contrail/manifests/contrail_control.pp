@@ -71,7 +71,7 @@ define contrail_control (
     }
 
     # Ensure all config files with correct content are present.
-    control-template-scripts { ["dns.conf", "control-node.conf"]: }
+    control-template-scripts { ["dns.conf", "contrail-control.conf"]: }
 
     # Hard-coded to be taken as parameter of vnsi and multi-tenancy options need to be passed to contrail_control too.
     # The below script can be avoided. Sets up puppet agent and waits to get certificate from puppet master.
@@ -90,7 +90,7 @@ define contrail_control (
         logoutput => "true"
     }
 
-    Package["contrail-openstack-control"]->Exec['control-venv']->Control-template-scripts["control-node.conf"]->Control-template-scripts["dns.conf"]->Exec["control-server-setup"]
+    Package["contrail-openstack-control"]->Exec['control-venv']->Control-template-scripts["contrail-control.conf"]->Control-template-scripts["dns.conf"]->Exec["control-server-setup"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
@@ -116,7 +116,7 @@ define contrail_control (
         enable => true,
         require => [ Package['contrail-openstack-control'],
                      Exec['control-venv'] ],
-        subscribe => File['/etc/contrail/control-node.conf'],
+        subscribe => File['/etc/contrail/contrail-control.conf'],
         ensure => running,
     }
     if ($operatingsystem == "Ubuntu") {
