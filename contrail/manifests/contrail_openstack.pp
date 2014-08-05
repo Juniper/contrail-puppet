@@ -265,6 +265,13 @@ define contrail_openstack (
         logoutput => 'true',
         before => Service["mysqld"]
     }
+
+    exec { "restart-supervisor-openstack":
+        command => "service supervisor-openstack restart && echo restart-supervisor-openstack >> /etc/contrail/contrail_openstack_exec.out",
+        unless  => "grep -qx restart-supervisor-openstack-exec /etc/contrail/contrail-openstack-exec.out",
+        provider => shell,
+        logoutput => "true"
+    }
     # Ensure the services needed are running.
     service { "mysqld" :
         enable => true,
@@ -283,7 +290,7 @@ define contrail_openstack (
         ensure => running,
     }
 
-    Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Service['mysqld']->Service['openstack-keystone']->Service['memcached']
+    Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['restart-supervisor-openstack']
 }
 # end of user defined type contrail_openstack.
 
