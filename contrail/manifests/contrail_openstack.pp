@@ -77,6 +77,45 @@ define contrail_openstack (
         }
     }
 
+    if ($operatingsystem == "Ubuntu") {
+        exec { "dashboard-local-settings-3" :
+            command => "sudo sed -i '/HORIZON_CONFIG.*customization_module.*/d' /etc/openstack-dashboard/local_settings.py && echo HORIZON_CONFIG['customization_module'] = 'contrail_openstack_dashboard.overrides' >> etc/openstack-dashboard/local_settings.py  && echo dashboard-local-settings-3 >> /etc/contrail/contrail_openstack_exec.out",
+            require =>  package["contrail-openstack"],
+            onlyif => "test -f /etc/openstack-dashboard/local_settings.py",
+            unless  => "grep -qx dashboard-local-settings-3 /etc/contrail/contrail_openstack_exec.out",
+            provider => shell,
+            logoutput => 'true'
+        }
+
+        exec { "dashboard-local-settings-4" :
+            command => "sudo sed -i '/LOGOUT_URL.*/d' etc/openstack-dashboard/local_settings.py && echo LOGOUT_URL='/horizon/auth/logout/' >> etc/openstack-dashboard/local_settings.py && service apache2 restart && echo dashboard-local-settings-4 >> /etc/contrail/contrail_openstack_exec.out",
+            require =>  package["contrail-openstack"],
+            onlyif => "test -f /etc/openstack-dashboard/local_settings.py",
+            unless  => "grep -qx dashboard-local-settings-4 /etc/contrail/contrail_openstack_exec.out",
+            provider => shell,
+            logoutput => 'true'
+        }
+    }
+    if ($operatingsystem == "Centos") {
+        exec { "dashboard-local-settings-3" :
+            command => "sudo sed -i '/HORIZON_CONFIG.*customization_module.*/d' /etc/openstack-dashboard/local_settings && echo HORIZON_CONFIG['customization_module'] = 'contrail_openstack_dashboard.overrides' >> etc/openstack-dashboard/local_settings  && echo dashboard-local-settings-3 >> /etc/contrail/contrail_openstack_exec.out",
+            require =>  package["contrail-openstack"],
+            onlyif => "test -f /etc/openstack-dashboard/local_settings",
+            unless  => "grep -qx dashboard-local-settings-3 /etc/contrail/contrail_openstack_exec.out",
+            provider => shell,
+            logoutput => 'true'
+        }
+
+        exec { "dashboard-local-settings-4" :
+            command => "sudo sed -i '/LOGOUT_URL.*/d' etc/openstack-dashboard/local_settings && echo LOGOUT_URL='/horizon/auth/logout/' >> etc/openstack-dashboard/local_settings && service httpd restart && echo dashboard-local-settings-4 >> /etc/contrail/contrail_openstack_exec.out",
+            require =>  package["contrail-openstack"],
+            onlyif => "test -f /etc/openstack-dashboard/local_settings",
+            unless  => "grep -qx dashboard-local-settings-4 /etc/contrail/contrail_openstack_exec.out",
+            provider => shell,
+            logoutput => 'true'
+        }
+    }
+
     exec { "update-nova-conf-file" :
         command => "sudo sed -i 's/rpc_backend = nova.openstack.common.rpc.impl_qpid/#rpc_backend = nova.openstack.common.rpc.impl_qpid/g' /etc/nova/nova.conf && echo update-nova-conf-file >> /etc/contrail/contrail_openstack_exec.out",
         require =>  package["contrail-openstack"],
@@ -267,7 +306,7 @@ define contrail_openstack (
     }
 
     exec { "restart-supervisor-openstack":
-        command => "service supervisor-openstack restart && echo restart-supervisor-openstack >> /etc/contrail/contrail_openstack_exec.out",
+        command => "service supervisor-openstack restart && echo restart-supervisor-openstack-exec >> /etc/contrail/contrail_openstack_exec.out",
         unless  => "grep -qx restart-supervisor-openstack-exec /etc/contrail/contrail-openstack-exec.out",
         provider => shell,
         logoutput => "true"
@@ -290,7 +329,7 @@ define contrail_openstack (
         ensure => running,
     }
 
-    Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['restart-supervisor-openstack']
+    Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['neutron-conf-exec']->Exec['dashboard-local-settings-3']->Exec['dashboard-local-settings-4']->Exec['restart-supervisor-openstack']
 }
 # end of user defined type contrail_openstack.
 
