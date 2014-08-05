@@ -2,6 +2,7 @@ class __$version__::contrail_storage {
 
 define contrail_storage (
 	$contrail_storage_fsid,
+	$contrail_num_storage_hosts,
 	$contrail_storage_mon_secret,
 	$contrail_storage_osd_bootstrap_key,
 	$contrail_storage_admin_key,
@@ -35,6 +36,12 @@ define contrail_storage (
             source => "puppet:///modules/$module_name/config-storage-add-osd.sh",
     	}
 	#File<| title == 'ceph-osd-setup-file' |> -> Ceph::Osd <||>
+
+	if $contrail_num_storage_hosts > 1 {
+		$contrail_storage_replica_size = 2
+	} else {
+		$contrail_storage_replica_size = 1
+	}
 
 	class { 'ceph' : 
 		fsid => $contrail_storage_fsid,
@@ -73,13 +80,13 @@ define contrail_storage (
 		Ceph::Osd<| |> -> Ceph::Pool['volumes']
 		Ceph::Osd<| |> -> Ceph::Pool['images']
 		ceph::pool{'volumes': ensure => present,
-			size => 2,
+			size => $contrail_storage_replica_size,
 			pg_num => $contrail_ceph_pg_num,
 			pgp_num => $contrail_ceph_pg_num,
 		}
 
 		ceph::pool{'images': ensure => present,
-			size => 2,
+			size => $contrail_storage_replica_size,
 			pg_num => $contrail_ceph_pg_num,
 			pgp_num => $contrail_ceph_pg_num,
 		}
