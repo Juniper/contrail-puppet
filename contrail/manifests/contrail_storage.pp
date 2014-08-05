@@ -120,7 +120,7 @@ define contrail_storage_config_files(
 	   ## XXX : add logic to call this only after all OSDs are up
 	    exec { "setup-config-storage-openstack" :
 		command => "/etc/contrail/contrail_setup_utils/config-storage-openstack.sh \
-				${contrail_storage_virsh_uuid} && echo setup-config-storage-openstack \
+				${contrail_storage_virsh_uuid} ${contrail_openstack_ip} && echo setup-config-storage-openstack \
 				>> /etc/contrail/contrail-storage-exec.out" ,
 		require => File["/etc/contrail/contrail_setup_utils/config-storage-openstack.sh"],
 		unless  => "grep -qx setup-config-storage-openstack /etc/contrail/contrail-storage-exec.out",
