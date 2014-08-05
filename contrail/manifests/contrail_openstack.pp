@@ -78,8 +78,10 @@ define contrail_openstack (
     }
 
     if ($operatingsystem == "Ubuntu") {
+
+        $line1="HORIZON_CONFIG[\'customization_module\']=\'contrail_openstack_dashboard.overrides\'"
         exec { "dashboard-local-settings-3" :
-            command => "sudo sed -i '/HORIZON_CONFIG.*customization_module.*/d' /etc/openstack-dashboard/local_settings.py && echo HORIZON_CONFIG['customization_module'] = 'contrail_openstack_dashboard.overrides' >> etc/openstack-dashboard/local_settings.py  && echo dashboard-local-settings-3 >> /etc/contrail/contrail_openstack_exec.out",
+            command => "sudo sed -i '/HORIZON_CONFIG.*customization_module.*/d' /etc/openstack-dashboard/local_settings.py && echo \"$line1\"  >> /etc/openstack-dashboard/local_settings.py  && echo dashboard-local-settings-3 >> /etc/contrail/contrail_openstack_exec.out",
             require =>  package["contrail-openstack"],
             onlyif => "test -f /etc/openstack-dashboard/local_settings.py",
             unless  => "grep -qx dashboard-local-settings-3 /etc/contrail/contrail_openstack_exec.out",
@@ -87,8 +89,10 @@ define contrail_openstack (
             logoutput => 'true'
         }
 
+        $line2="LOGOUT_URL=\'/horizon/auth/logout/\'"
         exec { "dashboard-local-settings-4" :
-            command => "sudo sed -i '/LOGOUT_URL.*/d' etc/openstack-dashboard/local_settings.py && echo LOGOUT_URL='/horizon/auth/logout/' >> etc/openstack-dashboard/local_settings.py && service apache2 restart && echo dashboard-local-settings-4 >> /etc/contrail/contrail_openstack_exec.out",
+
+            command => "sudo sed -i '/LOGOUT_URL.*/d' /etc/openstack-dashboard/local_settings.py && echo \"$line2\" >> /etc/openstack-dashboard/local_settings.py && service apache2 restart && echo dashboard-local-settings-4 >> /etc/contrail/contrail_openstack_exec.out",
             require =>  package["contrail-openstack"],
             onlyif => "test -f /etc/openstack-dashboard/local_settings.py",
             unless  => "grep -qx dashboard-local-settings-4 /etc/contrail/contrail_openstack_exec.out",
@@ -306,8 +310,8 @@ define contrail_openstack (
     }
 
     exec { "restart-supervisor-openstack":
-        command => "service supervisor-openstack restart && echo restart-supervisor-openstack-exec >> /etc/contrail/contrail_openstack_exec.out",
-        unless  => "grep -qx restart-supervisor-openstack-exec /etc/contrail/contrail-openstack-exec.out",
+        command => "service supervisor-openstack restart && echo restart-supervisor-openstack >> /etc/contrail/contrail_openstack_exec.out",
+        unless  => "grep -qx restart-supervisor-openstack /etc/contrail/contrail_openstack_exec.out",
         provider => shell,
         logoutput => "true"
     }
