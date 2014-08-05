@@ -16,8 +16,11 @@ openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_user images
 cinder type-create ocs-block-disk
 cinder type-key ocs-block-disk set volume_backend_name=RBD
 
-#avail=local('rados df | grep avail | awk  \'{ print $3 }\''
-#. /etc/contrail/openstackrc ; cinder quota-update ocs-block-disk --gigabytes %s)' % (avail)
+avail=$(rados df | grep avail | awk  '{ print $3 }')
+let "avail_gb = ${avail} / (1024*1024)"
+cinder quota-update ocs-block-disk --gigabytes ${avail_gb}
+
+cinder-manage db sync
 
 service mysql restart
 chkconfig cinder-api on

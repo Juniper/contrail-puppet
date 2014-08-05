@@ -155,13 +155,13 @@ define contrail_storage_pools(
 	Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['ceph-images-key']
 
   exec { 'ceph-volumes-key':
-    command => "/usr/bin/ceph auth get-or-create client.volumes mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=volumes, allow rx pool=images' -o /etc/ceph/client.volumes.keyring",
-    creates => '/etc/ceph/client.volumes.keyring',
+    command => "/usr/bin/ceph auth get-or-create client.volumes mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=volumes, allow rx pool=images' -o /etc/ceph/ceph.client.volumes.keyring",
+    creates => '/etc/ceph/ceph.client.volumes.keyring',
   }
 
   exec { 'ceph-images-key':
-    command => "/usr/bin/ceph auth get-or-create client.images mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=images' -o /etc/ceph/client.images.keyring",
-    creates => '/etc/ceph/client.images.keyring',
+    command => "/usr/bin/ceph auth get-or-create client.images mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=images' -o /etc/ceph/ceph.client.images.keyring",
+    creates => '/etc/ceph/ceph.client.images.keyring',
   }
 
   exec { 'ceph-virsh-secret' : 
