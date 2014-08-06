@@ -133,6 +133,17 @@ sed -n 'N;\\%.*${name}.*\\n\\s*key = ${secret}%p' ${keyring_path} | grep ${name}
 
     Ceph_Config<||> -> Exec["ceph-injectkey-${name}"]
     Ceph::Mon<||> -> Exec["ceph-injectkey-${name}"]
+
+    exec { "ceph-check-key-${name}":
+      command  => "/bin/true # comment to satisfy puppet syntax requirements
+set -ex
+ceph ${cluster_option} ${inject_id_option} ${inject_keyring_option} auth del ${name}",
+      unless   => "/bin/true # comment to satisfy puppet syntax requirements
+set -ex
+ceph ${cluster_option} ${inject_id_option} ${inject_keyring_option} auth get-key ${name} | grep ${secret}"
+    }
+
+
     exec { "ceph-injectkey-${name}":
       command   => "/bin/true # comment to satisfy puppet syntax requirements
 set -ex
@@ -140,7 +151,7 @@ ceph ${cluster_option} ${inject_id_option} ${inject_keyring_option} auth add ${n
       unless    => "/bin/true # comment to satisfy puppet syntax requirements
 set -ex
 ceph ${cluster_option} ${inject_id_option} ${inject_keyring_option} auth get ${name} | grep ${secret}",
-      require   => [ Package['ceph'], Exec["ceph-key-${name}"], ],
+      require   => [ Package['ceph'], Exec["ceph-key-${name}"], Exec["ceph-check-key-${name}"] ],
       logoutput => true,
     }
 
