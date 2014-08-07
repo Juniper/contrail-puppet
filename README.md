@@ -1,7 +1,7 @@
 contrail-puppet
 ===============
 
-# Contrail puppet recipes.
+# Contrail Pupper Recipes.
 
 This software is licensed under the Apache License, Version 2.0 (the "License");
 you may not use this software except in compliance with the License.
