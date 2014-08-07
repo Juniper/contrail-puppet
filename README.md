@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 
 
-Puppet recipes for Contrail components
+### Overview
 
 This repo contains modules that contain custom resources for contrail roles.
 At present, following roles are defined.
