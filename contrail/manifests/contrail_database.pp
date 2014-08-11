@@ -37,6 +37,7 @@ define database-template-scripts {
 #     $contrail_cfgm_index
 define contrail_database (
     ) {
+    contrail_v3::contrail_common::report_status {"database_started": state => "database_started"}
 
     # Ensure all needed packages are present
     package { 'contrail-openstack-database' : ensure => present,}
@@ -133,6 +134,7 @@ define contrail_database (
     database-scripts { ["database-server-setup"]: }
 
     database-template-scripts { ["contrail-nodemgr-database.conf", "database_nodemgr_param"]: }
+    contrail_v3::contrail_common::report_status {"database_completed": state => "database_completed"}
 
  }
 	

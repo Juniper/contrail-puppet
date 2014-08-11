@@ -20,6 +20,7 @@ define collector-template-scripts {
 #     $contrail_analytics_data_ttl
 define contrail_collector (
     ) {
+    contrail_v3::contrail_common::report_status {"collector_started": state => "collector_started"}
 
     # Ensure all needed packages are present
     package { 'contrail-openstack-analytics' : ensure => present,}
@@ -96,6 +97,8 @@ define contrail_collector (
                        File['/etc/contrail/contrail-analytics-api.conf'] ],
         ensure => running,
     }
+    contrail_v3::contrail_common::report_status {"collector_completed": state => "collector_completed"}
+
 }
 # end of user defined type contrail_collector.
 
