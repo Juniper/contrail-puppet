@@ -80,7 +80,9 @@ define contrail_config (
     $contrail_vm_username = ""
     $contrail_vm_passwd = ""
     $contrail_vswitch = ""
-	
+
+    contrail_v3::contrail_common::report_status {"config_started": state => "config_started"}
+
     if $contrail_use_certs == "yes" {
         $contrail_ifmap_server_port = '8444'
     }
@@ -478,6 +480,8 @@ define contrail_config (
                      Exec['api-venv'] ],
         ensure => running,
     }
+    contrail_v3::contrail_common::report_status {"config_completed": state => "config_completed"}
+
 }
 # end of user defined type contrail_config.
 

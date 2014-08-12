@@ -27,6 +27,7 @@ define control-template-scripts {
 #     $contrail_api_nworkers
 define contrail_control (
     ) {
+    contrail_v3::contrail_common::report_status {"control_started": state => "control_started"}
 
     # Ensure all needed packages are present
     package { 'contrail-openstack-control' : ensure => present,}
@@ -135,6 +136,8 @@ define contrail_control (
         subscribe => File['/etc/contrail/dns.conf'],
         ensure => running,
     }
+    contrail_v3::contrail_common::report_status {"control_completed": state => "control_completed"}
+
 }
 # end of user defined type contrail_control.
 
