@@ -466,7 +466,7 @@ define contrail_compute (
         $contrail_ks_auth_port="35357",
     ) {
 
-    contrail_v3::contrail_common::report_status {"compute_started": state => "compute_started"}
+    __$version__::contrail_common::report_status {"compute_started": state => "compute_started"}
 
     if ($operatingsystem == "Ubuntu") {
         if ($contrail_interface_rename_done != "2") {
@@ -555,7 +555,7 @@ define contrail_compute (
             # Nothing for now, add code here for anything to be done after second reboot
         }
     }
-    contrail_v3::contrail_common::report_status {"compute_completed": state => "compute_completed"}
+    __$version__::contrail_common::report_status {"compute_completed": state => "compute_completed"}
 
 }
 # end of user defined type contrail_compute.

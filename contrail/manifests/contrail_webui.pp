@@ -11,7 +11,7 @@ class __$version__::contrail_webui {
 define contrail_webui (
         $contrail_keystone_ip = $contrail_openstack_ip
     ) {
-    contrail_v3::contrail_common::report_status {"webui_started": state => "webui_started"}
+    __$version__::contrail_common::report_status {"webui_started": state => "webui_started"}
 
     # Ensure all needed packages are present
     package { 'contrail-openstack-webui' : ensure => present,}
@@ -48,7 +48,7 @@ define contrail_webui (
         subscribe => File['/etc/contrail/config.global.js'],
         ensure => running,
     }
-    contrail_v3::contrail_common::report_status {"webui_completed": state => "webui_completed"}
+    __$version__::contrail_common::report_status {"webui_completed": state => "webui_completed"}
 
 }
 # end of user defined type contrail_webui.

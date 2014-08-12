@@ -39,7 +39,7 @@ define contrail_openstack (
         $contrail_quantum_service_protocol="http",
         $contrail_ks_auth_port="35357"
     ) {
-    contrail_v3::contrail_common::report_status {"openstack_started": state => "openstack_started"}
+    __$version__::contrail_common::report_status {"openstack_started": state => "openstack_started"}
 
     $contrail_vm_ip = ""
     $contrail_vm_username = ""
@@ -334,7 +334,7 @@ define contrail_openstack (
         ensure => running,
     }
 
-    contrail_v3::contrail_common::report_status {"openstack_completed": state => "openstack_completed"}
+    __$version__::contrail_common::report_status {"openstack_completed": state => "openstack_completed"}
     Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['neutron-conf-exec']->Exec['dashboard-local-settings-3']->Exec['dashboard-local-settings-4']->Exec['restart-supervisor-openstack']
 }
 # end of user defined type contrail_openstack.
