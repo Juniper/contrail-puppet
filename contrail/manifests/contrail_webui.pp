@@ -12,7 +12,7 @@ define contrail_webui (
         $contrail_keystone_ip = $contrail_openstack_ip
     ) {
     __$version__::contrail_common::report_status {"webui_started": state => "webui_started"}
-
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-webui' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -48,6 +48,7 @@ define contrail_webui (
         subscribe => File['/etc/contrail/config.global.js'],
         ensure => running,
     }
+    ->
     __$version__::contrail_common::report_status {"webui_completed": state => "webui_completed"}
 
 }

@@ -120,7 +120,7 @@ define contrail-setup-interface(
 
      	# Setup contrail-install-packages
     	package {'ifenslave': ensure => present}
- 
+        package {'contrail-setup': ensure => present} 
 
 #	$contrail_member_list = inline_template('<%= contrail_members.delete! "" %>')
 	$contrail_member_list = $contrail_members
@@ -148,7 +148,7 @@ define contrail-setup-interface(
             command => $exec_full_cmd,
             provider => shell,
             logoutput => "true",
-	    require=> Package["ifenslave"],
+	    require=> [Package["ifenslave"], Package["contrail-setup"]],
             unless  => "grep -qx setup-intf${contrail_device} /etc/contrail/contrail_common_exec.out"
         }
 }
