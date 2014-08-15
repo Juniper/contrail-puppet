@@ -482,7 +482,7 @@ define contrail_config (
         ensure => running,
     }
     ->
-   __$version__ ::contrail_common::report_status {"config_completed": state => "config_completed"}
+   __$version__::contrail_common::report_status {"config_completed": state => "config_completed"}
 
 }
 # end of user defined type contrail_config.
