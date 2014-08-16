@@ -143,6 +143,10 @@ class ceph (
       'osd/keyring':                        value => '/var/lib/ceph/osd/$cluster-$num/keyring';
     }
 
+    ceph_config {
+      'client.images/keyring':               value => '/etc/ceph/ceph.client.images.keyring';
+      'client.volumes/keyring':              value => '/etc/ceph/ceph.client.volumes.keyring';
+    }
 
     if $authentication_type == 'cephx' {
       ceph_config {

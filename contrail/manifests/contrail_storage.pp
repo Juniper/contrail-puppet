@@ -95,10 +95,11 @@ define contrail_storage (
 	contrail_storage_config_files{'contrail-storage-config-files':
 		contrail_openstack_ip => $contrail_openstack_ip,
 		contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
+                require => [Package['contrail-storage'], Package['ceph']]
 	}
 	contrail_storage_pools{'config_storage_pool_key':
 		contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
-		require => [Package['contrail-storage']]
+                require => [Package['contrail-storage'], Package['ceph']]
 	}
     }
 
