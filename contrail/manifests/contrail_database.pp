@@ -34,7 +34,7 @@ define database-template-scripts {
 #     $system_name
 #     $contrail_config_ip
 #     $contrail_zookeeper_ip_list
-#     $contrail_cfgm_index
+#     $contrail_database_index
 define contrail_database (
     ) {
     __$version__::contrail_common::report_status {"database_started": state => "database_started"}
@@ -122,7 +122,7 @@ define contrail_database (
         source => "puppet:///modules/$module_name/config-zk-files-setup.sh"
     }
     $contrail_zk_ip_list_for_shell = inline_template('<%= contrail_zookeeper_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
-    $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $contrail_cfgm_index $contrail_zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
+    $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $contrail_database_index $contrail_zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
     notify { "contrail contrail_zk_exec_cmd is $contrail_zk_exec_cmd":; } 
     exec { "setup-config-zk-files-setup" :
         command => $contrail_zk_exec_cmd,
