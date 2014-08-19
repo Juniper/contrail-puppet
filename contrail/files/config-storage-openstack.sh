@@ -54,16 +54,6 @@ fi
 #avail=`rados df | grep avail | awk  '{ print $3 }'`
 
 
-service mysql restart
-service cinder-api restart
-service cinder-volume restart
-service cinder-scheduler restart
-service glance-api restart
-service nova-api restart
-service nova-conductor restart
-service nova-scheduler restart
-service libvirt-bin restart
-
 
 cinder type-list | grep -q ocs-block-disk
 RETVAL=$?
@@ -87,6 +77,48 @@ then
   exit 1
 fi
 
+ceph -s 
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ] 
+then
+  echo "ceph -s failed"
+  exit 1
+fi
+
+
+service mysql restart
+service cinder-api restart
+service cinder-volume restart
+service cinder-scheduler restart
+service glance-api restart
+service nova-api restart
+service nova-conductor restart
+service nova-scheduler restart
+service libvirt-bin restart
+
+#if [ ${avail} == "" ]
+#then
+  ##echo "'rados df' returned avail as ${avail}"
+  #exit 1;
+#fi
+#
+## 1024*1024 => 1048576
+#avail_gb=$(expr ${avail} / 1048576)
+#cinder quota-update ocs-block-disk --gigabytes ${avail_gb}
+#RETVAL=$?
+#if [ ${RETVAL} -ne 0 ] 
+#then
+  #echo "cinder --gigabytes failed"
+  #exit 1
+##fi
+#
+#cinder quota-update ocs-block-disk --volumes 100
+#RETVAL=$?
+#if [ ${RETVAL} -ne 0 ] 
+#then
+  #echo "cinder --volumes failed"
+  #exit 1
+#fi
 #avail=$(rados df | grep avail | awk  '{ print $3 }')
 #RETVAL=$?
 #if [ ${RETVAL} -ne 0 ] 
@@ -125,3 +157,5 @@ fi
   #echo "cinder --snapshots failed"
   #exit 1
 ###fi
+
+## restarting cinder-volume again
