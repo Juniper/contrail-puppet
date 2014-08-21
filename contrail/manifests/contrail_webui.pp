@@ -18,14 +18,6 @@ define contrail_webui (
 
     if 'storage-master' in $contrail_host_roles {
 	package { 'contrail-web-storage' : ensure => present,}
-	-> file { 'contrail-storage-rest-api.conf':
-		path => '/etc/init/ceph-rest-api.conf',
-            	ensure  => present,
-            	mode => 0755,
-            	owner => root,
-            	group => root,
-            	source => "puppet:///modules/$module_name/config-storage-rest-api.conf",
-	}
 	-> Service['supervisor-webui']
     }
     # The above wrapper package should be broken down to the below packages

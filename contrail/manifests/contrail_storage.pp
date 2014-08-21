@@ -27,6 +27,21 @@ define contrail_storage (
 		package { 'contrail-storage-packages' : ensure => present, }
 		 ->
 		package { 'contrail-storage' : ensure => present, }
+		-> 
+		file { 'contrail-storage-rest-api.conf':
+			path => '/etc/init/ceph-rest-api.conf',
+			ensure  => present,
+			mode => 0755,
+			owner => root,
+			group => root,
+			source => "puppet:///modules/$module_name/config-storage-rest-api.conf",
+		}
+		->
+		service { "ceph-rest-api" :
+			enable => true,
+			subscribe => File['/etc/contrail/config.global.js'],
+			ensure => running,
+		}
 
 		file { "ceph-osd-setup-file":
 		    path => "/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh",
