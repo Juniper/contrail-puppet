@@ -215,6 +215,12 @@ config.featurePkg.webController = {};
 config.featurePkg.webController.path = '/usr/src/contrail/contrail-web-controller';
 config.featurePkg.webController.enable = true;
 
+<% if @contrail_host_roles.index('storage-master') -%>
+config.featurePkg.webStorage = {};
+config.featurePkg.webStorage.path = '/usr/src/contrail/contrail-web-storage';
+config.featurePkg.webStorage.enable = true;
+<% end -%>
+
 /* Enable/disable Stat Query Links in Sidebar*/
 config.qe = {};
 config.qe.enable_stat_queries = false;
