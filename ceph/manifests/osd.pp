@@ -39,7 +39,12 @@ define ceph::osd (
   $cluster = undef,
   ) {
 
-    $data = $name
+    $disk_name=split($name, ':')
+    notice(  $disk_name[0])
+    notice($disk_name[1] )
+
+    $data = $disk_name[0]
+    $journal_disk = $disk_name[1]
 
     if $cluster {
       $cluster_option = "--cluster ${cluster}"
@@ -60,7 +65,7 @@ define ceph::osd (
       exec { $ceph_mkfs:
         command   => "/bin/true  # comment to satisfy puppet syntax requirements
 set -ex
-/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh ${data} ${hostname}
+/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh ${data} ${hostname} ${journal_disk}
 ",
         logoutput => true,
 	require => File['ceph-osd-setup-file'] 

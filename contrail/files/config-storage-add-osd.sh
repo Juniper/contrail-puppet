@@ -8,7 +8,9 @@ OSD_NUM=""
 
 disk_name=$1
 hostname=$2
-if [ "$#" -ne 2 ]
+journal_name=$3
+journal_part_num=2
+if [ "$#" -lt 2 ]
 then
   echo "Not sufficient number of arguments"
   exit 1
@@ -22,6 +24,12 @@ if [ -z ${hostname} ]
 then
   echo "Hostname empty, Invalid Input"
   exit 1
+fi
+
+if [ -z ${journal_name} ]
+then
+  echo "journal name empty, using same disk"
+  journal_name=${disk_name}
 fi
 
 check_disk_avail ()
@@ -40,6 +48,26 @@ check_disk_avail ()
   then
     echo "disk ${disk_name} doesn't exist"
     exit ${RETVAL}
+  fi
+
+  if [ ${journal_name} != ${disk_name} ]
+  then
+    echo "journal and data on different devices"
+    pvdisplay | grep -q ${journal_name}
+    RETVAL=$?
+    if [ ${RETVAL} -eq 0 ] 
+    then
+      echo "Disk ${journal_name} is in LVM, please remove the disk from LVM"
+      exit 1
+    fi
+
+    /sbin/sgdisk -p ${journal_name}
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ] 
+    then
+      echo "disk ${journal_name} doesn't exist"
+      exit ${RETVAL}
+    fi
   fi
   return 0
 }
@@ -76,12 +104,32 @@ partition_and_format_disk ()
   PART_JOURNAL_GUID=`uuidgen`
   OSD_UUID=`uuidgen`
 
-  /sbin/sgdisk --new=2:0:1024M --change-name=2:"ceph journal" --partition-guid=2:${PART_JOURNAL_GUID} --typecode=2:${JOURNAL_UUID} --mbrtogpt -- ${disk_name}
-  RETVAL=$?
-  if [ ${RETVAL} -ne 0 ] 
+  if [ "${journal_name}" = "${disk_name}" ]
   then
-    echo "ceph journal partition creation failed : ${RETVAL}"
-    exit ${RETVAL}
+    /sbin/sgdisk --new=2:0:1024M --change-name=2:"ceph journal" --partition-guid=2:${PART_JOURNAL_GUID} --typecode=2:${JOURNAL_UUID} --mbrtogpt -- ${disk_name}
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ] 
+    then
+      echo "ceph journal partition creation failed : ${RETVAL}"
+      exit ${RETVAL}
+    fi
+  else
+    echo "disks are diffeent"
+    default_journal_size=1024
+    num_primary=`parted -s ${journal_name} print|grep primary|wc -l`
+    part_num=$(expr ${num_primary} + 1)
+    echo ${part_num}
+    start_part=$(expr ${default_journal_size} \* ${part_num})
+    end_part=$(expr ${start_part} + ${default_journal_size})
+    echo "stat-part :=> ${start_part}, end-part => ${end_part}"
+    parted -s ${journal_name} mkpart primary,${disk_name} ${start_part}M ${end_part}M
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ] 
+    then
+      echo "ceph journal partition (${journal_name}: ${start_part}M ${end_part}M) creation failed : ${RETVAL}"
+      exit ${RETVAL}
+    fi
+    journal_part_num=${part_num}
   fi
   /sbin/sgdisk --largest-new=1  --change-name=1:"ceph data" --partition-guid=1:${OSD_UUID} --typecode=1:${OSD_TYPECODE_UUID} --mbrtogpt -- ${disk_name}
   RETVAL=$?
@@ -145,9 +193,9 @@ check_and_mount()
     echo "disk ${dev_name}1 is already mounted on /var/lib/ceph/osd/ceph-${OSD_NUM}"
   fi
 
-  if [ ! -f /var/lib/ceph/osd/ceph-${OSD_NUM}/journal ]
+  if [ ! -L /var/lib/ceph/osd/ceph-${OSD_NUM}/journal ]
   then
-    PART_JOURNAL_GUID=`sgdisk -i 2 ${disk_name} | grep "Partition unique GUID:" | awk '{ printf tolower($4)}'`
+    PART_JOURNAL_GUID=`sgdisk -i ${journal_part_num} ${journal_name} | grep "Partition unique GUID:" | awk '{ printf tolower($4)}'`
     if [ ! -z ${PART_JOURNAL_GUID} ]
     then
       if [ -L /var/lib/ceph/osd/ceph-${OSD_NUM}/journal ]
@@ -231,6 +279,7 @@ check_and_setup_osd()
 
 check_disk_avail
 
+
 check_disk_in_osd
 RETVAL=$?
 if [ ${RETVAL} -eq 0 ]
@@ -247,6 +296,7 @@ else
 
   partition_and_format_disk
 fi
+
 
 create_or_get_osd
 echo "created OSD ${OSD_NUM} for ${OSD_UUID}"
