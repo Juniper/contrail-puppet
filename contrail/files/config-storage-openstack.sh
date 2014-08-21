@@ -16,6 +16,7 @@ openstack-config --set /etc/glance/glance-api.conf DEFAULT default_store rbd
 openstack-config --set /etc/glance/glance-api.conf DEFAULT show_image_direct_url True
 openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_user images
 
+sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5005)/" /usr/bin/ceph-rest-api
 . /etc/contrail/openstackrc 
 
 
@@ -86,6 +87,7 @@ then
 fi
 
 
+service ceph-rest-api restart
 service mysql restart
 service cinder-api restart
 service cinder-volume restart
