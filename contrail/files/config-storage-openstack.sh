@@ -2,7 +2,7 @@ set -x
 RETVAL=0
 virsh_secret=$1
 openstack_ip=$2
-sed -i "s/^bind-address/#bind-address/" /etc/mysql/my.cnf
+#sed -i "s/^bind-address/#bind-address/" /etc/mysql/my.cnf
 openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enabled_backends rbd-disk
 openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${openstack_ip}
@@ -17,6 +17,15 @@ openstack-config --set /etc/glance/glance-api.conf DEFAULT show_image_direct_url
 openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_user images
 
 sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5005)/" /usr/bin/ceph-rest-api
+ceph -s 
+
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ] 
+then
+  echo "ceph -s failed"
+  exit 1
+fi
+
 . /etc/contrail/openstackrc 
 
 
@@ -53,6 +62,16 @@ fi
 
 
 #avail=`rados df | grep avail | awk  '{ print $3 }'`
+service ceph-rest-api restart
+#service mysql restart
+service cinder-volume restart
+service cinder-api restart
+service cinder-scheduler restart
+service glance-api restart
+service nova-api restart
+service nova-conductor restart
+service nova-scheduler restart
+service libvirt-bin restart
 
 
 
@@ -78,25 +97,8 @@ then
   exit 1
 fi
 
-ceph -s 
-RETVAL=$?
-if [ ${RETVAL} -ne 0 ] 
-then
-  echo "ceph -s failed"
-  exit 1
-fi
 
-
-service ceph-rest-api restart
-service mysql restart
-service cinder-api restart
 service cinder-volume restart
-service cinder-scheduler restart
-service glance-api restart
-service nova-api restart
-service nova-conductor restart
-service nova-scheduler restart
-service libvirt-bin restart
 
 #if [ ${avail} == "" ]
 #then
