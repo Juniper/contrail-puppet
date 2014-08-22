@@ -122,7 +122,7 @@ partition_and_format_disk ()
     start_part=$(expr ${default_journal_size} \* ${part_num})
     end_part=$(expr ${start_part} + ${default_journal_size})
     echo "stat-part :=> ${start_part}, end-part => ${end_part}"
-    parted -s ${journal_name} mkpart primary,${disk_name} ${start_part}M ${end_part}M
+    parted -s ${journal_name} mkpart primary ${start_part}M ${end_part}M
     RETVAL=$?
     if [ ${RETVAL} -ne 0 ] 
     then
