@@ -1,0 +1,16 @@
+{
+  "name": "stackforge-ceph",
+  "version": "0.0.1",
+  "author": "Puppet Ceph community",
+  "summary": "Community Developed Ceph Module",
+  "license": "Apache License 2.0",
+  "source": "https://github.com/stackforge/puppet-ceph",
+  "description": "Puppet module to install and configure Ceph",
+  "project_page": "https://launchpad.net/puppet-ceph",
+  "issues_url": "https://github.com/stackforge/puppet-ceph/issues",
+  "dependencies": [
+    {"version_requirement":">=1.0.0 <2.0.0","name":"puppetlabs/inifile"},
+    {"version_requirement":">= 2.5.0","name":"puppetlabs/stdlib"},
+    {"version_requirement":">= 1.4.0","name":"puppetlabs/apt"}
+  ]
+}
