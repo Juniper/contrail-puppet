@@ -252,6 +252,16 @@ check_and_setup_osd()
     exit ${RETVAL}
   fi
 
+  if [ ! -f /var/lib/ceph/osd/ceph-${OSD_NUM}/active ]
+  then
+    echo "ok" > /var/lib/ceph/osd/ceph-${OSD_NUM}/active
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ] 
+    then
+      echo "active file creation for : ${OSD_NUM} : ${OSD_UUID} failed : ${RETVAL}"
+      exit ${RETVAL}
+    fi
+  fi
   ## Add crush bucket
   ceph osd tree | grep host | grep -q ${hostname}
   RETVAL=$?
