@@ -132,7 +132,7 @@ define contrail_database (
     }
     database-scripts { ["database-server-setup"]: }
 
-    database-template-scripts { ["contrail-nodemgr-database.conf", "database_nodemgr_param"]: }
+    database-template-scripts { ["contrail-database-nodemgr.conf", "database_nodemgr_param"]: }
 
  }
 	
