@@ -350,7 +350,7 @@ define contrail_config (
     }
     notify { $contrail_rabbit_user:; }  
 
-    $contrail_rabbithost_list_for_shell = inline_template('<%= contrail_rabbit_user.sub(/\,/, " ").delete "[]" %>')
+    $contrail_rabbithost_list_for_shell = inline_template('<%= contrail_rabbit_user.gsub(/\,/, " ").delete "[]" %>')
 
     notify { $contrail_rabbithost_list_for_shell:; }  
     #Check to see if the rabbitmq cluster is fully formed,
