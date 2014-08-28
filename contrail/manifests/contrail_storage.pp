@@ -18,7 +18,7 @@ define contrail_storage (
 	$contrail_storage_journal_size_mb = 1024
     ) {
 
-	if 'storage-compute' in contrail_host_roles and $contrail_interface_rename_done == 2 {
+	if 'compute' in $contrail_host_roles and $contrail_interface_rename_done == 2 {
 		contrail_storage_internal{ 'storage-compute':
 			contrail_storage_fsid => $contrail_storage_fsid,
 			contrail_num_storage_hosts => $contrail_num_storage_hosts,
@@ -117,6 +117,7 @@ define contrail_storage_internal (
 		fsid => $contrail_storage_fsid,
 		mon_host => "$contrail_storage_mon_hosts",
 		keyring => '/etc/ceph/$cluster.$name.keyring',
+		cluster_network => $contrail_storage_cluster_network,
 		require => Package['contrail-storage'],
 	} ->
 	ceph::mon { $contrail_storage_hostname: 
