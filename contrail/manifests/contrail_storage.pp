@@ -1,4 +1,4 @@
-class contrail_contrail-ubuntu-110-25-dgautam::contrail_storage {
+class __$version__::contrail_storage {
 
 define contrail_storage (
 	$contrail_storage_fsid,
@@ -73,7 +73,7 @@ define contrail_storage_internal (
 	$contrail_storage_hostname ,
 	$contrail_storage_journal_size_mb 
     ) {
-	##contrail_contrail-ubuntu-110-25-dgautam::contrail_common::contrail-setup-repo{contrail_storage_repo:
+	##__$version__::contrail_common::contrail-setup-repo{contrail_storage_repo:
 		#contrail_repo_name => $contrail_storage_repo_id,
 		#contrail_server_mgr_ip => "$serverip",
 	#}
