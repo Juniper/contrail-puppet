@@ -1,4 +1,4 @@
-class __$version__::contrail_storage {
+class contrail_contrail-ubuntu-110-25-dgautam::contrail_storage {
 
 define contrail_storage (
 	$contrail_storage_fsid,
@@ -18,7 +18,7 @@ define contrail_storage (
 	$contrail_storage_journal_size_mb = 1024
     ) {
 
-	if 'storage-compute' in contrail_host_roles and $contrail_interface_rename_done == 2 {
+	if 'compute' in $contrail_host_roles and $contrail_interface_rename_done == 2 {
 		contrail_storage_internal{ 'storage-compute':
 			contrail_storage_fsid => $contrail_storage_fsid,
 			contrail_num_storage_hosts => $contrail_num_storage_hosts,
@@ -73,7 +73,7 @@ define contrail_storage_internal (
 	$contrail_storage_hostname ,
 	$contrail_storage_journal_size_mb 
     ) {
-	##__$version__::contrail_common::contrail-setup-repo{contrail_storage_repo:
+	##contrail_contrail-ubuntu-110-25-dgautam::contrail_common::contrail-setup-repo{contrail_storage_repo:
 		#contrail_repo_name => $contrail_storage_repo_id,
 		#contrail_server_mgr_ip => "$serverip",
 	#}
@@ -105,6 +105,15 @@ define contrail_storage_internal (
 	    group => root,
 	    source => "puppet:///modules/$module_name/config-storage-add-osd.sh",
 	}
+
+	file { "ceph-disk-clean-file":
+	    path => "/etc/contrail/contrail_setup_utils/config-storage-disk-clean.sh",
+	    ensure  => present,
+	    mode => 0755,
+	    owner => root,
+	    group => root,
+	    source => "puppet:///modules/$module_name/config-storage-disk-clean.sh",
+	}
 	#File<| title == 'ceph-osd-setup-file' |> -> Ceph::Osd <||>
 
 	if $contrail_num_storage_hosts > 1 {
@@ -117,6 +126,7 @@ define contrail_storage_internal (
 		fsid => $contrail_storage_fsid,
 		mon_host => "$contrail_storage_mon_hosts",
 		keyring => '/etc/ceph/$cluster.$name.keyring',
+		cluster_network => $contrail_storage_cluster_network,
 		require => Package['contrail-storage'],
 	} ->
 	ceph::mon { $contrail_storage_hostname: 
@@ -140,7 +150,11 @@ define contrail_storage_internal (
 	  }
 
 	if $contrail_storage_osd_disks != 'undef' {
-		ceph::osd { $contrail_storage_osd_disks: }
+		contrail_storage_prepare_disk{ $contrail_storage_osd_disks :
+		}
+		ceph::osd { $contrail_storage_osd_disks: 
+			require => Contrail_storage_prepare_disk[$contrail_storage_osd_disks]
+		}
 		## if no disks on this host, don't run pools related stuf
 		ceph::pool{'data': ensure => absent}
 		ceph::pool{'metadata': ensure => absent}
@@ -271,5 +285,16 @@ define contrail_storage_pools(
     subscribe => File['/etc/ceph/virsh.conf'],
   }
 
+}
+define contrail_storage_prepare_disk()
+{
+	$disk_name=$name
+
+	exec { $disk_name:
+		command => "/etc/contrail/contrail_setup_utils/config-storage-disk-clean.sh $disk_name" ,
+		require => File["ceph-disk-clean-file"],
+		provider => shell,
+		logoutput => "true"
+	}
 }
 }
