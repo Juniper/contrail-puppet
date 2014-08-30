@@ -40,14 +40,15 @@ check_disk_avail ()
 clean_disk_parts()
 {
   disk_name=$1
+  disk_guid=`sgdisk -p ${disk_name}  | grep "Disk identifier (GUID):" | awk '{printf $4}'`
 
   if [ -f /etc/contrail/config-storage-clean-disk.out ] 
   then
-    grep -q ${disk_name} /etc/contrail/config-storage-clean-disk.out
+    grep -q ${disk_guid} /etc/contrail/config-storage-clean-disk.out
     RETVAL=$?
     if [ ${RETVAL} -eq 0 ]
     then
-      echo "disk already clean ${disk_name}"
+      echo "disk already clean ${disk_name}/${disk_guid}"
       return 0
     fi
   fi
@@ -68,11 +69,12 @@ clean_disk_parts()
     exit ${RETVAL}
   fi
   
-  echo "${disk_name}" >> /etc/contrail/config-storage-clean-disk.out
+  new_disk_guid=`sgdisk -p ${disk_name}  | grep "Disk identifier (GUID):" | awk '{printf $4}'`
+
+  echo "${new_disk_guid}" >> /etc/contrail/config-storage-clean-disk.out
 }
 
 check_disk_avail ${osd_disk}
-
 clean_disk_parts ${osd_disk}
 
 if [ x${journal_disk} != x"" ]
