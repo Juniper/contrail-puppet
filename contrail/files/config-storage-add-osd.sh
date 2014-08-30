@@ -296,13 +296,13 @@ if [ ${RETVAL} -eq 0 ]
 then 
   echo "Passing to next level for ${OSD_UUID}"
 else 
-  ceph-disk zap ${disk_name}
-  RETVAL=$?
-  if [ ${RETVAL} -ne 0 ]
-    then
-    echo "ceph-disk failed for ${disk_name}: ${RETVAL}"
-    exit 1;
-  fi
+  #ceph-disk zap ${disk_name}
+  #RETVAL=$?
+  #if [ ${RETVAL} -ne 0 ]
+    #then
+    #echo "ceph-disk failed for ${disk_name}: ${RETVAL}"
+    #exit 1;
+  #fi
 
   partition_and_format_disk
 fi
