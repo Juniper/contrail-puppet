@@ -18,7 +18,7 @@ fi
 check_disk_avail ()
 {
   disk_name=$1
-  /sbin/sgdisk -p ${disk_name}
+  /sbin/fdisk -l ${disk_name}
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
   then
