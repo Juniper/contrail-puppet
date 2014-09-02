@@ -17,6 +17,50 @@ define openstack-scripts {
     }
 }
 
+define setup-openstack-ha($ha) {
+
+#   if($contrail_openstack_ha == "yes") {
+       package { 'contrail-openstack-ha' : ensure => present,}
+
+
+ #  } 
+
+
+}
+
+define setup-cluster-monitor {
+	exec { "setup-cluster-monitor" :
+	command => "service contrail-hamon start && chkconfig contrail-hamon on  && echo setup-cluster-monitor >> /etc/contrail/contrail_openstack_exec.out ",
+	require => [  ],
+	unless  => "grep -qx setup-cluster-monitor  /etc/contrail/contrail_compute_exec.out",
+	provider => shell,
+	logoutput => "true"
+    }
+
+}
+
+define fetch-ssl-certs{
+
+	#TODO
+}
+
+define mount-nfs($nfs_server, $glance_path) {
+	if ($glance_path == "") {
+		$nfs_glance_path = "/var/tmp/glance-images/" 
+
+	} else {
+		$nfs_glance_path = $glance_path 
+	}
+    exec { "mount-nfs" :
+	command => "sudo mount $nfs_server:$glance_path /var/lib/glance/images && grep \"$nfs_server:$glance_path /var/lib/glance/images nfs\" /etc/fstab && echo \"$nfs_server:$glance_path /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo create-nfs >> /etc/contrail/contrail_openstack_exec.out ",
+	require => [  ],
+	unless  => "grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out",
+	provider => shell,
+	logoutput => "true"
+    }
+
+}
+
 # Following variables need to be set for this resource.
 # Those specified with value assiged are optional, if not
 # set the assigned value below is used.
@@ -49,6 +93,17 @@ define contrail_openstack (
     ->
     # list of packages
     package { 'contrail-openstack' : ensure => present,}
+
+    setup-openstack-ha{setup_openstack_ha:
+	ha => $ha
+	}
+    #get glance path from json
+    $glance_path = "/var/lig/glance/images"
+
+    mount-nfs {mount_nfs:
+	nfs_server => $nfs_server,
+	glance_path => $glance_path	
+	}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - python-contrail, openstack-dashboard, contrail-openstack-dashboard, glance, keystone, nova-api, nova-common,
     #                     nova-conductor, nova-console, nova-objectstore, nova-scheduler, cinder-api, cinder-common, cinder-scheduler,
@@ -58,8 +113,15 @@ define contrail_openstack (
     #                     openstack-nova, openstack-cinder, mysql-server, contrail-setup, memcached, openstack-nova-novncproxy,
     #                     python-glance, python-glanceclient, python-importlib, euca2ools, m2crypto, qpid-cpp-server,
     #                     haproxy, rabbitmq-server
-
-
+/*
+    setup-openstack-ha{setup_openstack_ha:`
+		contrail_openstack_ha => $contrail_openstack_ha,
+                after =>  package["contrail-openstack"],
+		}
+*/
+    setup-cluster-monitor{setup_cluster_monitor:
+	
+	}
     if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
         exec { "dashboard-local-settings-1" :
             command => "sudo sed -i 's/ALLOWED_HOSTS =/#ALLOWED_HOSTS =/g' /etc/openstack_dashboard/local_settings && echo dashboard-local-settings-1 >> /etc/contrail/contrail_openstack_exec.out",
@@ -182,6 +244,65 @@ define contrail_openstack (
     #        logoutput => 'true'
     #    }
     #}
+    #########Chhandak-HA
+    # KEEPALIVED
+    file { "/opt/contrail/contrail_installer/setup-vnc-keepalived.py" :
+        ensure  => present,
+        mode => 0755,
+        group => root,
+        #source => "puppet:///modules/$module_name/exec_provision_control.py"
+    }
+    $contrail_exec_vnc_keepalived = "PASSWORD=$contrail_ks_admin_passwd ADMIN_TOKEN=$contrail_service_token python setup-vnc-keepalived.py --self_ip $self_ip --internal_vip $internal_vip --mgmt_self_ip $contrail_openstack_mgmt_ip --openstack_index $contrail_openstack_index && echo exec_vnc_keepalived >> /etc/contrail/contrail_openstack_exec.out"
+    notify { "contrail exec_vnc_keepalived is $contrail_exec_vnc_keepalived":; } 
+
+    exec { "exec_vnc_keepalived" :
+        command => $contrail_exec_vnc_keepalived,
+        cwd => "/opt/contrail/contrail_installer/",
+        unless  => "grep -qx exec_vnc_keepalived /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        require => [ File["/opt/contrail/contrail_installer/setup-vnc-keepalived.py"] ],
+        logoutput => 'true'
+    }
+
+    # GALERA
+    file { "/opt/contrail/contrail_installer/setup-vnc-galera.py" :
+        ensure  => present,
+        mode => 
+
+0755,
+        group => root,
+        #source => "puppet:///modules/$module_name/exec_provision_control.py"
+    }
+    $contrail_exec_vnc_galera = "PASSWORD=$contrail_ks_admin_passwd ADMIN_TOKEN=$contrail_service_token python setup-vnc-galera.py --self_ip $self_ip --keystone_ip $contrail_openstack_mgmt_ip --galera_ip_list $openstack_ip_list_control --internal_vip $internal_vip --openstack_index $contrail_openstack_index && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
+    notify { "contrail exec_vnc_galera is $contrail_exec_vnc_galera":; }
+
+    exec { "exec_vnc_galera" :
+        command => $contrail_exec_vnc_galera,
+        cwd => "/opt/contrail/contrail_installer/",
+        unless  => "grep -qx exec_vnc_galera /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        require => [ File["/opt/contrail/contrail_installer/setup-vnc-galera.py"] ],
+        logoutput => 'true'
+    }
+    if ($operatingsystem == "Ubuntu") {
+	$wsrep_conf='/etc/mysql/conf.d/wsrep.cnf'
+    } else {
+    	$wsrep_conf='/etc/mysql/my.cnf'
+    } 
+
+    # Fix WSREP cluster address
+    # Need check this from provisioned ha box 
+    exec { "fix_wsrep_cluster_address" :
+        command => "sudo sed -ibak 's#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://$openstack_ip_list_control:4567#g' $wsrep_conf && echo exec_fix_wsrep_cluster_address >> /etc/contrail/contrail_openstack_exec.out",
+        require =>  package["contrail-openstack"],
+        onlyif => "test -f $wsrep_conf",
+        unless  => "grep -qx exec_fix_wsrep_cluster_address /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => 'true',
+        before => Service["mysqld"]
+    }
+
+    #########Chhandak-HA End Here
 
     file { "/etc/contrail/contrail_setup_utils/api-paste.sh" : 
         ensure  => present,
@@ -336,7 +457,7 @@ define contrail_openstack (
     }
     ->
     __$version__::contrail_common::report_status {"openstack_completed": state => "openstack_completed"}
-    Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['neutron-conf-exec']->Exec['dashboard-local-settings-3']->Exec['dashboard-local-settings-4']->Exec['restart-supervisor-openstack']
+    Package['contrail-openstack']->Setup-openstack-ha['setup_openstack_ha']->File["/opt/contrail/contrail_installer/setup-vnc-keepalived.py"]->Exec["exec_vnc_keepalived"]->File["/opt/contrail/contrail_installer/setup-vnc-galera.py"]->Exec['exec_vnc_galera']->Exec['fix_wsrep_cluster_address']->Mount-nfs['mount_nfs']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['neutron-conf-exec']->Exec['dashboard-local-settings-3']->Exec['dashboard-local-settings-4']->Exec['restart-supervisor-openstack']->Setup-cluster-monitor['setup_cluster_monitor']->Fetch-ssl-certs['fetch_ssl_certs']
 }
 # end of user defined type contrail_openstack.
 

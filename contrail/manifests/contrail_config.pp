@@ -332,7 +332,7 @@ define contrail_config (
     }
 
     exec { "setup-rabbitmq-cluster" :
-        command => "/bin/bash /etc/contrail/contrail_setup_utils/setup_rabbitmq_cluster.sh $operatingsystem $contrail_uuid $contrail_rmq_master $contrail_rmq_is_master '$contrail_rabbithost_list_for_shell' && echo setup_rabbitmq_cluster >> /etc/contrail/contrail_config_exec.out",
+        command => "/bin/bash /etc/contrail/contrail_setup_utils/setup_rabbitmq_cluster.sh $operatingsystem $contrail_uuid $contrail_rmq_master $contrail_rmq_is_master '$contrail_rabbithost_list_for_shell' $contrail_openstack_ha && echo setup_rabbitmq_cluster >> /etc/contrail/contrail_config_exec.out",
         require => File["/etc/contrail/contrail_setup_utils/setup_rabbitmq_cluster.sh"],
         unless  => "grep -qx setup_rabbitmq_cluster /etc/contrail/contrail_config_exec.out",
         provider => shell,

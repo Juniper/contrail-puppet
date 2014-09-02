@@ -29,6 +29,20 @@ define compute-template-scripts {
     }
 }
 
+define create-nfs($nfs_server, $glance_path, $first_cfgm) {
+	if ($nfs_server == "" and $first_cfgm == "yes" ) {
+	    exec { "create-nfs" :
+		command => "mkdir -p /var/tmp/glance-images/ && chmod 777 /var/tmp/glance-images/ && echo \"/var/tmp/glance-images *(rw,sync,no_subtree_check)\" >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ",
+		require => [  ],
+		unless  => "grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out",
+		provider => shell,
+		logoutput => "true"
+	    }
+
+	}
+
+}
+
 define contrail_compute_part_1 (
         $contrail_config_ip,
         $contrail_compute_ip,
@@ -127,6 +141,13 @@ define contrail_compute_part_2 (
     ) {
     # Ensure all needed packages are present
     package { 'contrail-openstack-vrouter' : ensure => present,}
+
+    create-nfs{create_nfs:
+	nfs_server => $nfs_server,
+	glance_path => $glance_path,
+	first_cfgm => $first_cfgm
+    }
+
 
     if ($operatingsystem == "Ubuntu"){
         file {"/etc/init/supervisor-vrouter.override": ensure => absent, require => Package['contrail-openstack-vrouter']}
@@ -413,7 +434,7 @@ define contrail_compute_part_2 (
             provider => "shell",
             logoutput => 'true'
         }
-        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
+        Package['contrail-openstack-vrouter'] -> Create-nfs['create_nfs'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
     }
     else {
         file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
