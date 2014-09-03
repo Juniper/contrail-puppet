@@ -51,39 +51,13 @@ define contrail_compute_part_1 (
     package { 'contrail-openstack-vrouter' : ensure => present,}
     package { 'contrail-interface-name' : ensure => present,}
 
-    # vrouter venv installation
-    exec { "vrouter-venv" :
-        command   => '/bin/bash -c "source ../bin/activate && pip install * && echo vrouter-venv >> /etc/contrail/contrail_compute_exec.out"',
-        cwd       => '/opt/contrail/vrouter-venv/archive',
-        unless    => ["[ ! -d /opt/contrail/vrouter-venv/archive ]",
-                      "[ ! -f /opt/contrail/vrouter-venv/bin/activate ]",
-                      "grep -qx vrouter-venv /etc/contrail/contrail_compute_exec.out"],
-        provider => "shell",
-        require => Package['contrail-openstack-vrouter'],
-        logoutput => "true"
-    }
-
-    # api venv installation
-    if ! defined(Exec["api-venv"]) {
-        exec { "api-venv" :
-            command   => '/bin/bash -c "source ../bin/activate && pip install * && echo api-venv >> /etc/contrail/contrail_config_exec.out"',
-            cwd       => "/opt/contrail/api-venv/archive",
-            unless    => ["[ ! -d /opt/contrail/api-venv/archive ]",
-                          "[ ! -f /opt/contrail/api-venv/bin/activate ]",
-                          "grep -qx api-venv /etc/contrail/contrail_config_exec.out"],
-            provider => "shell",
-            require => Package['contrail-openstack-vrouter'],
-            logoutput => "true"
-        }
-    }
-
     # flag that part 1 is completed and reboot the system
     file { "/etc/contrail/interface_renamed" :
         ensure  => present,
         mode => 0644,
         require => [ Package["contrail-openstack-vrouter"],
                      Package["contrail-interface-name"],
-                     Exec["vrouter-venv"] ],
+                     ],
         content => "1"
     }
 
@@ -95,7 +69,7 @@ define contrail_compute_part_1 (
         provider => "shell"
     }
 
-    Package['contrail-openstack-vrouter'] -> Package["contrail-interface-name"] -> Exec['vrouter-venv'] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
+    Package['contrail-openstack-vrouter'] -> Package["contrail-interface-name"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
 }
 
 define contrail_compute_part_2 (
@@ -130,32 +104,6 @@ define contrail_compute_part_2 (
 
     if ($operatingsystem == "Ubuntu"){
         file {"/etc/init/supervisor-vrouter.override": ensure => absent, require => Package['contrail-openstack-vrouter']}
-    }
-
-    # vrouter venv installation
-    exec { "vrouter-venv" :
-        command   => '/bin/bash -c "source ../bin/activate && pip install * && echo vrouter-venv >> /etc/contrail/contrail_compute_exec.out"',
-        cwd       => '/opt/contrail/vrouter-venv/archive',
-        unless    => ["[ ! -d /opt/contrail/vrouter-venv/archive ]",
-                      "[ ! -f /opt/contrail/vrouter-venv/bin/activate ]",
-                      "grep -qx vrouter-venv /etc/contrail/contrail_compute_exec.out"],
-        provider => "shell",
-        require => Package['contrail-openstack-vrouter'],
-        logoutput => "true"
-    }
-
-    # api venv installation
-    if ! defined(Exec["api-venv"]) {
-        exec { "api-venv" :
-            command   => '/bin/bash -c "source ../bin/activate && pip install * && echo api-venv >> /etc/contrail/contrail_config_exec.out"',
-            cwd       => "/opt/contrail/api-venv/archive",
-            unless    => ["[ ! -d /opt/contrail/api-venv/archive ]",
-                          "[ ! -f /opt/contrail/api-venv/bin/activate ]",
-                          "grep -qx api-venv /etc/contrail/contrail_config_exec.out"],
-            provider => "shell",
-            require => Package['contrail-openstack-vrouter'],
-            logoutput => "true"
-        }
     }
 
     #Ensure Ha-proxy cfg file is set

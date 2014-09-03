@@ -370,31 +370,6 @@ define contrail_common (
         logoutput => "true"
     }
 
-    # Why is this here ?? - Abhay
-    if ($operatingsystem == "Ubuntu"){
-
-        exec { "exec-update-neutron-conf" :
-            command => "sed -i \"s/^rpc_backend = nova.openstack.common.rpc.impl_qpid/#rpc_backend = nova.openstack.common.rpc.impl_qpid/g\" /etc/neutron/neutron.conf && echo exec-update-neutron-conf >> /etc/contrail/contrail_common_exec.out",
-            unless  => ["[ ! -f /etc/neutron/neutron.conf ]",
-                        "grep -qx exec-update-neutron-conf /etc/contrail/contrail_common_exec.out"],
-            provider => shell,
-            logoutput => "true"
-        }
-    }
-
-    # Why is this here ?? - Abhay
-    if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
-
-        exec { "exec-update-quantum-conf" :
-            command => "sed -i \"s/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g\" /etc/quantum/quantum.conf && echo exec-update-quantum-conf >> /etc/contrail/contrail_common_exec.out",
-            unless  => ["[ ! -f /etc/quantum/quantum.conf ]",
-                        "grep -qx exec-update-quantum-conf /etc/contrail/contrail_common_exec.out"],
-            provider => shell,
-            logoutput => "true"
-        }
-    
-
-    }
 
     exec { "contrail-status" :
         command => "(contrail-status > /tmp/contrail_status || echo re-images > /tmp/contrail_status) &&  curl -v -X PUT -d @/tmp/contrail_status http://$serverip:9001/status?server_id=$hostname && echo contrail-status >> /etc/contrail/contrail_common_exec.out",
