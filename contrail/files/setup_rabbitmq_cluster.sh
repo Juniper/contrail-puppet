@@ -31,7 +31,7 @@ service supervisor-config status | grep running
 supervisor_config_running=$?
 if [ supervisor_config_running != 0 ]; then
     eval "service supervisor-config start"
-    eval "supervisorctl -s http://localhost:9004 stop all"
+    eval "supervisorctl -s unix:///tmp/supervisord_config.sock  stop all"
 fi
 
 #setup and start rabbitmq
