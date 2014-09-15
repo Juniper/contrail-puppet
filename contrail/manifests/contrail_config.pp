@@ -388,10 +388,19 @@ define contrail_config (
         owner => root,
         group => root,
     }
-    exec { "setup-quantum-in-keystone" :
-        command => "python /opt/contrail/contrail_installer/contrail_setup_utils/setup-quantum-in-keystone.py --ks_server_ip $contrail_openstack_ip --quant_server_ip $contrail_config_ip --tenant $contrail_ks_admin_tenant --user $contrail_ks_admin_user --password $contrail_ks_admin_passwd --svc_password $contrail_service_token --region_name $contrail_region_name && echo setup-quantum-in-keystone >> /etc/contrail/contrail_config_exec.out",
-        require => [ File["/opt/contrail/contrail_installer/contrail_setup_utils/setup-quantum-in-keystone.py"] ],
-        unless  => "grep -qx setup-quantum-in-keystone /etc/contrail/contrail_config_exec.out",
+
+    file { "/etc/contrail/contrail_setup_utils/setup_verify_quantum_in_keystone.py" :
+        ensure  => present,
+        mode => 0755,
+    #    user => root,
+        group => root,
+        source => "puppet:///modules/$module_name/setup_verify_quantum_in_keystone.py"
+    }
+
+    exec { "setup-verify-quantum-in-keystone" :
+        command => "python /etc/contrail/contrail_setup_utils/setup_verify_quantum_in_keystone.py  --contrail_openstack_ip $contrail_openstack_ip --contrail_config_ip $contrail_config_ip --contrail_ks_admin_tenant $contrail_ks_admin_tenant --contrail_ks_admin_user $contrail_ks_admin_user --contrail_ks_admin_passwd $contrail_ks_admin_passwd --contrail_service_token $contrail_service_token --contrail_region_name $contrail_region_name && echo setup-verify-quantum-in-keystone >> /etc/contrail/contrail_config_exec.out",
+        require => [ File["/etc/contrail/contrail_setup_utils/setup_verify_quantum_in_keystone.py"] ],
+        unless  => "grep -qx setup-verify-quantum-in-keystone /etc/contrail/contrail_config_exec.out",
         provider => shell,
         logoutput => "true"
     }
@@ -461,7 +470,7 @@ define contrail_config (
     }
 
 
-    Exec["haproxy-exec"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-quantum-in-keystone"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Exec["haproxy-exec"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
