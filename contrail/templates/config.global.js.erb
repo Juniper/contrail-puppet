@@ -24,6 +24,22 @@ config.orchestration.Manager = 'openstack'
 config.serviceEndPointFromConfig = true;
 
 /****************************************************************************
+ * This boolean flag indicates if serviceEndPointFromConfig is set as false,
+ * then to take IP/Port/Protocol/Version information from auth catalog, 
+ * should publicURL OR internalURL will be used.
+ *
+ * true  - publicURL in endpoint will be used to retrieve IP/Port/Protocol/
+ *         Version information
+ * false - internalURL in endpoint will be used to retrieve
+ *         IP/Port/Protocol/Version information
+ *
+ * NOTE: if config.serviceEndPointFromConfig is set as true, then this flag
+ *       does not have any effect.
+ *
+*****************************************************************************/
+config.serviceEndPointTakePublicURL = true;
+
+/****************************************************************************
  * Below are the config options for all Orchestration Modules below:
  *  - networkManager
  *  - imageManager
@@ -191,15 +207,47 @@ config.cacheExpire.flow_stat_time = 600; /* Seconds */
 config.cacheExpire.topo_tree_time = 600; /* Seconds */
 
 /* Logo File: Use complete path of logo file location */
-config.logo_file = '/usr/src/contrail/contrail-webui/webroot/img/juniper-networks-logo.png';
+config.logo_file = '/usr/src/contrail/contrail-web-core/webroot/img/opencontrail-logo.png';
+
+config.featurePkg = {};
+/* Add new feature Package Config details below */
+config.featurePkg.webController = {};
+config.featurePkg.webController.path = '/usr/src/contrail/contrail-web-controller';
+config.featurePkg.webController.enable = true;
+
+<% if @contrail_host_roles.index('storage-master') -%>
+config.featurePkg.webStorage = {};
+config.featurePkg.webStorage.path = '/usr/src/contrail/contrail-web-storage';
+config.featurePkg.webStorage.enable = true;
+<% end -%>
 
 /* Enable/disable Stat Query Links in Sidebar*/
 config.qe = {};
 config.qe.enable_stat_queries = false;
 
-/* Configure level of logs */
+/* Configure level of logs, supported log levels are:
+   debug, info, notice, warning, error, crit, alert, emerg
+ */
 config.logs = {};
 config.logs.level = 'debug';
 
+/******************************************************************************
+ * Boolean flag getDomainProjectsFromApiServer indicates wheather the project
+ * list should come from API Server or Identity Manager.
+ * If Set 
+ *      - true, then project list will come from API Server
+ *      - false, then project list will come from Identity Manager
+ * Default: false
+ *
+******************************************************************************/
+config.getDomainProjectsFromApiServer = false;
+/*****************************************************************************
+* Boolean flag L2_enable indicates the default forwarding-mode of a network.
+* Allowed values : true / false
+* Set this flag to true if all the networks are to be L2 networks, 
+* set to false otherwise.
+*****************************************************************************/
+config.network = {};
+config.network.L2_enable = false;
 // Export this as a module.
 module.exports = config;
