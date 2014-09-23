@@ -7,6 +7,8 @@ for rabbit_host in ${rabbit_list[@]}; do
     rabbitmqctl cluster_status | grep $rabbit_host
     added_to_cluster=$?
     if [ $added_to_cluster != 0 ]; then
+#        eval "rm -rf /var/lib/rabbitmq/mnesia"
+#        eval "service rabbitmq-server restart"
 	exit 1
     fi
 done

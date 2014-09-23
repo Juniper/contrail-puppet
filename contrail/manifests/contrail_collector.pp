@@ -20,6 +20,36 @@ define collector-template-scripts {
 #     $contrail_analytics_data_ttl
 define contrail_collector (
     ) {
+	case $::operatingsystem {
+		Ubuntu: {
+                      #  notify { "OS is Ubuntu":; }
+		      file {"/etc/init/supervisor-analytics.override": ensure => absent, require => Package['contrail-openstack-analytics']}
+		      file { '/etc/init.d/supervisor-analytics':
+		      	     ensure => link,
+			     target => '/lib/init/upstart-job',
+			     before => Service["supervisor-analytics"]
+		      }
+
+
+		}
+		Centos: {
+                       # notify { "OS is Ubuntu":; }
+
+		}
+		Fedora: {
+                #        notify { "OS is Ubuntu":; }
+		}
+		default: {
+                 #       notify { "OS is $operatingsystem":; }
+
+		}
+	}
+    if($internal_vip != "") {
+    	$contrail_analytics_api_port = 9081
+    } else {
+	$contrail_analytics_api_port = 8081
+    }
+
     __$version__::contrail_common::report_status {"collector_started": state => "collector_started"}
     ->
     # Ensure all needed packages are present
@@ -27,26 +57,15 @@ define contrail_collector (
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, python-contrail, contrail-analytics, contrail-setup, contrail-nodemgr
     # For Centos/Fedora - contrail-api-pib, contrail-analytics, contrail-setup, contrail-nodemgr
-
+    ->
+/*
     if ($operatingsystem == "Ubuntu"){
-        file {"/etc/init/supervisor-analytics.override": ensure => absent, require => Package['contrail-openstack-analytics']}
     }
-
-    # analytics venv installation
-    exec { "analytics-venv" :
-        command   => '/bin/bash -c "source ../bin/activate && pip install * && echo analytics-venv >> /etc/contrail/contrail_collector_exec.out"',
-        cwd       => '/opt/contrail/analytics-venv/archive',
-        unless    => ["[ ! -d /opt/contrail/analytics-venv/archive ]",
-                      "[ ! -f /opt/contrail/analytics-venv/bin/activate ]",
-                      "grep -qx analytics-venv /etc/contrail/contrail_collector_exec.out"],
-        provider => "shell",
-        require => Package['contrail-openstack-analytics'],
-        logoutput => "true"
-    }
-
+*/
+   
     # Ensure all config files with correct content are present.
     collector-template-scripts { ["contrail-analytics-api.conf" , "contrail-collector.conf", "contrail-query-engine.conf"]: }
-
+    ->
     # The below commented code is not used in latest fab. Need to check with analytics team and then remove
     # if not needed.
     # if ($contrail_num_collector_nodes > 0) {
@@ -80,18 +99,17 @@ define contrail_collector (
         provider => shell, 
         logoutput => "true"
     }
+    ->
+/*
     if ($operatingsystem == "Ubuntu") {
-        file { '/etc/init.d/supervisor-analytics':
-            ensure => link,
-            target => '/lib/init/upstart-job',
-            before => Service["supervisor-analytics"]
-        }
     }
+*/
+
     # Ensure the services needed are running.
     service { "supervisor-analytics" :
         enable => true,
-        require => [ Package['contrail-openstack-analytics'],
-                     Exec['analytics-venv'] ],
+        require => [ Package['contrail-openstack-analytics']
+                   ],
         subscribe => [ File['/etc/contrail/contrail-collector.conf'],
                        File['/etc/contrail/contrail-query-engine.conf'],
                        File['/etc/contrail/contrail-analytics-api.conf'] ],

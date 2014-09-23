@@ -241,46 +241,7 @@ define report_status($state) {
 
 
 }
-define contrail_setup_gid($group_gid ) {
-  notify { "Group ${name} to be created with ${group_gid}": }
-  exec {"create-group-${name}" :
-    command => "groupadd  -g $group_gid $name",
-    unless => "getent group $name | grep -q $group_gid",
-    provider  => shell,
-    logoutput => "true",
-   #require => contrail_setup_gid["$user_group_name"]
-  }
-}
 
-define contrail_setup_uid($user_uid, $user_group_name, $user_home_dir) {
-  notify { "User ${name} to be created with ${user_uid} and ${user_group_name}":
-    require => Contrail_setup_gid["$user_group_name"]
-  }
-  
-  exec {"create-user-${name}" :
-    command => "useradd -d $user_home_dir -g $user_group_name -r -s /bin/false -u $user_uid $name",
-    unless => "id -u $name | grep -q $user_uid",
-    provider  => shell,
-    logoutput => "true",
-    require => Contrail_setup_gid["$user_group_name"]
-  }
-}
-
-define contrail_setup_users_groups() {
-    $contrail_groups_details = {
-      'nova' 		=> { group_gid => '499' },
-      'libvirtd' 	=> { group_gid => '498' },
-      'kvm' 		=> { group_gid => '497' },
-    }
-    
-    $contrail_users_details = {
-      'nova' 		=> { user_uid => '499', user_group_name => 'nova', user_home_dir => '/var/lib/nova' },
-      'libvirt-qemu'	=> { user_uid => '498', user_group_name => 'kvm' , user_home_dir => '/var/lib/libvirt'},
-      'libvirt-dnsmasq' 	=> { user_uid => '497', user_group_name => 'libvirtd' , user_home_dir => '/var/lib/libvirt/dnsmasq'},
-    }
-    create_resources(__$VERSION__::Contrail_common::Contrail_setup_uid, $contrail_users_details, {})
-    create_resources(__$VERSION__::Contrail_common::Contrail_setup_gid, $contrail_groups_details, {})
-}
 
 # macro to perform common functions
 # Following variables need to be set for this resource.
@@ -293,6 +254,10 @@ define contrail_common (
     host { "$system_name" :
         ensure => present,
         ip => "$self_ip"
+    }
+
+    file { "/tmp/facts.yaml":
+    content => inline_template("<%= scope.to_hash.reject { |k,v| !( k.is_a?(String) && v.is_a?(String) ) }.to_yaml %>"),
     }
 
     # Disable SELINUX on boot, if not already disabled.
@@ -409,31 +374,6 @@ define contrail_common (
         logoutput => "true"
     }
 
-    # Why is this here ?? - Abhay
-    if ($operatingsystem == "Ubuntu"){
-
-        exec { "exec-update-neutron-conf" :
-            command => "sed -i \"s/^rpc_backend = nova.openstack.common.rpc.impl_qpid/#rpc_backend = nova.openstack.common.rpc.impl_qpid/g\" /etc/neutron/neutron.conf && echo exec-update-neutron-conf >> /etc/contrail/contrail_common_exec.out",
-            unless  => ["[ ! -f /etc/neutron/neutron.conf ]",
-                        "grep -qx exec-update-neutron-conf /etc/contrail/contrail_common_exec.out"],
-            provider => shell,
-            logoutput => "true"
-        }
-    }
-
-    # Why is this here ?? - Abhay
-    if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
-
-        exec { "exec-update-quantum-conf" :
-            command => "sed -i \"s/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g\" /etc/quantum/quantum.conf && echo exec-update-quantum-conf >> /etc/contrail/contrail_common_exec.out",
-            unless  => ["[ ! -f /etc/quantum/quantum.conf ]",
-                        "grep -qx exec-update-quantum-conf /etc/contrail/contrail_common_exec.out"],
-            provider => shell,
-            logoutput => "true"
-        }
-    
-
-    }
 
     exec { "contrail-status" :
         command => "(contrail-status > /tmp/contrail_status || echo re-images > /tmp/contrail_status) &&  curl -v -X PUT -d @/tmp/contrail_status http://$serverip:9001/status?server_id=$hostname && echo contrail-status >> /etc/contrail/contrail_common_exec.out",

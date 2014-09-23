@@ -29,6 +29,64 @@ define compute-template-scripts {
     }
 }
 
+define neutron_hacks() {
+    exec { "neutron_hacks" :
+        command => "openstack-config --set /etc/neutron/neutron.conf keystone_authtoken auth_host $internal_vip && service neutron-server restart && echo neutron_hacks >> /etc/contrail/contrail_config_exec.out",
+        unless  => "grep -qx neutron_hacks /etc/contrail/contrail_config_exec.out",
+        provider => shell,
+        logoutput => "true"
+    }
+
+
+
+}
+
+define fix_rabbit_tcp_params() {
+
+	if($internal_vip != "" or $contrail_internal_vip != "" ) {
+
+           
+if ! defined(File["/opt/contrail/contrail_installer/set_rabbit_tcp_params.py"]) {
+
+	    # check_wsrep
+	    file { "/opt/contrail/contrail_installer/set_rabbit_tcp_params.py" :
+		ensure  => present,
+		mode => 0755,
+		group => root,
+		source => "puppet:///modules/$module_name/set_rabbit_tcp_params.py"
+	    }
+
+
+	    exec { "exec_set_rabbitmq_tcp_params" :
+		command => "python /opt/contrail/contrail_installer/set_rabbit_tcp_params.py",
+		cwd => "/opt/contrail/contrail_installer/",
+		unless  => "grep -qx exec_set_rabbitmq_tcp_params /etc/contrail/contrail_openstack_exec.out",
+		provider => shell,
+		require => [ File["/opt/contrail/contrail_installer/set_rabbit_tcp_params.py"] ],
+		logoutput => 'true'
+	    }
+}
+
+}
+}
+
+
+
+define create-nfs($nfs_server, $first_compute) {
+	if ($nfs_server == "" and $first_compute == "yes" ) {
+	    exec { "create-nfs" :
+		command => "mkdir -p /var/tmp/glance-images/ && chmod 777 /var/tmp/glance-images/ && echo \"/var/tmp/glance-images *(rw,sync,no_subtree_check)\" >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ",
+		require => [  ],
+		unless  => "grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out",
+		provider => shell,
+		logoutput => "true"
+	    }
+
+	}
+
+}
+
+
 define contrail_compute_part_1 (
         $contrail_config_ip,
         $contrail_compute_ip,
@@ -51,39 +109,13 @@ define contrail_compute_part_1 (
     package { 'contrail-openstack-vrouter' : ensure => present,}
     package { 'contrail-interface-name' : ensure => present,}
 
-    # vrouter venv installation
-    exec { "vrouter-venv" :
-        command   => '/bin/bash -c "source ../bin/activate && pip install * && echo vrouter-venv >> /etc/contrail/contrail_compute_exec.out"',
-        cwd       => '/opt/contrail/vrouter-venv/archive',
-        unless    => ["[ ! -d /opt/contrail/vrouter-venv/archive ]",
-                      "[ ! -f /opt/contrail/vrouter-venv/bin/activate ]",
-                      "grep -qx vrouter-venv /etc/contrail/contrail_compute_exec.out"],
-        provider => "shell",
-        require => Package['contrail-openstack-vrouter'],
-        logoutput => "true"
-    }
-
-    # api venv installation
-    if ! defined(Exec["api-venv"]) {
-        exec { "api-venv" :
-            command   => '/bin/bash -c "source ../bin/activate && pip install * && echo api-venv >> /etc/contrail/contrail_config_exec.out"',
-            cwd       => "/opt/contrail/api-venv/archive",
-            unless    => ["[ ! -d /opt/contrail/api-venv/archive ]",
-                          "[ ! -f /opt/contrail/api-venv/bin/activate ]",
-                          "grep -qx api-venv /etc/contrail/contrail_config_exec.out"],
-            provider => "shell",
-            require => Package['contrail-openstack-vrouter'],
-            logoutput => "true"
-        }
-    }
-
     # flag that part 1 is completed and reboot the system
     file { "/etc/contrail/interface_renamed" :
         ensure  => present,
         mode => 0644,
         require => [ Package["contrail-openstack-vrouter"],
                      Package["contrail-interface-name"],
-                     Exec["vrouter-venv"] ],
+                     ],
         content => "1"
     }
 
@@ -95,7 +127,7 @@ define contrail_compute_part_1 (
         provider => "shell"
     }
 
-    Package['contrail-openstack-vrouter'] -> Package["contrail-interface-name"] -> Exec['vrouter-venv'] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
+    Package['contrail-openstack-vrouter'] -> Package["contrail-interface-name"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
 }
 
 define contrail_compute_part_2 (
@@ -128,34 +160,14 @@ define contrail_compute_part_2 (
     # Ensure all needed packages are present
     package { 'contrail-openstack-vrouter' : ensure => present,}
 
+    create-nfs{create_nfs:
+	nfs_server => $nfs_server,
+	first_compute => $first_compute
+    }
+
+
     if ($operatingsystem == "Ubuntu"){
         file {"/etc/init/supervisor-vrouter.override": ensure => absent, require => Package['contrail-openstack-vrouter']}
-    }
-
-    # vrouter venv installation
-    exec { "vrouter-venv" :
-        command   => '/bin/bash -c "source ../bin/activate && pip install * && echo vrouter-venv >> /etc/contrail/contrail_compute_exec.out"',
-        cwd       => '/opt/contrail/vrouter-venv/archive',
-        unless    => ["[ ! -d /opt/contrail/vrouter-venv/archive ]",
-                      "[ ! -f /opt/contrail/vrouter-venv/bin/activate ]",
-                      "grep -qx vrouter-venv /etc/contrail/contrail_compute_exec.out"],
-        provider => "shell",
-        require => Package['contrail-openstack-vrouter'],
-        logoutput => "true"
-    }
-
-    # api venv installation
-    if ! defined(Exec["api-venv"]) {
-        exec { "api-venv" :
-            command   => '/bin/bash -c "source ../bin/activate && pip install * && echo api-venv >> /etc/contrail/contrail_config_exec.out"',
-            cwd       => "/opt/contrail/api-venv/archive",
-            unless    => ["[ ! -d /opt/contrail/api-venv/archive ]",
-                          "[ ! -f /opt/contrail/api-venv/bin/activate ]",
-                          "grep -qx api-venv /etc/contrail/contrail_config_exec.out"],
-            provider => "shell",
-            require => Package['contrail-openstack-vrouter'],
-            logoutput => "true"
-        }
     }
 
     #Ensure Ha-proxy cfg file is set
@@ -231,6 +243,19 @@ define contrail_compute_part_2 (
 	} else {
 		$quantum_ip = $contrail_config_ip
 	}
+        if ($internal_vip == undef) {
+		$internal_vip = "none"
+	}
+        if ($external_vip == undef) {
+		$external_vip = "none"
+	}
+       if ($contrail_internal_vip == undef) {
+		$contrail_internal_vip = "none"
+	}
+       if ($contrail_external_vip == undef) {
+		$contrail_external_vip = "none"
+	}
+
         file { "/etc/contrail/ctrl-details" :
             ensure  => present,
             content => template("$module_name/ctrl-details.erb"),
@@ -387,6 +412,7 @@ define contrail_compute_part_2 (
 		$vm_physical_intf = "eth1"
 	}
         compute-scripts { ["compute-server-setup"]: }
+	neutron_hacks { neutron_hacks: }
 
         # flag that part 2 is completed and reboot the system
         file { "/etc/contrail/interface_renamed" :
@@ -413,7 +439,7 @@ define contrail_compute_part_2 (
             provider => "shell",
             logoutput => 'true'
         }
-        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
+        Package['contrail-openstack-vrouter'] -> Create-nfs['create_nfs'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Neutron_hacks['neutron_hacks'] ->Exec["reboot-server"]
     }
     else {
         file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
