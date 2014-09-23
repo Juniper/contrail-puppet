@@ -16,8 +16,24 @@ define contrail_webui (
     # Ensure all needed packages are present
     package { 'contrail-openstack-webui' : ensure => present,}
 
-    if 'storage-master' in $contrail_host_roles {
+    if $contrail_storage_enabled  == '1' {
 	package { 'contrail-web-storage' : ensure => present,}
+	-> 
+	file { "storage.config.global.js":
+		path => "/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js",
+		ensure => present,
+        	require => Package["contrail-web-storage"],
+        	content => template("$module_name/storage.config.global.js.erb"),
+    	}
+	-> Service['supervisor-webui']
+    } else {
+	package { 'contrail-web-storage' : ensure => absent,}
+	-> 
+	file { "storage.config.global.js":
+		path => "/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js",
+		ensure => absent,
+        	content => template("$module_name/storage.config.global.js.erb"),
+    	}
 	-> Service['supervisor-webui']
     }
     # The above wrapper package should be broken down to the below packages
@@ -50,7 +66,7 @@ define contrail_webui (
     # services needed for webui role.
     service { "supervisor-webui" :
         enable => true,
-        subscribe => File['/etc/contrail/config.global.js'],
+        subscribe => [File['/etc/contrail/config.global.js'], File['storage.config.global.js']],
         ensure => running,
     }
     ->
