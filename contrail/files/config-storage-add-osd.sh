@@ -283,7 +283,7 @@ check_and_setup_osd()
     echo "ceph osd crush move failed for ${hostname}: ${RETVAL}"
     exit ${RETVAL}
   fi
-  disk_size=`fdisk -s /dev/sdk`
+  disk_size=`fdisk -s ${disk_name}`
   disk_weight=$(awk "BEGIN {printf \"%.2f\", ${disk_size}  / (1024 * 1024 * 1024)}")
   ceph osd crush add osd.${OSD_NUM} ${disk_weight} host=${hostname}
 }
