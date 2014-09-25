@@ -8,9 +8,9 @@ define database-scripts {
         group => root,
     }
     exec { "setup-${title}" :
-        command => "/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh; echo setup-${title} >> /etc/contrail/contrail-compute-exec.out",
+        command => "/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh && echo setup-${title} >> /etc/contrail/contrail_database_exec.out",
         require => File["/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh"],
-        unless  => "grep -qx setup-${title} /etc/contrail/contrail-compute-exec.out",
+        unless  => "grep -qx setup-${title} /etc/contrail/contrail_database_exec.out",
         provider => shell,
         logoutput => "true"
     }
