@@ -125,7 +125,7 @@ define contrail_config (
             }
             service { "haproxy" :
                 enable => true,
-                require => File["/etc/haproxy/haproxy.cfg"],
+                subscribe => File['/etc/haproxy/haproxy.cfg'],
                 ensure => running
             }
         }
