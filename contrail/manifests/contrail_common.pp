@@ -27,6 +27,28 @@ define line($file, $line, $ensure = 'present') {
 }
 # End of macro line
 
+define upgrade-kernel($contrail_kernel_version) {
+    $headers = "linux-headers-${contrail_kernel_version}"
+    $headers_generic = "linux-headers-${contrail_kernel_version}-generic"
+    $image = "linux-image-${contrail_kernel_version}"
+    package { 'apparmor' : ensure => '2.7.102-0ubuntu3.10',}
+    ->
+    package { $headers : ensure => present, }
+    ->
+    package { $headers_generic : ensure => present, }
+    ->
+    package { $image : ensure => present, }
+    ->
+    exec { "upgrade-kernel-reboot":
+        command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
+        provider => shell,
+        logoutput => "true",
+	unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
+    }
+}
+
+#end of upgrade-kernel
+
 #source ha proxy files
 define haproxy-cfg($server_id) {
     file { "/etc/haproxy/haproxy.cfg":
@@ -101,7 +123,7 @@ define create-interface-cb(
 	$contrail_package_id
 ) {
     exec { "contrail-interface-cb" :
-        command => "curl -H \"Content-Type: application/json\" -d '{\"package_image_id\":\"$contrail_package_id\",\"server_id\":\"$hostname\"}' http://$serverip:9001/interface_created && echo create-interface-cb >> /etc/contrail/contrail_common_exec.out",
+        command => "curl -H \"Content-Type: application/json\" -d '{\"package_image_id\":\"$contrail_package_id\",\"id\":\"$hostname\"}' http://$serverip:9001/interface_created && echo create-interface-cb >> /etc/contrail/contrail_common_exec.out",
         provider => shell,
         logoutput => "true"
     }
@@ -120,7 +142,7 @@ define contrail-setup-interface(
 
      	# Setup contrail-install-packages
     	package {'ifenslave': ensure => present}
- 
+        package {'contrail-setup': ensure => present} 
 
 #	$contrail_member_list = inline_template('<%= contrail_members.delete! "" %>')
 	$contrail_member_list = $contrail_members
@@ -148,7 +170,7 @@ define contrail-setup-interface(
             command => $exec_full_cmd,
             provider => shell,
             logoutput => "true",
-	    require=> Package["ifenslave"],
+	    require=> [Package["ifenslave"], Package["contrail-setup"]],
             unless  => "grep -qx setup-intf${contrail_device} /etc/contrail/contrail_common_exec.out"
         }
 }
@@ -202,6 +224,23 @@ define contrail-install-repo(
     }
 }
 
+define report_status($state) {
+	if ! defined(Package['curl']) {
+		package { 'curl' : ensure => present,}
+
+
+
+	}
+    exec { "contrail-status-$state" :
+        command => "mkdir -p /etc/contrail/ && curl -X PUT \"http://$serverip:9002/server_status?server_id=$hostname&state=$state\" && echo contrail-status-$state >> /etc/contrail/contrail_common_exec.out",
+        provider => shell,
+	require => Package["curl"],
+        unless  => "grep -qx contrail-status-$state /etc/contrail/contrail_common_exec.out",
+        logoutput => "true"
+    }
+
+
+}
 define contrail_setup_gid($group_gid ) {
   notify { "Group ${name} to be created with ${group_gid}": }
   exec {"create-group-${name}" :
@@ -239,8 +278,8 @@ define contrail_setup_users_groups() {
       'libvirt-qemu'	=> { user_uid => '498', user_group_name => 'kvm' , user_home_dir => '/var/lib/libvirt'},
       'libvirt-dnsmasq' 	=> { user_uid => '497', user_group_name => 'libvirtd' , user_home_dir => '/var/lib/libvirt/dnsmasq'},
     }
-    create_resources(__$version__::Contrail_common::Contrail_setup_uid, $contrail_users_details, {})
-    create_resources(__$version__::Contrail_common::Contrail_setup_gid, $contrail_groups_details, {})
+    create_resources(__$VERSION__::Contrail_common::Contrail_setup_uid, $contrail_users_details, {})
+    create_resources(__$VERSION__::Contrail_common::Contrail_setup_gid, $contrail_groups_details, {})
 }
 
 # macro to perform common functions

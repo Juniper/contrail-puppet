@@ -46,6 +46,7 @@ define contrail_compute_part_1 (
         $contrail_ks_admin_passwd,
         $contrail_ks_admin_tenant,
     ) {
+
     # Ensure all needed packages are present
     package { 'contrail-openstack-vrouter' : ensure => present,}
     package { 'contrail-interface-name' : ensure => present,}
@@ -465,6 +466,8 @@ define contrail_compute (
         $contrail_ks_auth_port="35357",
     ) {
 
+    __$version__::contrail_common::report_status {"compute_started": state => "compute_started"}
+
     if ($operatingsystem == "Ubuntu") {
         if ($contrail_interface_rename_done != "2") {
             contrail_compute_part_2 { contrail_compute_2 :
@@ -552,6 +555,8 @@ define contrail_compute (
             # Nothing for now, add code here for anything to be done after second reboot
         }
     }
+    __$version__::contrail_common::report_status {"compute_completed": state => "compute_completed"}
+
 }
 # end of user defined type contrail_compute.
 

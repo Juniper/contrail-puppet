@@ -27,7 +27,8 @@ define control-template-scripts {
 #     $contrail_api_nworkers
 define contrail_control (
     ) {
-
+    __$version__::contrail_common::report_status {"control_started": state => "control_started"}
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-control' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -90,7 +91,17 @@ define contrail_control (
         logoutput => "true"
     }
 
-    Package["contrail-openstack-control"]->Exec['control-venv']->Control-template-scripts["contrail-control.conf"]->Control-template-scripts["dns.conf"]->Exec["control-server-setup"]
+    # update rndc conf
+    exec { "update-rndc-conf-file" :
+        command => "sudo sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
+        require =>  package["contrail-openstack-control"],
+        onlyif => "test -f /etc/contrail/dns/rndc.conf",
+        unless  => "grep -qx update-rndc-conf-file /etc/contrail/contrail_control_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+
+    Package["contrail-openstack-control"]->Exec['control-venv']->Control-template-scripts["contrail-control.conf"]->Control-template-scripts["dns.conf"]->Exec["update-rndc-conf-file"]->Exec["control-server-setup"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
@@ -135,6 +146,9 @@ define contrail_control (
         subscribe => File['/etc/contrail/dns.conf'],
         ensure => running,
     }
+    ->
+    __$version__::contrail_common::report_status {"control_completed": state => "control_completed"}
+
 }
 # end of user defined type contrail_control.
 

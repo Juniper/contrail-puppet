@@ -45,6 +45,8 @@ define contrail_openstack (
     $contrail_vm_passwd = ""
     $contrail_vswitch = ""
 
+    __$version__::contrail_common::report_status {"openstack_started": state => "openstack_started"}
+    ->
     # list of packages
     package { 'contrail-openstack' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -332,7 +334,8 @@ define contrail_openstack (
         enable => true,
         ensure => running,
     }
-
+    ->
+    __$version__::contrail_common::report_status {"openstack_completed": state => "openstack_completed"}
     Package['contrail-openstack']->File['/etc/contrail/contrail_setup_utils/api-paste.sh']->Exec['exec-api-paste']->Exec['exec-openstack-qpid-rabbitmq-hostname']->File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Openstack-scripts["keystone-server-setup"]->Openstack-scripts["glance-server-setup"]->Openstack-scripts["cinder-server-setup"]->Openstack-scripts["nova-server-setup"]->Exec['setup-keystone-server-2setup']->Service['openstack-keystone']->Service['mysqld']->Service['memcached']->Exec['neutron-conf-exec']->Exec['dashboard-local-settings-3']->Exec['dashboard-local-settings-4']->Exec['restart-supervisor-openstack']
 }
 # end of user defined type contrail_openstack.

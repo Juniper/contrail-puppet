@@ -11,9 +11,31 @@ class __$version__::contrail_webui {
 define contrail_webui (
         $contrail_keystone_ip = $contrail_openstack_ip
     ) {
-
+    __$version__::contrail_common::report_status {"webui_started": state => "webui_started"}
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-webui' : ensure => present,}
+
+    if $contrail_storage_enabled  == '1' {
+	package { 'contrail-web-storage' : ensure => present,}
+	-> 
+	file { "storage.config.global.js":
+		path => "/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js",
+		ensure => present,
+        	require => Package["contrail-web-storage"],
+        	content => template("$module_name/storage.config.global.js.erb"),
+    	}
+	-> Service['supervisor-webui']
+    } else {
+	package { 'contrail-web-storage' : ensure => absent,}
+	-> 
+	file { "storage.config.global.js":
+		path => "/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js",
+		ensure => absent,
+        	content => template("$module_name/storage.config.global.js.erb"),
+    	}
+	-> Service['supervisor-webui']
+    }
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - contrail-nodemgr, contrail-webui, contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-webui, contrail-setup, supervisor
@@ -44,9 +66,12 @@ define contrail_webui (
     # services needed for webui role.
     service { "supervisor-webui" :
         enable => true,
-        subscribe => File['/etc/contrail/config.global.js'],
+        subscribe => [File['/etc/contrail/config.global.js'], File['storage.config.global.js']],
         ensure => running,
     }
+    ->
+    __$version__::contrail_common::report_status {"webui_completed": state => "webui_completed"}
+
 }
 # end of user defined type contrail_webui.
 

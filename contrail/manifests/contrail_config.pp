@@ -80,7 +80,8 @@ define contrail_config (
     $contrail_vm_username = ""
     $contrail_vm_passwd = ""
     $contrail_vswitch = ""
-	
+
+
     if $contrail_use_certs == "yes" {
         $contrail_ifmap_server_port = '8444'
     }
@@ -95,6 +96,8 @@ define contrail_config (
         $contrail_memcached_opt = ""
     }
 
+    __$version__::contrail_common::report_status {"config_started": state => "config_started"}
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-config' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -125,7 +128,7 @@ define contrail_config (
             }
             service { "haproxy" :
                 enable => true,
-                subscribe => File['/etc/haproxy/haproxy.cfg'],
+		subscribe => File['/etc/haproxy/haproxy.cfg'],
                 ensure => running
             }
         }
@@ -347,7 +350,7 @@ define contrail_config (
     }
     notify { $contrail_rabbit_user:; }  
 
-    $contrail_rabbithost_list_for_shell = inline_template('<%= contrail_rabbit_user.sub(/\,/, " ").delete "[]" %>')
+    $contrail_rabbithost_list_for_shell = inline_template('<%= contrail_rabbit_user.gsub(/\,/, " ").delete "[]" %>')
 
     notify { $contrail_rabbithost_list_for_shell:; }  
     #Check to see if the rabbitmq cluster is fully formed,
@@ -487,6 +490,9 @@ define contrail_config (
                      Exec['api-venv'] ],
         ensure => running,
     }
+    ->
+   __$version__::contrail_common::report_status {"config_completed": state => "config_completed"}
+
 }
 # end of user defined type contrail_config.
 
