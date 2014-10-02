@@ -1,0 +1,8 @@
+Verified+2: Zuul <zuul@lists.opencontrail.org>
+Approved+1: prasad miriyala <pmiriyala@juniper.net>
+Code-Review+2: prasad miriyala <pmiriyala@juniper.net>
+Submitted-by: Zuul <zuul@lists.opencontrail.org>
+Submitted-at: Wed, 01 Oct 2014 20:30:45 -0700
+Reviewed-on: https://review.opencontrail.org/3353
+Project: Juniper/contrail-puppet
+Branch: refs/heads/R1.10
