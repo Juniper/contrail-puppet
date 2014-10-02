@@ -408,6 +408,15 @@ define contrail_config (
         logoutput => "true"
     }
 
+    $line1="NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
+    exec { "config-neutron-server" :
+         command => "sudo sed -i '/NEUTRON_PLUGIN_CONFIG.*/d' /etc/default/neutron-server && echo \"$line1\" >> /etc/default/neutron-server && service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
+         onlyif => "test -f /etc/default/neutron-server",
+         unless  => "grep -qx config-neutron-server /etc/contrail/contrail_config_exec.out",
+         provider => shell,
+         logoutput => 'true'
+    }
+
 ###############################
 
     File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Config-template-scripts["contrail-api.conf"]->File["/etc/contrail/contrail_plugin.ini"]->Config-template-scripts["schema_transformer.conf"]->Config-template-scripts["svc_monitor.conf"]->Config-template-scripts["contrail-discovery.conf"]->Config-template-scripts["vnc_api_lib.ini"]
@@ -473,7 +482,7 @@ define contrail_config (
     }
 
 
-    Exec["haproxy-exec"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Exec["haproxy-exec"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
