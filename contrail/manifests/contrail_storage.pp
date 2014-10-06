@@ -18,7 +18,8 @@ define contrail_storage (
 	$contrail_storage_journal_size_mb = 1024
     ) {
 
-	if 'compute' in $contrail_host_roles and $contrail_interface_rename_done == 2 {
+	if 'compute' in $contrail_host_roles {
+	    if $contrail_interface_rename_done == 2 {
 		contrail_storage_internal{ 'storage-compute':
 			contrail_storage_fsid => $contrail_storage_fsid,
 			contrail_num_storage_hosts => $contrail_num_storage_hosts,
@@ -36,6 +37,7 @@ define contrail_storage (
 			contrail_storage_hostname => $contrail_storage_hostname,
 			contrail_storage_journal_size_mb => $contrail_storage_journal_size_mb
 		}
+	    }
 	} else {
 		contrail_storage_internal{ 'storage-master':
 			contrail_storage_fsid => $contrail_storage_fsid,
@@ -212,6 +214,25 @@ define contrail_storage_config_files(
 		provider => shell,
 		logoutput => "true"
 	    }
+
+            if $contrail_live_migration_host != '' {
+	    file { "config-storage-live-migration.sh":
+		path => '/etc/contrail/contrail_setup_utils/config-storage-live-migration.sh',
+		ensure  => present,
+		mode => 0755,
+		owner => root,
+		group => root,
+		source => "puppet:///modules/$module_name/config-storage-live-migration.sh"
+	    }
+            ->
+            exec { "setup-config-storage-live-migration":
+                command => "/etc/contrail/contrail_setup_utils/config-storage-live-migration.sh $serverip \
+                           $contrail_live_migration_host" ,
+		provider => shell,
+                timeout => 0,
+		logoutput => "true"
+            }
+            }
 	  }
 	  
 
@@ -236,7 +257,34 @@ define contrail_storage_config_files(
 		provider => shell,
 		logoutput => "true"
 	    }
+
+            if $contrail_live_migration_host != '' {
+	    file { "config-storage-lm-compute.sh":
+		path => '/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh',
+		ensure  => present,
+		mode => 0755,
+		owner => root,
+		group => root,
+		source => "puppet:///modules/$module_name/config-storage-lm-compute.sh"
+	    }
+            ->
+	    file { "openstack-get-config":
+		path => '/etc/contrail/contrail_setup_utils/openstack-get-config',
+		ensure  => present,
+		mode => 0755,
+		owner => root,
+		group => root,
+		source => "puppet:///modules/$module_name/openstack-get-config"
+	    } ->
+            exec { "setup-config-storage-compute-live-migration":
+                command => "/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh \
+                           $contrail_live_migration_host" ,
+		provider => shell,
+                timeout => 0,
+		logoutput => "true"
+            }
 	  }
+          }
 	}
 
 define contrail_storage_pools(
