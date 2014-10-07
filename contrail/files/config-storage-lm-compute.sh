@@ -15,6 +15,23 @@ fi
 
 echo "I am VM_HOST = ${VM_HOST}"
 
+## for some reason, uid/gid are set back to root:root, so adding check for every time
+stat -c '%U:%G'  /var/lib/nova/instances/global
+STAT_OUTPUT=`stat -c '%U:%G'  /var/lib/nova/instances/global`
+if [ "x${STAT_OUTPUT}" != "xnova:nova" ]
+then
+  if [ -d /var/lib/nova/instances/global ]
+  then
+    mkdir -p /var/lib/nova/instances/global
+  fi
+  chown nova:nova /var/lib/nova/instances/global
+  RETVAL=$?
+  if [ ${RETVAL} -ne 0 ]
+  then
+      echo "chown command failed"
+      exit 1
+  fi
+fi
 cat /proc/mounts  | grep -q /var/lib/nova/instances/global
 RETVAL=$?
 if [ $RETVAL -eq 0 ]
@@ -33,6 +50,7 @@ then
   echo "openstack-get-config failed, configure values "
   openstack-config --set /etc/nova/nova.conf DEFAULT live_migration_flag VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE
   openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen 0.0.0.0
+  openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope global
   cat /etc/libvirt/libvirtd.conf | sed s/"#listen_tls = 0"/"listen_tls = 0"/ | sed s/"#listen_tcp = 1"/"listen_tcp = 1"/ | sed s/'#auth_tcp = "sasl"'/'auth_tcp = "none"'/ > /tmp/libvirtd.conf
   cp -f  /tmp/libvirtd.conf  /etc/libvirt/libvirtd.conf
   
@@ -49,6 +67,7 @@ then
   echo "live_migration_flag value is not correct"
   openstack-config --set /etc/nova/nova.conf DEFAULT live_migration_flag VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE
   openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen 0.0.0.0
+  openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope global
   if [ ${VM_HOST} -eq 1 ]
   then
     openstack-config --set /etc/nova/nova.conf DEFAULT resume_guests_state_on_host_boot True
@@ -61,10 +80,6 @@ then
   service nova-compute restart
   service libvirt-bin restart
 fi
-
-
-mkdir -p /var/lib/nova/instances/global
-chown nova:nova /var/lib/nova/instances/global
 
 
 if [ ${VM_HOST} -eq 1 ]
