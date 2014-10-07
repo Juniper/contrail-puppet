@@ -75,11 +75,6 @@ define contrail_storage_internal (
 	$contrail_storage_hostname ,
 	$contrail_storage_journal_size_mb 
     ) {
-	##__$version__::contrail_common::contrail-setup-repo{contrail_storage_repo:
-		#contrail_repo_name => $contrail_storage_repo_id,
-		#contrail_server_mgr_ip => "$serverip",
-	#}
-	 #->
 	package { 'contrail-storage-packages' : ensure => present, }
 	 ->
 	package { 'contrail-storage' : ensure => present, }
@@ -116,6 +111,25 @@ define contrail_storage_internal (
 	    group => root,
 	    source => "puppet:///modules/$module_name/config-storage-disk-clean.sh",
 	}
+        file { "ceph-log-rotate":
+	    path => "/etc/logrotate.d/ceph",
+	    ensure  => present,
+	    mode => 0755,
+	    owner => root,
+	    group => root,
+	    source => "puppet:///modules/$module_name/config-storage-ceph-log-rotate",
+	    require => [Package['contrail-storage'], Package['ceph']]
+        } ->
+	cron { 'ceph-logrotate':
+	    command => '/usr/sbin/logrotate /etc/logrotate.d/ceph >/dev/null 2>&1',
+	    user    => root,
+	    minute  => '30',
+	    hour => 'absent',
+	    month => 'absent',
+	    monthday => 'absent',
+	    weekday => 'absent',
+	}
+
 	#File<| title == 'ceph-osd-setup-file' |> -> Ceph::Osd <||>
 
 	if $contrail_num_storage_hosts > 1 {
