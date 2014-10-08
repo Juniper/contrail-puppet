@@ -293,7 +293,7 @@ define contrail_storage_config_files(
 	    } ->
             exec { "setup-config-storage-compute-live-migration":
                 command => "/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh \
-                           $contrail_live_migration_host" ,
+                           $contrail_live_migration_host $contrail_live_migration_storage_scope" ,
 		provider => shell,
                 timeout => 0,
 		logoutput => "true"
