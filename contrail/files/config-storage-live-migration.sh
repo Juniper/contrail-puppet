@@ -13,7 +13,7 @@ then
     exit 1
 fi
 
-NOVA_HOST_IP=`host cmbu-cl73 | awk '{printf $4}'`
+host ${NOVA_HOST} 
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ]
 then
@@ -21,6 +21,7 @@ then
   exit 1
 fi
 
+NOVA_HOST_IP=`host ${NOVA_HOST} | awk '{printf $4}'`
 
 nova_uid=`id -u nova`
 dnsmasq_uid=`id -u libvirt-dnsmasq`

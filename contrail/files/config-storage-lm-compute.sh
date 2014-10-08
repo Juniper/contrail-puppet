@@ -4,6 +4,7 @@ set -x
 RETVAL=0
 VM_HOST=0
 VM_HOSTNAME=$1
+STORAGE_SCOPE=$2
 MY_HOSTNAME=`hostname`
 
 if [ ${VM_HOSTNAME} != ${MY_HOSTNAME} ]
@@ -50,7 +51,7 @@ then
   echo "openstack-get-config failed, configure values "
   openstack-config --set /etc/nova/nova.conf DEFAULT live_migration_flag VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE
   openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen 0.0.0.0
-  #openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope global
+  openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope ${STORAGE_SCOPE}
   cat /etc/libvirt/libvirtd.conf | sed s/"#listen_tls = 0"/"listen_tls = 0"/ | sed s/"#listen_tcp = 1"/"listen_tcp = 1"/ | sed s/'#auth_tcp = "sasl"'/'auth_tcp = "none"'/ > /tmp/libvirtd.conf
   cp -f  /tmp/libvirtd.conf  /etc/libvirt/libvirtd.conf
   
@@ -67,7 +68,7 @@ then
   echo "live_migration_flag value is not correct"
   openstack-config --set /etc/nova/nova.conf DEFAULT live_migration_flag VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE
   openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen 0.0.0.0
-  #openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope global
+  openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope ${STORAGE_SCOPE}
   if [ ${VM_HOST} -eq 1 ]
   then
     openstack-config --set /etc/nova/nova.conf DEFAULT resume_guests_state_on_host_boot True
