@@ -39,11 +39,14 @@ define contrail_database (
     ) {
     __$version__::contrail_common::report_status {"database_started": state => "database_started"}
     ->
+
     # Ensure all needed packages are present
     package { 'contrail-openstack-database' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - cassandra (>= 1.1.12) , contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-database, contrail-setup, openstack-quantum-contrail, supervisor
+    __$version__::contrail_common::increase_limits {"increase_limits_databse":}
+    ->
 
     exec { "exec-config-host-entry" :
         command   => 'echo \"$contrail_config_ip   $system_name\" >> /etc/hosts && echo exec-config-host-entry >> /etc/contrail/contrail_database_exec.out',

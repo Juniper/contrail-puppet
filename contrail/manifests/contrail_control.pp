@@ -29,6 +29,7 @@ define contrail_control (
     ) {
     __$version__::contrail_common::report_status {"control_started": state => "control_started"}
     ->
+
     # Ensure all needed packages are present
     package { 'contrail-openstack-control' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -36,6 +37,9 @@ define contrail_control (
     #                      contrail-setup, contrail-nodemgr
     # For Centos/Fedora - contrail-api-lib, contrail-control, contrail-setup, contrail-libs
     #                     contrail-dns, supervisor
+
+    ->
+    __$version__::contrail_common::increase_limits {"increase_limits_control":}
 
     # control venv installation
     exec { "control-venv" :

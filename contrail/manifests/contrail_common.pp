@@ -27,6 +27,131 @@ define line($file, $line, $ensure = 'present') {
 }
 # End of macro line
 
+
+define increase_ulimits() {
+
+    #Increase ulimit in /etc/init.d/mysqld /etc/init/mysql.conf /etc/init.d/rabbitmq-server files
+	if ($operatingsystem == "Ubuntu") {
+		exec { "increase-ulimits":
+			command => "sed -i \"/start|stop)/ a\    ulimit -n 10240\" /etc/init.d/mysql && sed -i \"/start_rabbitmq () {/a\    ulimit -n 10240\" /etc/init.d/rabbitmq-server && sed -i \"/umask 007/ a\limit nofile 10240 10240\" /etc/init/mysql.conf ; sed -i \"/\[mysqld\]/a\max_connections = 10000\" /etc/mysql/my.cnf && echo \"ulimit -n 10240\" >> /etc/default/rabbitmq-server && echo increase-ulimits >> /etc/contrail/contrail_common_exec.out",
+			provider => shell,
+            unless  => "grep -qx increase-ulimits /etc/contrail/contrail_common_exec.out",
+			logoutput => "true"
+    		}
+
+	} else {
+		exec { "increase-ulimits":
+			command => "sed -i \"/start(){/ a\    ulimit -n 10240\" /etc/init.d/mysqld && sed -i \"/start_rabbitmq () {/a\    ulimit -n 10240\" /etc/init.d/rabbitmq-server && sed -i \"/\[mysqld\]/a\max_connections = 2048\" /etc/my.cnf && echo increase-ulimits >> /etc/contrail/contrail_common_exec.out",
+			provider => shell,
+            unless  => "grep -qx increase-ulimits /etc/contrail/contrail_common_exec.out",
+			logoutput => "true"
+    		}
+	}  
+
+}
+
+
+
+define insert_line_to_file($pattern, $line, $file_name, $instance) {
+	if ($pattern != '') {
+		exec { "insert-pattern-$instance":
+			command => "sed -i \"/$pattern/d\" $file_name",
+			provider => shell,
+			logoutput => "true"
+    		}
+	}
+	exec { "insert-line-$instance":
+		command => "echo \"$line\n\" >> $file_name",
+		provider => shell,
+		logoutput => "true"
+	}
+
+}
+
+
+#increase limits
+define increase_limits() {
+
+	#Increase limits in /etc/security/limits.conf, sysctl.conf and /etc/contrail/supervisor*.conf files
+
+	$limits_conf = '/etc/security/limits.conf'
+        $pattern='^root\s*soft\s*nproc\s*.*'
+        if ($operatingsystem == "Ubuntu") {
+            $line = 'root soft nofile 65535\nroot hard nofile 65535'
+	} else {
+            $line = 'root soft nproc 65535'
+	}  
+
+        if ! defined(Insert_line_to_file['line0']) {
+
+        	insert_line_to_file {"line0": pattern => $pattern,
+					 line => $line,
+					 file_name => $limits_conf,
+					 instance => "line0"}
+	}
+        $pattern1 = '^*\s*hard\s*nofile\s*.*'
+        $line1 = '* hard nofile 65535'
+        if ! defined(Insert_line_to_file['line1']) {
+
+        	insert_line_to_file {"line1": pattern => $pattern1,
+					 line => $line1,
+					 file_name => $limits_conf,
+					 instance => "line1"}
+	}
+
+
+        $pattern2 = '^*\s*soft\s*nofile\s*.*'
+        $line2 = '* soft nofile 65535'
+        if ! defined(Insert_line_to_file['line2']) {
+
+        	insert_line_to_file {"line2": pattern => $pattern2,
+					 line => $line2,
+					 file_name => $limits_conf,
+					 instance => "line2"}
+	}
+
+        $pattern3='^*\s*hard\s*nproc\s*.*'
+        $line3 = '* hard nproc 65535'
+        if ! defined(Insert_line_to_file['line3']) {
+
+        	insert_line_to_file {"line3": pattern => $pattern3,
+					 line => $line3,
+					 file_name => $limits_conf,
+					 instance => "line3"}
+	}
+
+        $pattern4='^*\s*soft\s*nproc\s*.*'
+        $line4 = '* soft nofile 65535'
+        if ! defined(Insert_line_to_file['line4']) {
+
+        	insert_line_to_file {"line4": pattern => $pattern4,
+					 line => $line4,
+					 file_name => $limits_conf,
+					 instance => "line4"}
+	}
+
+
+	$pattern5='^fs.file-max.*'
+        $line5='fs.file-max = 65535'
+	$sysctl_conf = '/etc/sysctl.conf'
+        if ! defined(Insert_line_to_file['line5']) {
+
+        	insert_line_to_file {"line5": pattern => $pattern5,
+					 line => $line5,
+					 file_name => $sysctl_conf,
+					 instance => "line5"}
+	}
+        if ! defined(Exec['setup-sysctl']) {
+
+        	exec { "setup-sysctl":
+                	command => "sysctl -p && sed -i \'s/^minfds.*/minfds=10240/\' /etc/contrail/supervisor*.conf && echo setup-sysctl >> /etc/contrail/contrail_common_exec.out",
+                	unless  => "grep -qx setup-sysctl /etc/contrail/contrail_common_exec.out",
+                	provider => shell,
+                	logoutput => "true"
+        	}
+	}
+}
+
 define upgrade-kernel($contrail_kernel_version) {
     $headers = "linux-headers-${contrail_kernel_version}"
     $headers_generic = "linux-headers-${contrail_kernel_version}-generic"

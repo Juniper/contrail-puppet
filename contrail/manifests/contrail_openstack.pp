@@ -49,6 +49,9 @@ define contrail_openstack (
     ->
     # list of packages
     package { 'contrail-openstack' : ensure => present,}
+    ->
+    __$version__::contrail_common::increase_ulimits {"increase_ulimits_openstack":}
+
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - python-contrail, openstack-dashboard, contrail-openstack-dashboard, glance, keystone, nova-api, nova-common,
     #                     nova-conductor, nova-console, nova-objectstore, nova-scheduler, cinder-api, cinder-common, cinder-scheduler,

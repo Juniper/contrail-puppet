@@ -22,11 +22,15 @@ define contrail_collector (
     ) {
     __$version__::contrail_common::report_status {"collector_started": state => "collector_started"}
     ->
+
     # Ensure all needed packages are present
     package { 'contrail-openstack-analytics' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, python-contrail, contrail-analytics, contrail-setup, contrail-nodemgr
     # For Centos/Fedora - contrail-api-pib, contrail-analytics, contrail-setup, contrail-nodemgr
+
+    ->
+    __$version__::contrail_common::increase_limits {"increase_limits_collector":}
 
     if ($operatingsystem == "Ubuntu"){
         file {"/etc/init/supervisor-analytics.override": ensure => absent, require => Package['contrail-openstack-analytics']}

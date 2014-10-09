@@ -98,6 +98,7 @@ define contrail_config (
 
     __$version__::contrail_common::report_status {"config_started": state => "config_started"}
     ->
+
     # Ensure all needed packages are present
     package { 'contrail-openstack-config' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -107,6 +108,8 @@ define contrail_config (
     # For Centos/Fedora - contrail-api-lib contrail-api-extension, contrail-config, openstack-quantum-contrail, python-novaclient, python-keystoneclient >= 0.2.0,
     #                     python-psutil, mysql-server, contrail-setup, python-zope-interface, python-importlib, euca2ools, m2crypto, openstack-nova,
     #                     java-1.7.0-openjdk, haproxy, rabbitmq-server, python-bottle, contrail-nodemgr
+    ->
+    __$version__::contrail_common::increase_limits {"increase_limits_config":}
 
     # enable haproxy in haproxy config file for ubuntu.
     if ($operatingsystem == "Ubuntu") {
