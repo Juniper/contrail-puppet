@@ -21,7 +21,7 @@ stat -c '%U:%G'  /var/lib/nova/instances/global
 STAT_OUTPUT=`stat -c '%U:%G'  /var/lib/nova/instances/global`
 if [ "x${STAT_OUTPUT}" != "xnova:nova" ]
 then
-  if [ -d /var/lib/nova/instances/global ]
+  if [ ! -d /var/lib/nova/instances/global ]
   then
     mkdir -p /var/lib/nova/instances/global
   fi
@@ -114,6 +114,7 @@ then
   fi
   
   netstat -nr | grep -q 192.168.101.2
+  RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
     route add -host 192.168.101.2/32 dev livemnfsvgw
