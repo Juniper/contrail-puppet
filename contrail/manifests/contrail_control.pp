@@ -77,15 +77,15 @@ define contrail_control (
     # Hard-coded to be taken as parameter of vnsi and multi-tenancy options need to be passed to contrail_control too.
     # The below script can be avoided. Sets up puppet agent and waits to get certificate from puppet master.
     # also has service restarts for puppet agent and supervisor-control. Abhay
-    file { "/opt/contrail/contrail_installer/contrail_setup_utils/control-server-setup.sh":
+    file { "/opt/contrail/bin/control-server-setup.sh":
         ensure  => present,
         mode => 0755,
         owner => root,
         group => root,
     }
     exec { "control-server-setup" :
-        command => "/opt/contrail/contrail_installer/contrail_setup_utils/control-server-setup.sh; echo control-server-setup >> /etc/contrail/contrail_control_exec.out",
-        require => File["/opt/contrail/contrail_installer/contrail_setup_utils/control-server-setup.sh"],
+        command => "/opt/contrail/bin/control-server-setup.sh; echo control-server-setup >> /etc/contrail/contrail_control_exec.out",
+        require => File["/opt/contrail/bin/control-server-setup.sh"],
         unless  => "grep -qx control-server-setup /etc/contrail/contrail_control_exec.out",
         provider => shell,
         logoutput => "true"
