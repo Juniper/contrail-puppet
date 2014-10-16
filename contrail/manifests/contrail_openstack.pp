@@ -1,15 +1,15 @@
 class __$version__::contrail_openstack {
 
 define openstack-scripts {
-    file { "/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh":
+    file { "/opt/contrail/bin/${title}.sh":
         ensure  => present,
         mode => 0755,
         owner => root,
         group => root,
     }
     exec { "setup-${title}" :
-        command => "/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh $operatingsystem && echo setup-${title} >> /etc/contrail/contrail_openstack_exec.out",
-        require => [ File["/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh"],
+        command => "/opt/contrail/bin/${title}.sh $operatingsystem && echo setup-${title} >> /etc/contrail/contrail_openstack_exec.out",
+        require => [ File["/opt/contrail/bin/${title}.sh"],
                      File["/etc/contrail/ctrl-details"] ],
         unless  => "grep -qx setup-${title} /etc/contrail/contrail_openstack_exec.out",
         provider => shell,
@@ -278,8 +278,8 @@ define contrail_openstack (
     # repeat keystone setup (workaround for now) Needs to be fixed .. Abhay
     if ($operatingsystem == "Ubuntu") {
 	    exec { "setup-keystone-server-2setup" :
-		    command => "/opt/contrail/contrail_installer/contrail_setup_utils/keystone-server-setup.sh $operatingsystem && echo setup-keystone-server-2setup >> /etc/contrail/contrail_openstack_exec.out",
-		    require => [ File["/opt/contrail/contrail_installer/contrail_setup_utils/keystone-server-setup.sh"],
+		    command => "/opt/contrail/bin/keystone-server-setup.sh $operatingsystem && echo setup-keystone-server-2setup >> /etc/contrail/contrail_openstack_exec.out",
+		    require => [ File["/opt/contrail/bin/keystone-server-setup.sh"],
 		    File["/etc/contrail/ctrl-details"],
 		    Openstack-scripts['nova-server-setup'] ],
 		    unless  => "grep -qx setup-keystone-server-2setup /etc/contrail/contrail_openstack_exec.out",

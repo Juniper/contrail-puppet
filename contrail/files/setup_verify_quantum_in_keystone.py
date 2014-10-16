@@ -8,7 +8,7 @@ import time
 
 def setup_quantum(contrail_openstack_ip, contrail_config_ip, contrail_ks_admin_tenant, contrail_ks_admin_user, contrail_ks_admin_passwd, contrail_service_token, contrail_region_name):
 
-    cmd = "python /opt/contrail/contrail_installer/contrail_setup_utils/setup-quantum-in-keystone.py --ks_server_ip %s --quant_server_ip %s  --tenant %s  --user %s  --password %s --svc_password %s  --region_name %s" %(contrail_openstack_ip, contrail_config_ip, contrail_ks_admin_tenant, contrail_ks_admin_user, contrail_ks_admin_passwd, contrail_service_token, contrail_region_name)  
+    cmd = "python /opt/contrail/bin/setup-quantum-in-keystone --ks_server_ip %s --quant_server_ip %s  --tenant %s  --user %s  --password %s --svc_password %s  --region_name %s" %(contrail_openstack_ip, contrail_config_ip, contrail_ks_admin_tenant, contrail_ks_admin_user, contrail_ks_admin_passwd, contrail_service_token, contrail_region_name)  
     ret,output = commands.getstatusoutput(cmd) 
     if (ret):
 	sys.exit(-1)

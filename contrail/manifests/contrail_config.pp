@@ -2,7 +2,7 @@ class __$version__::contrail_config {
 
 # Macro to push and execute certain scripts.
 define config-scripts {
-    file { "/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh":
+    file { "/opt/contrail/bin/${title}.sh":
         ensure  => present,
         mode => 0755,
         owner => root,
@@ -10,8 +10,8 @@ define config-scripts {
         require => [File["/etc/contrail/ctrl-details"],Config-template-scripts["schema_transformer.conf"],Config-template-scripts["svc_monitor.conf"]]
     }
     exec { "setup-${title}" :
-        command => "/bin/bash /opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh $operatingsystem && echo setup-${title} >> /etc/contrail/contrail_config_exec.out",
-        require => File["/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh"],
+        command => "/bin/bash /opt/contrail/bin/${title}.sh $operatingsystem && echo setup-${title} >> /etc/contrail/contrail_config_exec.out",
+        require => File["/opt/contrail/bin/${title}.sh"],
         unless  => "grep -qx setup-${title} /etc/contrail/contrail_config_exec.out",
         provider => shell
     }
@@ -385,7 +385,7 @@ define contrail_config (
     config-scripts { ["config-server-setup", "quantum-server-setup"]: }
 
     # Need to run python script to setup quantum in keystone on openstack node TBD Abhay
-    file { "/opt/contrail/contrail_installer/contrail_setup_utils/setup-quantum-in-keystone.py":
+    file { "/opt/contrail/bin/setup-quantum-in-keystone.py":
         ensure  => present,
         mode => 0755,
         owner => root,
