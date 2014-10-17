@@ -337,6 +337,11 @@ define contrail_compute_part_2 (
             $contrail_gway = $contrail_gateway
         }
 
+        if ($operatingsystem == "Ubuntu") {
+		$contrail_kmod = "vrouter"
+	} elsif ($operatingsystem == "Centos") {
+		$contrail_kmod = "/lib/modules/2.6.32-358.el6.x86_64/extra/net/vrouter/vrouter.ko" 
+	}
         # Ensure all config files with correct content are present.
         compute-template-scripts { ["default_pmac",
                                     "agent_param.tmpl",
@@ -523,6 +528,16 @@ define contrail_compute (
             }
         }
         elsif ($contrail_interface_rename_done == "1") {
+          
+
+	    exec{"check_service":
+		 command => '/bin/bash -c "service rabbitmq-server restart"',
+		 onlyif => "test -f /etc/rabbitmq/rabbitmq.config",
+		 provider => shell,
+		 logoutput => "true",     
+		 cwd => "/etc/contrail/" 
+	    } 
+            ->
             contrail_compute_part_2 { contrail_compute_2 :
                 contrail_config_ip => $contrail_config_ip,
                 contrail_compute_ip => $contrail_compute_ip,
