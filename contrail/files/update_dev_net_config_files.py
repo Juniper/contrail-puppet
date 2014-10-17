@@ -15,37 +15,48 @@ def find_gateway(dev):
     gateway = ''
     cmd = "netstat -rn | grep ^\"0.0.0.0\" | grep %s | awk '{ print $2 }'" % \
         dev
-    gateway = subprocess.check_output(cmd, shell=True).strip()
-    return gateway
+    status,result = commands.getstatusoutput(cmd)
+    if status == 0:
+    	return result 
+    else:
+	return ""
 # end find_gateway
 
 
 def get_dns_servers(dev):
     cmd = "grep \"^nameserver\\>\" /etc/resolv.conf | awk  '{print $2}'"
-    dns_list = subprocess.check_output(cmd, shell=True)
-    return dns_list.split()
+    status,result = commands.getstatusoutput(cmd)
+    if status == 0:
+    	return result.split()
+    else:
+	return ""
+
 # end get_dns_servers
 
 
 def get_domain_search_list():
     domain_list = ''
     cmd = "grep ^\"search\" /etc/resolv.conf | awk '{$1=\"\";print $0}'"
-    domain_list = subprocess.check_output(cmd, shell=True).strip()
-    if not domain_list:
+    status,result = commands.getstatusoutput(cmd)
+    if status == 0:
+    	return result
+    else:
         cmd = "grep ^\"domain\" /etc/resolv.conf | awk '{$1=\"\"; print $0}'"
-        domain_list = subprocess.check_output(cmd, shell=True).strip()
-    return domain_list
-
+    	status,result = commands.getstatusoutput(cmd)
+	if status == 0:
+	    return result
+	else: 
+	    return ""
 
 def get_if_mtu(dev):
     cmd = "ifconfig %s | grep mtu | awk '{ print $NF }'" % dev
-    mtu = subprocess.check_output(cmd, shell=True).strip()
-    if not mtu:
-        # for debian
+    result,status = commands.getstatusoutput(cmd)
+    if not status:
+         # for debian
         cmd = "ifconfig %s | grep MTU | sed 's/.*MTU.\([0-9]\+\).*/\1/g'" % dev
-        mtu = subprocess.check_output(cmd, shell=True).strip()
-    if mtu and mtu != '1500':
-        return mtu
+ 	result,status = commands.getstatusoutput(cmd)
+    if result and result != '1500':
+    	return result
     return ''
 # end if_mtu
 

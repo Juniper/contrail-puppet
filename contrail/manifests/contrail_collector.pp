@@ -73,13 +73,26 @@ define contrail_collector (
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
+    #TODO - Make this Proper
+    if ($operatingsystem == "Ubuntu") {
+
+    	exec { "redis-conf-exec":
+            command => "sed -i -e '/^[ ]*bind/s/^/#/' /etc/redis/redis.conf;chkconfig redis-server on; service redis-server restart && echo redis-conf-exec>> /etc/contrail/contrail-collector-exec.out",
+            onlyif => "test -f /etc/redis/redis.conf",
+            unless  => "grep -qx redis-conf-exec /etc/contrail/contrail-collector-exec.out",
+            provider => shell, 
+            logoutput => "true"
+    }
+	 } else {
     exec { "redis-conf-exec":
-        command => "sed -i -e '/^[ ]*bind/s/^/#/' /etc/redis/redis.conf;chkconfig redis-server on; service redis-server restart && echo redis-conf-exec>> /etc/contrail/contrail-collector-exec.out",
-        onlyif => "test -f /etc/redis/redis.conf",
+        command => "sed -i -e '/^[ ]*bind/s/^/#/' /etc/redis.conf;chkconfig redis on; service redis restart && echo redis-conf-exec>> /etc/contrail/contrail-collector-exec.out",
+        onlyif => "test -f /etc/redis.conf",
         unless  => "grep -qx redis-conf-exec /etc/contrail/contrail-collector-exec.out",
         provider => shell, 
         logoutput => "true"
     }
+
+}
     if ($operatingsystem == "Ubuntu") {
         file { '/etc/init.d/supervisor-analytics':
             ensure => link,

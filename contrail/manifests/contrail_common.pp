@@ -59,7 +59,7 @@ define haproxy-cfg($server_id) {
         source => "puppet:///modules/$module_name/$server_id.cfg"
     }
     exec { "haproxy-exec":
-        command => "sudo sed -i 's/ENABLED=.*/ENABLED=1/g' /etc/default/haproxy",
+        command => "sed -i 's/ENABLED=.*/ENABLED=1/g' /etc/default/haproxy",
         provider => shell,
         logoutput => "true",
         require => File["/etc/haproxy/haproxy.cfg"]
@@ -92,7 +92,7 @@ define contrail-cfg-zk() {
 
     $contrail_zk_ip_list_for_shell = inline_template('<%= zk_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
 
-     exec { "setup-config-zk-files-setup" :
+    exec { "setup-config-zk-files-setup" :
         command => "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $zk_index $contrail_zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail_config_exec.out",
         require => File["/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh"],
         unless  => "grep -qx setup-config-zk-files-setup /etc/contrail/contrail_config_exec.out",
@@ -182,7 +182,7 @@ define contrail-setup-repo(
     if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
         file { "/etc/yum.repos.d/cobbler-config.repo" :
             ensure  => present,
-            content => template("contrail-common/contrail-yum-repo.erb")
+            content => template("$module_name/contrail-yum-repo.erb")
         }
     }
     if ($operatingsystem == "Ubuntu") {
@@ -201,16 +201,17 @@ define contrail-setup-repo(
 define contrail-install-repo(
 	$contrail_repo_type
 	) {
-	if($contrail_repo_type == "contrail-ubuntu-package") {
-		$setup_script =  "./setup.sh && echo exec-contrail-setup-$contrail_repo_type-sh >> exec-contrail-setup-sh.out"
-		$package_name = "contrail-install-packages"
-	} elsif ($contrail_repo_type == "contrail-centos-repo") {
-		$setup_script =  "./setup.sh && echo exec-contrail-setup-$contrail_repo_type-sh >> exec-contrail-setup-sh.out"
-		$package_name = "contrail-install-packages"
-	} elsif ($contrail_repo_type == "contrail-ubuntu-stroage-repo") {
-		$setup_script =  "./setup_storage.sh && echo exec-contrail-setup-$contrail_repo_type-sh >> exec-contrail-setup-sh.out"
-		$package_name = "contrail-storage"
-	}
+
+    if($contrail_repo_type == "contrail-ubuntu-package") {
+        $setup_script =  "./setup.sh && echo exec-contrail-setup-$contrail_repo_type-sh >> exec-contrail-setup-sh.out"
+        $package_name = "contrail-install-packages"
+    } elsif ($contrail_repo_type == "contrail-centos-package") {
+        $setup_script =  "./setup.sh && echo exec-contrail-setup-$contrail_repo_type-sh >> exec-contrail-setup-sh.out"
+        $package_name = "contrail-install-packages"
+    } elsif ($contrail_repo_type == "contrail-ubuntu-stroage-repo") {
+        $setup_script =  "./setup_storage.sh && echo exec-contrail-setup-$contrail_repo_type-sh >> exec-contrail-setup-sh.out"
+        $package_name = "contrail-storage"
+    }
 
     package {$package_name: ensure => present}
 
@@ -225,10 +226,10 @@ define contrail-install-repo(
 }
 
 define report_status($state) {
-	if ! defined(Package['curl']) {
-		package { 'curl' : ensure => present,}
-
-
+/*
+    if ! defined(Package['curl']) {
+            package { 'curl' : ensure => present,}
+    }
 
 	}
     exec { "contrail-status-$state" :
@@ -238,7 +239,7 @@ define report_status($state) {
         unless  => "grep -qx contrail-status-$state /etc/contrail/contrail_common_exec.out",
         logoutput => "true"
     }
-
+*/
 
 }
 define contrail_setup_gid($group_gid ) {
@@ -267,19 +268,22 @@ define contrail_setup_uid($user_uid, $user_group_name, $user_home_dir) {
 }
 
 define contrail_setup_users_groups() {
-    $contrail_groups_details = {
-      'nova' 		=> { group_gid => '499' },
-      'libvirtd' 	=> { group_gid => '498' },
-      'kvm' 		=> { group_gid => '497' },
+    if ($operatingsystem == "Ubuntu") {
+
+	    $contrail_groups_details = {
+	      'nova' 		=> { group_gid => '499' },
+	      'libvirtd' 	=> { group_gid => '498' },
+	      'kvm' 		=> { group_gid => '497' },
+	    }
+	    
+	    $contrail_users_details = {
+	      'nova' 		=> { user_uid => '499', user_group_name => 'nova', user_home_dir => '/var/lib/nova' },
+	      'libvirt-qemu'	=> { user_uid => '498', user_group_name => 'kvm' , user_home_dir => '/var/lib/libvirt'},
+	      'libvirt-dnsmasq' 	=> { user_uid => '497', user_group_name => 'libvirtd' , user_home_dir => '/var/lib/libvirt/dnsmasq'},
+	    }
+	    create_resources(__$VERSION__::Contrail_common::Contrail_setup_uid, $contrail_users_details, {})
+	    create_resources(__$VERSION__::Contrail_common::Contrail_setup_gid, $contrail_groups_details, {})
     }
-    
-    $contrail_users_details = {
-      'nova' 		=> { user_uid => '499', user_group_name => 'nova', user_home_dir => '/var/lib/nova' },
-      'libvirt-qemu'	=> { user_uid => '498', user_group_name => 'kvm' , user_home_dir => '/var/lib/libvirt'},
-      'libvirt-dnsmasq' 	=> { user_uid => '497', user_group_name => 'libvirtd' , user_home_dir => '/var/lib/libvirt/dnsmasq'},
-    }
-    create_resources(__$VERSION__::Contrail_common::Contrail_setup_uid, $contrail_users_details, {})
-    create_resources(__$VERSION__::Contrail_common::Contrail_setup_gid, $contrail_groups_details, {})
 }
 
 # macro to perform common functions

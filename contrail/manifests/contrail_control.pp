@@ -93,7 +93,7 @@ define contrail_control (
 
     # update rndc conf
     exec { "update-rndc-conf-file" :
-        command => "sudo sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
+        command => "sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
         require =>  package["contrail-openstack-control"],
         onlyif => "test -f /etc/contrail/dns/rndc.conf",
         unless  => "grep -qx update-rndc-conf-file /etc/contrail/contrail_control_exec.out",

@@ -23,9 +23,37 @@ define config-template-scripts {
     file { "/etc/contrail/${title}" : 
         ensure  => present,
         require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
+        notify =>  Service["supervisor-config"],
         content => template("$module_name/${title}.erb"),
     }
+}
+
+define setup-haproxy {
+    if ! defined(File["/etc/haproxy/haproxy.cfg"]) {
+        file { "/etc/haproxy/haproxy.cfg":
+            ensure  => present,
+            mode => 0755,
+            owner => root,
+            group => root,
+            source => "puppet:///modules/$module_name/$hostname.cfg"
+        }
+        if ($operatingsystem == "Ubuntu") {
+
+            exec { "haproxy-exec":
+                command => "sudo sed -i 's/ENABLED=.*/ENABLED=1/g' /etc/default/haproxy && echo haproxy-exec >> /etc/contrail/contrail_config_exec.out",
+                require => File["/etc/haproxy/haproxy.cfg"],
+                unless  => "grep -qx haproxy-exec /etc/contrail/contrail_config_exec.out",
+                provider => shell,
+                logoutput => "true"
+            }
+        }
+        service { "haproxy" :
+            enable => true,
+            subscribe => File["/etc/haproxy/haproxy.cfg"],
+            ensure => running
+        }
+    }
+
 }
 
 # Main module code
@@ -109,29 +137,8 @@ define contrail_config (
     #                     java-1.7.0-openjdk, haproxy, rabbitmq-server, python-bottle, contrail-nodemgr
 
     # enable haproxy in haproxy config file for ubuntu.
+    setup-haproxy {"setup_haproxy":}
     if ($operatingsystem == "Ubuntu") {
-
-        if ! defined(File["/etc/haproxy/haproxy.cfg"]) {
-            file { "/etc/haproxy/haproxy.cfg":
-                ensure  => present,
-                mode => 0755,
-                owner => root,
-                group => root,
-                source => "puppet:///modules/$module_name/$hostname.cfg"
-            }
-            exec { "haproxy-exec":
-                command => "sudo sed -i 's/ENABLED=.*/ENABLED=1/g' /etc/default/haproxy && echo haproxy-exec >> /etc/contrail/contrail_config_exec.out",
-                require => File["/etc/haproxy/haproxy.cfg"],
-                unless  => "grep -qx haproxy-exec /etc/contrail/contrail_config_exec.out",
-                provider => shell,
-                logoutput => "true"
-            }
-            service { "haproxy" :
-                enable => true,
-		subscribe => File['/etc/haproxy/haproxy.cfg'],
-                ensure => running
-            }
-        }
 
         file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
         file {"/etc/init/neutron-server.override": ensure => absent, require => Package['contrail-openstack-config']}
@@ -176,7 +183,7 @@ define contrail_config (
 
     if ! defined(Exec["neutron-conf-exec"]) {
         exec { "neutron-conf-exec":
-            command => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
+            command => "sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
             onlyif => "test -f /etc/neutron/neutron.conf",
             unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
@@ -186,7 +193,7 @@ define contrail_config (
 
     if ! defined(Exec["quantum-conf-exec"]) {
         exec { "quantum-conf-exec":
-            command => "sudo sed -i 's/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g' /etc/quantum/quantum.conf && echo quantum-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
+            command => "sed -i 's/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g' /etc/quantum/quantum.conf && echo quantum-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
             onlyif => "test -f /etc/quantum/quantum.conf",
             unless  => "grep -qx quantum-conf-exec /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
@@ -202,32 +209,64 @@ define contrail_config (
     #}
 
     # Ensure log4j.properties file is present with right content.
-    file { "/etc/ifmap-server/log4j.properties" : 
-        ensure  => present,
-        require => Package["contrail-openstack-config"],
-        content => template("$module_name/log4j.properties.erb"),
-    }
 
-    # Ensure authorization.properties file is present with right content.
-    file { "/etc/ifmap-server/authorization.properties" : 
-        ensure  => present,
-        require => Package["contrail-openstack-config"],
-        content => template("$module_name/authorization.properties.erb"),
-    }
 
-    # Ensure basicauthusers.proprties file is present with right content.
-    file { "/etc/ifmap-server/basicauthusers.properties" : 
-        ensure  => present,
-        require => Package["contrail-openstack-config"],
-        content => template("$module_name/basicauthusers.properties.erb"),
-    }
 
-    # Ensure publisher.properties file is present with right content.
-    file { "/etc/ifmap-server/publisher.properties" : 
-        ensure  => present,
-        require => Package["contrail-openstack-config"],
-        content => template("$module_name/publisher.properties.erb"),
-    }
+    if ( $operatingsystem == "Ubuntu" ) {
+
+        file { "/etc/ifmap-server/log4j.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/log4j.properties.erb"),
+        }
+
+        # Ensure authorization.properties file is present with right content.
+        file { "/etc/ifmap-server/authorization.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/authorization.properties.erb"),
+        }
+
+        # Ensure basicauthusers.proprties file is present with right content.
+        file { "/etc/ifmap-server/basicauthusers.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/basicauthusers.properties.erb"),
+        }
+
+        # Ensure publisher.properties file is present with right content.
+        file { "/etc/ifmap-server/publisher.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/publisher.properties.erb"),
+        }
+
+    } elsif ( $operatingsystem == "Centos" ) {
+        file { "/etc/ifmap-server/log4j.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/log4j.properties.erb"),
+        }
+
+        # Ensure authorization.properties file is present with right content.
+        file { "/etc/ifmap-server/authorization.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/authorization.properties.erb"),
+        }
+
+        file { "/etc/ifmap-server/basicauthusers.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/basicauthusers.properties.erb"),
+        }
+        # Ensure publisher.properties file is present with right content.
+        file { "/etc/ifmap-server/publisher.properties" : 
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            content => template("$module_name/publisher.properties.erb"),
+        }
+}
 
     # Ensure all config files with correct content are present.
     config-template-scripts { ["contrail-api.conf",
@@ -239,19 +278,10 @@ define contrail_config (
 
     # Supervisor contrail-api.ini
     $contrail_api_port_base = '910'
-    if ($operatingsystem == "Ubuntu") {
-        file { "/etc/contrail/supervisord_config_files/contrail-api.ini" : 
-            ensure  => present,
-            require => Package["contrail-openstack-config"],
-            content => template("$module_name/contrail-api.ini.erb"),
-        }
-    }
-    else {
-        file { "/etc/contrail/supervisord_config_files/contrail-api.ini" : 
-            ensure  => present,
-            require => Package["contrail-openstack-config"],
-            content => template("$module_name/contrail-api-centos.ini.erb"),
-        }
+    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" : 
+        ensure  => present,
+        require => Package["contrail-openstack-config"],
+        content => template("$module_name/contrail-api.ini.erb"),
     }
 
     # initd script wrapper for contrail-api 
@@ -280,19 +310,10 @@ define contrail_config (
     # Supervisor contrail-discovery.ini
     $contrail_disc_port_base = '911'
     $contrail_disc_nworkers = '1'
-    if ($operatingsystem == "Ubuntu") {
-        file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" : 
-            ensure  => present,
-            require => Package["contrail-openstack-config"],
-            content => template("$module_name/contrail-discovery.ini.erb"),
-        }
-    }
-    else {
-        file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" : 
-            ensure  => present,
-            require => Package["contrail-openstack-config"],
-            content => template("$module_name/contrail-discovery-centos.ini.erb"),
-        }
+    file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" : 
+        ensure  => present,
+        require => Package["contrail-openstack-config"],
+        content => template("$module_name/contrail-discovery.ini.erb"),
     }
 
     # initd script wrapper for contrail-discovery 
@@ -482,7 +503,7 @@ define contrail_config (
     }
 
 
-    Exec["haproxy-exec"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Setup-haproxy["setup_haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
