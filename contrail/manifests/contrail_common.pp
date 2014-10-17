@@ -151,9 +151,9 @@ define contrail-setup-interface(
 
 	if($contrail_members == "" ) {
 
-	    $exec_cmd = "/opt/contrail/contrail_installer/setup-vnc-interfaces.py --device $contrail_device --ip $contrail_ip"
+	    $exec_cmd = "/opt/contrail/bin/setup-vnc-interfaces --device $contrail_device --ip $contrail_ip"
 	} else {
-	    $exec_cmd = "/opt/contrail/contrail_installer/setup-vnc-interfaces.py --device $contrail_device --members $contrail_intf_member_list_for_shell --bond-opts \"$contrail_bond_opts\" --ip $contrail_ip"
+	    $exec_cmd = "/opt/contrail/bin/setup-vnc-interfaces --device $contrail_device --members $contrail_intf_member_list_for_shell --bond-opts \"$contrail_bond_opts\" --ip $contrail_ip"
 	}
 
 	if ($contrail_gw != "" ) {

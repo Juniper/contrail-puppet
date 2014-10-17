@@ -2,7 +2,7 @@ class __$version__::contrail_compute {
 
 # Macro to push and execute certain scripts.
 define compute-scripts {
-    file { "/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh":
+    file { "/opt/contrail/bin/${title}.sh":
         ensure  => present,
         mode => 0755,
         owner => root,
@@ -10,8 +10,8 @@ define compute-scripts {
         require => File["/etc/contrail/ctrl-details"],
     }
     exec { "setup-${title}" :
-        command => "/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh; echo setup-${title} >> /etc/contrail/contrail_compute_exec.out",
-        require => File["/opt/contrail/contrail_installer/contrail_setup_utils/${title}.sh"],
+        command => "/opt/contrail/bin/${title}.sh; echo setup-${title} >> /etc/contrail/contrail_compute_exec.out",
+        require => File["/opt/contrail/bin/${title}.sh"],
         unless  => "grep -qx setup-${title} /etc/contrail/contrail_compute_exec.out",
         provider => shell,
         logoutput => "true"
