@@ -7,7 +7,7 @@ define config-scripts {
         mode => 0755,
         owner => root,
         group => root,
-        require => [File["/etc/contrail/ctrl-details"],Config-template-scripts["schema_transformer.conf"],Config-template-scripts["svc_monitor.conf"]]
+        require => [File["/etc/contrail/ctrl-details"],Config-template-scripts["contrail-schema.conf"],Config-template-scripts["contrail-svc-monitor.conf"]]
     }
     exec { "setup-${title}" :
         command => "/bin/bash /opt/contrail/bin/${title}.sh $operatingsystem && echo setup-${title} >> /etc/contrail/contrail_config_exec.out",
@@ -231,8 +231,8 @@ define contrail_config (
 
     # Ensure all config files with correct content are present.
     config-template-scripts { ["contrail-api.conf",
-                               "schema_transformer.conf",
-                               "svc_monitor.conf",
+                               "contrail-schema.conf",
+                               "contrail-svc-monitor.conf",
                                "contrail-discovery.conf",
                                "vnc_api_lib.ini",
                                "contrail_plugin.ini"]: }
@@ -419,7 +419,7 @@ define contrail_config (
 
 ###############################
 
-    File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Config-template-scripts["contrail-api.conf"]->File["/etc/contrail/contrail_plugin.ini"]->Config-template-scripts["schema_transformer.conf"]->Config-template-scripts["svc_monitor.conf"]->Config-template-scripts["contrail-discovery.conf"]->Config-template-scripts["vnc_api_lib.ini"]
+    File["/etc/contrail/ctrl-details"]->File["/etc/contrail/service.token"]->Config-template-scripts["contrail-api.conf"]->File["/etc/contrail/contrail_plugin.ini"]->Config-template-scripts["contrail-schema.conf"]->Config-template-scripts["contrail-svc-monitor.conf"]->Config-template-scripts["contrail-discovery.conf"]->Config-template-scripts["vnc_api_lib.ini"]
 
     # Initialize the multi tenancy option will update latter based on vns argument
     if ($contrail_multi_tenancy == "True") {

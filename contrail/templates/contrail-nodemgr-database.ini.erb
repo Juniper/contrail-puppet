@@ -4,7 +4,7 @@
 ; sent by supervisor.
 
 [eventlistener:contrail-database-nodemgr]
-command=/bin/bash -c "/usr/bin/contrail-nodemgr --rules=/etc/contrail/supervisord_database_files/supervisord_contrail_database.rules --nodetype=contrail-database  --discovery_server <%= contrail_config_ip %>"
+command=/bin/bash -c "/usr/bin/contrail-nodemgr --rules=/etc/contrail/supervisord_database_files/contrail-database.rules --nodetype=contrail-database  --discovery_server <%= contrail_config_ip %>"
 events=PROCESS_COMMUNICATION,PROCESS_STATE
 environment_file= /etc/contrail/database_nodemgr_param
 
