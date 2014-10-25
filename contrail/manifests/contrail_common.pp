@@ -412,6 +412,26 @@ define contrail_common (
         provider => shell,
         logoutput => "true"
     }
+    
+    # Configure rsyslog.conf based on input
+    if ($rsyslog_status == "enable"){
+
+        file { "/etc/contrail/contrail_setup_utils/rsyslog-config.sh":
+            ensure  => present,
+            mode => 0755,
+            owner => root,
+            group => root,
+            source => "puppet:///modules/$module_name/rsyslog-config.sh"
+        }
+
+        exec { "exec-rsyslog-cfg" :
+            command => "/bin/bash /etc/contrail/contrail_setup_utils/rsyslog-config.sh \"$rsyslog_string\" && service rsyslog restart && echo exec-rsyslog-cfg >> /etc/contrail/contrail_common_exec.out",
+            require =>  File["/etc/contrail/contrail_setup_utils/rsyslog-config.sh"],
+            unless  => "grep -qx exec-cfg-rabbitmq /etc/contrail/contrail_common_exec.out",
+            provider => shell,
+            logoutput => 'true'
+        }
+    }
 
     # Why is this here ?? - Abhay
     if ($operatingsystem == "Ubuntu"){

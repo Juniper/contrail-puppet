@@ -45,7 +45,7 @@ log_level=SYS_NOTICE
 log_local=1
 
 # TCP and UDP ports to listen on for receiving syslog messages. -1 to disable.
-#syslog_port=-1
+syslog_port=<%= rsyslog_port %>
 
 # UDP port to listen on for receiving sFlow messages. -1 to disable.
 # sflow_port=6343
