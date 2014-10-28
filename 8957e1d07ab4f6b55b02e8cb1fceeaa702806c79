@@ -1,0 +1,9 @@
+Verified+2: Zuul <zuul@lists.opencontrail.org>
+Code-Review+1: c mishra <cdmishra@juniper.net>
+Approved+1: Abhay Joshi <abhayj@juniper.net>
+Code-Review+2: Abhay Joshi <abhayj@juniper.net>
+Submitted-by: Zuul <zuul@lists.opencontrail.org>
+Submitted-at: Mon, 27 Oct 2014 20:34:31 -0700
+Reviewed-on: https://review.opencontrail.org/4120
+Project: Juniper/contrail-puppet
+Branch: refs/heads/master
