@@ -2,9 +2,20 @@
 
 set -x
 RETVAL=0
+## TODO: change arguments from positional to options
+## server-ip is required to download live-migration QCOW2 image.
 SERVER_IP=$1
+## nova host is where NFS VM for Live-Migration is spawned
 NOVA_HOST=$2
+## number of OSDs configured by admin. this is check if all the OSDs
+## has came up. else we will wait for them to come-up
 NUM_TARGET_OSD=$3
+
+## check if all the OSDs configured are in and up. This is required as we
+## need to create 15% of total available space as volume for NFS VM
+## for Live-Migration
+## TODO: this may give wrong output if ceph -s failed. change this to 
+## TODO: multiple lines/commands. and check for failures
 NUM_CURR_OSD=` ceph -s | grep "osdmap" | awk '{printf $7}'`
 echo "current-osd : ${NUM_CURR_OSD}, target: ${NUM_TARGET_OSD}"
 if [ "x${NUM_CURR_OSD}" != "x${NUM_TARGET_OSD}" ]
@@ -13,6 +24,7 @@ then
     exit 1
 fi
 
+## Check if we are able to resolve ip address of nova-host
 host ${NOVA_HOST} 
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ]
@@ -21,8 +33,12 @@ then
   exit 1
 fi
 
+## Get the ip address of nova-host.
+## NOTE: we already checked about the ip resolution. so awk must
+## NOTE: give correct results
 NOVA_HOST_IP=`host ${NOVA_HOST} | awk '{printf $4}'`
 
+## GET the UIDs/GIDs of required users/groups. we generate a file out of it.
 nova_uid=`id -u nova`
 dnsmasq_uid=`id -u libvirt-dnsmasq`
 qemu_uid=`id -u libvirt-qemu`
@@ -30,6 +46,7 @@ nova_gid=`getent group nova | awk -F: '{printf $3}'`
 kvm_gid=`getent group kvm| awk -F: '{printf $3}'`
 virtd_gid=`getent group libvirtd| awk -F: '{printf $3}'`
 
+## generate the file to be fed to nova boot for NFS VM
 cat > /tmp/data.txt << EOF
 # data.txt info that has to be passed to nova boot - This will enable the auto configure of the VM.
 # The following is sample data.txt
@@ -51,11 +68,18 @@ libvirtd=${virtd_gid}
 EOF
 
 . /etc/contrail/openstackrc
+## Check if we have already created the image
+## TODO: 1. break command to check failures.
+## TODO: 2. check for complete name of livemnfs. currently it may match
+## TODO:    with livemnfs-not-me
 NUM_IMAGE_LIVEMNFS=`nova image-list | grep livemnfs | wc -l`
 
+## check if we need to download the qcow2 image again ?
 if [ ${NUM_IMAGE_LIVEMNFS} -eq 1 ]
 then
   DOWNLOAD_REQD=0
+## checking if we have multiple livemnfs matches.
+## TODO: this should not have happened, and it should be handled appropriately.
 elif [ ${NUM_IMAGE_LIVEMNFS} -gt 1 ]
 then
   DOWNLOAD_REQD=0
@@ -86,6 +110,8 @@ then
       #DOWNLOAD_REQD=1
     #fi
   #fi
+
+  ## Download the qcow2-gzipped image
   wget -q http://${SERVER_IP}/contrail/images/livemnfs.qcow2.gz -O /tmp/livemnfs.qcow2.gz
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
@@ -93,6 +119,7 @@ then
     echo "wget failed"
     exit 1
   fi
+  ## remove old qcow2 image, if any
   if [ -f /tmp/livemnfs.qcow2 ]
   then
     unlink /tmp/livemnfs.qcow2
@@ -104,6 +131,7 @@ then
     echo "gunzip failed"
     exit 1
   fi
+  ## create image using newly doownloaded image.
   glance image-create --name livemnfs --disk-format qcow2 --container-format ovf --file /tmp/livemnfs.qcow2 --is-public True
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
@@ -113,6 +141,9 @@ then
   fi
 fi
 
+## create network for livemnfs
+## TODO: check for complete livemnfs only.
+## TODO: break command to check return status of commands
 LIVE_MIGRATE_NETWORK_NUM=`neutron net-list | grep livemnfs | wc -l `
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -121,6 +152,7 @@ then
   exit 1
 fi
 
+## get the uuid of livemnfs network
 LIVE_MIGRATE_NETWORK=`neutron net-list | grep livemnfs | awk '{ print $2 }'`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -129,6 +161,8 @@ then
   exit 1
 fi
 
+## Though it is not possible, still checking for error case.
+## we can't have multiple netwrok with livemnfs as name
 if [ ${LIVE_MIGRATE_NETWORK_NUM} -gt 1 ]
 then
   echo "more than 1 livemnfs networks"
@@ -136,6 +170,7 @@ then
 fi
 
 echo "LM netowrk ${LIVE_MIGRATE_NETWORK} ${LIVE_MIGRATE_NETWORK_NUM}"
+## if don't have network, then create it.
 if [ -z ${LIVE_MIGRATE_NETWORK} ]
 then
   neutron net-create livemnfs
@@ -147,6 +182,7 @@ then
   fi
 fi
 
+## Check for livemnfs subnet
 LIVE_MIGRATE_SUBNET=`neutron subnet-list | grep livemnfs | awk '{ print $2 }'`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -158,6 +194,8 @@ fi
 echo "subnet ${LIVE_MIGRATE_SUBNET}"
 if [ -z ${LIVE_MIGRATE_SUBNET} ]
 then
+  ## as of now, we have fixed subnet to 192.168.101.0/24.
+  ## TODO: take subnet as argument
   neutron subnet-create --name livemnfs livemnfs 192.168.101.0/24
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
@@ -167,6 +205,8 @@ then
   fi
 fi
 
+## checking if host for NFS VM is a compute or not.
+## TODO: break into multiple commands to check individual comand return status
 nova-manage host list | grep -w ${NOVA_HOST} | awk '{print $2}' | grep -q nova
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -176,6 +216,7 @@ then
 fi
 
 
+## check if we have booted the livemnfs image or not 
 LM_IMAGE_NUM=`nova list | grep livemnfs | wc -l `
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -185,15 +226,22 @@ then
 fi
 
 echo "livemnfs num: ${LM_IMAGE_NUM}"
+## its error to have multiple livemnfs instances
 if [ ${LM_IMAGE_NUM} -gt 1 ]
 then
   echo "multiple livemnfs instances : ${LM_IMAGE_NUM}"
   exit 1
 fi
 
+## get the livemnfs network UUID for booting the image
+## TODO: break the command 
+## TODO: check for complete name
 LIVE_MIGRATE_NETWORK=`neutron net-list | grep livemnfs | awk '{ print $2 }'`
 if [ ${LM_IMAGE_NUM} -lt 1 ]
 then
+  ## boot the image
+  ## TODO: using fixed flavor right now. fab created a new flavor
+  ## TODO:  based on hardware specs.
   nova boot --image livemnfs --flavor 3 --nic net-id=${LIVE_MIGRATE_NETWORK} livemnfs --availability-zone nova:${NOVA_HOST} --meta storage_scope=local --user-data /tmp/data.txt
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
@@ -203,6 +251,7 @@ then
   fi
 fi
 
+## get the current status of livemnfs instance.  
 NOVA_BOOT_STATUS=`nova list | grep livemnfs | awk -F '|' '{print $4}'`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -210,17 +259,23 @@ then
   echo "nova list failed"
   exit 1
 fi
+
 if [ "x${NOVA_BOOT_STATUS}"  = "x ACTIVE" ]
 then
   echo "nova livemnfs is ACTIVE"
 fi
 
 
+## we need to create route for NFS VM ip address.
+## checking if route is already present ?
+## TODO: we are using FIXED ip address right now. move this to
+## TODO: dynamic ip address.
 netstat -nr | grep 192.168.101.2 | grep -q ${NOVA_HOST_IP}
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
 then
   echo "route check failed"
+  ## add the route
   route add 192.168.101.2 gw ${NOVA_HOST_IP}
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
@@ -230,6 +285,8 @@ then
   fi
 fi
 
+## Check if route is added to startup scripts. this is required 
+## to bring-up route on system start-up
 grep -q "up route add 192.168.101.2 gw ${NOVA_HOST_IP}" /etc/network/interfaces
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -238,7 +295,9 @@ then
   echo "up route add 192.168.101.2 gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
 fi
 
+
 ADMIN_TENANT_ID=`keystone tenant-list |grep " admin" | awk '{print $2}'`
+## calculating 15% of total available disk space (in GBs)
 RADOS_SPACE=`rados df | grep 'total avail' | awk '{printf $3}'`
 NFS_VOLUME_SIZE=$(((${RADOS_SPACE} * 15) / (1024 * 1024 * 100)))
 echo $NFS_VOLUME_SIZE
@@ -255,6 +314,9 @@ then
   fi
 fi
 
+## get the number of livemnfsvol
+## TODO: break command
+## TODO: check for livemnfsvol only
 CINDER_NUM=`cinder list | grep livemnfsvol | wc -l`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -263,6 +325,7 @@ then
   exit 1
 fi
 
+## if we don't have livemnfsvol, create it
 if [ ${CINDER_NUM} -eq 0 ]
 then
   cinder create --display-name livemnfsvol --volume-type ocs-block-disk ${NFS_VOLUME_SIZE}
@@ -272,6 +335,7 @@ then
     echo "cinder volume create failed"
     exit 1
   fi
+## its error to have multiple  livemnfsvol
 elif [ ${CINDER_NUM} -gt 1 ]
 then
   echo "more than 1 livemnfs volumes: ${CINDER_NUM}"
@@ -280,6 +344,7 @@ else
   echo " Only single volume"
 fi
 
+## get the livemnfs instance UUID, this is required for attaching volume to it
 NFS_VM_ID=`nova list | grep livemnfs | awk '{printf $2}'`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -288,6 +353,7 @@ then
   exit 1
 fi
 
+## get the livemnfsvol UUID, it is required for attaching to instance
 NFS_VOLUME_ID=`cinder list | grep livemnfsvol | awk '{print $2}'`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -296,6 +362,7 @@ then
   exit 1
 fi
 
+## get the status of livemnfs volume, ensure it is active
 CINDER_OUTPUT=`cinder list | grep livemnfsvol  | awk -F '|' '{printf $8}'| tr -d ' '`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
@@ -304,6 +371,8 @@ then
   exit 1
 fi
 
+## Wait for 20 seconds, and keep checking for instance status
+## TODO: break command
 ITER=0
 while [ $ITER -lt 10 ]
 do
@@ -315,6 +384,7 @@ do
     echo "nova list failed"
     exit 1
   fi
+  ## if instance becomes ACTIVE, break out of loop.
   if [ "x${NOVA_BOOT_STATUS}"  = "xACTIVE" ]
   then
     echo "nova livemnfs is ACTIVE"
@@ -323,6 +393,8 @@ do
   sleep 2
 done
 
+## Attach livemnfsvol volume to livemnfs instance.
+## TODO: Check the nova instance status again, in case VM is still not active.
 if [ -z ${CINDER_OUTPUT} ]
 then
   echo "livemnfs-volume not attached to any instance"
