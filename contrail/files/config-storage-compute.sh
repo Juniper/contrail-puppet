@@ -1,6 +1,8 @@
 #!/bin/sh
 set -x
 virsh_secret=$1
+## TODO: This should be rabbit-mq server ip address instead of
+## openstack ip address
 openstack_ip=$2
 
 openstack-config --set /etc/nova/nova.conf DEFAULT cinder_endpoint_template "http://${openstack_ip}:8776/v1/%(project_id)s"

@@ -33,6 +33,10 @@ then
       exit 1
   fi
 fi
+
+
+## Check the mounts, if NFS directory is already mounted,
+## then just skip the rest of it.
 cat /proc/mounts  | grep -q /var/lib/nova/instances/global
 RETVAL=$?
 if [ $RETVAL -eq 0 ]
@@ -42,6 +46,12 @@ then
 fi
 
 
+## Get the configured value of live_migration_flag. Checking this value will
+## help to identify if values has been configured or not. if yes, no need to
+## restart daemons. else configured and restart the daemons
+## TODO: 1. break the condition into multiple conditions to check for each 
+## TODO:    of it.
+## TODO: 2. merge this if condition and next if condition.
 CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/nova/nova.conf DEFAULT live_migration_flag`
 RETVAL=$?
 echo $?
@@ -59,6 +69,7 @@ then
   cp -f /tmp/libvirtd.tmp /etc/default/libvirt-bin
   service nova-compute restart
   service libvirt-bin restart
+  ## get the value again
   CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/nova/nova.conf DEFAULT live_migration_flag`
 fi
 
@@ -83,8 +94,10 @@ then
 fi
 
 
+## Specific configuration for NFS VM HOST
 if [ ${VM_HOST} -eq 1 ]
 then
+  ## Check if livemnfsgw exists or not. if not, create it
   ifconfig livemnfsvgw
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
@@ -92,6 +105,7 @@ then
     vif --create livemnfsvgw --mac 00:01:5e:00:00
     ifconfig livemnfsvgw up
   fi
+  ## Check if details about livemnfsvgw exists for system restart
   grep -q "pre-up vif --create livemnfsvgw --mac 00:01:5e:00:00" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
@@ -103,6 +117,8 @@ then
     echo \"    pre-up ifconfig livemnfsvgw up\" >> /etc/network/interfaces
   fi
 
+  ## Check v-router configuration for NFS VM
+  ## TODO: Check individual configuration values.
   CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/contrail/contrail-vrouter-agent.conf GATEWAY-1 ip_blocks`
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] || [ ! "x${CONFIG_VALUE}" = "x192.168.101.0/24" ]
@@ -113,12 +129,14 @@ then
     service contrail-vrouter-agent restart
   fi
   
+  ## Check if route to NFS VM exists ?
   netstat -nr | grep -q 192.168.101.2
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
     route add -host 192.168.101.2/32 dev livemnfsvgw
   fi
+  ## Add route to syartup files. as well.
   grep -q "up route add -host 192.168.101.2/32 dev livemnfsvgw" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
@@ -126,6 +144,7 @@ then
     echo "up route add -host 192.168.101.2/32 dev livemnfsvgw" >> /etc/network/interfaces
   fi
 else 
+  ## Check routes on compute nodes (non-vm host)
   netstat -nr | grep -q 192.168.101.2
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
@@ -133,6 +152,7 @@ else
     route add 192.168.101.2 dev vhost0
   fi
 
+  ## Add route to system start-up files
   grep -q "up route add 192.168.101.2 dev vhost0" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
@@ -142,6 +162,8 @@ else
 fi
 
 
+## Ping VM and check if its reachable, if yes, then mount the NFS path
+## TODO: Exit with error
 ping -c 5 192.168.101.2
 RETVAL=$?
 if [ $RETVAL -eq 0 ]
