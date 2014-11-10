@@ -183,9 +183,9 @@ define contrail_config (
 
     if ! defined(Exec["neutron-conf-exec"]) {
         exec { "neutron-conf-exec":
-            command => "sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
+            command => "sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail-config-exec.out",
             onlyif => "test -f /etc/neutron/neutron.conf",
-            unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out",
+            unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail-config-exec.out",
             provider => shell,
             logoutput => "true"
         }
@@ -193,9 +193,22 @@ define contrail_config (
 
     if ! defined(Exec["quantum-conf-exec"]) {
         exec { "quantum-conf-exec":
-            command => "sed -i 's/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g' /etc/quantum/quantum.conf && echo quantum-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
+            command => "sed -i 's/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g' /etc/quantum/quantum.conf && echo quantum-conf-exec >> /etc/contrail/contrail_config_exec.out",
             onlyif => "test -f /etc/quantum/quantum.conf",
-            unless  => "grep -qx quantum-conf-exec /etc/contrail/contrail_openstack_exec.out",
+            unless  => "grep -qx quantum-conf-exec /etc/contrail/contrail_config_exec.out",
+            provider => shell,
+            logoutput => "true"
+        }
+    }
+
+    # Update admin tenant name in neutron
+    $contrail_admin_tenant_name= "service"
+    if ! defined(Exec["neutron-conf-admin-tenant-exec"]) {
+        exec { "neutron-conf-admin-tenant-exec":
+            #command => "sudo sed -i '/admin_tenant_name.*/d' /etc/neutron/neutron.conf && echo admin_tenant_name = $contrail_ks_admin_tenant" >> /etc/neutron/neutron.conf && service neutron-server restart && echo neutron-conf-admin-tenant-exec >> /etc/contrail/contrail_config_exec.out",
+            command => "openstack-config --set /etc/neutron/neutron.conf keystone_authtoken admin_tenant_name $contrail_admin_tenant_name  && service neutron-server restart && echo neutron-conf-admin-tenant-exec >> /etc/contrail/contrail-config-exec.out",
+            onlyif => "test -f /etc/neutron/neutron.conf",
+            unless  => "grep -qx neutron-conf-admin-tenant-exec /etc/contrail/contrail-config-exec.out",
             provider => shell,
             logoutput => "true"
         }
