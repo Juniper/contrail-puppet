@@ -135,12 +135,16 @@ class ceph (
       'global/sign_messages':               value => $sign_messages;
       'global/cluster_network':             value => $cluster_network;
       'global/public_network':              value => $public_network;
+      'global/rbd_cache':                   value => 'true';
+      'global/rbd_cache_size':              value => '536870912';
     }
 
     ceph_config {
       'osd/osd_journal_size':               value => 1024;
       'osd/osd_mkfs_type':                  value => xfs;
       'osd/keyring':                        value => '/var/lib/ceph/osd/$cluster-$num/keyring';
+      'osd/osd_op_threads':                 value => '4';
+      'osd/osd_disk_threads':               value => '2';
     }
 
     ceph_config {
