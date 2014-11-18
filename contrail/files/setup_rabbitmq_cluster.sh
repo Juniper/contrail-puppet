@@ -38,12 +38,12 @@ fi
 eval "sudo ufw disable"
 eval "rm -rf /var/lib/rabbitmq/mnesia"
 
-eval "service rabbitmq-server stop"
+eval "rabbitmq-server stop"
 eval "epmd -kill"
 echo ${uuid} > /var/lib/rabbitmq/.erlang.cookie
 
 
-eval "service rabbitmq-server start"
+eval "rabbitmq-server start"
 
 #Print the cluste status
 eval "rabbitmqctl cluster_status"
