@@ -6,7 +6,12 @@
 
 [DEFAULT]
 # collectors= # Provided by discovery server
-# dns_config_file=dns_config.xml
+# dns_config_file=contrail-dns.conf
+# named_config_file=contrail-named.conf                 # named config file
+# named_config_directory=/etc/contrail/dns              # named config directory
+# named_log_file=/var/log/contrail/contrail-named.log   # named log file
+# rndc_config_file=contrail-rndc.conf                   # rndc config file
+# rndc_secret=secretkey                                 # rndc secret
   hostip=<%= host_ip %> # Resolved IP of `hostname`
   hostname=<%= hostname %> # Retrieved as `hostname`
 # http_server_port=8092

@@ -72,7 +72,7 @@ define contrail_control (
     }
 
     # Ensure all config files with correct content are present.
-    control-template-scripts { ["dns.conf", "contrail-control.conf"]: }
+    control-template-scripts { ["contrail-dns.conf", "contrail-control.conf"]: }
 
     # Hard-coded to be taken as parameter of vnsi and multi-tenancy options need to be passed to contrail_control too.
     # The below script can be avoided. Sets up puppet agent and waits to get certificate from puppet master.
@@ -93,15 +93,15 @@ define contrail_control (
 
     # update rndc conf
     exec { "update-rndc-conf-file" :
-        command => "sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
+        command => "sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/contrail-rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
         require =>  package["contrail-openstack-control"],
-        onlyif => "test -f /etc/contrail/dns/rndc.conf",
+        onlyif => "test -f /etc/contrail/dns/contrail-rndc.conf",
         unless  => "grep -qx update-rndc-conf-file /etc/contrail/contrail_control_exec.out",
         provider => shell,
         logoutput => 'true'
     }
 
-    Package["contrail-openstack-control"]->Exec['control-venv']->Control-template-scripts["contrail-control.conf"]->Control-template-scripts["dns.conf"]->Exec["update-rndc-conf-file"]->Exec["control-server-setup"]
+    Package["contrail-openstack-control"]->Exec['control-venv']->Control-template-scripts["contrail-control.conf"]->Control-template-scripts["contrail-dns.conf"]->Exec["update-rndc-conf-file"]->Exec["control-server-setup"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
@@ -135,7 +135,7 @@ define contrail_control (
             enable => true,
             require => [ Package['contrail-openstack-control'],
                          Exec['control-venv'] ],
-            subscribe => File['/etc/contrail/dns.conf'],
+            subscribe => File['/etc/contrail/contrail-dns.conf'],
             ensure => running,
         }
     }
@@ -143,7 +143,7 @@ define contrail_control (
         enable => true,
         require => [ Package['contrail-openstack-control'],
                      Exec['control-venv'] ],
-        subscribe => File['/etc/contrail/dns.conf'],
+        subscribe => File['/etc/contrail/contrail-dns.conf'],
         ensure => running,
     }
     ->
