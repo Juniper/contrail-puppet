@@ -205,10 +205,20 @@ define contrail_config (
     $contrail_admin_tenant_name= "service"
     if ! defined(Exec["neutron-conf-admin-tenant-exec"]) {
         exec { "neutron-conf-admin-tenant-exec":
-            #command => "sudo sed -i '/admin_tenant_name.*/d' /etc/neutron/neutron.conf && echo admin_tenant_name = $contrail_ks_admin_tenant" >> /etc/neutron/neutron.conf && service neutron-server restart && echo neutron-conf-admin-tenant-exec >> /etc/contrail/contrail_config_exec.out",
             command => "openstack-config --set /etc/neutron/neutron.conf keystone_authtoken admin_tenant_name $contrail_admin_tenant_name  && service neutron-server restart && echo neutron-conf-admin-tenant-exec >> /etc/contrail/contrail-config-exec.out",
             onlyif => "test -f /etc/neutron/neutron.conf",
             unless  => "grep -qx neutron-conf-admin-tenant-exec /etc/contrail/contrail-config-exec.out",
+            provider => shell,
+            logoutput => "true"
+        }
+    }
+
+    # Increase header size accepted as keystone v3 generates large ones.
+    if ! defined(Exec["neutron-conf-max-header"]) {
+        exec { "neutron-conf-max-header":
+            command => " openstack-config --set /etc/neutron/neutron.conf DEFAULT max_header_line 65536  && service neutron-server restart && echo neutron-conf-max-header >> /etc/contrail/contrail-config-exec.out",
+            onlyif => "test -f /etc/neutron/neutron.conf",
+            unless  => "grep -qx neutron-conf-max-header /etc/contrail/contrail-config-exec.out",
             provider => shell,
             logoutput => "true"
         }
