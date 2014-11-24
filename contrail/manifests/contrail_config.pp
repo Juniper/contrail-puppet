@@ -214,6 +214,17 @@ define contrail_config (
         }
     }
 
+    # Increase header size accepted as keystone v3 generates large ones.
+    if ! defined(Exec["neutron-conf-max-header"]) {
+        exec { "neutron-conf-max-header":
+            command => " openstack-config --set /etc/neutron/neutron.conf DEFAULT max_header_line 65536  && service neutron-server restart && echo neutron-conf-max-header >> /etc/contrail/contrail-config-exec.out",
+            onlyif => "test -f /etc/neutron/neutron.conf",
+            unless  => "grep -qx neutron-conf-max-header /etc/contrail/contrail-config-exec.out",
+            provider => shell,
+            logoutput => "true"
+        }
+    }
+
     # Ensure ifmap.properties file is present with right content.
     #file { "/etc/ifmap-server/ifmap.properties" : 
     #    ensure  => present,
