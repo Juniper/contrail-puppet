@@ -122,12 +122,12 @@ define contrail_database (
         source => "puppet:///modules/$module_name/config-zk-files-setup.sh"
     }
     $contrail_zk_ip_list_for_shell = inline_template('<%= contrail_zookeeper_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
-    $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $contrail_database_index $contrail_zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
+    $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $contrail_database_index $contrail_zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail_database_exec.out"
     notify { "contrail contrail_zk_exec_cmd is $contrail_zk_exec_cmd":; } 
     exec { "setup-config-zk-files-setup" :
         command => $contrail_zk_exec_cmd,
         require => File["/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh"],
-        unless  => "grep -qx setup-config-zk-files-setup /etc/contrail/contrail-config-exec.out",
+        unless  => "grep -qx setup-config-zk-files-setup /etc/contrail/contrail_database_exec.out",
         provider => shell,
         logoutput => "true"
     }

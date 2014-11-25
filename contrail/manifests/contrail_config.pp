@@ -47,11 +47,11 @@ define setup-haproxy {
                 logoutput => "true"
             }
         }
-        service { "haproxy" :
-            enable => true,
-            subscribe => File["/etc/haproxy/haproxy.cfg"],
-            ensure => running
-        }
+        #service { "haproxy" :
+        #    enable => true,
+        #    subscribe => File["/etc/haproxy/haproxy.cfg"],
+        #    ensure => running
+        #}
     }
 
 }
@@ -138,6 +138,15 @@ define contrail_config (
 
     # enable haproxy in haproxy config file for ubuntu.
     setup-haproxy {"setup_haproxy":}
+    service { "haproxy" :
+            enable => true,
+            subscribe => File["/etc/haproxy/haproxy.cfg"],
+            ensure => running
+     }
+    service { "neutron-server" :
+            enable => false,
+            ensure => stopped
+     }
     if ($operatingsystem == "Ubuntu") {
 
         file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
@@ -183,9 +192,9 @@ define contrail_config (
 
     if ! defined(Exec["neutron-conf-exec"]) {
         exec { "neutron-conf-exec":
-            command => "sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail-config-exec.out",
+            command => "sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_config_exec.out",
             onlyif => "test -f /etc/neutron/neutron.conf",
-            unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail-config-exec.out",
+            unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail_config_exec.out",
             provider => shell,
             logoutput => "true"
         }
@@ -526,7 +535,7 @@ define contrail_config (
     }
 
 
-    Setup-haproxy["setup_haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Service["neutron-server"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["neutron-conf-exec"]->Exec["neutron-conf-admin-tenant-exec"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
