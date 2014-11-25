@@ -138,6 +138,15 @@ define contrail_config (
 
     # enable haproxy in haproxy config file for ubuntu.
     setup-haproxy {"setup_haproxy":}
+    service { "haproxy" :
+            enable => true,
+            subscribe => File["/etc/haproxy/haproxy.cfg"],
+            ensure => running
+     }
+    service { "neutron-server" :
+            enable => false,
+            ensure => stopped
+     }
     if ($operatingsystem == "Ubuntu") {
 
         file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
@@ -527,7 +536,7 @@ define contrail_config (
     }
 
 
-    Setup-haproxy["setup_haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Service["neutron-server"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["neutron-conf-exec"]->Exec["neutron-conf-admin-tenant-exec"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
