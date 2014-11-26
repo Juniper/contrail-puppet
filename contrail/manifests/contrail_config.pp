@@ -142,11 +142,16 @@ define contrail_config (
             enable => true,
             subscribe => File["/etc/haproxy/haproxy.cfg"],
             ensure => running
-     }
-    service { "neutron-server" :
-            enable => false,
-            ensure => stopped
-     }
+    }
+    if ! defined(Exec["stop-neutron"]) {
+        exec { "stop-neutron":
+            command => "service neutron-server stop && echo stop-neutron >> /etc/contrail/contrail_config_exec.out",
+            unless  => "grep -qx stop-neutron /etc/contrail/contrail_config_exec.out",
+            provider => shell,
+            logoutput => "true"
+        }
+    }
+     
     if ($operatingsystem == "Ubuntu") {
 
         file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
@@ -214,10 +219,9 @@ define contrail_config (
     $contrail_admin_tenant_name= "service"
     if ! defined(Exec["neutron-conf-admin-tenant-exec"]) {
         exec { "neutron-conf-admin-tenant-exec":
-            #command => "sudo sed -i '/admin_tenant_name.*/d' /etc/neutron/neutron.conf && echo admin_tenant_name = $contrail_ks_admin_tenant" >> /etc/neutron/neutron.conf && service neutron-server restart && echo neutron-conf-admin-tenant-exec >> /etc/contrail/contrail_config_exec.out",
-            command => "openstack-config --set /etc/neutron/neutron.conf keystone_authtoken admin_tenant_name $contrail_admin_tenant_name  && service neutron-server restart && echo neutron-conf-admin-tenant-exec >> /etc/contrail/contrail-config-exec.out",
+            command => "openstack-config --set /etc/neutron/neutron.conf keystone_authtoken admin_tenant_name $contrail_admin_tenant_name  && service neutron-server restart && echo neutron-conf-admin-tenant-exec >> /etc/contrail/contrail_config_exec.out",
             onlyif => "test -f /etc/neutron/neutron.conf",
-            unless  => "grep -qx neutron-conf-admin-tenant-exec /etc/contrail/contrail-config-exec.out",
+            unless  => "grep -qx neutron-conf-admin-tenant-exec /etc/contrail/contrail_config_exec.out",
             provider => shell,
             logoutput => "true"
         }
@@ -536,7 +540,7 @@ define contrail_config (
     }
 
 
-    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Service["neutron-server"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["neutron-conf-exec"]->Exec["neutron-conf-admin-tenant-exec"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Exec["stop-neutron"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["neutron-conf-exec"]->Exec["neutron-conf-admin-tenant-exec"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
