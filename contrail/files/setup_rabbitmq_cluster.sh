@@ -34,16 +34,23 @@ if [ supervisor_config_running != 0 ]; then
     eval "supervisorctl -s unix:///tmp/supervisord_config.sock  stop all"
 fi
 
+service supervisor-support-service status | grep running
+supervisor_support_running=$?
+if [ supervisor_support_running != 0 ]; then
+    eval "service supervisor-support-service start"
+    eval "supervisorctl -s unix:///tmp/supervisord_support_service.sock stop all"
+fi
+
 #setup and start rabbitmq
 eval "sudo ufw disable"
 eval "rm -rf /var/lib/rabbitmq/mnesia"
 
-eval "rabbitmq-server stop"
+eval "service rabbitmq-server stop"
 eval "epmd -kill"
 echo ${uuid} > /var/lib/rabbitmq/.erlang.cookie
 
 
-eval "rabbitmq-server start"
+eval "service rabbitmq-server start"
 
 #Print the cluste status
 eval "rabbitmqctl cluster_status"
