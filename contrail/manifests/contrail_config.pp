@@ -230,9 +230,9 @@ define contrail_config (
     # Increase header size accepted as keystone v3 generates large ones.
     if ! defined(Exec["neutron-conf-max-header"]) {
         exec { "neutron-conf-max-header":
-            command => " openstack-config --set /etc/neutron/neutron.conf DEFAULT max_header_line 65536  && service neutron-server restart && echo neutron-conf-max-header >> /etc/contrail/contrail-config-exec.out",
+            command => " openstack-config --set /etc/neutron/neutron.conf DEFAULT max_header_line 65536  && service neutron-server restart && echo neutron-conf-max-header >> /etc/contrail/contrail_config_exec.out",
             onlyif => "test -f /etc/neutron/neutron.conf",
-            unless  => "grep -qx neutron-conf-max-header /etc/contrail/contrail-config-exec.out",
+            unless  => "grep -qx neutron-conf-max-header /etc/contrail/contrail_config_exec.out",
             provider => shell,
             logoutput => "true"
         }
@@ -540,7 +540,7 @@ define contrail_config (
     }
 
 
-    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Exec["stop-neutron"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["neutron-conf-exec"]->Exec["neutron-conf-admin-tenant-exec"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Exec["stop-neutron"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
