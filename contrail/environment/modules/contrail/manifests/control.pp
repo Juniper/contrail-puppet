@@ -1,0 +1,161 @@
+# == Class: contrail::control
+#
+# This class is used to configure software and services required
+# to run controller module of contrail software suit.
+#
+# === Parameters:
+#
+# [*host_control_ip*]
+#     IP address of the server where contrail collector is being installed.
+#     if server has separate interfaces for management and control, this
+#     parameter should provide control interface IP address.
+#
+# [*config_ip*]
+#     Control interface IP address of the server where config module of
+#     contrail cluster is configured. If there are multiple config nodes
+#     , IP address of first config node server is specified here.
+#
+# [*internal_vip*]
+#     Virtual IP on the control/data interface (internal network) to be used for openstack.
+#     (optional) - Defaults to "".
+#
+# [*contrail_internal_vip*]
+#     Virtual IP on the control/data interface (internal network) to be used for contrail.
+#     (optional) - Defaults to "".
+#
+# [*use_certs*]
+#     Flag to indicate whether to use certificates for authentication.
+#     (optional) - Defaults to False.
+#
+# [*puppet_server*]
+#     FQDN of puppet master, in case puppet master is used for certificates
+#     (optional) - Defaults to "".
+#
+class contrail::control (
+    $host_control_ip = $::contrail::params::host_ip,
+    $config_ip = $::contrail::params::config_ip_list[0],
+    $internal_vip = $::contrail::params::internal_vip,
+    $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+    $use_certs = $::contrail::params::use_certs,
+    $puppet_server = $::contrail::params::puppet_server
+) inherits ::contrail::params {
+
+    # If internal VIP is configured, use that address as config_ip.
+    if ($contrail_internal_vip != "") {
+        $config_ip_to_use = $contrail_internal_vip
+    }
+    elsif ($internal_vip != "") {
+        $config_ip_to_use = $internal_vip
+    }
+    else {
+        $config_ip_to_use = $config_ip
+    }
+
+    # Main class code begins here
+    case $::operatingsystem {
+        Ubuntu: {
+                file { ['/etc/init/supervisor-control.override',
+                        '/etc/init/supervisor-dns.override'] :
+                    ensure => absent,
+                require =>Package['contrail-openstack-control']
+                }
+            #TODO, Is this really needed?
+                service { "supervisor-dns" :
+                    enable => true,
+                    require => [ Package['contrail-openstack-control']
+                             ],
+                    subscribe => File['/etc/contrail/dns.conf'],
+                    ensure => running,
+                }
+                # Below is temporary to work-around in Ubuntu as Service resource fails
+                # as upstart is not correctly linked to /etc/init.d/service-name
+            file { '/etc/init.d/supervisor-control':
+                ensure => link,
+                target => '/lib/init/upstart-job',
+                before => Service["supervisor-control"]
+            }
+            file { '/etc/init.d/supervisor-dns':
+                ensure => link,
+                target => '/lib/init/upstart-job',
+                before => Service["supervisor-dns"]
+            }
+            file { '/etc/init.d/contrail-named':
+                ensure => link,
+                       target => '/lib/init/upstart-job',
+                       before => Service["contrail-named"]
+            }
+
+        }
+        default: {
+        }
+    }
+
+    # Ensure all needed packages are present
+    package { 'contrail-openstack-control' : ensure => present,}
+    ->
+
+    # The above wrapper package should be broken down to the below packages
+    # For Debian/Ubuntu - supervisor, contrail-api-lib, contrail-control, contrail-dns,
+    #                      contrail-setup, contrail-nodemgr
+    # For Centos/Fedora - contrail-api-lib, contrail-control, contrail-setup, contrail-libs
+    #                     contrail-dns, supervisor
+
+
+    # Ensure all config files with correct content are present.
+    file { "/etc/contrail/dns.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-control"],
+	content => template("$module_name/dns.conf.erb"),
+    }
+    ->
+    file { "/etc/contrail/contrail-control.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-control"],
+	content => template("$module_name/contrail-control.conf.erb"),
+    }
+
+    # The below script can be avoided. Sets up puppet agent and waits to get certificate from puppet master.
+    # also has service restarts for puppet agent and supervisor-control. Abhay
+    #->
+    #file { "/opt/contrail/contrail_installer/contrail_setup_utils/control-server-setup.sh":
+    #    ensure  => present,
+    #    mode => 0755,
+    #    owner => root,
+    #    group => root,
+    #}
+    #->
+    #exec { "control-server-setup" :
+    #    command => "/opt/contrail/contrail_installer/contrail_setup_utils/control-server-setup.sh; echo control-server-setup >> /etc/contrail/contrail_control_exec.out",
+    #    require => File["/opt/contrail/contrail_installer/contrail_setup_utils/control-server-setup.sh"],
+    #    unless  => "grep -qx control-server-setup /etc/contrail/contrail_control_exec.out",
+    #    provider => shell,
+    #    logoutput => "true"
+    #}
+    ->
+    # update rndc conf
+    exec { "update-rndc-conf-file" :
+        command => "sudo sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
+        require =>  package["contrail-openstack-control"],
+        onlyif => "test -f /etc/contrail/dns/rndc.conf",
+        unless  => "grep -qx update-rndc-conf-file /etc/contrail/contrail_control_exec.out",
+        provider => shell,
+        logoutput => 'true'
+    }
+    # Ensure the services needed are running.
+    ->
+    service { "supervisor-control" :
+        enable => true,
+        require => [ Package['contrail-openstack-control']
+                     ],
+        subscribe => File['/etc/contrail/contrail-control.conf'],
+        ensure => running,
+    }
+    ->
+    service { "contrail-named" :
+        enable => true,
+        require => [ Package['contrail-openstack-control']
+                     ],
+        subscribe => File['/etc/contrail/dns.conf'],
+        ensure => running,
+    }
+}

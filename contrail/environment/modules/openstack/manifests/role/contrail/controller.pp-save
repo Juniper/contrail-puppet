@@ -1,0 +1,52 @@
+class openstack::role::contrail::controller {
+    stage { 'contrail_common':}
+    stage { 'first': }
+    stage { 'last': }
+    Stage['contrail_common']->Stage['first']->Stage['main']-> Stage['last']
+    class { '::contrail::common' : 
+        stage => 'contrail_common'
+    }
+    class { '::openstack::profile::base': }
+    class { '::openstack::profile::contrail::keepalived':
+        #vip => "${::contrail::config::internal_vip}/${::contrail::config::contrail_cidr}",
+        #interface => "${::contrail::common::physical_interface}",
+        #state => "${::openstack::config::contrail::vrrp_state}",
+        vip => "10.84.51.100/24",
+        interface => "eth1",
+        state => "MASTER",
+    }
+    class { '::openstack::profile::contrail::haproxy': }
+    # Openstack related profiles
+    #class { '::openstack::profile::firewall': }
+    #class { '::openstack::profile::rabbitmq': } ->
+    #class { '::openstack::profile::memcache': } ->
+    #class { '::openstack::profile::mysql': } ->
+    #class { '::openstack::profile::mongodb': } ->
+    #class { '::openstack::profile::keystone': } ->
+    #class { '::openstack::profile::ceilometer::api': } ->
+    #class { '::openstack::profile::glance::auth': } ->
+    #class { '::openstack::profile::cinder::api': } ->
+    #class { '::openstack::profile::nova::api': } ->
+    #class { '::openstack::profile::neutron::server': } ->
+    #class { '::openstack::profile::heat::api': } ->
+    #class { '::openstack::profile::horizon': }
+    #class { '::openstack::profile::auth_file': }
+    #########################
+    class { '::openstack::profile::firewall': }
+    class { '::openstack::profile::contrail::mysql': }
+    class { '::openstack::profile::keystone': }
+    class { '::openstack::profile::memcache': }
+    class { '::openstack::profile::contrail::database': }
+    class { '::openstack::profile::contrail::config': }
+    class { '::openstack::profile::contrail::collector': }
+    class { '::openstack::profile::contrail::controller': }
+    class { '::openstack::profile::contrail::webui': }
+    class { '::openstack::profile::contrail::glance::api': }
+    class { '::openstack::profile::cinder::api': }
+    class { '::openstack::profile::nova::api': }
+    class { '::openstack::profile::horizon': }
+    class { '::openstack::profile::auth_file': }
+    class { '::openstack::profile::contrail::neutron::server': 
+        stage => 'last'
+    }
+}

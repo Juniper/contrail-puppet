@@ -1,0 +1,10 @@
+class openstack::role::contrail::base inherits ::openstack::role {
+    stage { 'repo':}
+    stage { 'first':}
+    stage { 'last': }
+    Stage['repo'] -> Stage['first'] -> Stage['main'] -> Stage['last']
+
+    class {'::openstack::common::contrail':
+        stage => 'repo'
+    }
+}
