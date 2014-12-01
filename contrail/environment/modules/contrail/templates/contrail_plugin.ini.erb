@@ -1,0 +1,17 @@
+[APISERVER]
+<% if @internal_vip != "" -%>
+api_server_ip = <%= @internal_ip %>
+<% else -%>
+api_server_ip = <%= @host_control_ip %>
+<% end -%>
+api_server_port = 8082
+multi_tenancy = <%= @multi_tenancy %>
+contrail_extensions = ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc
+
+[KEYSTONE]
+auth_url = <%= @keystone_auth_protocol %>://<%= @keystone_ip %>:<%= @keystone_auth_port %>/v2.0
+admin_token = <%= @keystone_service_token %>
+admin_user=<%= @keystone_admin_user %>
+admin_password=<%= @keystone_admin_password %>
+admin_tenant_name=<%= @keystone_admin_tenant %>
+

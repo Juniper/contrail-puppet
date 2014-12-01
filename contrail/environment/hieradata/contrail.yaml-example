@@ -1,0 +1,16 @@
+contrail::params::host_ip: "10.84.51.12"
+contrail::params::config_ip_list: ["10.84.51.12"]
+contrail::params::config_name_list: ["demo-server1"]
+contrail::params::control_ip_list: ["10.84.51.12"]
+contrail::params::control_name_list: ["demo-server1"]
+contrail::params::database_ip_list: ["10.84.51.12"]
+contrail::params::collector_ip_list: ["10.84.51.12"]
+contrail::params::webui_ip_list: ["10.84.51.12"]
+contrail::params::openstack_ip_list: ["10.84.51.12"]
+contrail::params::compute_ip_list: ["10.84.51.13"]
+contrail::params::internal_vip: "10.84.51.100"
+contrail::params::contrail_internal_vip: ""
+contrail::params::external_vip: ""
+contrail::params::uuid: "9e74cfd5-7955-4e9a-a90f-6c1bb943c8c4"
+contrail::params::contrail_repo_name: "uh-20-b2454"
+contrail::params::contrail_repo_type: "contrail-ubuntu-package"

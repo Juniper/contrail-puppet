@@ -1,0 +1,162 @@
+# == Class: contrail::common
+#
+# This class is used to configure software and services common
+# to all contrail modules.
+#
+# === Parameters:
+#
+# [*host_mgmt_ip*]
+#     IP address of the server where contrail modules are being installed.
+#     if server has separate interfaces for management and control, this
+#     parameter should provide management interface IP address.
+#
+# [*contrail_repo_name*]
+#     Name of contrail repo being used to provision the contrail roles.
+#     Version of contrail software being used is specified here.
+#
+# [*contrail_repo_ip*]
+#     IP address of the server where contrail repo is mirrored. This is
+#     same as the cobbler address or server manager IP address (puppet master).
+#
+# [*contrail_repo_type*]
+#     Type of contrail repo (contrail-ubuntu-package or contrail-centos-package).
+#
+class contrail::common(
+    $host_mgmt_ip = $::contrail::params::host_ip,
+    $contrail_repo_name = $::contrail::params::contrail_repo_name,
+    $contrail_repo_ip = $::contrail::params::contrail_repo_ip,
+    $contrail_repo_type = $::contrail::params::contrail_repo_type
+) inherits ::contrail::params {
+
+    notify { "**** $module_name - host_mgmt_ip = $host_mgmt_ip": ; }
+    notify { "**** $module_name - contrail_repo_name = $contrail_repo_name": ; }
+    notify { "**** $module_name - contrail_repo_ip = $contrail_repo_ip": ; }
+    notify { "**** $module_name - contrail_repo_type = $contrail_repo_type": ; }
+
+    # Resource declarations for class contrail::common
+    # macro to perform common functions
+    # Create repository config on target.
+    contrail::lib::contrail-setup-repo{ contrail_repo:
+        contrail_repo_name => $contrail_repo_name,
+        contrail_repo_ip => $contrail_repo_ip
+    } ->
+
+    contrail::lib::contrail-install-repo{ install_repo:
+        contrail_repo_type => $contrail_repo_type
+    }
+    ->
+    # Ensure /etc/hosts has an entry for self to map dns name to ip address
+    host { "$hostname" :
+	ensure => present,
+	ip => "$host_mgmt_ip"
+    }
+
+    # Disable SELINUX on boot, if not already disabled.
+    if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
+	exec { "selinux-dis-1" :
+	    command   => "sed -i \'s/SELINUX=.*/SELINUX=disabled/g\' config",
+	    cwd       => '/etc/selinux',
+	    onlyif    => '[ -d /etc/selinux ]',
+	    unless    => "grep -qFx 'SELINUX=disabled' '/etc/selinux/config'",
+	    provider  => shell,
+	    logoutput => "true"
+	}
+
+	# disable selinux runtime
+	exec { "selinux-dis-2" :
+	    command   => "setenforce 0 || true",
+	    unless    => "getenforce | grep -qi disabled",
+	    provider  => shell,
+	    logoutput => "true"
+	}
+
+	# Disable iptables
+	service { "iptables" :
+	    enable => false,
+	    ensure => stopped
+	}
+    }
+
+    if ($operatingsystem == "Ubuntu") {
+	# disable firewall
+	exec { "disable-ufw" :
+	    command   => "ufw disable",
+	    unless    => "ufw status | grep -qi inactive",
+	    provider  => shell,
+	    logoutput => "true"
+	}
+	# Create symbolic link to chkconfig. This does not exist on Ubuntu.
+	file { '/sbin/chkconfig':
+	    ensure => link,
+	    target => '/bin/true'
+	}
+    }
+
+    # Flush ip tables.
+    exec { 'iptables --flush': provider => shell, logoutput => true }
+
+    # Remove any core limit configured
+    if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
+	exec { 'daemon-core-file-unlimited':
+	    command   => "sed -i \'/DAEMON_COREFILE_LIMIT=.*/d\' /etc/sysconfig/init; echo DAEMON_COREFILE_LIMIT=\"\'unlimited\'\" >> /etc/sysconfig/init",
+	    unless    => "grep -qx \"DAEMON_COREFILE_LIMIT='unlimited'\" /etc/sysconfig/init",
+	    provider => shell,
+	    logoutput => "true"
+	}
+    }
+    if ($operatingsystem == "Ubuntu") {
+	exec { "core-file-unlimited" :
+	    command   => "ulimit -c unlimited",
+	    unless    => "ulimit -c | grep -qi unlimited",
+	    provider  => shell,
+	    logoutput => "true"
+	}
+    }
+
+    # Core pattern
+    exec { 'core_pattern_1':
+	command   => 'echo \'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t\' >> /etc/sysctl.conf',
+	unless    => "grep -q 'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t' /etc/sysctl.conf",
+	provider => shell,
+	logoutput => "true"
+    }
+
+    # Enable ip forwarding in sysctl.conf for vgw
+    exec { 'enable-ipf-for-vgw':
+	command   => "sed -i \"s/net.ipv4.ip_forward.*/net.ipv4.ip_forward = 1/g\" /etc/sysctl.conf",
+	unless    => ["[ ! -f /etc/sysctl.conf ]",
+		      "grep -qx \"net.ipv4.ip_forward = 1\" /etc/sysctl.conf"],
+	provider => shell,
+	logoutput => "true"
+    }
+
+    #exec { 'sysctl -e -p' : provider => shell, logoutput => on_failure }
+    file { "/var/crashes":
+	ensure => "directory",
+    }
+
+    # Make sure our scripts directory is present
+    file { ["/etc/contrail", "/etc/contrail/contrail_setup_utils"] :
+	ensure => "directory",
+    }
+
+    # Enable kernel core.
+    file { "/etc/contrail/contrail_setup_utils/enable_kernel_core.py":
+	ensure  => present,
+	mode => 0755,
+	owner => root,
+	group => root,
+	source => "puppet:///modules/$module_name/enable_kernel_core.py"
+    }
+
+    # enable kernel core , below python code has bug, for now ignore by executing echo regardless and thus returning true for cmd.
+    # need to revisit afterwards.
+    exec { "enable-kernel-core" :
+	#command => "python /etc/contrail/contrail_setup_utils/enable_kernel_core.py && echo enable-kernel-core >> /etc/contrail/contrail_common_exec.out",
+	command => "python /etc/contrail/contrail_setup_utils/enable_kernel_core.py; echo enable-kernel-core >> /etc/contrail/contrail_common_exec.out",
+	require => File["/etc/contrail/contrail_setup_utils/enable_kernel_core.py" ],
+	unless  => "grep -qx enable-kernel-core /etc/contrail/contrail_common_exec.out",
+	provider => shell,
+	logoutput => "true"
+    }
+}
