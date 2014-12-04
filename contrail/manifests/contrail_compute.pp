@@ -471,10 +471,13 @@ define contrail_compute (
         $contrail_ks_auth_port="35357",
     ) {
 
-    __$version__::contrail_common::report_status {"compute_started": state => "compute_started"}
 
     if ($operatingsystem == "Ubuntu") {
         if ($contrail_interface_rename_done != "2") {
+
+
+            __$version__::contrail_common::report_status {"compute_started": state => "compute_started"}
+            ->
             contrail_compute_part_2 { contrail_compute_2 :
                 contrail_config_ip => $contrail_config_ip,
                 contrail_compute_ip => $contrail_compute_ip,
@@ -502,6 +505,8 @@ define contrail_compute (
                 contrail_amqp_server_ip => $contrail_amqp_server_ip,
                 contrail_openstack_index => $contrail_openstack_index,
             }
+            ->
+            __$version__::contrail_common::report_status {"compute_completed": state => "compute_completed"}
         }
         else {
             # Nothing for now, add code here for anything to be done after second reboot
@@ -509,6 +514,9 @@ define contrail_compute (
     }
     else {
         if ($contrail_interface_rename_done == "0") {
+            __$version__::contrail_common::report_status {"compute_started": state => "compute_started"}
+            ->
+
             contrail_compute_part_1 { contrail_compute_1 :
                 contrail_config_ip => $contrail_config_ip,
                 contrail_compute_ip => $contrail_compute_ip,
@@ -565,12 +573,14 @@ define contrail_compute (
                 contrail_amqp_server_ip => $contrail_amqp_server_ip,
                 contrail_openstack_index => $contrail_openstack_index,
             }
+            ->
+            __$version__::contrail_common::report_status {"compute_completed": state => "compute_completed"}
+
         }
         else {
             # Nothing for now, add code here for anything to be done after second reboot
         }
     }
-    __$version__::contrail_common::report_status {"compute_completed": state => "compute_completed"}
 
 }
 # end of user defined type contrail_compute.

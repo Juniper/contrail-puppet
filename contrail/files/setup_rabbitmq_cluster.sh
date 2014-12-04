@@ -43,9 +43,10 @@ fi
 
 #setup and start rabbitmq
 eval "sudo ufw disable"
-eval "rm -rf /var/lib/rabbitmq/mnesia"
 
 eval "service rabbitmq-server stop"
+
+eval "rm -rf /var/lib/rabbitmq/mnesia"
 eval "epmd -kill"
 echo ${uuid} > /var/lib/rabbitmq/.erlang.cookie
 
