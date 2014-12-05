@@ -294,6 +294,12 @@ class contrail::config (
         $rabbitmq_conf_template = "rabbitmq_config.erb"
     }
 
+    if ( $host_control_ip == $config_ip_list[0]) {
+
+        $master = "yes"		
+    } else {
+        $master = "no"
+    }
     case $::operatingsystem {
 	Ubuntu: {
 	    file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
@@ -510,6 +516,22 @@ class contrail::config (
         require => Package["contrail-openstack-config"],
         content => template("$module_name/$rabbitmq_conf_template"),
     }
+    ->
+    file { "/etc/contrail/form_rmq_cluster.sh" :
+	ensure  => present,
+	mode => 0755,
+#	user => root,
+	group => root,
+	source => "puppet:///modules/$module_name/form_rmq_cluster.sh"
+    }
+    exec { "verify-rabbitmq" :
+	command => "/etc/contrail/form_rmq_cluster.sh $master $host_control_ip $config_ip_list & echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
+	require => File["/etc/contrail/form_rmq_cluster.sh"],
+	unless  => "grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out",
+	provider => shell,
+	logoutput => true
+    }
+
     # run setup-pki.sh script
     if $use_certs == true {
 	file { "/etc/contrail_setup_utils/setup-pki.sh" :
@@ -587,7 +609,7 @@ class contrail::config (
 
 
 	exec { "exec_set_rabbitmq_tcp_params" :
-	    command => "python /opt/contrail/bin/set_rabbit_tcp_params.py",
+	    command => "python /opt/contrail/bin/set_rabbit_tcp_params.py && echo exec_set_rabbitmq_tcp_params >> /etc/contrail/contrail_openstack_exec.out",
 	    cwd => "/opt/contrail/bin/",
 	    unless  => "grep -qx exec_set_rabbitmq_tcp_params /etc/contrail/contrail_openstack_exec.out",
 	    provider => shell,
