@@ -12,5 +12,7 @@ class contrail::profile::openstack_controller {
     contain ::openstack::profile::auth_file
     contain ::openstack::profile::provision
     Class['::openstack::profile::provision']->Service['glance-api']
-    contain ::contrail::profile::openstack::neutron::server 
+    #Contrail expects neutron to run on config nodes only
+    #contain ::contrail::profile::openstack::neutron::server
+
 }
