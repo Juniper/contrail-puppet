@@ -143,14 +143,6 @@ define contrail_config (
             subscribe => File["/etc/haproxy/haproxy.cfg"],
             ensure => running
     }
-    if ! defined(Exec["stop-neutron"]) {
-        exec { "stop-neutron":
-            command => "service neutron-server stop && echo stop-neutron >> /etc/contrail/contrail_config_exec.out",
-            unless  => "grep -qx stop-neutron /etc/contrail/contrail_config_exec.out",
-            provider => shell,
-            logoutput => "true"
-        }
-    }
      
     if ($operatingsystem == "Ubuntu") {
 
@@ -540,7 +532,7 @@ define contrail_config (
     }
 
 
-    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Exec["stop-neutron"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
