@@ -36,13 +36,13 @@ class contrail::common(
     # Resource declarations for class contrail::common
     # macro to perform common functions
     # Create repository config on target.
-    contrail::lib::contrail-setup-repo{ contrail_repo:
-        contrail_repo_name => $contrail_repo_name,
+    contrail::lib::contrail-setup-repo{ $contrail_repo_name:
+        #contrail_repo_name => $contrail_repo_name,
         contrail_repo_ip => $contrail_repo_ip
     } ->
 
-    contrail::lib::contrail-install-repo{ install_repo:
-        contrail_repo_type => $contrail_repo_type
+    contrail::lib::contrail-install-repo{ $contrail_repo_type:
+        #contrail_repo_type => $contrail_repo_type
     }
     ->
     # Ensure /etc/hosts has an entry for self to map dns name to ip address

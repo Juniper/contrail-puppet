@@ -1,3 +1,5 @@
+contrail::params::contrail_repo_name: ["ui-30-2498-storage", "uh-30-b2498"]
+contrail::params::contrail_repo_type: [ "contrail-ubuntu-stroage-repo", "contrail-ubuntu-package"]
 contrail::params::host_ip: "10.84.51.12"
 contrail::params::config_ip_list: ["10.84.51.12"]
 contrail::params::config_name_list: ["demo-server1"]
@@ -12,5 +14,13 @@ contrail::params::internal_vip: "10.84.51.100"
 contrail::params::contrail_internal_vip: ""
 contrail::params::external_vip: ""
 contrail::params::uuid: "9e74cfd5-7955-4e9a-a90f-6c1bb943c8c4"
-contrail::params::contrail_repo_name: "uh-20-b2454"
-contrail::params::contrail_repo_type: "contrail-ubuntu-package"
+contrail::params::host_roles: [ 'storage']
+contrail::params::storage_num_osd : 7
+contrail::params::storage_fsid : 'b979b164-20ef-4d5f-809c-93a69129c71f'
+contrail::params::storage_monitor_hosts: "10.87.129.71, 10.87.140.36"
+contrail::params::storage_virsh_uuid : '68ed8156-a382-4f28-a6b7-eb0c77549390'
+contrail::params::storage_num_hosts : 2
+contrail::params::storage_monitor_secret : 'AQBM78tTEMz+GhAA3WiOXQI7UVdIy0YFFuTGdw=='
+contrail::params::osd_bootstrap_key : 'AQDIgtNTgPLWARAAK6gs/fj8m88LnY9DwxJdYA=='
+contrail::params::storage_admin_key : 'AQCq7NFTeJUoBhAAlTVpxwWQJtBej/JDNhT6+Q=='
+contrail::params::storage_osd_disks :  [ '/dev/sdb', '/dev/sdc' ]

@@ -71,7 +71,17 @@ class contrail::params (
     $orchestrator = "openstack",
     $contrail_repo_name,
     $contrail_repo_ip = $serverip,
-    $contrail_repo_type
+    $contrail_repo_type,
+    $host_roles,
+    $storage_num_osd,
+    $storage_fsid,
+    $storage_num_hosts,
+    $storage_monitor_secret,
+    $osd_bootstrap_key,
+    $storage_admin_key,
+    $storage_virsh_uuid,
+    $storage_monitor_hosts,
+    $storage_osd_disks
 ) {
     if ($zookeeper_ip_list == undef) {
         $zk_ip_list_to_use = $config_ip_list
