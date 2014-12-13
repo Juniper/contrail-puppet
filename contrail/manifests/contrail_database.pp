@@ -37,6 +37,15 @@ define database-template-scripts {
 #     $contrail_database_index
 define contrail_database (
     ) {
+
+    if ($operatingsystem == "Ubuntu") {
+         $service_provider = upstart
+    } else {
+         $service_provider = init 
+    }
+
+
+
     __$version__::contrail_common::report_status {"database_started": state => "database_started"}
     ->
     # Ensure all needed packages are present
@@ -95,13 +104,6 @@ define contrail_database (
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
-    if ($operatingsystem == "Ubuntu") {
-        file { '/etc/init.d/supervisor-database':
-            ensure => link,
-            target => '/lib/init/upstart-job',
-            before => Service["supervisor-database"]
-        }
-    }
     # Ensure the services needed are running.
     service { "supervisor-database" :
         enable => true,
@@ -109,6 +111,7 @@ define contrail_database (
                      Exec['database-venv'] ],
         subscribe => [ File["$contrail_cassandra_dir/cassandra.yaml"],
                        File["$contrail_cassandra_dir/cassandra-env.sh"] ],
+        provider => $service_provider,
         ensure => running,
     }
 

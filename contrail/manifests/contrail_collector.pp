@@ -20,6 +20,13 @@ define collector-template-scripts {
 #     $contrail_analytics_data_ttl
 define contrail_collector (
     ) {
+    if ($operatingsystem == "Ubuntu") {
+         $service_provider = upstart
+    } else {
+         $service_provider = init
+    }
+
+
     __$version__::contrail_common::report_status {"collector_started": state => "collector_started"}
     ->
     # Ensure all needed packages are present
@@ -93,13 +100,7 @@ define contrail_collector (
        }
 
     }
-    if ($operatingsystem == "Ubuntu") {
-        file { '/etc/init.d/supervisor-analytics':
-            ensure => link,
-            target => '/lib/init/upstart-job',
-            before => Service["supervisor-analytics"]
-        }
-    }
+
     # Ensure the services needed are running.
     service { "supervisor-analytics" :
         enable => true,
@@ -108,6 +109,7 @@ define contrail_collector (
         subscribe => [ File['/etc/contrail/contrail-collector.conf'],
                        File['/etc/contrail/contrail-query-engine.conf'],
                        File['/etc/contrail/contrail-analytics-api.conf'] ],
+        provider => $service_provider,
         ensure => running,
     }
     ->

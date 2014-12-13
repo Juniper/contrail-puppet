@@ -110,6 +110,13 @@ define contrail_config (
     $contrail_vswitch = ""
 
 
+    if ($operatingsystem == "Ubuntu") {
+         $service_provider = upstart
+    } else {
+         $service_provider = init
+    }
+
+
     if $contrail_use_certs == "yes" {
         $contrail_ifmap_server_port = '8444'
     }
@@ -544,17 +551,11 @@ define contrail_config (
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
-    if ($operatingsystem == "Ubuntu") {
-        file { '/etc/init.d/supervisor-config':
-            ensure => link,
-            target => '/lib/init/upstart-job',
-            before => Service["supervisor-config"]
-        }
-    }
     service { "supervisor-config" :
         enable => true,
         require => [ Package['contrail-openstack-config'],
                      Exec['api-venv'] ],
+        provider => $service_provider,
         ensure => running,
     }
     ->
