@@ -27,6 +27,12 @@ define control-template-scripts {
 #     $contrail_api_nworkers
 define contrail_control (
     ) {
+    if ($operatingsystem == "Ubuntu") {
+         $service_provider = upstart
+    } else {
+         $service_provider = init
+    }
+
     __$version__::contrail_common::report_status {"control_started": state => "control_started"}
     ->
     # Ensure all needed packages are present
@@ -106,11 +112,6 @@ define contrail_control (
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
     if ($operatingsystem == "Ubuntu") {
-        file { '/etc/init.d/supervisor-control':
-            ensure => link,
-            target => '/lib/init/upstart-job',
-            before => Service["supervisor-control"]
-        }
         file { '/etc/init.d/supervisor-dns':
             ensure => link,
             target => '/lib/init/upstart-job',
@@ -128,6 +129,7 @@ define contrail_control (
         require => [ Package['contrail-openstack-control'],
                      Exec['control-venv'] ],
         subscribe => File['/etc/contrail/contrail-control.conf'],
+        provider => $service_provider,
         ensure => running,
     }
     if ($operatingsystem == "Ubuntu") {

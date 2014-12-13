@@ -11,6 +11,13 @@ class __$version__::contrail_webui {
 define contrail_webui (
         $contrail_keystone_ip = $contrail_openstack_ip
     ) {
+    if ($operatingsystem == "Ubuntu") {
+         $service_provider = upstart
+    } else {
+         $service_provider = init
+    }
+
+
     __$version__::contrail_common::report_status {"webui_started": state => "webui_started"}
     ->
     # Ensure all needed packages are present
@@ -53,13 +60,7 @@ define contrail_webui (
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
-    if ($operatingsystem == "Ubuntu") {
-        file { '/etc/init.d/supervisor-webui':
-            ensure => link,
-            target => '/lib/init/upstart-job',
-            before => Service["supervisor-webui"]
-        }
-    }
+
     # Ensure the services needed are running. The individual services are left
     # under control of supervisor. Hence puppet only checks for continued operation
     # of supervisor-webui service, which in turn monitors status of individual
@@ -67,6 +68,7 @@ define contrail_webui (
     service { "supervisor-webui" :
         enable => true,
         subscribe => [File['/etc/contrail/config.global.js'], File['storage.config.global.js']],
+        provider => $service_provider,
         ensure => running,
     }
     ->
