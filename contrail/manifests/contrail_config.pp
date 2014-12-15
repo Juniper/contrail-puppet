@@ -170,6 +170,24 @@ define contrail_config (
             logoutput => "true"
         }
     }
+
+    file { "/etc/contrail/contrail_setup_utils/check_stop_neutron_server.sh":
+        ensure  => present,
+        mode => 0755,
+        owner => root,
+        group => root,
+        require => Package["contrail-openstack-config"],
+        source => "puppet:///modules/$module_name/check_stop_neutron_server.sh"
+    }
+
+    # Check if neutron server is already running. Stop temporarily before starting haproxy
+    exec { "check_stop_neutron_server" :
+        command => "/bin/bash /etc/contrail/contrail_setup_utils/check_stop_neutron_server.sh && echo check_stop_neutron_server >> /etc/contrail/contrail_config_exec.out",
+        require => File["/etc/contrail/contrail_setup_utils/check_stop_neutron_server.sh"],
+        unless  => "grep -qx check_stop_neutron_server /etc/contrail/contrail_config_exec.out",
+        provider => shell,
+        logoutput => "true"
+    }
     
     # Ensure ctrl-details file is present with right content.
     if ! defined(File["/etc/contrail/ctrl-details"]) {
@@ -539,7 +557,7 @@ define contrail_config (
     }
 
 
-    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
+    Package["contrail-openstack-config"]->Setup-haproxy["setup_haproxy"]->Exec["check_stop_neutron_server"]->Service["haproxy"]->Exec["exec-cfg-rabbitmq"]->Exec["setup-rabbitmq-cluster"]->Exec["check-rabbitmq-cluster"]->Config-scripts["config-server-setup"]->Config-scripts["quantum-server-setup"]->Exec["setup-verify-quantum-in-keystone"]->Exec["config-neutron-server"]->Exec["provision-metadata-services"]->Exec["provision-encap-type"]->Exec["exec-provision-control"]->Exec["provision-external-bgp"]
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
