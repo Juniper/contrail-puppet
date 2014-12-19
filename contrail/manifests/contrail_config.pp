@@ -18,7 +18,20 @@ define config-scripts {
 }
 
 # Macro to setup the configuration files from templates.
-define config-template-scripts {
+define config-template-scripts (
+    $contrail_vm_ip = "",
+    $contrail_vm_username = "",
+    $contrail_vm_passwd = "",
+    $contrail_vswitch = "",
+    $contrail_ifmap_server_port = '8444',
+    $contrail_memcached_opt = "",
+    $contrail_keystone_ip = "",
+    $contrail_ks_insecure_flag = "",
+    $contrail_hc_interval = "",
+    $contrail_ks_auth_protocol = "",
+    $contrail_quantum_service_protocol = "",
+    $contrail_ks_auth_port = ""
+) {
     # Ensure template param file is present with right content.
     file { "/etc/contrail/${title}" : 
         ensure  => present,
@@ -321,7 +334,20 @@ define contrail_config (
                                "contrail-svc-monitor.conf",
                                "contrail-discovery.conf",
                                "vnc_api_lib.ini",
-                               "contrail_plugin.ini"]: }
+                               "contrail_plugin.ini"]:
+        contrail_vm_ip => $contrail_vm_ip,
+        contrail_vm_username => $contrail_vm_username,
+        contrail_vm_passwd => $contrail_vm_passwd,
+        contrail_vswitch => $contrail_vswitch,
+        contrail_ifmap_server_port => $contrail_ifmap_server_port,
+        contrail_memcached_opt => $contrail_memcached_opt,
+        contrail_keystone_ip => $contrail_keystone_ip,
+        contrail_ks_insecure_flag => $contrail_ks_insecure_flag,
+        contrail_hc_interval => $contrail_hc_interval,
+        contrail_ks_auth_protocol => $contrail_ks_auth_protocol,
+        contrail_quantum_service_protocol => $contrail_quantum_service_protocol,
+        contrail_ks_auth_port => $contrail_ks_auth_port
+    }
 
     # Supervisor contrail-api.ini
     $contrail_api_port_base = '910'
