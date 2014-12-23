@@ -136,7 +136,7 @@ define contrail_database (
     }
     database-scripts { ["database-server-setup"]: }
 
-    database-template-scripts { ["contrail-nodemgr-database.conf", "database_nodemgr_param"]: }
+    database-template-scripts { ["contrail-database-nodemgr.conf", "database_nodemgr_param"]: }
     ->
     __$version__::contrail_common::report_status {"database_completed": state => "database_completed"}
 
