@@ -249,6 +249,10 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
         commands.getstatusoutput("echo '    address %s' >> %s" %(vhost_ip, temp_intf_file))
     if (not host_non_mgmt_ip) and gateway_ip:
         commands.getstatusoutput("echo '    gateway %s' >> %s" %(gateway_ip, temp_intf_file))
+    elif not host_non_mgmt_ip:
+        local_gw = find_gateway(dev)
+        commands.getstatusoutput("echo '    gateway %s' >> %s" %(local_gw, temp_intf_file))
+
 
     domain = get_domain_search_list()
     if domain:

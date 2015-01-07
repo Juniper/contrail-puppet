@@ -362,6 +362,8 @@ class contrail::config (
 	}
     }
 
+    contrail::lib::report_status { "config_started": state => "config_started" }
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-config' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -585,6 +587,9 @@ class contrail::config (
 	require => [ Package['contrail-openstack-config']],
 	ensure => running,
     }
+    ->
+    contrail::lib::report_status { "config_completed": state => "config_completed" }
+
     if($internal_vip != "") {
 	exec { "rabbit_os_fix":
 		command => "rabbitmqctl set_policy HA-all \"\" '{\"ha-mode\":\"all\",\"ha-sync-mode\":\"automatic\"}' && echo rabbit_os_fix >> /etc/contrail/contrail_openstack_exec.out",

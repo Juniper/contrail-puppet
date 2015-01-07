@@ -89,7 +89,8 @@ class contrail::control (
         default: {
         }
     }
-
+    contrail::lib::report_status { "control_started": state => "control_started" }
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-control' : ensure => present,}
     ->
@@ -158,4 +159,7 @@ class contrail::control (
         subscribe => File['/etc/contrail/dns.conf'],
         ensure => running,
     }
+    ->
+    contrail::lib::report_status { "control_completed": state => "control_completed" }
+
 }

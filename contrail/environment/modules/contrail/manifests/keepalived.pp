@@ -30,6 +30,8 @@ class contrail::keepalived(
     $keepalived_vrid = $::contrail::params::keepalived_vrid,
     $openstack_ip_list = $::contrail::params::openstack_ip_list 
 ) inherits ::contrail::params {
+    #$vip = undef
+    #$ip_list = undef
 
     notify { "Keepalived - host_control_ip = $host_control_ip":; }
     notify { "Keepalived - config_ip_list = $config_ip_list":; }
