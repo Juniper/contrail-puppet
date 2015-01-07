@@ -202,6 +202,7 @@ class nova::api(
     'DEFAULT/metadata_workers':      value => $metadata_workers;
     'DEFAULT/use_forwarded_for':     value => $use_forwarded_for;
     'osapi_v3/enabled':              value => $osapi_v3;
+
   }
 
   if ($neutron_metadata_proxy_shared_secret){

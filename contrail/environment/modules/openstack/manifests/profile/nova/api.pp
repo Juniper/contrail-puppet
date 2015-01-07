@@ -8,5 +8,22 @@ class openstack::profile::nova::api {
   openstack::resources::firewall { 'Nova S3': port => '3333', }
   openstack::resources::firewall { 'Nova novnc': port => '6080', }
 
-  include ::openstack::common::nova
+  $host_ip = hiera(contrail::params::host_ip)
+  $compute_ip_list = hiera(contrail::params::compute_ip_list)
+
+  $tmp_index = inline_template('<%= @compute_ip_list.index(@host_ip) %>')
+  notify { "openstack::common::nova - compute_ip_list = $compute_ip_list":;}
+  notify { "openstack::common::nova - host_ip = $host_ip":;}
+
+  if ($tmp_index != nil) {
+    $contrail_is_compute = true
+  } else {
+    $contrail_is_compute = false
+  }
+  notify { "openstack::common::nova -contrail_is_compute  = $contrail_is_compute":;}
+  notify { "openstack::common::nova - controller_management_address = $controller_management_address":; }
+
+  class { '::openstack::common::nova' :
+         is_compute => $contrail_is_compute,
+  }
 }

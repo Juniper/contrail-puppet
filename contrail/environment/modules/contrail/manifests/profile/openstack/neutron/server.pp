@@ -1,6 +1,5 @@
 # The profile to set up the neutron server
-class contrail::profile::openstack::neutron::server {
-  #require ::contrail::profile::config
+class contrail::profile::openstack::neutron::server inherits ::openstack::role {
 
   openstack::resources::controller { 'neutron': }
   openstack::resources::database { 'neutron': }

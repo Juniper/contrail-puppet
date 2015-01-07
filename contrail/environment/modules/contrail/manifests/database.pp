@@ -127,7 +127,8 @@ class contrail::database (
             notify => Service["supervisord-contrail-database"]
         }
     }
-
+    contrail::lib::report_status { "database_started": state => "database_started" }
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-database' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -201,10 +202,10 @@ class contrail::database (
         logoutput => "true"
     }
     ->
-    file { "/etc/contrail/contrail-database-nodemgr.conf" :
+    file { "/etc/contrail/contrail-nodemgr-database.conf" :
 	ensure  => present,
 	before => Service["supervisord-contrail-database"],
-	content => template("$module_name/contrail-database-nodemgr.conf.erb"),
+	content => template("$module_name/contrail-nodemgr-database.conf.erb"),
     }
     ->
     file { "/etc/contrail/database_nodemgr_param" :
@@ -236,4 +237,7 @@ class contrail::database (
                        File["$contrail_cassandra_dir/cassandra-env.sh"] ],
         ensure => running,
     }
+    ->
+    contrail::lib::report_status { "database_completed": state => "database_completed" }
+
 }

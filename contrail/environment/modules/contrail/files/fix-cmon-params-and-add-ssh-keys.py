@@ -20,21 +20,23 @@ def main(args_str=None):
     compute_host_list_str = sys.argv[1]
     config_host_list_str = sys.argv[2]
     compute_host_list = compute_host_list_str.split(",")
+    compute_sz = len(compute_host_list)
     config_host_list = config_host_list_str.split(",")
 
     amqp_host_list = config_host_list
+    amqp_sz = len(amqp_host_list)
     cmon_param = '/etc/contrail/ha/cmon_param'
     #TODO amqp_role ?
 #    amqp_role = sys.argv[3]
 
     computes = 'COMPUTES=("' + '" "'.join(compute_host_list) + '")'
     commands.getstatusoutput("echo '%s' >> %s" % (computes, cmon_param))
-    commands.getstatusoutput("echo 'COMPUTES_SIZE=${#COMPUTES[@]}' >> %s" % cmon_param)
+    commands.getstatusoutput("echo 'COMPUTES_SIZE=%s' >> %s" % (compute_sz, cmon_param))
     commands.getstatusoutput("echo 'COMPUTES_USER=root' >> %s" % cmon_param)
     commands.getstatusoutput("echo 'PERIODIC_RMQ_CHK_INTER=60' >> %s" % cmon_param)
     amqps = 'DIPHOSTS=("' + '" "'.join(amqp_host_list) + '")'
     commands.getstatusoutput("echo '%s' >> %s" % (amqps, cmon_param))
-    commands.getstatusoutput("echo 'DIPS_HOST_SIZE=${#DIPHOSTS[@]}' >> %s" % cmon_param)
+    commands.getstatusoutput("echo 'DIPS_HOST_SIZE=%s' >> %s" % (amqp_sz, cmon_param))
 
 
     #Copy the ssh keys of openstack to every compute

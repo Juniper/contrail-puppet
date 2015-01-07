@@ -5,7 +5,6 @@
 # depends on openstack::profile::base having been added to a node
 class openstack::common::nova ($is_compute    = false) {
   $is_controller = $::openstack::profile::base::is_controller
-
   $management_network = $::openstack::config::network_management
   $management_address = ip_for_network($management_network)
 
@@ -64,7 +63,7 @@ class openstack::common::nova ($is_compute    = false) {
   class { '::nova::compute::neutron':
     libvirt_vif_driver => "nova_contrail_vif.contrailvif.VRouterVIFDriver"
   }
-
+  notify { "openstack::common::nova - controller_management_address = $controller_management_address":; }
   class { '::nova::network::neutron':
     neutron_admin_password => $::openstack::config::neutron_password,
     neutron_region_name    => $::openstack::config::region,

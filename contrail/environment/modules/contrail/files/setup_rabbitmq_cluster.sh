@@ -13,10 +13,10 @@ this_host=$(hostname)
 #Stop other cfgm services,
 #they will will all be restarted in config_server-setup.sh
 
-service supervisor-config status | grep running
+service supervisor-support-service status | grep running
 supervisor_config_running=$?
 if [ supervisor_config_running != 0 ]; then
-    eval "service supervisor-config start"
+    eval "service supervisor-support-service start"
     eval "supervisorctl -s http://localhost:9004 stop all"
 fi
 

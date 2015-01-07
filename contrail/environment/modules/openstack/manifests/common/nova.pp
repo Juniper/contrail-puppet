@@ -11,6 +11,7 @@ class openstack::common::nova ($is_compute    = false) {
 
   $storage_management_address = $::openstack::config::storage_address_management
   $controller_management_address = $::openstack::config::controller_address_management
+  $internal_vip = hiera(contrail::params::internal_vip)
 
   class { '::nova':
     sql_connection     => $::openstack::resources::connectors::nova,
@@ -29,6 +30,13 @@ class openstack::common::nova ($is_compute    = false) {
      value => '5673',
   }
   nova_config { 'DEFAULT/default_floating_pool': value => 'public' }
+
+  if ($internal_vip != "" or $internal_vip != undef) {
+    nova_config {
+      'DEFAULT/osapi_compute_listen_port':     value => '9774';
+      'DEFAULT/metadata_listen_port':     value => '9775';
+    }
+  }
 
   class { '::nova::api':
     admin_password                       => $::openstack::config::nova_password,
@@ -71,4 +79,5 @@ class openstack::common::nova ($is_compute    = false) {
     vif_plugging_is_fatal  => false,
     vif_plugging_timeout   => '0',
   }
+  
 }

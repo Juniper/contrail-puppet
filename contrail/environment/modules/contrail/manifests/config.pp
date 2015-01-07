@@ -204,6 +204,7 @@ class contrail::config (
     $internal_vip = $::contrail::params::internal_vip,
     $external_vip = $::contrail::params::external_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+    $internal_vip = $::contrail::params::internal_vip,
     $config_ip_list = $::contrail::params::config_ip_list,
     $config_name_list = $::contrail::params::config_name_list,
     $database_ip_port = $::contrail::params::database_ip_port,
@@ -362,6 +363,8 @@ class contrail::config (
 	}
     }
 
+    contrail::lib::report_status { "config_started": state => "config_started" }
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-config' : ensure => present,}
     # The above wrapper package should be broken down to the below packages
@@ -585,6 +588,9 @@ class contrail::config (
 	require => [ Package['contrail-openstack-config']],
 	ensure => running,
     }
+    ->
+    contrail::lib::report_status { "config_completed": state => "config_completed" }
+
     if($internal_vip != "") {
 	exec { "rabbit_os_fix":
 		command => "rabbitmqctl set_policy HA-all \"\" '{\"ha-mode\":\"all\",\"ha-sync-mode\":\"automatic\"}' && echo rabbit_os_fix >> /etc/contrail/contrail_openstack_exec.out",

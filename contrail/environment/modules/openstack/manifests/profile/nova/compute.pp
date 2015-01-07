@@ -3,10 +3,12 @@ class openstack::profile::nova::compute {
   $management_network = $::openstack::config::network_management
   $management_address = ip_for_network($management_network)
 
+#Thilak - commenting it out
+/*
   class { 'openstack::common::nova':
     is_compute => true,
   }
-
+*/
   class { '::nova::compute::libvirt':
     libvirt_type     => $::openstack::config::nova_libvirt_type,
     vncserver_listen => $management_address,

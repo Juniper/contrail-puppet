@@ -57,8 +57,31 @@ def main(argv):
     user_name = sys.argv[3]
     passwd = sys.argv[4]
 
-    command = commands.getstatusoutput("scp -r %s@%s:/etc/keystone/ssl /etc/keystone/" % \
+    status,output = commands.getstatusoutput("scp -o stricthostkeychecking=no -r %s@%s:/etc/keystone/ssl /etc/keystone/" % \
                                       (user_name, master))
+    print output
+    if status != 0:
+        sys.exit(1)
+
+
+    status,output = commands.getstatusoutput("chmod -R 777 /etc/keystone/ssl")
+    print output
+    if status != 0:
+        sys.exit(1)
+
+
+    status,output = commands.getstatusoutput("rm -rf /tmp/keystone-signing-*")
+    print output
+    if status != 0:
+        sys.exit(1)
+
+
+    status,output = commands.getstatusoutput("service keystone restart")
+    print output
+    if status != 0:
+        sys.exit(1)
+
+
 
 if __name__ == "__main__":
  main(sys.argv[1:])

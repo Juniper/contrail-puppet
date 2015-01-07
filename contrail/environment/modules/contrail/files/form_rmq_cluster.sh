@@ -5,7 +5,8 @@ this_host=$1;shift
 rabbit_list=$1;shift
 
 rm -rf /var/lib/rabbitmq/mnesia
-service rabbitmq-server restart
+service supervisor-support-service restart
+#service rabbitmq-server restart
 
 echo ${rabiit_list[@]}
 for rabbit_host in ${rabbit_list[@]}; do

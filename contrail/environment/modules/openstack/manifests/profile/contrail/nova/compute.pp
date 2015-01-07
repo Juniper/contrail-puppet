@@ -5,6 +5,7 @@ class openstack::profile::contrail::nova::compute {
 
     $controller_management_address = $::openstack::config::controller_address_management
 
+    notify { "openstack::profile::contrail::nova::compute - controller_management_address = $controller_management_address":; }
     include contrail::compute
     ->
     class { '::nova::network::neutron':
