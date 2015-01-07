@@ -6,6 +6,7 @@
 class openstack::common::nova ($is_compute    = false) {
   $is_controller = $::openstack::profile::base::is_controller
 
+
   $management_network = $::openstack::config::network_management
   $management_address = ip_for_network($management_network)
 

@@ -1,6 +1,13 @@
 # Common class for cinder installation
 # Private, and should not be used on its own
 class openstack::common::cinder {
+  $internal_vip = hiera(contrail::params::internal_vip)
+
+  if ($internal_vip != "" and $internal_vip != undef) {
+    cinder_config {
+      'DEFAULT/osapi_volume_listen_port':  value => '9776';
+    }
+  }
   class { '::cinder':
     sql_connection  => $::openstack::resources::connectors::cinder,
     rabbit_host     => $::openstack::config::controller_address_management,

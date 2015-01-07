@@ -107,6 +107,8 @@ class contrail::webui (
     notify { "webui - contrail_internal_vip = $contrail_internal_vip":;}
     notify { "webui - contrail_internal_vip_to_use = $contrail_internal_vip_to_use":;}
 
+    contrail::lib::report_status { "webui_started": state => "webui_started" }
+    ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-webui' : ensure => present,}
 
@@ -134,4 +136,7 @@ class contrail::webui (
         subscribe => File['/etc/contrail/config.global.js'],
         ensure => running,
     }
+    ->
+    contrail::lib::report_status { "webui_completed": state => "webui_completed" }
+
 }

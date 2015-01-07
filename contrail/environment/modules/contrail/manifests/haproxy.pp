@@ -77,7 +77,7 @@ class contrail::haproxy (
 	    ports            => '5673',
 	    mode             => 'tcp',
 	    options   => {
-		option => ['tcpka', 'redispatch', 'nolinger']
+		option => ['tcpka', 'forceclose', 'nolinger']
 	    }
 	}
 
@@ -105,31 +105,7 @@ class contrail::haproxy (
 	    options           => 'check',
 	}
 
-	#Add collector HA
-	if ($contrail_internal_vip != "") {
-	    notify { "Haproxy - Setting up ha-cfg for collector":;}
-
-	    haproxy::listen { 'contrail-analyticsapi':
-		collect_exported => true,
-		ipaddress        => '0.0.0.0',
-		ports            => '8081',
-		mode             => 'tcp',
-		options   => {
-		    option => ['nolinger']
-		}
-	    }
-
-	    haproxy::balancermember { 'contrail-analyticsapi-member':
-		listening_service => 'contrail-analyticsapi',
-		ports             => '9081',
-		ipaddresses       => $collector_ip_list,
-		server_names      => $collector_name_list,
-		options           => 'check',
-	    }
-	}
-
     }
-
     #Add openstack HA
     if ($host_ip in $openstack_ip_list and $internal_vip != "") {
 	notify { "Haproxy - Setting up ha-cfg for openstack-ha":;}
@@ -259,7 +235,7 @@ class contrail::haproxy (
 	}
 
         #if openstack needs a separate rabbitmq cluster
-        if (!($host_ip in $config_ip_list) and ($manage_amqp == "yes")) {
+        if (!($host_ip in $config_ip_list) and  ($manage_amqp == "yes")) {
 	    haproxy::listen { 'rabbitmq':
 		collect_exported => true,
 		ipaddress        => '0.0.0.0',
@@ -294,6 +270,28 @@ class contrail::haproxy (
 	    ports             => '3306',
 	    ipaddresses       => $openstack_ip_list,
 	    server_names      => $openstack_name_list,
+	    options           => 'check',
+	}
+    }
+    #Add collector HA
+    if ($host_ip in $config_ip_list and $contrail_internal_vip != "") {
+	notify { "Haproxy - Setting up ha-cfg for collector":;}
+
+	haproxy::listen { 'contrail-analyticsapi':
+	    collect_exported => true,
+	    ipaddress        => '0.0.0.0',
+	    ports            => '8081',
+	    mode             => 'tcp',
+	    options   => {
+		option => ['nolinger']
+	    }
+	}
+
+	haproxy::balancermember { 'contrail-analyticsapi-member':
+	    listening_service => 'contrail-analyticsapi',
+	    ports             => '9081',
+	    ipaddresses       => $collector_ip_list,
+	    server_names      => $collector_name_list,
 	    options           => 'check',
 	}
     }

@@ -42,11 +42,18 @@
 class contrail::ha_config (
     $host_control_ip = $::contrail::params::host_ip,
     $openstack_ip_list = $::contrail::params::openstack_ip_list,
+    $compute_name_list = $::contrail::params::compute_name_list,
+    $config_name_list = $::contrail::params::config_name_list,
+    $compute_name_list = $::contrail::params::compute_name_list,
     $openstack_mgmt_ip_list = $::contrail::params::openstack_mgmt_ip_list_to_use,
     $root_password = $::contrail::params::root_password,
     $mysql_root_password = $::contrail::params::mysql_root_password,
     $internal_vip = $::contrail::params::internal_vip,
     $keystone_admin_token = $::contrail::params::keystone_admin_token,
+    $openstack_passwd_list = $::contrail::params::openstack_passwd_list,
+    $config_passwd_list = $::contrail::params::config_passwd_list,
+    $compute_passwd_list = $::contrail::params::compute_passwd_list,
+    $openstack_user_list = $::contrail::params::openstack_user_list,
     $keystone_ip = $::contrail::params::keystone_ip
 ) inherits ::contrail::params {
     # Main code for class
@@ -69,16 +76,30 @@ class contrail::ha_config (
             $openstack_index = $tmp_index + 1
         }
         $os_master = $openstack_ip_list[0]
+        $os_username = $openstack_user_list[0]
+	$os_passwd = $openstack_passwd_list[0]
 
-        $glance_path ="/var"
+        $glance_path ="/var/lib/glance/images"
+
+	$nfs_server = $openstack_ip_list[0]
 
         $openstack_mgmt_ip_list_shell = inline_template('<%= @openstack_mgmt_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
         $openstack_ip_list_shell = inline_template('<%= @openstack_ip_list.map{ |name2| "#{name2}" }.join(" ") %>')
+
+        $config_name_list_shell = inline_template('<%= @config_name_list.map{ |name2| "#{name2}" }.join(",") %>')
+        $compute_name_list_shell = inline_template('<%= @compute_name_list.map{ |name2| "#{name2}" }.join(",") %>')
+
+
+        $openstack_user_list_shell = inline_template('<%= openstack_user_list.map{ |ip| "#{ip}" }.join(",") %>')
+        $openstack_passwd_list_shell = inline_template('<%= openstack_passwd_list.map{ |ip| "#{ip}" }.join(",") %>')
+
+	$openstack_ip_list_wsrep = inline_template('<%= @openstack_mgmt_ip_list.map{ |ip| "#{ip}:4567" }.join(",") %>')
 
         $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=$mysql_root_password PASSWORD=$root_password ADMIN_TOKEN=$keystone_admin_token setup-vnc-galera --self_ip $host_control_ip --keystone_ip $keystone_ip_to_use --galera_ip_list $openstack_ip_list_shell --internal_vip $internal_vip --openstack_index $openstack_index && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_check_wsrep = "python check-wsrep-status.py $openstack_mgmt_ip_list_shell  && echo check-wsrep >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py $os_master $host_control_ip $internal_vip  && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"
 
+        $contrail_exec_password_less_ssh = "python /opt/contrail/bin/setup_passwordless_ssh.py $openstack_mgmt_ip_list_shell $openstack_user_list_shell $openstack_passwd_list_shell && echo exec-setup-password-less-ssh >> /etc/contrail/contrail_openstack_exec.out"
         #########Chhandak-HA
         # GALERA
         package { 'contrail-openstack-ha':
@@ -91,6 +112,23 @@ class contrail::ha_config (
             group => root,
             content => "$mysql_root_password"
         }
+
+        file { "/opt/contrail/bin/setup_passwordless_ssh.py" :
+            ensure  => present,
+            mode => 0755,
+            group => root,
+            source => "puppet:///modules/$module_name/setup_passwordless_ssh.py"
+        }
+        ->
+	exec { "exec_password_less_ssh" :
+	    command => $contrail_exec_password_less_ssh,
+	    cwd => "/opt/contrail/bin/",
+	    unless  => "grep -qx exec-setup-password-less-ssh /etc/contrail/contrail_openstack_exec.out",
+	    provider => shell,
+	    require => [ File["/opt/contrail/bin/setup_passwordless_ssh.py"] ],
+	    logoutput => 'true'
+	}
+
         ->
         file { "/opt/contrail/bin/setup-vnc-galera" :
             ensure  => present,
@@ -111,8 +149,26 @@ class contrail::ha_config (
         if ($openstack_index == "1" ) {
             # Fix WSREP cluster address
             # Need check this from provisioned ha box
+
+
+	    file { "/opt/contrail/bin/check_galera.py" :
+		ensure  => present,
+		mode => 0755,
+		group => root,
+		source => "puppet:///modules/$module_name/check_galera.py"
+	    }
+	    ->
+	    exec { "exec_check_galera" :
+		command => "python /opt/contrail/bin/check_galera.py $openstack_mgmt_ip_list_shell $openstack_user_list_shell $openstack_passwd_list_shell && echo check_galera >> /etc/contrail/contrail_openstack_exec.out",
+		cwd => "/opt/contrail/bin/",
+		unless  => "grep -qx check_galera /etc/contrail/contrail_openstack_exec.out",
+		provider => shell,
+		require => [ File["/opt/contrail/bin/check_galera.py"] ],
+		logoutput => 'true',
+	    }
+	    ->
             exec { "fix_wsrep_cluster_address" :
-                command => "sudo sed -ibak 's#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://$openstack_ip_list_wsrep#g' $wsrep_conf && echo exec_fix_wsrep_cluster_address >> /etc/contrail/contrail_openstack_exec.out",
+                command => "sudo sed -ibak 's#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://$openstack_ip_list_wsrep#g' $wsrep_conf && service mysql restart && echo exec_fix_wsrep_cluster_address >> /etc/contrail/contrail_openstack_exec.out",
                 require =>  [package["contrail-openstack-ha"],
                              Exec['exec_vnc_galera']],
                 onlyif => "test -f $wsrep_conf",
@@ -120,6 +176,19 @@ class contrail::ha_config (
                 provider => shell,
                 logoutput => 'true',
             }
+            ->
+	    package { 'nfs-kernel-server':
+		ensure  => present,
+	    }
+            ->
+            exec { "create-nfs" :
+                command => "echo \"/var/lib/glance/images *(rw,sync,no_subtree_check)\" >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ",
+                require => [  ],
+                unless  => "grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out",
+                provider => shell,
+                logoutput => "true"
+            }
+
         }
         # setup_cmon
         file { "/opt/contrail/bin/setup-cmon-schema.py" :
@@ -140,7 +209,7 @@ class contrail::ha_config (
         ->
         exec { "setup-cluster-monitor" :
             command => "service contrail-hamon restart && chkconfig contrail-hamon on  && echo setup-cluster-monitor >> /etc/contrail/contrail_openstack_exec.out ",
-            unless  => "grep -qx setup-cluster-monitor  /etc/contrail/contrail_compute_exec.out",
+            unless  => "grep -qx setup-cluster-monitor  /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
             logoutput => "true",
             tries => 3,
@@ -148,10 +217,80 @@ class contrail::ha_config (
         }
         ->
         exec { "fix_xinetd_conf" :
-            command => "sed -i -e 's#only_from = 0.0.0.0/0#only_from = $self_ip 127.0.0.1#' /etc/xinetd.d/contrail-mysqlprobe && service xinetd restart && chkconfig xinetd on && echo fix_xinetd_conf >> /etc/contrail/contrail_openstack_exec.out",
+            command => "sed -i -e 's#only_from = 0.0.0.0/0#only_from = $host_control_ip 127.0.0.1#' /etc/xinetd.d/contrail-mysqlprobe && service xinetd restart && chkconfig xinetd on && echo fix_xinetd_conf >> /etc/contrail/contrail_openstack_exec.out",
             unless  => "grep -qx fix_xinetd_conf  /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
             logoutput => 'true',
         }
+        # fix- mem-cache conf
+        file { "/opt/contrail/bin/fix-mem-cache.py" :
+            ensure  => present,
+            mode => 0755,
+            group => root,
+            source => "puppet:///modules/$module_name/fix-mem-cache.py"
+        }
+        ->
+        exec { "fix-mem-cache" :
+            command => "python fix-mem-cache.py $host_control_ip && echo fix-mem-cache >> /etc/contrail/contrail_openstack_exec.out",
+            cwd => "/opt/contrail/bin/",
+            unless  => "grep -qx fix-mem-cache /etc/contrail/contrail_openstack_exec.out",
+            provider => shell,
+            require => [ File["/opt/contrail/bin/fix-mem-cache.py"] ],
+            logoutput => 'true',
+        }
+        #TODO tune tcp
+        #fix cmon and add ssh keys
+         file { "/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py" :
+            ensure  => present,
+            mode => 0755,
+            group => root,
+            source => "puppet:///modules/$module_name/fix-cmon-params-and-add-ssh-keys.py"
+        }
+        ->
+        exec { "fix-cmon-params-and-add-ssh-keys" :
+            command => "python fix-cmon-params-and-add-ssh-keys.py $compute_name_list_shell $config_name_list_shell && echo fix-cmon-params-and-add-ssh-keys >> /etc/contrail/contrail_openstack_exec.out",
+            cwd => "/opt/contrail/bin/",
+            unless  => "grep -qx fix-cmon-params-and-add-ssh-keys /etc/contrail/contrail_openstack_exec.out",
+            provider => shell,
+            require => [ File["/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py"] ],
+            logoutput => 'true',
+        }
+        ->
+        file { "/opt/contrail/bin/transfer_keys.py":
+           ensure  => present,
+           mode => 0755,
+           owner => root,
+           group => root,
+           source => "puppet:///modules/$module_name/transfer_keys.py"
+        }
+        ->
+        exec { "exec-transfer-keys":
+                command => "python /opt/contrail/bin/transfer_keys.py $os_master \"/etc/ssl/\" $os_username $os_passwd && echo exec-transfer-keys >> /etc/contrail/contrail_openstack_exec.out",
+                provider => shell,
+                logoutput => "true",
+                unless  => "grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out",
+                require => File["/opt/contrail/bin/transfer_keys.py"]
+        }
+        if ($openstack_index != "1" ) {
+	    package { 'nfs-common':
+		ensure  => present,
+	    }
+            ->
+	    exec { "mount-nfs" :
+		command => "sudo mount $nfs_server:$glance_path /var/lib/glance/images && echo create-nfs >> /etc/contrail/contrail_openstack_exec.out",
+		require => [  ],
+		unless  => "grep -qx create-nfs  /etc/contrail/contrail_openstack_exec.out",
+		provider => shell,
+		logoutput => "true"
+	    }
+	    exec { "add-fstab" :
+		command => "echo \"$nfs_server:$glance_path /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
+		unless  => "grep -qx create-nfs  /etc/contrail/contrail_oprenstack_exec.out",
+		provider => shell,
+		logoutput => "true"
+	    }
+
+        }
+
     }
 }

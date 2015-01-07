@@ -374,6 +374,8 @@ class contrail::compute (
     notify {"hypervisor_type = $hypervisor_type":; } ->
     notify {"vmware_physical_intf = $vmware_physical_intf":; } ->
 
+    contrail::lib::report_status { "compute_started": state => "compute_started" }
+    ->
     # Main code for class starts here
     # Ensure all needed packages are present
     package { 'contrail-openstack-vrouter' : ensure => present,}
@@ -582,7 +584,14 @@ class contrail::compute (
 	    unless  => "grep -qx setup-compute-server-setup /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
 	    logoutput => "true"
-	}
+        } ->
+        exec { "fix-neutron-tenant-name" :
+	    command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out",
+	    unless  => "grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out",
+	    provider => shell,
+	    logoutput => "true"
+
+        }
 
 	# Now reboot the system
 	if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
@@ -602,5 +611,7 @@ class contrail::compute (
 	    provider => "shell",
 	    logoutput => 'true'
 	}
+        contrail::lib::report_status { "compute_completed": state => "compute_completed" }
+
     }
 }
