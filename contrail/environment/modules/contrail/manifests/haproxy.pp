@@ -71,22 +71,19 @@ class contrail::haproxy (
 	    options           => 'check',
 	}
 
-	haproxy::listen { 'rabbitmq':
+	haproxy::listen { 'rabbit':
 	    collect_exported => true,
 	    ipaddress        => '0.0.0.0',
 	    ports            => '5673',
 	    mode             => 'tcp',
-	    options   => {
-		option => ['tcpka', 'forceclose', 'nolinger']
-	    }
+	    options   => { }
 	}
-
-	haproxy::balancermember { 'rabbitmq-member':
-	    listening_service => 'rabbitmq',
+	haproxy::weight { 'rabbit-member':
+	    listening_service => 'rabbit',
 	    ports             => '5672',
 	    ipaddresses       => $config_ip_list,
 	    server_names      => $config_name_list,
-	    options           => 'check',
+	    options           => ['check','inter 2000','rise 2','fall 3'],
 	}
 
 	haproxy::listen { 'quantum-server':
