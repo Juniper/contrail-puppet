@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAdX//xQc\u003d",
+        "filename": "contrail/environment/hieradata/contrail.yaml-example",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 106
+      },
+      "writtenOn": "2015-01-13T15:35:20Z",
+      "side": 1,
+      "message": "Does not matter logicwise, but please move storage package to second element of the array, leaving main ubnutu contrail package as first.",
+      "revId": "2cc96ae64f8090e9e9c9035178138e5e21d74f39",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAdX//xQU\u003d",
+        "filename": "contrail/environment/hieradata/contrail.yaml-example",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 106
+      },
+      "writtenOn": "2015-01-13T15:35:20Z",
+      "side": 1,
+      "message": "We should not have this parameter. For all the roles (config, contol etc, we have params above which is basically list of IP addresses and host names configured for that role. e.g. for config we have confg_ip_list and config_name_list. Similarly for storage, define storage_ip_list and storage_name_list and use that in your manifest logic.",
+      "revId": "2cc96ae64f8090e9e9c9035178138e5e21d74f39",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAdX//xP0\u003d",
+        "filename": "contrail/environment/modules/contrail/manifests/lib/contrail-install-repo.pp",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 106
+      },
+      "writtenOn": "2015-01-13T15:35:20Z",
+      "side": 1,
+      "message": "We should remove this if all section in elsif is commented. No point keeping this. if..elsif...elsif can be simplified.",
+      "revId": "2cc96ae64f8090e9e9c9035178138e5e21d74f39",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    }
+  ]
+}
