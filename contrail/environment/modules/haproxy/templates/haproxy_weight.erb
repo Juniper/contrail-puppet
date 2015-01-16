@@ -1,0 +1,7 @@
+<% index = 0%>
+<% Array(@ipaddresses).zip(Array(@server_names)).each do |ipaddress,host| -%>
+  <% index = index + 1 %>
+  <%- Array(@ports).each do |port| -%>
+  server <%= host %> <%= ipaddress %>:<%= port %><%= if index == 1 then " weight 100" else " weight 200" end %><%= if @define_cookies then " cookie " + host end %> <%= Array(@options).sort.join(" ") %><%= if index == 1 then " backup" end %> 
+  <%- end -%>
+<% end -%>

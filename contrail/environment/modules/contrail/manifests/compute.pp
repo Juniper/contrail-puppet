@@ -584,7 +584,7 @@ class contrail::compute (
 	    unless  => "grep -qx setup-compute-server-setup /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
 	    logoutput => "true"
-        } ->
+	} ->
         exec { "fix-neutron-tenant-name" :
 	    command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out",
 	    unless  => "grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out",

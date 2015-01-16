@@ -118,6 +118,8 @@ define keepalived::vrrp::instance (
   $advert_int                 = 1,
   $garp_master_delay          = 5,
   $garp_master_refresh        = undef,
+  $garp_master_repeat         = undef,
+  $vmac_xmit_base             = undef,
   $notify_script_master       = undef,
   $notify_script_backup       = undef,
   $notify_script_fault        = undef,

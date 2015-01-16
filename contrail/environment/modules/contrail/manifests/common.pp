@@ -32,17 +32,25 @@ class contrail::common(
     notify { "**** $module_name - contrail_repo_name = $contrail_repo_name": ; }
     notify { "**** $module_name - contrail_repo_ip = $contrail_repo_ip": ; }
     notify { "**** $module_name - contrail_repo_type = $contrail_repo_type": ; }
+    
+    $contrail_users_details = {
+      'nova' 		=> { user_uid => '499', user_group_name => 'nova', group_gid => '499', user_home_dir => '/var/lib/nova' },
+      'libvirt-qemu'	=> { user_uid => '498', user_group_name => 'kvm' , group_gid => '498', user_home_dir => '/var/lib/libvirt'},
+      'libvirt-dnsmasq' 	=> { user_uid => '497', user_group_name => 'libvirtd' , group_gid => '497',  user_home_dir => '/var/lib/libvirt/dnsmasq'},
+    }
+
+    create_resources(contrail::lib::setup_uid, $contrail_users_details, {})
 
     # Resource declarations for class contrail::common
     # macro to perform common functions
     # Create repository config on target.
-    contrail::lib::contrail-setup-repo{ contrail_repo:
-        contrail_repo_name => $contrail_repo_name,
+    contrail::lib::contrail-setup-repo{ $contrail_repo_name:
+        #contrail_repo_name => $contrail_repo_name,
         contrail_repo_ip => $contrail_repo_ip
     } ->
 
-    contrail::lib::contrail-install-repo{ install_repo:
-        contrail_repo_type => $contrail_repo_type
+    contrail::lib::contrail-install-repo{ $contrail_repo_type:
+        #contrail_repo_type => $contrail_repo_type
     }
     ->
     # Ensure /etc/hosts has an entry for self to map dns name to ip address
