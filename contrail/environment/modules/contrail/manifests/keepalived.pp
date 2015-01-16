@@ -40,7 +40,7 @@ class contrail::keepalived(
     notify { "Keepalived - keepalived_vrid = $keepalived_vrid":; }
     notify { "Keepalived - openstack_ip_list = $openstack_ip_list":; }
 
-
+    $control_data_intf = get_device_name("$host_control_ip")
     if ($host_control_ip in $openstack_ip_list and $internal_vip != "") {
         $vip = $internal_vip
         $ip_list = $openstack_ip_list
@@ -87,6 +87,10 @@ class contrail::keepalived(
 	  auth_type         => 'PASS',
 	  auth_pass         => 'secret',
 	  virtual_ipaddress => $vip,
+          garp_master_refresh => 1,
+          garp_master_repeat => 3,
+          vmac_xmit_base => true,
+          track_interface => $control_data_intf,
 	  track_script      => ['check_proxy','check_peers'],
 	}
     }

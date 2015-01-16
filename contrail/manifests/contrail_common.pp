@@ -34,20 +34,35 @@ define upgrade-kernel($contrail_kernel_version) {
 
     if ($operatingsystem == "Ubuntu")
     {
-        package { 'apparmor' : ensure => '2.7.102-0ubuntu3.10',}
-        ->
-        package { $headers : ensure => present, }
-        ->
-        package { $headers_generic : ensure => present, }
-        ->
-        package { $image : ensure => present, }
-        ->
-        exec { "upgrade-kernel-reboot":
-        command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
-            provider => shell,
-            logoutput => "true",
-	    unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
-    	}
+        if ($lsbdistrelease == "14.04") {
+	    package { $headers : ensure => present, }
+	    ->
+	    package { $headers_generic : ensure => present, }
+	    ->
+	    package { $image : ensure => present, }
+	    ->
+	    exec { "upgrade-kernel-reboot":
+	    command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
+		provider => shell,
+		logoutput => "true",
+		unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
+	    }
+        } else {
+	    package { 'apparmor' : ensure => '2.7.102-0ubuntu3.10',}
+	    ->
+	    package { $headers : ensure => present, }
+	    ->
+	    package { $headers_generic : ensure => present, }
+	    ->
+	    package { $image : ensure => present, }
+	    ->
+	    exec { "upgrade-kernel-reboot":
+	    command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
+		provider => shell,
+		logoutput => "true",
+		unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
+	    }
+        }
      } else {
         #TODO for other flavours do nothing
      }
