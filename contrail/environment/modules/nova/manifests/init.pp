@@ -321,7 +321,7 @@ class nova(
   $monitoring_notifications = false,
   $use_syslog               = false,
   $log_facility             = 'LOG_USER',
-  $install_utilities        = true,
+  $install_utilities        = false,
   $notification_driver      = [],
   $notification_topics      = 'notifications',
   $notify_api_faults        = false,
