@@ -1,7 +1,7 @@
 define contrail::lib::contrail-setup-repo(
-    $contrail_repo_name,
     $contrail_repo_ip
 ) {
+    $contrail_repo_name = $name
     if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
 	file { "/etc/yum.repos.d/cobbler-config.repo" :
 	    ensure  => present,
