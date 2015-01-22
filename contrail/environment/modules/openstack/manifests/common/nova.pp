@@ -69,7 +69,10 @@ class openstack::common::nova ($is_compute    = false) {
     vncproxy_host                 => $::openstack::config::controller_address_api,
   }
 
-  class { '::nova::compute::neutron': }
+  class { '::nova::compute::neutron':
+    libvirt_vif_driver => "nova_contrail_vif.contrailvif.VRouterVIFDriver"
+  }
+
 
   class { '::nova::network::neutron':
     neutron_admin_password => $::openstack::config::neutron_password,
