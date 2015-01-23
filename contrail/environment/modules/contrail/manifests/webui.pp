@@ -44,7 +44,7 @@ class contrail::webui (
     $collector_ip = $::contrail::params::collector_ip_list[0],
     $openstack_ip = $::contrail::params::openstack_ip_list[0],
     $database_ip_list =  $::contrail::params::database_ip_list,
-    $is_storage_master = $::contrail::params::is_storage_master,
+    $is_storage_master = $::contrail::params::storage_enabled,
     $keystone_ip = $::contrail::params::keystone_ip,
     $internal_vip = $::contrail::params::internal_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip
@@ -115,6 +115,21 @@ class contrail::webui (
     if ($is_storage_master) {
         package { 'contrail-web-storage' :
             ensure => present,}
+	-> file { "storage.config.global.js":
+            path => "/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js",
+            ensure => present,
+            require => Package["contrail-web-storage"],
+            content => template("$module_name/storage.config.global.js.erb"),
+        }
+        -> Service['supervisor-webui']
+    } else {
+        package { 'contrail-web-storage' :
+            ensure => absent,}
+	-> file { "storage.config.global.js":
+            path => "/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js",
+            ensure => absent,
+            content => template("$module_name/storage.config.global.js.erb"),
+        }
         -> Service['supervisor-webui']
     }
     # The above wrapper package should be broken down to the below packages
