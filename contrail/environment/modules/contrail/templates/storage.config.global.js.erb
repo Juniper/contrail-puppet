@@ -1,0 +1,18 @@
+/*
+ * Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
+ */
+
+var config = {};
+
+config.ceph={}
+/* Ceph Rest API default IP Address */
+config.ceph.enabled=true;
+
+/*Stroage Rest API Server and port */
+config.ceph.server_ip='<%= openstack_ip_to_use %>';
+
+/* Ceph Rest API default Port */
+config.ceph.server_port='5005';
+
+// Export this as a module.
+module.exports = config;
