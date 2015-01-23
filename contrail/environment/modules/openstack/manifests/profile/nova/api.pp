@@ -15,12 +15,13 @@ class openstack::profile::nova::api {
   notify { "openstack::common::nova - compute_ip_list = $compute_ip_list":;}
   notify { "openstack::common::nova - host_ip = $host_ip":;}
 
-  if ($tmp_index != nil) {
+  if ($tmp_index != nil and $tmp_index != undef and $tmp_index != "" ) {
     $contrail_is_compute = true
   } else {
     $contrail_is_compute = false
   }
   notify { "openstack::common::nova -contrail_is_compute  = $contrail_is_compute":;}
+  notify { "openstack::common::nova - tmp_index = X$tmp_index X":;}
   notify { "openstack::common::nova - controller_management_address = $controller_management_address":; }
 
   class { '::openstack::common::nova' :

@@ -7,6 +7,7 @@ class contrail::params (
     $compute_name_list,
     $control_ip_list,
     $control_name_list,
+    $collector_name_list,
     $database_ip_list,
     $collector_ip_list,
     $webui_ip_list,
