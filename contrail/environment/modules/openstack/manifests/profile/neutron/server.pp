@@ -7,5 +7,6 @@ class openstack::profile::neutron::server {
   include ::openstack::common::neutron
   include ::openstack::common::ovs
 
-  Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
+#  Run the db at openstack node
+#  Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
 }
