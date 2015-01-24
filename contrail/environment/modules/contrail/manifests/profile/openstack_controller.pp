@@ -17,4 +17,15 @@ class contrail::profile::openstack_controller {
     #Contrail expects neutron to run on config nodes only
     #contain ::contrail::profile::openstack::neutron::server
 
+#   Though neutron runs on config, setup the db in openstack node 
+    exec { 'neutron-db-sync':
+      command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+      path        => '/usr/bin',
+      before      => Service['neutron-server'],
+      require     => Neutron_config['database/connection'],
+      refreshonly => true
+    }
+
+    Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
+
 }
