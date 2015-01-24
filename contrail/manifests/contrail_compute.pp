@@ -18,7 +18,24 @@ define compute-scripts {
     }
 }
 
-define compute-template-scripts {
+define compute-template-scripts (
+    $discovery_ip = "",
+    $contrail_multinet = "",
+    $contrail_vhost_ip = "",
+    $contrail_dev = "",
+    $contrail_compute_dev = "",
+    $contrail_macaddr = "",
+    $contrail_netmask = "",
+    $contrail_cidr = "",
+    $contrail_gway = "",
+    $contrail_kmod = "",
+    $contrail_ks_auth_protocol = "",
+    $contrail_quantum_service_protocol = "",
+    $contrail_ks_auth_port = "",
+    $contrail_keystone_ip = "",
+    $hypervisor_type = "",
+    $vm_physical_intf = ""
+) {
     if (!defined(File["/etc/contrail/${title}"])) {
         # Ensure template param file is present with right content.
         file { "/etc/contrail/${title}" : 
@@ -286,7 +303,9 @@ define contrail_compute_part_2 (
 	$discovery_ip = $contrail_config_ip
     }
 
-    compute-template-scripts {"vrouter_nodemgr_param":}
+    compute-template-scripts {"vrouter_nodemgr_param":
+        discovery_ip => $discovery_ip
+    }
 
     if  ($contrail_non_mgmt_ip != "") and
         ($contrail_non_mgmt_ip != $contrail_compute_ip) {
@@ -342,12 +361,36 @@ define contrail_compute_part_2 (
 	} elsif ($operatingsystem == "Centos") {
 		$contrail_kmod = "/lib/modules/2.6.32-358.el6.x86_64/extra/net/vrouter/vrouter.ko" 
 	}
+	if ( $contrail_vm_ip != "" ) {
+		$hypervisor_type = "vmware"
+		$vm_physical_intf = "eth1"
+	} else {
+		$hypervisor_type = "kvm"
+		$vm_physical_intf = "eth1"
+	}
+
         # Ensure all config files with correct content are present.
         compute-template-scripts { ["default_pmac",
                                     "agent_param.tmpl",
                                     "rpm_agent.conf",
                                     "vnc_api_lib.ini",
 				    "contrail-vrouter-agent.conf"]: 
+            discovery_ip => $discovery_ip,
+            contrail_multinet => $contrail_multinet,
+            contrail_vhost_ip => $contrail_vhost_ip,
+            contrail_dev => $contrail_dev,
+            contrail_compute_dev => $contrail_compute_dev,
+            contrail_macaddr => $contrail_macaddr,
+            contrail_netmask => $contrail_netmask,
+            contrail_cidr => $contrail_cidr,
+            contrail_gway => $contrail_gway,
+            contrail_kmod => $contrail_kmod,
+            contrail_ks_auth_protocol => $contrail_ks_auth_protocol,
+            contrail_quantum_service_protocol => $contrail_quantum_service_protocol,
+            contrail_ks_auth_port => $contrail_ks_auth_port,
+            contrail_keystone_ip => $contrail_keystone_ip,
+            hypervisor_type => $hypervisor_type,
+            vm_physical_intf => $vm_physical_intf
         }
 
         file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
@@ -383,14 +426,6 @@ define contrail_compute_part_2 (
             provider => shell,
             logoutput => 'true'
         }
-
-	if ( $contrail_vm_ip != "" ) {
-		$hypervisor_type = "vmware"
-		$vm_physical_intf = "eth1"
-	} else {
-		$hypervisor_type = "kvm"
-		$vm_physical_intf = "eth1"
-	}
         compute-scripts { ["compute-server-setup"]: }
 
         # flag that part 2 is completed and reboot the system
