@@ -19,7 +19,7 @@ class mysql::params {
   $php_package_provider    = undef
   $python_package_ensure   = 'present'
   $python_package_provider = undef
-  $ruby_package_ensure     = 'present'
+  $ruby_package_ensure     = 'absent'
   $ruby_package_provider   = undef
 
 
