@@ -15,7 +15,7 @@ class contrail::profile::openstack_controller {
     contain ::contrail::contrail_openstack
     Class['::openstack::profile::provision']->Class['::contrail::contrail_openstack']
     #Contrail expects neutron to run on config nodes only
-    #contain ::contrail::profile::openstack::neutron::server
+    contain ::contrail::profile::openstack::neutron::server
 
 #   Though neutron runs on config, setup the db in openstack node 
     exec { 'neutron-db-sync':
