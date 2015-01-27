@@ -248,7 +248,7 @@ class contrail::ha_config (
             cwd => "/opt/contrail/bin/",
             unless  => "grep -qx fix-cmon-params-and-add-ssh-keys /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
-            require => [ File["/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py"] ],
+            require => [ File["/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py"], Exec["exec_vnc_galera"] ],
             logoutput => 'true',
         }
         ->
