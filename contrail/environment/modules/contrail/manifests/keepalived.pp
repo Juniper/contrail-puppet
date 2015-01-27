@@ -60,8 +60,10 @@ class contrail::keepalived(
         if ($tmp_index == nil) {
             fail("Host $host_control_ip not found in servers of config roles")
         }
+        notify { "Keepalived - config_index = $config_index":; }
+
         $config_index = $tmp_index + 1
-        $keepalived_priority = $keepalived_vrid + $config_index - 1
+        $keepalived_priority = $keepalived_vrid - $config_index
         if ($config_index == 1) {
             $keepalived_state = "MASTER"
         }
@@ -74,10 +76,19 @@ class contrail::keepalived(
 
 	keepalived::vrrp::script { 'check_haproxy':
 	  script => '/usr/bin/killall -0 haproxy',
+          timeout => '3',
+          interval => '1',
+          rise => '2',
+          fall => '2',
 	}
 
 	keepalived::vrrp::script { 'check_peers':
 	  script => '/opt/contrail/bin/chk_ctrldata.sh',
+          interval => '1',
+          timeout => '3',
+          rise => '1',
+          fall => '1',
+
 	}
 	keepalived::vrrp::instance { "VI_$keepalived_vrid":
 	  interface         => $interface,
