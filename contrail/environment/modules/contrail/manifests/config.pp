@@ -395,7 +395,14 @@ class contrail::config (
 	logoutput => true
     }
     ->
-
+    #form the sudoers
+    file { "/etc/sudoers.d/contrail_sudoers" :
+        ensure  => present,
+        mode => 0440,
+        group => root,
+        source => "puppet:///modules/$module_name/contrail_sudoers"
+    }
+    ->
     # Ensure log4j.properties file is present with right content.
     file { "/etc/ifmap-server/log4j.properties" :
 	ensure  => present,
