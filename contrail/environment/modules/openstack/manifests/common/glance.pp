@@ -4,7 +4,7 @@
 # set so that services like Tempest can access credentials
 # on the controller
 class openstack::common::glance {
-  $internal_vip = hiera(contrail::params::internal_vip)
+  $internal_vip = $::contrail::params::internal_vip
 
   if ($internal_vip != "" and $internal_vip != undef) {
   class { '::glance::api':

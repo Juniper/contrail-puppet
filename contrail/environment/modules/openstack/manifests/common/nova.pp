@@ -11,7 +11,7 @@ class openstack::common::nova ($is_compute    = false) {
 
   $storage_management_address = $::openstack::config::storage_address_management
   $controller_management_address = $::openstack::config::controller_address_management
-  $internal_vip = hiera(contrail::params::internal_vip)
+  $internal_vip = $::contrail::params::internal_vip
 
   class { '::nova':
     sql_connection     => $::openstack::resources::connectors::nova,
