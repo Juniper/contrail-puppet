@@ -204,6 +204,7 @@ class contrail::config (
     $internal_vip = $::contrail::params::internal_vip,
     $external_vip = $::contrail::params::external_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+    $contrail_plugin_location = $::contrail::params::contrail_plugin_location,
     $config_ip_list = $::contrail::params::config_ip_list,
     $config_name_list = $::contrail::params::config_name_list,
     $database_ip_port = $::contrail::params::database_ip_port,
@@ -495,6 +496,14 @@ class contrail::config (
 	onlyif => "test -d /etc/quantum/",
 	provider => shell,
 	logoutput => true
+    }
+    ->
+    exec { "config-neutron-server" :
+         command => "sudo sed -i '/NEUTRON_PLUGIN_CONFIG.*/d' /etc/default/neutron-server && echo \"$contrail_plugin_location\" >> /etc/default/neutron-server && service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
+         onlyif => "test -f /etc/default/neutron-server",
+         unless  => "grep -qx config-neutron-server /etc/contrail/contrail_config_exec.out",
+         provider => shell,
+         logoutput => 'true'
     }
     ->
     # initd script wrapper for contrail-discovery
