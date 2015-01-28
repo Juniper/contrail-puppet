@@ -30,7 +30,7 @@ class mysql::params {
         $server_package_name = 'mariadb-server'
       } else {
         $client_package_name = 'mysql'
-        $server_package_name = 'mysql-server'
+        $server_package_name = 'mysql-server-wsrep'
       }
       $basedir             = '/usr'
       $config_file         = '/etc/my.cnf'
@@ -95,7 +95,7 @@ class mysql::params {
 
     'Debian': {
       $client_package_name = 'mysql-client'
-      $server_package_name = 'mysql-server'
+      $server_package_name = 'mysql-server-wsrep'
 
       $basedir             = '/usr'
       $config_file         = '/etc/mysql/my.cnf'
@@ -126,7 +126,7 @@ class mysql::params {
       $log_error           = "/var/db/mysql/${::hostname}.err"
       $pidfile             = '/var/db/mysql/mysql.pid'
       $root_group          = 'wheel'
-      $server_service_name = 'mysql-server'
+      $server_service_name = 'mysql-server-wsrep'
       $socket              = '/tmp/mysql.sock'
       $ssl_ca              = undef
       $ssl_cert            = undef
@@ -144,7 +144,7 @@ class mysql::params {
       case $::operatingsystem {
         'Amazon': {
           $client_package_name = 'mysql'
-          $server_package_name = 'mysql-server'
+          $server_package_name = 'mysql-server-wsrep'
           $basedir             = '/usr'
           $config_file         = '/etc/my.cnf'
           $datadir             = '/var/lib/mysql'

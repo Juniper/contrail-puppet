@@ -53,11 +53,25 @@ class contrail::common(
         #contrail_repo_type => $contrail_repo_type
     }
     ->
+    contrail::lib::upgrade-kernel{ kernel_upgrade:
+        contrail_kernel_upgrade => $kernel_upgrade,
+        contrail_kernel_version => $kernel_version
+    } ->
     # Ensure /etc/hosts has an entry for self to map dns name to ip address
     host { "$hostname" :
 	ensure => present,
 	ip => "$host_mgmt_ip"
     }
+    ->
+    exec { "setmysql" :
+	#command => "python /etc/contrail/contrail_setup_utils/enable_kernel_core.py && echo enable-kernel-core >> /etc/contrail/contrail_common_exec.out",
+	command => "mkdir -p /var/log/mysql && echo setmysql >> /etc/contrail/contrail_common_exec.out",
+	unless  => "grep -qx setmysql /etc/contrail/contrail_common_exec.out",
+	provider => shell,
+	logoutput => "true"
+    }
+    ->
+    package { 'libssl0.9.8' : ensure => present,}
 
     # Disable SELINUX on boot, if not already disabled.
     if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {

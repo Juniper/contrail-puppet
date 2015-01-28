@@ -87,7 +87,9 @@ class contrail::params (
     $storage_admin_key,
     $storage_virsh_uuid,
     $storage_monitor_hosts,
-    $storage_osd_disks
+    $storage_osd_disks,
+    $kernel_upgrade = "yes",
+    $kernel_version = "3.13.0-34"
 ) {
     if ($zookeeper_ip_list == undef) {
         $zk_ip_list_to_use = $config_ip_list
