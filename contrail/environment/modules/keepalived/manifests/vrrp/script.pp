@@ -25,6 +25,7 @@ define keepalived::vrrp::script (
   $weight    = undef,
   $fall      = undef,
   $rise      = undef,
+  $timeout   = undef,
   $no_weight = false,
 ) {
   if ! $script {
