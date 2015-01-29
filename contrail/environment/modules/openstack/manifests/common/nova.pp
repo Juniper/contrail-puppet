@@ -12,22 +12,30 @@ class openstack::common::nova ($is_compute    = false) {
   $storage_management_address = $::openstack::config::storage_address_management
   $controller_management_address = $::openstack::config::controller_address_management
   $internal_vip = $::contrail::params::internal_vip
+  if ($internal_vip != "" and $internal_vip != undef) {
+    $contrail_rabbit_port = "5673"
+    $contrail_rabbit_host = $controller_management_address
+  } else {
+    $contrail_rabbit_port = "5672"
+    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
+  }
+
 
   class { '::nova':
     sql_connection     => $::openstack::resources::connectors::nova,
     glance_api_servers => "http://${storage_management_address}:9292",
     memcached_servers  => ["${controller_management_address}:11211"],
-    rabbit_hosts       => [$controller_management_address],
+    rabbit_hosts       => [$contrail_rabbit_host],
     rabbit_userid      => $::openstack::config::rabbitmq_user,
     rabbit_password    => $::openstack::config::rabbitmq_password,
     debug              => $::openstack::config::debug,
     verbose            => $::openstack::config::verbose,
     mysql_module       => '2.2',
-    rabbit_port        => '5673',
+    rabbit_port        => $contrail_rabbit_port,
     notification_driver => "nova.openstack.common.notifier.rpc_notifier",
   }
   nova_config { 'DEFAULT/rabbit_port':
-     value => '5673',
+     value => $contrail_rabbit_port,
   }
   nova_config { 'DEFAULT/default_floating_pool': value => 'public' }
 

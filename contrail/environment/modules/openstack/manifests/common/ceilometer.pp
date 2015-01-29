@@ -5,6 +5,15 @@ class openstack::common::ceilometer {
 
   $controller_management_address = $::openstack::config::controller_address_management
 
+  $internal_vip = $::contrail::params::internal_vip
+  if ($internal_vip != "" and $internal_vip != undef) {
+    $contrail_rabbit_port = "5673"
+    $contrail_rabbit_host = $controller_management_address
+  } else {
+    $contrail_rabbit_port = "5672"
+    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
+  }
+
   $mongo_password = $::openstack::config::ceilometer_mongo_password
   $mongo_connection =
     "mongodb://${controller_management_address}:27017/ceilometer"
@@ -13,10 +22,10 @@ class openstack::common::ceilometer {
     metering_secret => $::openstack::config::ceilometer_meteringsecret,
     debug           => $::openstack::config::debug,
     verbose         => $::openstack::config::verbose,
-    rabbit_hosts    => [$controller_management_address],
+    rabbit_hosts    => [$contrail_rabbit_host],
     rabbit_userid   => $::openstack::config::rabbitmq_user,
     rabbit_password => $::openstack::config::rabbitmq_password,
-    rabbit_port           => '5673',
+    rabbit_port           => $contrail_rabbit_port,
   }
 
   class { '::ceilometer::api':
