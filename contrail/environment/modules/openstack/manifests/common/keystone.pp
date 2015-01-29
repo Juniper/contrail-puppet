@@ -26,7 +26,7 @@ class openstack::common::keystone {
     admin_bind_host => $admin_bind_host,
     mysql_module    => '2.2',
     sync_db         => $sync_db,
-    rabbit_port           => '5673',
+    rabbit_port           => '5672',
   }
 
 
