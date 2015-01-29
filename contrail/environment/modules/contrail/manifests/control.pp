@@ -64,7 +64,7 @@ class contrail::control (
                     enable => true,
                     require => [ Package['contrail-openstack-control']
                              ],
-                    subscribe => File['/etc/contrail/dns.conf'],
+                    subscribe => File['/etc/contrail/contrail-dns.conf'],
                     ensure => running,
                 }
                 # Below is temporary to work-around in Ubuntu as Service resource fails
@@ -103,10 +103,10 @@ class contrail::control (
 
 
     # Ensure all config files with correct content are present.
-    file { "/etc/contrail/dns.conf" :
+    file { "/etc/contrail/contrail-dns.conf" :
 	ensure  => present,
 	require => Package["contrail-openstack-control"],
-	content => template("$module_name/dns.conf.erb"),
+	content => template("$module_name/contrail-dns.conf.erb"),
     }
     ->
     file { "/etc/contrail/contrail-control.conf" :
@@ -156,7 +156,7 @@ class contrail::control (
         enable => true,
         require => [ Package['contrail-openstack-control']
                      ],
-        subscribe => File['/etc/contrail/dns.conf'],
+        subscribe => File['/etc/contrail/contrail-dns.conf'],
         ensure => running,
     }
     ->
