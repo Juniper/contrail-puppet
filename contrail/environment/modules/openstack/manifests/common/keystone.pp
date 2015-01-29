@@ -1,5 +1,5 @@
 class openstack::common::keystone {
-  $internal_vip = hiera(contrail::params::internal_vip)
+  $internal_vip = $::contrail::params::internal_vip
 
   if ($internal_vip != "" and $internal_vip != undef) {
 
