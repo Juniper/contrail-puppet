@@ -30,7 +30,7 @@ define contrail::lib::storage_common(
 		command => "service ceph-rest-api restart",
 		provider => shell,
 		require => File['contrail-storage-rest-api.conf']
-	}
+	} ->
 	file { "ceph-osd-setup-file":
 	    path => "/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh",
 	    ensure  => present,
@@ -38,7 +38,7 @@ define contrail::lib::storage_common(
 	    owner => root,
 	    group => root,
 	    source => "puppet:///modules/$module_name/config-storage-add-osd.sh",
-	}
+	} ->
 
 	file { "ceph-disk-clean-file":
 	    path => "/etc/contrail/contrail_setup_utils/config-storage-disk-clean.sh",
@@ -47,7 +47,7 @@ define contrail::lib::storage_common(
 	    owner => root,
 	    group => root,
 	    source => "puppet:///modules/$module_name/config-storage-disk-clean.sh",
-	}
+	} ->
         file { "ceph-log-rotate":
 	    path => "/etc/logrotate.d/ceph",
 	    ensure  => present,
@@ -77,7 +77,7 @@ define contrail::lib::storage_common(
 		mon_host => "$contrail_storage_mon_hosts",
 		keyring => '/etc/ceph/$cluster.$name.keyring',
 		cluster_network => $contrail_storage_cluster_network,
-		require => Package['contrail-storage'],
+		#require => Package['contrail-storage'],
 	} ->
 	ceph::mon { $contrail_storage_hostname: 
 		key => $contrail_storage_mon_secret
@@ -173,6 +173,7 @@ define contrail::lib::storage_common(
 	    Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['setup-config-storage-compute']
 	    file { "config-storage-compute.sh":
 		ensure  => present,
+                path => "/etc/contrail/contrail_setup_utils/config-storage-compute.sh",
 		mode => 0755,
 		owner => root,
 		group => root,

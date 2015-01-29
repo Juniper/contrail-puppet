@@ -610,7 +610,12 @@ class contrail::compute (
 	    require => Exec["setup-compute-server-setup"],
 	    provider => "shell",
 	    logoutput => 'true'
-	}
+	} -> 
+        file { "/etc/contrail/interface_renamed" :
+            ensure  => present,
+            mode => 0644,
+            content => "2"
+        }
         contrail::lib::report_status { "compute_completed": state => "compute_completed" }
 
     }
