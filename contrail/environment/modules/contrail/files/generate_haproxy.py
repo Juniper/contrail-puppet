@@ -236,15 +236,15 @@ backend nova-meta-backend
 
 $__nova_meta_backend_servers__
 
-#frontend openstack-nova-vnc *:6080
-#    default_backend  nova-vnc-backend
+frontend openstack-nova-vnc *:6080
+    default_backend  nova-vnc-backend
 
-#backend nova-vnc-backend
-#    option tcpka
-#    option nolinger
-#    timeout server 5h
-#    balance  roundrobin
-#    $__nova_vnc_backend_servers__
+backend nova-vnc-backend
+    option tcpka
+    option nolinger
+    timeout server 5h
+    balance  roundrobin
+    $__nova_vnc_backend_servers__
 
 listen memcached 0.0.0.0:11222
    mode tcp
@@ -363,7 +363,7 @@ def main(args_str=None):
     if host_ip in config_ip_list:
         config_stanza = generate_config_ha_config(config_ip_list, openstack_ip_list, host_ip)
 
-    if host_ip in config_ip_list and contrail_internal_vip != "none":
+    if host_ip in config_ip_list and (internal_vip != "none" or contrail_internal_vip != "none"):
         collector_stanza = generate_collector_ha_config(collector_ip_list, host_ip)
 
     if (internal_vip != "none" or contrail_internal_vip != "none") and (host_ip in openstack_ip_list):
@@ -524,7 +524,7 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
 	'__ceph_restapi_backend_servers__' : ceph_restapi_server_lines,
 	'__nova_api_backend_servers__' : nova_api_server_lines,
 	'__nova_meta_backend_servers__' : nova_meta_server_lines,
-#	'__nova_vnc_backend_servers__' : nova_vnc_server_lines,
+	'__nova_vnc_backend_servers__' : nova_vnc_server_lines,
 	'__memcached_servers__' : memcached_server_lines,
 	'__rabbitmq_servers__' : rabbitmq_server_lines,
 	'__mysql_servers__' : mysql_server_lines,

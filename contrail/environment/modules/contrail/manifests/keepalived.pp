@@ -55,6 +55,7 @@ class contrail::keepalived(
         $vip = ""
     }
 
+    $num_nodes = inline_template('<%= @ip_list.length %>')
     if ($vip != "") {
         $tmp_index = inline_template('<%= @ip_list.index(@host_control_ip) %>')
         if ($tmp_index == nil) {
@@ -64,7 +65,7 @@ class contrail::keepalived(
 
         $config_index = $tmp_index + 1
         $keepalived_priority = $keepalived_vrid - $config_index
-        if ($config_index == 1) {
+        if ($config_index == 1 or ($config_index ==2 and $num_nodes > 2 )) {
             $keepalived_state = "MASTER"
         }
         else {
