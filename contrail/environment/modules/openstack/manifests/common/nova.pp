@@ -36,19 +36,36 @@ class openstack::common::nova ($is_compute    = false) {
       'DEFAULT/osapi_compute_listen_port':     value => '9774';
       'DEFAULT/metadata_listen_port':     value => '9775';
     }
-  }
+    class { '::nova::api':
+      admin_password                       => $::openstack::config::nova_password,
+      auth_host                            => $controller_management_address,
+      enabled                              => $is_controller,
+      sync_db                              => $sync_db,
+      neutron_metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
+      osapi_compute_workers                => '40'
+    }
 
-  class { '::nova::api':
-    admin_password                       => $::openstack::config::nova_password,
-    auth_host                            => $controller_management_address,
-    enabled                              => $is_controller,
-    sync_db                              => $sync_db,
-    neutron_metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
-  }
+    class { '::nova::vncproxy':
+      host    => $::openstack::config::controller_address_api,
+      enabled => $is_controller,
+      port => '6999',
+    }
 
-  class { '::nova::vncproxy':
-    host    => $::openstack::config::controller_address_api,
-    enabled => $is_controller,
+
+  } else {
+    class { '::nova::api':
+      admin_password                       => $::openstack::config::nova_password,
+      auth_host                            => $controller_management_address,
+      enabled                              => $is_controller,
+      sync_db                              => $sync_db,
+      neutron_metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
+    }
+
+    class { '::nova::vncproxy':
+      host    => $::openstack::config::controller_address_api,
+      enabled => $is_controller,
+    }
+
   }
 
   class { [

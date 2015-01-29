@@ -12,6 +12,11 @@ class openstack::common::nova ($is_compute    = false) {
   $storage_management_address = $::openstack::config::storage_address_management
   $controller_management_address = $::openstack::config::controller_address_management
 
+  $internal_vip = $::contrail::params::internal_vip
+#  $contrail_internal_vip = $::contrail::params::internal_vip
+#  $external_vip = $::contrail::params::internal_vip
+#  $contrail_external_vip = $::contrail::params::contrail_internal_vip
+
   class { '::nova':
     sql_connection     => $::openstack::resources::connectors::nova,
     glance_api_servers => "http://${storage_management_address}:9292",
@@ -36,9 +41,17 @@ class openstack::common::nova ($is_compute    = false) {
     sync_db         => $sync_db,
   }
 
-  class { '::nova::vncproxy':
-    host    => $::openstack::config::controller_address_api,
-    enabled => $is_controller,
+  if ($internal_vip != "" and $internal_vip != undef) {
+      class { '::nova::vncproxy':
+	host    => $::openstack::config::controller_address_api,
+	enabled => $is_controller,
+        port => '6999',
+      }
+  } else {
+      class { '::nova::vncproxy':
+	host    => $::openstack::config::controller_address_api,
+	enabled => $is_controller,
+      }
   }
 
   class { [
