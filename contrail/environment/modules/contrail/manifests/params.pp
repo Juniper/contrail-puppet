@@ -86,7 +86,8 @@ class contrail::params (
     $storage_admin_key,
     $storage_virsh_uuid,
     $storage_monitor_hosts,
-    $storage_osd_disks
+    $storage_osd_disks,
+    $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
 ) {
     if ($zookeeper_ip_list == undef) {
         $zk_ip_list_to_use = $config_ip_list
