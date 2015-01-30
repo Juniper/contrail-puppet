@@ -77,16 +77,18 @@ class contrail::params (
     $compute_passwd_list,
     $openstack_user_list,
     $contrail_repo_type,
-    $host_roles,
-    $storage_num_osd,
-    $storage_fsid,
-    $storage_num_hosts,
-    $storage_monitor_secret,
-    $osd_bootstrap_key,
-    $storage_admin_key,
-    $storage_virsh_uuid,
-    $storage_monitor_hosts,
-    $storage_osd_disks,
+    $host_roles = [],
+    $storage_num_osd = 0,
+    $storage_fsid = "",
+    $storage_num_hosts = 0,
+    $storage_monitor_secret = "",
+    $osd_bootstrap_key = "",
+    $storage_admin_key = "",
+    $storage_virsh_uuid = "",
+    $storage_monitor_hosts = "",
+    $storage_osd_disks = [],
+    $live_migration_host = "",
+    $live_migration_storage_scope = "local"
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
 ) {
     if ($zookeeper_ip_list == undef) {
