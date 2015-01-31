@@ -74,14 +74,12 @@ class glance::notify::rabbitmq(
 
   if $rabbit_hosts {
     glance_api_config {
-      'DEFAULT/rabbit_hosts':     value => join($rabbit_hosts, ',');
+#      'DEFAULT/rabbit_hosts':     value => join($rabbit_hosts, ',');
       'DEFAULT/rabbit_ha_queues': value => true
     }
   } else {
     glance_api_config {
-      'DEFAULT/rabbit_host':      value => $rabbit_host;
-      'DEFAULT/rabbit_port':      value => $rabbit_port;
-      'DEFAULT/rabbit_hosts':     value => "${rabbit_host}:${rabbit_port}";
+#      'DEFAULT/rabbit_hosts':     value => "${rabbit_host}:${rabbit_port}";
       'DEFAULT/rabbit_ha_queues': value => false
     }
   }
