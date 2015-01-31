@@ -90,6 +90,7 @@ class contrail::params (
     $storage_osd_disks,
     $kernel_upgrade = "yes",
     $kernel_version = "3.13.0-34",
+    $external_bgp = "",
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
 ) {
     if ($zookeeper_ip_list == undef) {
