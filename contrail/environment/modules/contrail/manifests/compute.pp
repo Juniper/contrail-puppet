@@ -72,11 +72,7 @@
 #
 # [*keystone_admin_password*]
 #     Keystone admin password.
-#     (optional) - Defaults to "", meaning use openstack_admin_password
-#
-# [*openstack_admin_password*]
-#     Admin password for openstack.
-#     (optional) - Defaults to "c0ntrail123"
+#     (optional) - Defaults to "contrail123"
 #
 # [*keystone_admin_tenant*]
 #     Keystone admin tenant name.
@@ -122,11 +118,6 @@
 # [*contrail_internal_vip*]
 #     Virtual mgmt IP address for contrail modules
 #     (optional) - Defaults to ""
-#
-# [*no_contrail_openstack*]
-#     flag to indicate not to provision contrail Openstack in compute node.
-#     when set to true, contrail does not provision openstack, else it does.
-#     (optional) - Defaults to false, means provision openstack using contrail. 
 #
 # [*vmware_ip*]
 #     VM IP address (for ESXi/VMware host)
@@ -184,7 +175,6 @@ class contrail::compute (
     $neutron_service_protocol = $::contrail::params::neutron_service_protocol,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
-    $openstack_admin_password = $::contrail::params::openstack_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $haproxy = $::contrail::params::haproxy,
     $host_non_mgmt_ip = $::contrail::params::host_non_mgmt_ip,
@@ -195,7 +185,6 @@ class contrail::compute (
     $internal_vip = $::contrail::params::internal_vip,
     $external_vip = $::contrail::params::external_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
-    $no_contrail_openstack = $::contrail::params::no_contrail_openstack,
     $vmware_ip = $::contrail::params::vmware_ip,
     $vmware_username = $::contrail::params::vmware_username,
     $vmware_password = $::contrail::params::vmware_password,
@@ -293,7 +282,7 @@ class contrail::compute (
     else {
         $contrail_gway = $contrail_gateway
     }
-    if ($haproxy == "enable") {
+    if ($haproxy == true) {
         $quantum_ip = "127.0.0.1"
         $discovery_ip = "127.0.0.1"
     } else {
@@ -307,14 +296,6 @@ class contrail::compute (
     } else {
 	$hypervisor_type = "kvm"
 	$vmware_physical_intf = "eth1"
-    }
-
-    # set keystone_password
-    if ($keystone_admin_password != "") {
-        $keystone_password = $keystone_admin_password
-    }
-    else {
-        $keystone_password = $openstack_admin_password
     }
 
     # Debug Print all variable values
@@ -334,8 +315,6 @@ class contrail::compute (
     notify {"neutron_service_protocol = $neutron_service_protocol":; } ->
     notify {"keystone_admin_user = $keystone_admin_user":; } ->
     notify {"keystone_admin_password = $keystone_admin_password":; } ->
-    notify {"openstack_admin_password = $openstack_admin_password":; } ->
-    notify {"keystone_password = $keystone_password":; } ->
     notify {"keystone_admin_tenant = $keystone_admin_tenant":; } ->
     notify {"haproxy = $haproxy":; } ->
     notify {"host_non_mgmt_ip = $host_non_mgmt_ip":; } ->
@@ -344,7 +323,6 @@ class contrail::compute (
     notify {"internal_vip = $internal_vip":; } ->
     notify {"external_vip = $external_vip":; } ->
     notify {"contrail_internal_vip = $contrail_internal_vip":; } ->
-    notify {"no_contrail_openstack = $no_contrail_openstack":; } ->
     notify {"vmware_ip = $vmware_ip":; } ->
     notify {"vmware_username = $vmware_username":; } ->
     notify {"vmware_password = $vmware_password":; } ->
@@ -564,7 +542,7 @@ class contrail::compute (
 	    group => root
 	}
 	exec { "add-vnc-config" :
-	    command => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name $::hostname --host_ip $host_control_ip --api_server_ip $config_ip_to_use --oper add --admin_user $keystone_admin_user --admin_password $keystone_password --admin_tenant_name $keystone_admin_tenant --openstack_ip $openstack_ip && echo add-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
+	    command => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name $::hostname --host_ip $host_control_ip --api_server_ip $config_ip_to_use --oper add --admin_user $keystone_admin_user --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant --openstack_ip $openstack_ip && echo add-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
 	    require => File["/opt/contrail/utils/provision_vrouter.py"],
 	    unless  => "grep -qx add-vnc-config /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
