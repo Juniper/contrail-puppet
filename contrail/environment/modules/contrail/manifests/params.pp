@@ -457,6 +457,9 @@ class contrail::params (
     $openstack_user_list,
     $compute_passwd_list,
     $host_roles,
+    $kernel_upgrade = "yes",
+    $kernel_version = "3.13.0-34",
+    $external_bgp = "",
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
 ) {
     # Manifests use keystone_admin_token to refer to keystone_admin_password too. Hence set
