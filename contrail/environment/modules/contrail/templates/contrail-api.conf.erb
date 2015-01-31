@@ -46,11 +46,7 @@ auth_host=<%= @openstack_ip %>
 auth_protocol=<%= @keystone_auth_protocol %>
 auth_port=<%= @keystone_auth_port %>
 admin_user=<%= @keystone_admin_user %>
-<% if @keystone_admin_password != "" -%>
 admin_password=<%= @keystone_admin_password %>
-<% else -%>
-admin_password=<%= @openstack_admin_password %>
-<% end -%>
 #admin_token=<%= @keystone_service_token %>
 admin_tenant_name=<%= @keystone_admin_tenant %>
 insecure=<%= keystone_insecure_flag %>

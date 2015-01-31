@@ -45,10 +45,6 @@ auth_host=<%= @internal_vip %>
 auth_host=<%= @openstack_ip %>
 <% end -%>
 admin_user=<%= @keystone_admin_user %>
-<% if @keystone_admin_password != "" -%>
 admin_password=<%= @keystone_admin_password %>
-<% else -%>
-admin_password=<%= @openstack_admin_password %>
-<% end -%>
 admin_tenant_name=<%= @keystone_admin_tenant %>
 admin_token=<%= @keystone_admin_token %>

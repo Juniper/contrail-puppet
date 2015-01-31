@@ -40,11 +40,7 @@
 #
 # [*keystone_admin_password*]
 #     Keystone admin password.
-#     (optional) - Defaults to "", meaning use openstack_admin_password
-#
-# [*openstack_admin_password*]
-#     Admin password for openstack.
-#     (optional) - Defaults to "c0ntrail123"
+#     (optional) - Defaults to "contrail123".
 #
 # [*keystone_admin_tenant*]
 #     Keystone admin tenant name.
@@ -183,7 +179,6 @@ class contrail::config (
     $keystone_admin_token = $::contrail::params::keystone_admin_token,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
-    $openstack_admin_password = $::contrail::params::openstack_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $keystone_service_token = $::contrail::params::keystone_service_token,
     $use_certs = $::contrail::params::use_certs,
@@ -217,19 +212,11 @@ class contrail::config (
 ) inherits ::contrail::params {
 
     # Main code for class starts here
-    if $use_certs == "yes" {
+    if $use_certs == true {
 	$ifmap_server_port = '8444'
     }
     else {
 	$ifmap_server_port = '8443'
-    }
-
-    # set keystone_password
-    if ($keystone_admin_password != "") {
-        $keystone_password = $keystone_admin_password
-    }
-    else {
-        $keystone_password = $openstack_admin_password
     }
 
     # Set keystone IP to be used.
@@ -376,7 +363,7 @@ class contrail::config (
     #                     java-1.7.0-openjdk, haproxy, rabbitmq-server, python-bottle, contrail-nodemgr
     # Ensure ctrl-details file is present with right content.
     if ! defined(File["/etc/contrail/ctrl-details"]) {
-	if $haproxy == "enable" {
+	if $haproxy == true {
 	    $quantum_ip = "127.0.0.1"
 	} else {
 	    $quantum_ip = $host_control_ip
