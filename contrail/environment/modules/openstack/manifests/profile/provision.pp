@@ -2,6 +2,16 @@
 class openstack::profile::provision {
     require ::openstack::profile::keystone
 
+    $internal_vip = $::contrail::params::internal_vip
+
+    if ($internal_vip != "" and $internal_vip != undef) {
+      $contrail_controller_address_api = $::openstack::config::controller_address_api
+      $contrail_controller_address_management = $::openstack::config::controller_address_management 
+    } else {
+      $contrail_controller_address_api = $::contrail::params::config_ip_list[0]
+      $contrail_controller_address_management = $::contrail::params::config_ip_list[0] 
+    }
+
     $tenants = $::openstack::config::keystone_tenants
     $users   = $::openstack::config::keystone_users
     class { 'keystone::endpoint':
@@ -34,9 +44,9 @@ class openstack::profile::provision {
     }
     class { '::neutron::keystone::auth':
       password         => $::openstack::config::neutron_password,
-      public_address   => $::openstack::config::controller_address_api,
-      admin_address    => $::openstack::config::controller_address_management,
-      internal_address => $::openstack::config::controller_address_management,
+      public_address   => $contrail_controller_address_api,
+      admin_address    => $contrail_controller_address_management,
+      internal_address => $contrail_controller_address_management,
       region           => $::openstack::config::region,
     }
 #    class { '::ceilometer::agent::auth':
