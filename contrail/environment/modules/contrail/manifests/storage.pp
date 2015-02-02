@@ -11,6 +11,9 @@ class contrail::storage (
     $contrail_storage_mon_hosts = $::contrail::params::storage_monitor_hosts,
     $contrail_storage_osd_disks = $::contrail::params::storage_osd_disks,
     $contrail_storage_hostname = $::hostname,
+    $contrail_live_migration_host = $::contrail::params::live_migration_host,
+    $contrail_lm_storage_scope = $::contrail::params::live_migration_storage_scope,
+    $contrail_storage_cluster_network = $::contrail::params::storage_cluster_network
 ) inherits ::contrail::params {
 
     #include contrail::lib::storage_common
@@ -30,7 +33,10 @@ class contrail::storage (
 	    contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
 	    contrail_storage_mon_hosts => $contrail_storage_mon_hosts,
 	    contrail_storage_osd_disks => $contrail_storage_osd_disks,
-	    contrail_storage_hostname => $contrail_storage_hostname
+	    contrail_storage_hostname => $contrail_storage_hostname,
+            contrail_live_migration_host => $contrail_live_migration_host,
+            contrail_lm_storage_scope => $contrail_lm_storage_scope,
+            contrail_storage_cluster_network => $contrail_storage_cluster_network
 	}
     }
     } else {
@@ -46,7 +52,10 @@ class contrail::storage (
 	    contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
 	    contrail_storage_mon_hosts => $contrail_storage_mon_hosts,
 	    contrail_storage_osd_disks => $contrail_storage_osd_disks,
-	    contrail_storage_hostname => $contrail_storage_hostname
+	    contrail_storage_hostname => $contrail_storage_hostname,
+            contrail_live_migration_host => $contrail_live_migration_host,
+            contrail_lm_storage_scope => $contrail_lm_storage_scope,
+            contrail_storage_cluster_network => $contrail_storage_cluster_network
 	}
     }
 }
