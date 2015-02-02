@@ -270,13 +270,13 @@ fi
 ## checking if route is already present ?
 ## TODO: we are using FIXED ip address right now. move this to
 ## TODO: dynamic ip address.
-netstat -nr | grep 192.168.101.2 | grep -q ${NOVA_HOST_IP}
+netstat -nr | grep 192.168.101.101 | grep -q ${NOVA_HOST_IP}
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
 then
   echo "route check failed"
   ## add the route
-  route add 192.168.101.2 gw ${NOVA_HOST_IP}
+  route add 192.168.101.101 gw ${NOVA_HOST_IP}
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
   then
@@ -287,12 +287,12 @@ fi
 
 ## Check if route is added to startup scripts. this is required 
 ## to bring-up route on system start-up
-grep -q "up route add 192.168.101.2 gw ${NOVA_HOST_IP}" /etc/network/interfaces
+grep -q "up route add 192.168.101.101 gw ${NOVA_HOST_IP}" /etc/network/interfaces
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
 then
   echo "route not there in net-interfaces"
-  echo "up route add 192.168.101.2 gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
+  echo "up route add 192.168.101.101 gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
 fi
 
 
