@@ -372,6 +372,7 @@
 #     List of contrail roles configured on this server. Used
 #     mostly by storage module to check if storage is one of
 #     the roles configured on this server.
+#     (optional) - Defaults to "" (no storage configuration).
 #
 # [*contrail_plugin_location*]
 #     path to contrail neutron plugin. Use default value.
@@ -462,7 +463,7 @@ class contrail::params (
     $openstack_passwd_list,
     $openstack_user_list,
     $compute_passwd_list,
-    $host_roles,
+    $host_roles = "",
     $kernel_upgrade = "yes",
     $kernel_version = "3.13.0-34",
     $external_bgp = "",
