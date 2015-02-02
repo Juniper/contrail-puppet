@@ -184,12 +184,12 @@ class contrail::common(
     file { "/tmp/facts.yaml":
         content => inline_template("<%= scope.to_hash.reject { |k,v| !( k.is_a?(String) && v.is_a?(String) ) }.to_yaml %>"),
     } 
-    if ( ($internal_vip != "" and $internal_vip != undef) or
-         ($contrail_internal_vip != "" and $contrail_internal_vip != undef) or
-         ($external_vip != "" and $external_vip != undef) or
-         ($contrail_external_vip != "" and $contrail_external_vip != undef))
+#    if ( ($internal_vip != "" and $internal_vip != undef) or
+#         ($contrail_internal_vip != "" and $contrail_internal_vip != undef) or
+#         ($external_vip != "" and $external_vip != undef) or
+#         ($contrail_external_vip != "" and $contrail_external_vip != undef))
         #set the reserved ports
-    {
+#    {
 
          file { "/opt/contrail/bin/add_reserved_ports.py" :
             ensure  => present,
@@ -206,4 +206,4 @@ class contrail::common(
             logoutput => 'true'
         }
     }
-}
+#}

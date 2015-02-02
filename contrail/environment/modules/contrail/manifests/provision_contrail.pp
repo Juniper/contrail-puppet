@@ -70,7 +70,7 @@ class contrail::provision_contrail (
 ) {
 
     # Initialize the multi tenancy option will update latter based on vns argument
-    if ($multi_tenancy == "True") {
+    if ($multi_tenancy == true) {
 	$mt_options = "admin,$keystone_admin_password,$keystone_admin_tenant"
     } else {
 	$mt_options = "None"
