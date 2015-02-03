@@ -45,6 +45,19 @@ then
   exit 0
 fi
 
+## Check if we are able to resolve ip address of nova-host
+host ${VM_HOSTNAME}
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ]
+then
+  echo "host resolution failed"
+  exit 1
+fi
+
+## Get the ip address of nova-host.
+## NOTE: we already checked about the ip resolution. so awk must
+## NOTE: give correct results
+NOVA_HOST_IP=`host ${VM_HOSTNAME} | awk '{printf $4}'`
 
 ## Get the configured value of live_migration_flag. Checking this value will
 ## help to identify if values has been configured or not. if yes, no need to
@@ -102,18 +115,18 @@ then
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    vif --create livemnfsvgw --mac 00:01:5e:00:00
+    vif --create livemnfsvgw --mac 00:00:5e:00:01:00
     ifconfig livemnfsvgw up
   fi
   ## Check if details about livemnfsvgw exists for system restart
-  grep -q "pre-up vif --create livemnfsvgw --mac 00:01:5e:00:00" /etc/network/interfaces
+  grep -q "pre-up vif --create livemnfsvgw --mac 00:00:5e:00:01:00" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
     echo \"\" >> /etc/network/interfaces
     echo \"auto livemnfsvgw\" >> /etc/network/interfaces
     echo \"iface livemnfsvgw inet manual\" >> /etc/network/interfaces
-    echo \"    pre-up vif --create livemnfsvgw --mac 00:01:5e:00:00\" >> /etc/network/interfaces
+    echo \"    pre-up vif --create livemnfsvgw --mac 00:00:5e:00:01:00\" >> /etc/network/interfaces
     echo \"    pre-up ifconfig livemnfsvgw up\" >> /etc/network/interfaces
   fi
 
@@ -130,44 +143,44 @@ then
   fi
   
   ## Check if route to NFS VM exists ?
-  netstat -nr | grep -q 192.168.101.101
+  netstat -nr | grep -q 192.168.101.3
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    route add -host 192.168.101.101/32 dev livemnfsvgw
+    route add -host 192.168.101.3/32 dev livemnfsvgw
   fi
   ## Add route to syartup files. as well.
-  grep -q "up route add -host 192.168.101.101/32 dev livemnfsvgw" /etc/network/interfaces
+  grep -q "up route add -host 192.168.101.3/32 dev livemnfsvgw" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    echo "up route add -host 192.168.101.101/32 dev livemnfsvgw" >> /etc/network/interfaces
+    echo "up route add -host 192.168.101.3/32 dev livemnfsvgw" >> /etc/network/interfaces
   fi
 else 
   ## Check routes on compute nodes (non-vm host)
-  netstat -nr | grep -q 192.168.101.101
+  netstat -nr | grep -q 192.168.101.3
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    route add 192.168.101.101 dev vhost0
+    route add 192.168.101.3 gw ${NOVA_HOST_IP}
   fi
 
   ## Add route to system start-up files
-  grep -q "up route add 192.168.101.101 dev vhost0" /etc/network/interfaces
+  grep -q "up route add 192.168.101.3 gw ${NOVA_HOST_IP}" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    echo "up route add 192.168.101.101 dev vhost0" >> /etc/network/interfaces
+    echo "up route add 192.168.101.3 gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
   fi
 fi
 
 
 ## Ping VM and check if its reachable, if yes, then mount the NFS path
 ## TODO: Exit with error
-ping -c 5 192.168.101.101
+ping -c 5 192.168.101.3
 RETVAL=$?
 if [ $RETVAL -eq 0 ]
 then 
   echo "ping done"
-  mount 192.168.101.101:/livemnfsvol /var/lib/nova/instances/global
+  mount 192.168.101.3:/livemnfsvol /var/lib/nova/instances/global
 fi
