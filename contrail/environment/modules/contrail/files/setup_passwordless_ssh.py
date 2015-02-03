@@ -43,6 +43,13 @@ def main(args_str=None):
         s.close()
         i = i + 1
 
+    for host in host_list:
+        cmd = "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s true" % (host)
+        res, output = commands.getstatusoutput(cmd) 
+        if res !=0 :
+            sys.exit(-1)
+
+
 if __name__ == "__main__":
      main(sys.argv[1:])
 
