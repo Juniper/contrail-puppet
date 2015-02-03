@@ -276,7 +276,7 @@ class contrail::compute (
 	$contrail_netmask = inline_template("<%= scope.lookupvar('netmask_' + @contrail_dev) %>")
 	$contrail_cidr = convert_netmask_to_cidr($contrail_netmask)
     }
-    if ($multinet == "true") {
+    if ($multinet == true) {
         $contrail_gway = $host_non_mgmt_gateway
     }
     else {
