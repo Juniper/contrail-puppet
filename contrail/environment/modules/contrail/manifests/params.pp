@@ -63,7 +63,7 @@
 # [*external_vip*]
 #     Virtual IP address to be used for openstack HA functionality on
 #     management interface.  UI parameter.
-#     (optional) - Defaults to "" (No openstack HA configured).
+#     (optional) - Defaults to "" (No openstack mgmt HA configured).
 #
 # [*contrail_internal_vip*]
 #     Virtual IP address to be used for contrail HA functionality on
@@ -73,8 +73,14 @@
 #     (optional) - Defaults to "" (Follow internal_vip setting for contrail
 #                  HA functionality).
 #
+# [*contrail_external_vip*]
+#     Virtual IP address to be used for openstack HA functionality on
+#     management interface.  UI parameter.
+#     (optional) - Defaults to "" (No contrail mgmt HA configured).
+#
 # [*database_ip_port*]
 #     IP port number used by database service.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "9160".
 #
 # [*analytics_data_ttl*]
@@ -93,6 +99,7 @@
 # [*puppet_server*]
 #     If puppet server is used to fetch/store certificates.
 #     Leave the value at default.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "" (puppet CA not used).
 #
 # [*database_initial_token*]
@@ -140,7 +147,7 @@
 #
 # [*keystone_service_tenant*]
 #     Name for service tenant or project of keystone service.
-#     (optional) - Defaults to "service". UI parameter.
+#     (optional) - Defaults to "services". UI parameter.
 #
 # [*keystone_region_name*]
 #     Name for region in keystone..
@@ -157,46 +164,55 @@
 #
 # [*quantum_port*]
 #     IP port used by quantum/neutron.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "9697".
 #
 # [*quantum_service_protocol*]
 #     IP protocol used by quantum.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "http".
 #
 # [*keystone_auth_protocol*]
 #     Authentication protocol used by keystone.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "http".
 #
 # [*neutron_service_protocol*]
 #     IP protocol used by neutron.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "http".
 #
 # [*keystone_auth_port*]
 #     IP port used by keystone.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "35357".
 #
 # [*keystone_insecure_flag*]
 #     Keystone insecure flag
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to false.
 #
 # [*api_nworkers*]
 #     Number of worker threads for API service.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to 1.
 #
 # [*haproxy_flag*]
 #     Flag to indicate if haproxy is to be used. If
 #     contrail_internal_vip/internal_vip is being used, even
 #     if haproxy flag is set, value of false is passed to modules.
-#     (optional) - Defaults to false. UI parameter.
+#     (optional) - Defaults to "disable". UI parameter.
 #
 # [*manage_neutron*]
 #     if manage_neutron is false, neutron service tenant/user/role
 #     is not created in keystone by contrail.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to true.
 #
 # [*openstack_manage_amqp*]
 #     flag to indicate if amqp server is on openstack or contrail
 #     config node.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to true (managed by contrail config).
 #
 # [*amqp_server_ip*]
@@ -206,6 +222,7 @@
 #
 # [*zk_ip_port*]
 #     IP port used by zookeeper service.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "2181".
 #
 # [*hc_interval*]
@@ -214,26 +231,32 @@
 #
 # [*vmware_ip*]
 #     vmware ip address for cluster wth ESXi server.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "" (No ESXi or vmware configuration).
 #
 # [*vmware_username*]
 #     vmware username for cluster with esxi server.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "" (No ESXi or vmware configuration).
 #
 # [*vmware_password*]
 #     vmware password for cluster with ESXi server.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "" (No ESXi or vmware configuration).
 #
 # [*vmware_vswitch*]
 #     vmware vswitch for cluster with ESXi server.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "" (No ESXi or vmware configuration).
 #
 # [*keepalived_vrid*]
 #     Virtual router id value used by keepalived (VRRP)
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to 100.
 #
 # [*mysql_root_password*]
 #     Root password for mysql access.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "c0ntrail123"
 #
 # [*openstack_mgmt_ip_list*]
@@ -251,26 +274,32 @@
 #
 # [*metadata_secret*]
 #     Metadata secret value.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to ""
 #
 # [*vgw_public_subnet*]
 #     Virtual gateway public subnet value.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "".
 #
 # [*vgw_public_vn_name*]
 #     Virtual gateway public VN name.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "".
 #
 # [*vgw_interface*]
 #     Virtual gateway interface value.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "".
 #
 # [*vgw_gateway_routes*]
 #     Virtual gateway routes
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "".
 #
 # [*orchestrator*]
 #     Orchestrator value.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "openstack".
 #
 # [*contrail_repo_name*]
@@ -286,10 +315,12 @@
 #
 # [*kernel_upgrade*]
 #     Flag to indicate where to update kernel (yes/no).
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "yes".
 #
 # [*kernel_version*]
 #     kernel version to upgrade to.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "3.13.0-34".
 #
 # [*storage_num_osd*]
@@ -338,6 +369,11 @@
 #     HA configuration only. UI parameter.
 #     (optional) - Defaults to "" (no HA configuration).
 #
+# [*nfs_glance_path*]
+#     Complete path of NFS mount to store glance images.
+#     HA configuration only. UI parameter.
+#     (optional) - Defaults to "" (no HA configuration).
+#
 # [*host_non_mgmt_ip*]
 #     Specify address of data/control interface, only if there are separate interfaces
 #     for management and data/control. If system has single interface for both, leave
@@ -374,8 +410,13 @@
 #     the roles configured on this server.
 #     (optional) - Defaults to "" (no storage configuration).
 #
+# [*external_bgp*]
+#     IP address of external BGP router.
+#     (optional) - Defaults to "" (no external BGP router).
+#
 # [*contrail_plugin_location*]
 #     path to contrail neutron plugin. Use default value.
+#     Not exposed to SM for modification.
 #     (optional) - Defaults to "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'".
 #
 class contrail::params (
@@ -396,6 +437,7 @@ class contrail::params (
     $internal_vip = "",
     $external_vip = "",
     $contrail_internal_vip = "",
+    $contrail_external_vip = "",
     $database_ip_port = "9160",
     $analytics_data_ttl = 48,
     $analytics_syslog_port = -1,
@@ -410,7 +452,7 @@ class contrail::params (
     $keystone_service_token = "c0ntrail123",
     $keystone_admin_user = "admin",
     $keystone_admin_tenant = "admin",
-    $keystone_service_tenant = "service",
+    $keystone_service_tenant = "services",
     $keystone_region_name = "RegionOne",
     $multi_tenancy = false,
     $zookeeper_ip_list = undef,
@@ -421,7 +463,7 @@ class contrail::params (
     $keystone_auth_port = 35357,
     $keystone_insecure_flag = false,
     $api_nworkers = 1,
-    $haproxy_flag = false,
+    $haproxy_flag = "disable",
     $manage_neutron = true,
     $openstack_manage_amqp = false,
     $amqp_server_ip = "",
@@ -458,14 +500,13 @@ class contrail::params (
     $storage_osd_disks = "",
     $storage_enabled = "",
     $nfs_server = "",
+    $nfs_glance_path = "",
     $host_non_mgmt_ip = "",
     $host_non_mgmt_gateway = "",
     $openstack_passwd_list,
     $openstack_user_list,
     $compute_passwd_list,
     $host_roles = "",
-    $kernel_upgrade = "yes",
-    $kernel_version = "3.13.0-34",
     $external_bgp = "",
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
 ) {
@@ -474,11 +515,12 @@ class contrail::params (
     $keystone_admin_token = $keystone_admin_password
 
     if (($contrail_internal_vip != "") or
-        ($internal_vip != "")) {
+        ($internal_vip != "") or
+        ($haproxy_flag != "enable")) {
         $haproxy = false
     }
     else {
-        $haproxy = $haproxy_flag
+        $haproxy = true
     }
 
     if ($zookeeper_ip_list == undef) {
