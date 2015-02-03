@@ -363,7 +363,7 @@ def main(args_str=None):
     if host_ip in config_ip_list:
         config_stanza = generate_config_ha_config(config_ip_list, openstack_ip_list, host_ip)
 
-    if host_ip in config_ip_list and contrail_internal_vip != "none":
+    if host_ip in config_ip_list and (internal_vip != "none" or contrail_internal_vip != "none"):
         collector_stanza = generate_collector_ha_config(collector_ip_list, host_ip)
 
     if (internal_vip != "none" or contrail_internal_vip != "none") and (host_ip in openstack_ip_list):

@@ -294,6 +294,12 @@ class contrail::config (
     } else {
         $master = "no"
     }
+
+
+    $cfgm_ip_list_shell = inline_template('<%= @config_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
+    $cfgm_name_list_shell = inline_template('<%= @config_name_list.map{ |ip| "#{ip}" }.join(",") %>')
+    $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${hostname}ctl\n"
+
     case $::operatingsystem {
 	Ubuntu: {
 	    file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
@@ -547,6 +553,31 @@ class contrail::config (
         ensure  => present,
         require => Package["contrail-openstack-config"],
         content => template("$module_name/$rabbitmq_conf_template"),
+    }
+    ->
+    file { "/etc/rabbitmq/rabbitmq-env.conf" :
+	ensure  => present,
+	mode => 0755,
+#	user => root,
+	group => root,
+        content => "$rabbit_env",
+#	source => "puppet:///modules/$module_name/add_etc_host.py"
+    }
+    ->
+    file { "/etc/contrail/add_etc_host.py" :
+	ensure  => present,
+	mode => 0755,
+#	user => root,
+	group => root,
+	source => "puppet:///modules/$module_name/add_etc_host.py"
+    }
+    ->
+    exec { "add-etc-hosts" :
+	command => "python /etc/contrail/add_etc_host.py $cfgm_ip_list_shell $cfgm_name_list_shell & echo add-etc-hosts >> /etc/contrail/contrail_config_exec.out",
+	require => File["/etc/contrail/add_etc_host.py"],
+	unless  => "grep -qx add-etc-hosts /etc/contrail/contrail_config_exec.out",
+	provider => shell,
+	logoutput => true
     }
     ->
     file { "/etc/contrail/form_rmq_cluster.sh" :
