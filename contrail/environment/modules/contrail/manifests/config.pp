@@ -440,6 +440,13 @@ class contrail::config (
 	content => template("$module_name/contrail-svc-monitor.conf.erb"),
     }
     ->
+    file { "/etc/contrail/contrail-device-manager.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-config"],
+	notify =>  Service["supervisor-config"],
+	content => template("$module_name/contrail-device-manager.conf.erb"),
+    }
+    ->
     file { "/etc/contrail/contrail-discovery.conf" :
 	ensure  => present,
 	require => Package["contrail-openstack-config"],
