@@ -162,6 +162,23 @@ class contrail::ha_config (
 		require => [ File["/opt/contrail/bin/check_galera.py"] ],
 		logoutput => 'true',
 	    }
+            ->
+	    file { "/opt/contrail/bin/check-wsrep-status.py" :
+		ensure  => present,
+		mode => 0755,
+		group => root,
+		source => "puppet:///modules/$module_name/check-wsrep-status.py"
+	    }
+	    ->
+	    exec { "exec_check_wsrep" :
+		command => $contrail_exec_check_wsrep,  
+		cwd => "/opt/contrail/bin/",
+		unless  => "grep -qx exec_check_wsrep /etc/contrail/contrail_openstack_exec.out",
+		provider => shell,
+		require => [ File["/opt/contrail/bin/check-wsrep-status.py"] ],
+		logoutput => 'true',
+	    }
+
 	    ->
             exec { "fix_wsrep_cluster_address" :
                 command => "sudo sed -ibak 's#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://$openstack_ip_list_wsrep#g' $wsrep_conf && service mysql restart && echo exec_fix_wsrep_cluster_address >> /etc/contrail/contrail_openstack_exec.out",
@@ -267,6 +284,15 @@ class contrail::ha_config (
                 unless  => "grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out",
                 require => File["/opt/contrail/bin/transfer_keys.py"]
         }
+        ->
+        exec { "ha-mon-restart":
+                command => "service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out",
+                provider => shell,
+                logoutput => "true",
+                unless  => "grep -qx contrail-ha-mon  /etc/contrail/contrail_openstack_exec.out",
+#                require => File["/opt/contrail/bin/transfer_keys.py"]
+        }
+
         if ($openstack_index != "1" ) {
 	    package { 'nfs-common':
 		ensure  => present,
