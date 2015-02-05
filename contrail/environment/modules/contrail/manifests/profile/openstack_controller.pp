@@ -14,6 +14,10 @@ class contrail::profile::openstack_controller {
     Class['::openstack::profile::provision']->Service['glance-api']
     #Contrail expects neutron to run on config nodes only
     contain ::contrail::profile::openstack::neutron::server
+  
+    package { 'contrail-openstack-dashboard':
+      ensure  => present,
+    }
 
 #   Though neutron runs on config, setup the db in openstack node 
     exec { 'neutron-db-sync':
