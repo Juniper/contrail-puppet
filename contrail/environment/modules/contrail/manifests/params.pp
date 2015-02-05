@@ -510,6 +510,7 @@ class contrail::params (
     $compute_passwd_list,
     $host_roles = "",
     $external_bgp = "",
+    $sync_db = "",
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
