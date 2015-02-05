@@ -50,10 +50,12 @@ class contrail::ha_config (
     $config_passwd_list = $::contrail::params::config_passwd_list,
     $compute_passwd_list = $::contrail::params::compute_passwd_list,
     $openstack_user_list = $::contrail::params::openstack_user_list,
-    $keystone_ip = $::contrail::params::keystone_ip
+    $keystone_ip = $::contrail::params::keystone_ip,
+    $nfs_server = $::contrail::params::nfs_server,
+    $nfs_glance_path = $::contrail::params::nfs_glance_path,
 ) inherits ::contrail::params {
     # Main code for class
-    if($internal_vip != '') {
+    if($internal_vip != '' and $host_control_ip in $openstack_ip_list) {
         if ($operatingsystem == "Ubuntu") {
             $wsrep_conf='/etc/mysql/conf.d/wsrep.cnf'
         } else {
@@ -75,9 +77,23 @@ class contrail::ha_config (
         $os_username = $openstack_user_list[0]
 	$os_passwd = $openstack_passwd_list[0]
 
-        $glance_path ="/var/lib/glance/images"
+        if ($nfs_server != "" and nfs_server != undef) {
 
-	$nfs_server = $openstack_ip_list[0]
+	   $contrail_nfs_server = $nfs_server
+
+        } else {
+	   $contrail_nfs_server = $openstack_ip_list[0]
+        }
+
+        if ($nfs_glance_path != "" and nfs_glance_path != undef) {
+
+	   $contrail_nfs_glance_path = $nfs_glance_path
+
+        } else {
+	   $contrail_nfs_glance_path = "/var/lib/glance/images"
+        }
+
+      
 
         $openstack_mgmt_ip_list_shell = inline_template('<%= @openstack_mgmt_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
         $openstack_ip_list_shell = inline_template('<%= @openstack_ip_list.map{ |name2| "#{name2}" }.join(" ") %>')
@@ -190,6 +206,19 @@ class contrail::ha_config (
                 logoutput => 'true',
             }
             ->
+            exec { "ha-mon-restart":
+                command => "service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out",
+                provider => shell,
+                logoutput => "true",
+                unless  => "grep -qx contrail-ha-mon  /etc/contrail/contrail_openstack_exec.out",
+        #                require => File["/opt/contrail/bin/transfer_keys.py"]
+            }
+
+
+
+        }
+        #This will be skipped if there is an external nfs server
+        if ($contrail_nfs_server == $host_control_ip) {
 	    package { 'nfs-kernel-server':
 		ensure  => present,
 	    }
@@ -203,6 +232,7 @@ class contrail::ha_config (
             }
 
         }
+
         # setup_cmon
         file { "/opt/contrail/bin/setup-cmon-schema.py" :
             ensure  => present,
@@ -219,6 +249,7 @@ class contrail::ha_config (
             require => [ File["/opt/contrail/bin/setup-cmon-schema.py"] ],
             logoutput => 'true',
         }
+/*
         ->
         exec { "setup-cluster-monitor" :
             command => "service contrail-hamon restart && chkconfig contrail-hamon on  && echo setup-cluster-monitor >> /etc/contrail/contrail_openstack_exec.out ",
@@ -228,6 +259,7 @@ class contrail::ha_config (
             tries => 3,
             try_sleep => 15,
         }
+*/
         ->
         exec { "fix_xinetd_conf" :
             command => "sed -i -e 's#only_from = 0.0.0.0/0#only_from = $host_control_ip 127.0.0.1#' /etc/xinetd.d/contrail-mysqlprobe && service xinetd restart && chkconfig xinetd on && echo fix_xinetd_conf >> /etc/contrail/contrail_openstack_exec.out",
@@ -284,30 +316,22 @@ class contrail::ha_config (
                 unless  => "grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out",
                 require => File["/opt/contrail/bin/transfer_keys.py"]
         }
-        ->
-        exec { "ha-mon-restart":
-                command => "service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out",
-                provider => shell,
-                logoutput => "true",
-                unless  => "grep -qx contrail-ha-mon  /etc/contrail/contrail_openstack_exec.out",
-#                require => File["/opt/contrail/bin/transfer_keys.py"]
-        }
-
-        if ($openstack_index != "1" ) {
+        #This wil be executed for all openstacks ,if there is an external nfs server
+        if ($contrail_nfs_server != $host_control_ip ) {
 	    package { 'nfs-common':
 		ensure  => present,
 	    }
             ->
 	    exec { "mount-nfs" :
-		command => "sudo mount $nfs_server:$glance_path /var/lib/glance/images && echo mount-nfs >> /etc/contrail/contrail_openstack_exec.out",
+		command => "sudo mount $contrail_nfs_server:$contrail_nfs_glance_path /var/lib/glance/images && echo mount-nfs >> /etc/contrail/contrail_openstack_exec.out",
 		require => [  ],
 		unless  => "grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
 		logoutput => "true"
 	    }
 	    exec { "add-fstab" :
-		command => "echo \"$nfs_server:$glance_path /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
-		unless  => "grep -qx add-fstab  /etc/contrail/contrail_oprenstack_exec.out",
+		command => "echo \"$contrail_nfs_server:$contrail_nfs_glance_path /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
+		unless  => "grep -qx add-fstab  /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
 		logoutput => "true"
 	    }

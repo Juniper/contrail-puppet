@@ -102,6 +102,16 @@ LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 # SECRET_KEY = secret_key.generate_or_read_from_file(os.path.join(LOCAL_PATH, '.secret_key_store'))
 SECRET_KEY = '<%= @secret_key %>'
 
+import hashlib
+  def hash_key(key, key_prefix, version):
+      new_key = ':'.join([key_prefix, str(version), key])
+      if len(new_key) > 250:
+          m = hashlib.md5()
+          m.update(new_key)
+          new_key = m.hexdigest()
+      return new_key
+
+
 # We recommend you use memcached for development; otherwise after every reload
 # of the django development server, you will have to login again. To use
 # memcached set CACHES to something like
@@ -126,6 +136,7 @@ CACHES = {
         <% else %>
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
         <% end %>
+        'KEY_FUNCTION': hash_key,
     }
 }
 
@@ -553,3 +564,13 @@ COMPRESS_OFFLINE = <%= @compress_offline.to_s.capitalize %>
 # so we add this option to change the directory where uploaded files are temporarily
 # stored until they are loaded into Glance.
 FILE_UPLOAD_TEMP_DIR = '<%= @file_upload_temp_dir %>'
+
+
+# Enable the Ubuntu theme if it is present.
+try:
+    from ubuntu_theme import *
+except ImportError:
+    pass
+
+ALLOWED_HOSTS = '*'
+HORIZON_CONFIG['customization_module'] = 'contrail_openstack_dashboard.overrides'

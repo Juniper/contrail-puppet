@@ -196,12 +196,12 @@ class mysql::params {
       'bind-address'          => '127.0.0.1',
       'datadir'               => $mysql::params::datadir,
       'expire_logs_days'      => '10',
-      'key_buffer_size'       => '16M',
+#      'key_buffer_size'       => '16M',
       'log-error'             => $mysql::params::log_error,
-      'max_allowed_packet'    => '16M',
+#      'max_allowed_packet'    => '16M',
       'max_binlog_size'       => '100M',
-      'max_connections'       => '151',
-      'myisam_recover'        => 'BACKUP',
+      'max_connections'       => '10000',
+#      'myisam_recover'        => 'BACKUP',
       'pid-file'              => $mysql::params::pidfile,
       'port'                  => '3306',
       'query_cache_limit'     => '1M',
@@ -218,12 +218,12 @@ class mysql::params {
       'user'                  => 'mysql',
     },
     'mysqldump'             => {
-      'max_allowed_packet'  => '16M',
+#      'max_allowed_packet'  => '16M',
       'quick'               => true,
       'quote-names'         => true,
     },
     'isamchk'      => {
-      'key_buffer_size' => '16M',
+#      'key_buffer_size' => '16M',
     },
   }
 

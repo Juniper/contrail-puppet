@@ -20,7 +20,10 @@ def main(args_str=None):
         commands.getstatusoutput("sed -i 's/net.ipv4.tcp_keepalive_intvl\s\s*/net.ipv4.tcp_keepalive_intvl = 1/' /etc/sysctl.conf")
 
 
+    status, output = commands.getstatusoutput("sysctl -p")
 
+    if status != 0:
+        sys.exit(-1)
 
 if __name__ == "__main__":
      main(sys.argv[1:])
