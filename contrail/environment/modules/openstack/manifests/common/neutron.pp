@@ -5,7 +5,7 @@
 # This follows the suggest deployment from the neutron Administrator Guide.
 class openstack::common::neutron {
   $controller_management_address = $::openstack::config::controller_address_management
-
+  $sync_db = $::contrail::params::sync_db
   $data_network = $::openstack::config::network_data
   $data_address = ip_for_network($data_network)
 
