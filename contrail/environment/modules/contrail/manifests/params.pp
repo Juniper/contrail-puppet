@@ -120,15 +120,14 @@
 #     (optional) - Defaults to "" (use openstack_ip). UI parameter.
 #
 # [*keystone_admin_password*]
-#     Admin password for keystone service. Manifests also use keystone_admin_token
-#     to refer to this and hence is set to same value in this class.
+#     Admin password for keystone service.
 #     (optional) - Defaults to "contrail123". UI parameter.
 #
 # [*keystone_service_token*]
 #     Service token to access keystone service (MD5 hash generated). If not specified
-#     simple value of "keystoneservicetoken" used.
-#     to refer to this and hence is set to same value in this class.
-#     (optional) - Defaults to "contrailservicetoken".
+#     simple value of "contrail123" used. Manifests also use
+#     keystone_admin_token to refer to this and hence is set to same value in this class.
+#     (optional) - Defaults to "contrail123".
 #
 # [*keystone_admin_user*]
 #     User Name for admin user of keystone service.
@@ -402,7 +401,7 @@ class contrail::params (
     $ssd_data_dir = "",
     $keystone_ip = "",
     $keystone_admin_password = "contrail123",
-    $keystone_service_token = "keystoneservicetoken",
+    $keystone_service_token = "contrail123",
     $keystone_admin_user = "admin",
     $keystone_admin_tenant = "admin",
     $keystone_service_tenant = "service",
@@ -461,9 +460,9 @@ class contrail::params (
     $external_bgp = "",
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
 ) {
-    # Manifests use keystone_admin_token to refer to keystone_admin_password too. Hence set
+    # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
     # that varible here.
-    $keystone_admin_token = $keystone_admin_password
+    $keystone_admin_token = $keystone_service_token
 
     if (($contrail_internal_vip != "") or
         ($internal_vip != "")) {
