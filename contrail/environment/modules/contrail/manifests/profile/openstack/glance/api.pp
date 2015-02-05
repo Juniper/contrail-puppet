@@ -4,7 +4,8 @@
 class contrail::profile::openstack::glance::api {
   $api_network = $::openstack::config::network_api
   $api_address = ip_for_network($api_network)
-  $sync_db = true
+ # $sync_db = true
+  $sync_db = $::contrail::params::sync_db
   $management_network = $::openstack::config::network_management
   $management_address = ip_for_network($management_network)
 
