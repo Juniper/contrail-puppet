@@ -569,6 +569,20 @@ class contrail::compute (
 	    provider => shell,
 	    logoutput => "true"
 
+        } ->
+        exec { "fix-neutron-admin-password" :
+	    command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password $keystone_admin_password && echo fix-neutron-admin-password >> /etc/contrail/contrail_compute_exec.out",
+	    unless  => "grep -qx fix-neutron-admin-password /etc/contrail/contrail_compute_exec.out",
+	    provider => shell,
+	    logoutput => "true"
+
+        } ->
+        exec { "fix-keystone-admin-password" :
+	    command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password $keystone_admin_password && echo fix-keystone-admin-password >> /etc/contrail/contrail_compute_exec.out",
+	    unless  => "grep -qx fix-keystone-admin-password /etc/contrail/contrail_compute_exec.out",
+	    provider => shell,
+	    logoutput => "true"
+
         }
 
 	# Now reboot the system
@@ -578,23 +592,22 @@ class contrail::compute (
 		before => Exec["reboot-server"],
 		unless  => "grep -qx cp-ifcfg-file /etc/contrail/contrail_compute_exec.out",
 		provider => "shell",
-	        require => Exec["setup-compute-server-setup"],
+	        require => Exec["fix-keystone-admin-password"],
 		logoutput => 'true'
 	    }
 	}
-	exec { "reboot-server" :
-	    command   => "echo reboot-server-2 >> /etc/contrail/contrail_compute_exec.out && reboot",
-	    unless => ["grep -qx reboot-server-2 /etc/contrail/contrail_compute_exec.out"],
-	    require => Exec["setup-compute-server-setup"],
-	    provider => "shell",
-	    logoutput => 'true'
-	} -> 
+        contrail::lib::report_status { "compute_completed": state => "compute_completed" }->
         file { "/etc/contrail/interface_renamed" :
             ensure  => present,
             mode => 0644,
             content => "2"
-        }
-        contrail::lib::report_status { "compute_completed": state => "compute_completed" }
-
+        } ->
+	exec { "reboot-server" :
+	    command   => "echo reboot-server-2 >> /etc/contrail/contrail_compute_exec.out && reboot",
+	    unless => ["grep -qx reboot-server-2 /etc/contrail/contrail_compute_exec.out"],
+	    require => Exec["fix-keystone-admin-password"],
+	    provider => "shell",
+	    logoutput => 'true'
+	} 
     }
 }
