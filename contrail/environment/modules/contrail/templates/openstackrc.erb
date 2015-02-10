@@ -1,0 +1,11 @@
+export OS_USERNAME=<%= @keystone_admin_user %>
+export OS_PASSWORD=<%= @keystone_admin_password %>
+export OS_TENANT_NAME=<%= @keystone_admin_tenant %>
+<% if @keystone_ip != "" -%>
+export OS_AUTH_URL=<%= @keystone_auth_protocol %>://<%= @keystone_ip %>:5000/v2.0/
+<% elsif @internal_vip != "" -%>
+export OS_AUTH_URL=<%= @keystone_auth_protocol %>://<%= @internal_vip %>:5000/v2.0/
+<% else -%>
+export OS_AUTH_URL=<%= @keystone_auth_protocol %>://<%= @openstack_ip %>:5000/v2.0/
+<% end -%>
+export OS_NO_CACHE=1
