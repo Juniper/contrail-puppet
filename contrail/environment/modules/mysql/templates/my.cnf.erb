@@ -15,4 +15,9 @@
 <%   end %>
 <% end -%>
 
+[mysqld]
+wait_timeout = 60
+interactive_timeout = 60
+lock_wait_timeout = 600
+
 !includedir /etc/mysql/conf.d/

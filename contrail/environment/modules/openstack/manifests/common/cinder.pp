@@ -3,6 +3,7 @@
 class openstack::common::cinder {
   $internal_vip = $::contrail::params::internal_vip
   $controller_management_address = $::openstack::config::controller_address_management
+  $sync_db = $::contrail::params::sync_db
 
   if ($internal_vip != "" and $internal_vip != undef) {
     cinder_config {
