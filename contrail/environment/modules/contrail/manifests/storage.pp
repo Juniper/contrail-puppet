@@ -20,7 +20,7 @@ class contrail::storage (
     # Main resource declarations for the class
     #notify { "disk-names => $contrail_storage_osd_disks" :;}
     if 'compute' in $contrail_host_roles { 
-        if  $contrail_interface_rename_done == 2 {
+        if  ($contrail_interface_rename_done == 2) {
 	contrail::lib::storage_common { 'storage-compute':
 	    contrail_storage_fsid => $contrail_storage_fsid,
             contrail_openstack_ip => $contrail_openstack_ip,
@@ -36,9 +36,22 @@ class contrail::storage (
 	    contrail_storage_hostname => $contrail_storage_hostname,
             contrail_live_migration_host => $contrail_live_migration_host,
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
-            contrail_storage_cluster_network => $contrail_storage_cluster_network
-	}
-    }
+            contrail_storage_cluster_network => $contrail_storage_cluster_network }
+        } else {
+	    file { "contrail-storage-exit-file":
+	        path => "/etc/contrail/contrail_setup_utils/config-storage-exit.sh",
+	        ensure  => present,
+	        mode => 0755,
+	        owner => root,
+	        group => root,
+                content => "exit 1",
+           }
+           ->
+          exec { "contrail-storage-exit" :
+	     command => "/etc/contrail/contrail_setup_utils/config-storage-exit.sh",
+	     provider => shell,
+          }
+       }
     } else {
 	contrail::lib::storage_common { 'storage-master':
 	    contrail_storage_fsid => $contrail_storage_fsid,

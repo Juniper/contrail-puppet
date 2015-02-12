@@ -183,4 +183,13 @@ if [ $RETVAL -eq 0 ]
 then 
   echo "ping done"
   mount 192.168.101.3:/livemnfsvol /var/lib/nova/instances/global
+  RETVAL=$?
+  if [ ${RETVAL} -ne 0 ]
+  then
+    echo "mount to livemnfsvol failed"
+    exit ${RETVAL}
+  fi
+else
+  echo "ping to livemnfs failed"
+   exit 1
 fi

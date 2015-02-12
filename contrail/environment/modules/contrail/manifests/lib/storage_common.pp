@@ -16,6 +16,8 @@ define contrail::lib::storage_common(
         $contrail_storage_cluster_network
         ) {
 
+        contrail::lib::report_status { "storage_started": state => "storage_started" }
+        ->
 	package { 'contrail-storage-packages' : ensure => present, }
 	 ->
 	package { 'contrail-storage' : ensure => present, }
@@ -125,6 +127,7 @@ define contrail::lib::storage_common(
 			pg_num => $contrail_ceph_pg_num,
 			pgp_num => $contrail_ceph_pg_num,
 		}
+                Ceph::Pool['images'] -> Contrail::Lib::Report_status['storage_completed']
 	}
 	  if 'openstack' in $contrail_host_roles {
 		#notify { "role openstack":}
@@ -263,5 +266,6 @@ define contrail::lib::storage_common(
     hasstatus => 'true',
     require  => Exec['ceph-virsh-secret'],
     subscribe => File['/etc/ceph/virsh.conf'],
-  }
+  } ->
+    contrail::lib::report_status { "storage_completed": state => "storage_completed" }
 }
