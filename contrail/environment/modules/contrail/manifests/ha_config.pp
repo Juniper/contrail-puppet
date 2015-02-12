@@ -69,7 +69,7 @@ class contrail::ha_config (
             $keystone_ip_to_use = $internal_vip
         }
 
-        $tmp_index = inline_template('<%= @openstack_mgmt_ip_list.index(@host_control_ip) %>')
+        $tmp_index = inline_template('<%= @openstack_ip_list.index(@host_control_ip) %>')
         if ($tmp_index != nil) {
             $openstack_index = $tmp_index + 1
         }
