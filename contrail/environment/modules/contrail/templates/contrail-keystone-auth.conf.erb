@@ -1,0 +1,16 @@
+[KEYSTONE]
+<% if @keystone_ip != "" -%>
+auth_host=<%= @keystone_ip %>
+<% elsif @internal_vip != "" -%>
+auth_host=<%= @internal_vip %>
+<% else -%>
+auth_host=<%= @openstack_ip %>
+<% end -%>
+auth_protocol=<%= @keystone_auth_protocol %>
+auth_port=<%= @keystone_auth_port %>
+admin_user=<%= @keystone_admin_user %>
+admin_password=<%= @keystone_admin_password %>
+admin_token=<%= @keystone_service_token %>
+admin_tenant_name=<%= @keystone_admin_tenant %>
+insecure=<%= keystone_insecure_flag %>
+<%= memcached_opt %>

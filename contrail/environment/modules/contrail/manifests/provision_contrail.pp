@@ -54,7 +54,7 @@
 #     (optional) - Defaults to "".
 #
 class contrail::provision_contrail (
-    $keystone_admin_tenant = $::contrail::params::keystone_admin_tenent,
+    $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $encap_priority = $::contrail::params::encap_priority,
