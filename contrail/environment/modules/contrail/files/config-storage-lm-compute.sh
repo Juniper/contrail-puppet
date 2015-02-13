@@ -182,6 +182,9 @@ RETVAL=$?
 if [ $RETVAL -eq 0 ]
 then 
   echo "ping done"
+  stat -c '%U:%G'  /var/lib/nova/instances/global
+  STAT_OUTPUT=`stat -c '%U:%G'  /var/lib/nova/instances/global`
+  echo "current ownership of instances : ${STAT_OUTPUT}"
   mount 192.168.101.3:/livemnfsvol /var/lib/nova/instances/global
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
@@ -189,6 +192,11 @@ then
     echo "mount to livemnfsvol failed"
     exit ${RETVAL}
   fi
+  echo "exiting with failed status to give chown one more chance"
+  stat -c '%U:%G'  /var/lib/nova/instances/global
+  STAT_OUTPUT=`stat -c '%U:%G'  /var/lib/nova/instances/global`
+  echo "current ownership of instances : ${STAT_OUTPUT}"
+  exit 1
 else
   echo "ping to livemnfs failed"
    exit 1
