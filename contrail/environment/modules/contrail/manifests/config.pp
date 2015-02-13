@@ -116,6 +116,11 @@
 #     If Rabbitmq is running on a different server, specify its IP address here.
 #     (optional) - Defaults to "".
 #
+# [*openstack_mgmt_ip*]
+#     Management interface address of openstack node (if management and control are separate
+#     interfaces on that node)
+#     (optional) - Defaults to "", meaning use openstack_ip.
+#
 # [*internal_vip*]
 #     Virtual mgmt IP address for openstack modules
 #     (optional) - Defaults to ""
@@ -196,6 +201,7 @@ class contrail::config (
     $manage_neutron = $::contrail::params::manage_neutron,
     $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
     $amqp_server_ip = $::contrail::params::amqp_server_ip,
+    $openstack_mgmt_ip = $::contrail::params::openstack_mgmt_ip_list_to_use[0],
     $internal_vip = $::contrail::params::internal_vip,
     $external_vip = $::contrail::params::external_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
@@ -424,6 +430,13 @@ class contrail::config (
 	require => Package["contrail-openstack-config"],
 	notify =>  Service["supervisor-config"],
 	content => template("$module_name/contrail-api.conf.erb"),
+    }
+    ->
+    file { "/etc/contrail/contrail-keystone-auth.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-config"],
+	notify =>  Service["supervisor-config"],
+	content => template("$module_name/contrail-keystone-auth.conf.erb"),
     }
     ->
     file { "/etc/contrail/contrail-schema.conf" :
