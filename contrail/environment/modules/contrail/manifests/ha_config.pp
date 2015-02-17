@@ -205,15 +205,6 @@ class contrail::ha_config (
                 provider => shell,
                 logoutput => 'true',
             }
-            ->
-            exec { "ha-mon-restart":
-                command => "service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out",
-                provider => shell,
-                logoutput => "true",
-                unless  => "grep -qx contrail-ha-mon  /etc/contrail/contrail_openstack_exec.out",
-        #                require => File["/opt/contrail/bin/transfer_keys.py"]
-            }
-
 
 
         }
