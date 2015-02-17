@@ -4,6 +4,8 @@ class contrail::provision_complete(
 {
     $host_control_ip = $::contrail::params::host_ip
     $openstack_ip_list = $::contrail::params::openstack_ip_list
+    $internal_vip =  $::contrail::params::internal_vip
+
 
     contrail::lib::report_status { $state: state => $state }
     if ($host_control_ip in $openstack_ip_list) {
@@ -21,6 +23,15 @@ class contrail::provision_complete(
 	  logoutput => 'true'
       }
 
+      #Make ha-mon start later
+      if($internal_vip != "") {
+            exec { "ha-mon-restart":
+                command => "service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out",
+                provider => shell,
+                logoutput => "true",
+                unless  => "grep -qx contrail-ha-mon  /etc/contrail/contrail_openstack_exec.out",
+            }
+      }
 
     }
 
