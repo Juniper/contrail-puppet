@@ -36,18 +36,40 @@ class openstack::common::nova ($is_compute    = false) {
     verbose            => $::openstack::config::verbose,
     mysql_module       => '2.2',
     rabbit_port        => $contrail_rabbit_port,
+    database_idle_timeout => '180',
     notification_driver => "nova.openstack.common.notifier.rpc_notifier",
   }
+
   nova_config { 'DEFAULT/rabbit_port':
      value => $contrail_rabbit_port,
-  }
+  } ->
   nova_config { 'DEFAULT/default_floating_pool': value => 'public' }
+  ->
+  nova_config { 'conductor/workers':
+       value => '40',
+       notify => Service['nova-api']
+  }
 
   if ($internal_vip != "" and $internal_vip != undef) {
     nova_config {
       'DEFAULT/osapi_compute_listen_port':     value => '9774';
       'DEFAULT/metadata_listen_port':     value => '9775';
+      'database/min_pool_size':                 value => '100';
+      'database/max_pool_size':                 value => '350';
+      'database/max_overflow':                 value => '700';
+      'database/retry_interval':                 value => '5';
+      'database/max_retries':                 value => '-1';
+      'database/db_max_retries':                 value => '3';
+      'database/db_retry_interval':                 value => '1';
+      'database/connection_debug':                 value => '10';
+
     }
+    ->
+    nova_config {'DEFAULT/pool_timeout':
+       value => '120',
+       notify => Service['nova-api']
+    }
+
     class { '::nova::api':
       admin_password                       => $::openstack::config::nova_password,
       auth_host                            => $controller_management_address,
