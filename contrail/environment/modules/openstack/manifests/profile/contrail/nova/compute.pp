@@ -5,6 +5,16 @@ class openstack::profile::contrail::nova::compute {
 
     $controller_management_address = $::openstack::config::controller_address_management
 
+    $internal_vip = $::contrail::params::internal_vip
+    if ($internal_vip != "" and $internal_vip != undef) {
+      $contrail_rabbit_port = "5673"
+      $contrail_rabbit_host = $controller_management_address
+
+    } else {
+      $contrail_rabbit_port = "5672"
+      $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
+    }
+
     include contrail::compute
     ->
     class { '::nova::network::neutron':

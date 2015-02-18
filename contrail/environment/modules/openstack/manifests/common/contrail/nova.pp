@@ -12,6 +12,19 @@ class openstack::common::nova ($is_compute    = false) {
   $storage_management_address = $::openstack::config::storage_address_management
   $controller_management_address = $::openstack::config::controller_address_management
 
+  $internal_vip = $::contrail::params::internal_vip
+  if ($internal_vip != "" and $internal_vip != undef) {
+    $contrail_rabbit_port = "5673"
+    $contrail_rabbit_host = $controller_management_address
+  } else {
+    $contrail_rabbit_port = "5672"
+    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
+  }
+
+#  $contrail_internal_vip = $::contrail::params::internal_vip
+#  $external_vip = $::contrail::params::internal_vip
+#  $contrail_external_vip = $::contrail::params::contrail_internal_vip
+
   class { '::nova':
     sql_connection     => $::openstack::resources::connectors::nova,
     glance_api_servers => "http://${storage_management_address}:9292",

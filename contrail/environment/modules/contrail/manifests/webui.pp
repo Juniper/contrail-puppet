@@ -85,11 +85,19 @@ class contrail::webui (
     # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
     if ($internal_vip != "") {
         $openstack_ip_to_use = $internal_vip
-        $keystone_ip_to_use = $internal_vip
     }
     else {
         $openstack_ip_to_use = $openstack_ip
+    }
+    # Set keystone_ip to be used.
+    if ($keystone_ip != "") {
         $keystone_ip_to_use = $keystone_ip
+    }
+    elsif ($internal_vip != "") {
+        $keystone_ip_to_use = $internal_vip
+    }
+    else {
+        $keystone_ip_to_use = $openstack_ip
     }
 
     # Print all the variables
