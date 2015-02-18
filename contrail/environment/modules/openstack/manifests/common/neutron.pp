@@ -12,14 +12,6 @@ class openstack::common::neutron {
   # neutron auth depends upon a keystone configuration
   include ::openstack::common::keystone
 
-  $internal_vip = $::contrail::params::internal_vip
-
-  if ($internal_vip != "" and $internal_vip != undef) {
-    $contrail_auth_host = $::openstack::config::controller_address_management
-  } else {
-    $contrail_auth_host = $::contrail::params::config_ip_list[0]
-  }
-
   class { '::neutron':
     rabbit_host           => $controller_management_address,
     core_plugin           => 'neutron.plugins.ml2.plugin.Ml2Plugin',
@@ -36,7 +28,7 @@ class openstack::common::neutron {
   }
 
   class { '::neutron::server':
-    auth_host           => $contrail_auth_host,
+    auth_host           => $::openstack::config::controller_address_management,
     auth_password       => $::openstack::config::neutron_password,
     database_connection => $::openstack::resources::connectors::neutron,
     enabled             => $::openstack::profile::base::is_controller,
