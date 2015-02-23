@@ -152,6 +152,7 @@ define contrail::lib::storage_common(
 		provider => shell,
 		logoutput => "true"
 	    }
+            Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage_completed']
 
             if $contrail_live_migration_host != '' {
 	    file { "config-storage-live-migration.sh":
@@ -171,6 +172,7 @@ define contrail::lib::storage_common(
 		logoutput => "true"
             }
 	    Exec['setup-config-storage-openstack'] -> Exec['setup-config-storage-live-migration']
+            Exec['setup-config-storage-live-migration']-> Contrail::Lib::Report_status['storage_completed']
             }
 	  }
 	  
@@ -198,6 +200,8 @@ define contrail::lib::storage_common(
 		logoutput => "true"
 	    }
 
+                Exec['setup-config-storage-compute']-> Contrail::Lib::Report_status['storage_completed']
+
             if $contrail_live_migration_host != '' {
 	    file { "config-storage-lm-compute.sh":
 		path => '/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh',
@@ -224,6 +228,7 @@ define contrail::lib::storage_common(
 		logoutput => "true"
             }
 	  Exec['setup-config-storage-compute'] -> Exec['setup-config-storage-compute-live-migration']
+          Exec['setup-config-storage-compute-live-migration']-> Contrail::Lib::Report_status['storage_completed']
 	  }
      }
 
