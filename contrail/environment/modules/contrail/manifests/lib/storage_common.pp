@@ -10,7 +10,10 @@ define contrail::lib::storage_common(
         $contrail_storage_virsh_uuid,
         $contrail_storage_mon_hosts,
         $contrail_storage_osd_disks, 
-        $contrail_storage_hostname
+        $contrail_storage_hostname,
+        $contrail_live_migration_host,
+        $contrail_lm_storage_scope,
+        $contrail_storage_cluster_network
         ) {
 
 	package { 'contrail-storage-packages' : ensure => present, }
@@ -212,7 +215,7 @@ define contrail::lib::storage_common(
 	    } ->
             exec { "setup-config-storage-compute-live-migration":
                 command => "/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh \
-                           $contrail_live_migration_host $contrail_live_migration_storage_scope" ,
+                           $contrail_live_migration_host $contrail_lm_storage_scope" ,
 		provider => shell,
                 timeout => 0,
 		logoutput => "true"
