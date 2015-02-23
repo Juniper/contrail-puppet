@@ -139,6 +139,11 @@ if [ ! -d \$mon_data ] ; then
   else
     rm -fr \$mon_data
   fi
+else
+  if [ ! -f \$mon_data/done ] ; then
+    rm -fr \$mon_data
+    exit 1
+  fi
 fi
         ",
         logoutput => true,
