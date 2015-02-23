@@ -358,6 +358,11 @@
 #     Storage parameter needed only if storage role is configured.
 #     (optional) - Defaults to "".
 #
+# [*storage_enabled*]
+#     Storage parameter needed only if storage role is configured.
+#     This parameter tells if storage is configured or not.
+#     (optional) - Defaults to "".
+#
 # [*nfs_server*]
 #     IP address of NFS server to store/get glance images. Used for
 #     HA configuration only. UI parameter.
@@ -492,6 +497,7 @@ class contrail::params (
     $storage_virsh_uuid = "",
     $storage_monitor_hosts = "",
     $storage_osd_disks = "",
+    $storage_enabled = "",
     $nfs_server = "",
     $nfs_glance_path = "",
     $host_non_mgmt_ip = "",
