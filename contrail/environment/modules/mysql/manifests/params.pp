@@ -94,7 +94,7 @@ class mysql::params {
     }
 
     'Debian': {
-      $client_package_name = 'mysql-client'
+      $client_package_name = 'mysql-client-5.5'
       $server_package_name = 'mysql-server'
 
       $basedir             = '/usr'
