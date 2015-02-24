@@ -583,8 +583,19 @@ class contrail::compute (
 	    provider => shell,
 	    logoutput => "true"
 
-        }
-
+        } ->
+        contrail::lib::report_status { "compute_completed": state => "compute_completed" } ->
+        file { "/etc/contrail/interface_renamed" :
+            ensure  => present,
+            mode => 0644,
+            content => "2"
+        } ->
+	exec { "flag-reboot-server" :
+	    command   => "echo flag-reboot-server >> /etc/contrail/contrail_compute_exec.out",
+	    unless => ["grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out"],
+	    provider => "shell",
+	    logoutput => 'true'
+	} 
 	# Now reboot the system
 	if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
 	    exec { "cp-ifcfg-file" :
@@ -592,22 +603,9 @@ class contrail::compute (
 		before => Exec["reboot-server"],
 		unless  => "grep -qx cp-ifcfg-file /etc/contrail/contrail_compute_exec.out",
 		provider => "shell",
-	        require => Exec["fix-keystone-admin-password"],
+	        require => Exec["flag-reboot-server"],
 		logoutput => 'true'
 	    }
 	}
-        contrail::lib::report_status { "compute_completed": state => "compute_completed" }->
-        file { "/etc/contrail/interface_renamed" :
-            ensure  => present,
-            mode => 0644,
-            content => "2"
-        } ->
-	exec { "reboot-server" :
-	    command   => "echo reboot-server-2 >> /etc/contrail/contrail_compute_exec.out && reboot",
-	    unless => ["grep -qx reboot-server-2 /etc/contrail/contrail_compute_exec.out"],
-	    require => Exec["fix-keystone-admin-password"],
-	    provider => "shell",
-	    logoutput => 'true'
-	} 
     }
 }
