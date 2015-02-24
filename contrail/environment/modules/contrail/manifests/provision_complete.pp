@@ -13,8 +13,9 @@ class contrail::provision_complete(
     contrail::lib::report_status { $state: state => $state}
     ->
     exec { "do-reboot-server" :
-	command => "reboot && do-reboot-server >> /etc/contrail/contrail_common_exec.out",
+	command => "/sbin/reboot && echo do-reboot-server >> /etc/contrail/contrail_common_exec.out",
 	onlyif  => "grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out",
+        unless => "grep -qx do-reboot-server /etc/contrail/contrail_common_exec.out",
 	provider => shell,
 	logoutput => 'true'
     }
