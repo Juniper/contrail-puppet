@@ -20,7 +20,6 @@ class contrail::storage (
     # Main resource declarations for the class
     #notify { "disk-names => $contrail_storage_osd_disks" :;}
     if 'compute' in $contrail_host_roles { 
-        if  ($contrail_interface_rename_done == 2) {
     exec { "do-reboot-server-storage" :
         command => "/sbin/reboot && echo do-reboot-server >> /etc/contrail/contrail_common_exec.out",
         onlyif  => "grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out",
@@ -28,7 +27,7 @@ class contrail::storage (
         provider => shell,
         logoutput => 'true'
     }
-->
+        if  ($contrail_interface_rename_done == 2) {
 	contrail::lib::storage_common { 'storage-compute':
 	    contrail_storage_fsid => $contrail_storage_fsid,
             contrail_openstack_ip => $contrail_openstack_ip,
