@@ -4,6 +4,9 @@ vrrp_script <%= @name %> {
   <%- unless @no_weight -%>
   weight    <%= @weight %>
   <%- end -%>
+  <%- if @timeout-%>
+  timeout      <%= @timeout%>
+  <%- end -%>
   <%- if @fall -%>
   fall      <%= @fall %>
   <%- end -%>

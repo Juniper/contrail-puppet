@@ -124,15 +124,29 @@ class cinder::api (
   if $enabled {
 
     Cinder_config<||> ~> Exec['cinder-manage db_sync']
+    $sync_db = $::contrail::params::sync_db
 
-    exec { 'cinder-manage db_sync':
-      command     => $::cinder::params::db_sync_command,
-      path        => '/usr/bin',
-      user        => 'cinder',
-      refreshonly => true,
-      logoutput   => 'on_failure',
-      require     => Package['cinder'],
+    if ($sync_db)
+    {
+      exec { 'cinder-manage db_sync':
+        command     => $::cinder::params::db_sync_command,
+        path        => '/usr/bin',
+        user        => 'cinder',
+        refreshonly => true,
+        logoutput   => 'on_failure',
+        require     => Package['cinder'],
+      }
+    } else {
+      exec { 'cinder-manage db_sync':
+        command     => "touch /tmp/cinder_db_sync.1",
+        path        => '/usr/bin',
+        user        => 'cinder',
+        refreshonly => true,
+        logoutput   => 'on_failure',
+        require     => Package['cinder'],
+      }
     }
+
     if $manage_service {
       $ensure = 'running'
     }

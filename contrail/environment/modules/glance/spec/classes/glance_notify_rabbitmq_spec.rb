@@ -34,12 +34,12 @@ describe 'glance::notify::rabbitmq' do
         :rabbit_password        => 'pass',
         :rabbit_userid          => 'guest2',
         :rabbit_host            => 'localhost2',
-        :rabbit_port            => '5673',
+        :rabbit_port            => '5672',
         :rabbit_durable_queues  => true,
       }
       it { should contain_glance_api_config('DEFAULT/rabbit_userid').with_value('guest2') }
       it { should contain_glance_api_config('DEFAULT/rabbit_host').with_value('localhost2') }
-      it { should contain_glance_api_config('DEFAULT/rabbit_port').with_value('5673') }
+      it { should contain_glance_api_config('DEFAULT/rabbit_port').with_value('5672') }
       it { should contain_glance_api_config('DEFAULT/rabbit_durable_queues').with_value('true') }
     end
   end

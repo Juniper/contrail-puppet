@@ -19,7 +19,7 @@ class mysql::params {
   $php_package_provider    = undef
   $python_package_ensure   = 'present'
   $python_package_provider = undef
-  $ruby_package_ensure     = 'present'
+  $ruby_package_ensure     = 'absent'
   $ruby_package_provider   = undef
 
 
@@ -30,7 +30,7 @@ class mysql::params {
         $server_package_name = 'mariadb-server'
       } else {
         $client_package_name = 'mysql'
-        $server_package_name = 'mysql-server'
+        $server_package_name = 'mysql-server-wsrep'
       }
       $basedir             = '/usr'
       $config_file         = '/etc/my.cnf'
@@ -95,7 +95,7 @@ class mysql::params {
 
     'Debian': {
       $client_package_name = 'mysql-client'
-      $server_package_name = 'mysql-server'
+      $server_package_name = 'mysql-server-wsrep'
 
       $basedir             = '/usr'
       $config_file         = '/etc/mysql/my.cnf'
@@ -126,7 +126,7 @@ class mysql::params {
       $log_error           = "/var/db/mysql/${::hostname}.err"
       $pidfile             = '/var/db/mysql/mysql.pid'
       $root_group          = 'wheel'
-      $server_service_name = 'mysql-server'
+      $server_service_name = 'mysql-server-wsrep'
       $socket              = '/tmp/mysql.sock'
       $ssl_ca              = undef
       $ssl_cert            = undef
@@ -144,7 +144,7 @@ class mysql::params {
       case $::operatingsystem {
         'Amazon': {
           $client_package_name = 'mysql'
-          $server_package_name = 'mysql-server'
+          $server_package_name = 'mysql-server-wsrep'
           $basedir             = '/usr'
           $config_file         = '/etc/my.cnf'
           $datadir             = '/var/lib/mysql'
@@ -196,12 +196,12 @@ class mysql::params {
       'bind-address'          => '127.0.0.1',
       'datadir'               => $mysql::params::datadir,
       'expire_logs_days'      => '10',
-      'key_buffer_size'       => '16M',
+#      'key_buffer_size'       => '16M',
       'log-error'             => $mysql::params::log_error,
-      'max_allowed_packet'    => '16M',
+#      'max_allowed_packet'    => '16M',
       'max_binlog_size'       => '100M',
-      'max_connections'       => '151',
-      'myisam_recover'        => 'BACKUP',
+      'max_connections'       => '10000',
+#      'myisam_recover'        => 'BACKUP',
       'pid-file'              => $mysql::params::pidfile,
       'port'                  => '3306',
       'query_cache_limit'     => '1M',
@@ -218,12 +218,12 @@ class mysql::params {
       'user'                  => 'mysql',
     },
     'mysqldump'             => {
-      'max_allowed_packet'  => '16M',
+#      'max_allowed_packet'  => '16M',
       'quick'               => true,
       'quote-names'         => true,
     },
     'isamchk'      => {
-      'key_buffer_size' => '16M',
+#      'key_buffer_size' => '16M',
     },
   }
 

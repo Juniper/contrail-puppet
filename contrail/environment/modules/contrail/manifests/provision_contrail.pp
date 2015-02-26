@@ -48,6 +48,11 @@
 #     Flag to indicate if openstack multi-tenancy is enabled.
 #     (optional) - Defaults to True.
 #
+#
+# [*external_bgp*]
+#     IP address of the external bgp peer.
+#     (optional) - Defaults to "".
+#
 class contrail::provision_contrail (
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
@@ -60,11 +65,12 @@ class contrail::provision_contrail (
     $router_asn = $::contrail::params::router_asn,
     $control_ip_list = $::contrail::params::control_ip_list,
     $control_name_list = $::contrail::params::control_name_list,
-    $multi_tenancy = $::contrail::params::multi_tenancy
+    $multi_tenancy = $::contrail::params::multi_tenancy,
+    $external_bgp = $::contrail::params::external_bgp,
 ) {
 
     # Initialize the multi tenancy option will update latter based on vns argument
-    if ($multi_tenancy == "True") {
+    if ($multi_tenancy == true) {
 	$mt_options = "admin,$keystone_admin_password,$keystone_admin_tenant"
     } else {
 	$mt_options = "None"
@@ -119,7 +125,7 @@ class contrail::provision_contrail (
     }
     ->
    exec { "provision-external-bgp" :
-	command => "python /etc/contrail/contrail_setup_utils/setup_external_bgp.py --bgp_params \"$contrail_bgp_params\" --api_server_ip \"$config_ip_to_use\" --api_server_port 8082 --router_asn \"$router_asn\" --mt_options \"$mt_options\" && echo provision-external-bgp >> /etc/contrail/contrail_config_exec.out",
+	command => "python /etc/contrail/contrail_setup_utils/setup_external_bgp.py --bgp_params \"$external_bgp\" --api_server_ip \"$config_ip_to_use\" --api_server_port 8082 --router_asn \"$router_asn\" --mt_options \"$mt_options\" && echo provision-external-bgp >> /etc/contrail/contrail_config_exec.out",
 	require => [ File["/etc/contrail/contrail_setup_utils/setup_external_bgp.py"] ],
 	unless  => "grep -qx provision-external-bgp /etc/contrail/contrail_config_exec.out",
 	provider => shell,

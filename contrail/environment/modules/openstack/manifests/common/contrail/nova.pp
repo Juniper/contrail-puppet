@@ -12,12 +12,27 @@ class openstack::common::nova ($is_compute    = false) {
   $storage_management_address = $::openstack::config::storage_address_management
   $controller_management_address = $::openstack::config::controller_address_management
 
+  $internal_vip = $::contrail::params::internal_vip
+  if ($internal_vip != "" and $internal_vip != undef) {
+    $contrail_rabbit_port = "5673"
+    $contrail_rabbit_host = $controller_management_address
+    $neutron_ip_address = $controller_management_address
+  } else {
+    $contrail_rabbit_port = "5672"
+    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
+    $neutron_ip_address = $::contrail::params::config_ip_list[0]
+  }
+
+#  $contrail_internal_vip = $::contrail::params::internal_vip
+#  $external_vip = $::contrail::params::internal_vip
+#  $contrail_external_vip = $::contrail::params::contrail_internal_vip
+
   class { '::nova':
     sql_connection     => $::openstack::resources::connectors::nova,
     glance_api_servers => "http://${storage_management_address}:9292",
     memcached_servers  => ["${controller_management_address}:11211"],
-    rabbit_hosts       => [$controller_management_address],
-    rabbit_port           => '5673',
+    rabbit_hosts       => [$contrail_rabbit_host],
+    rabbit_port        => $contrail_rabbit_port,
     rabbit_userid      => $::openstack::config::rabbitmq_user,
     rabbit_password    => $::openstack::config::rabbitmq_password,
     debug              => $::openstack::config::debug,
@@ -36,9 +51,17 @@ class openstack::common::nova ($is_compute    = false) {
     sync_db         => $sync_db,
   }
 
-  class { '::nova::vncproxy':
-    host    => $::openstack::config::controller_address_api,
-    enabled => $is_controller,
+  if ($internal_vip != "" and $internal_vip != undef) {
+      class { '::nova::vncproxy':
+	host    => $::openstack::config::controller_address_api,
+	enabled => $is_controller,
+        port => '6999',
+      }
+  } else {
+      class { '::nova::vncproxy':
+	host    => $::openstack::config::controller_address_api,
+	enabled => $is_controller,
+      }
   }
 
   class { [
@@ -68,8 +91,10 @@ class openstack::common::nova ($is_compute    = false) {
   class { '::nova::network::neutron':
     neutron_admin_password => $::openstack::config::neutron_password,
     neutron_region_name    => $::openstack::config::region,
-    neutron_admin_auth_url => "http://${controller_management_address}:35357/v2.0",
-    neutron_url            => "http://${controller_management_address}:9696",
+    #neutron_admin_auth_url => "http://${controller_management_address}:35357/v2.0",
+    #neutron_url            => "http://${controller_management_address}:9696",
+    neutron_admin_auth_url => "http://${$neutron_ip_address}:35357/v2.0",
+    neutron_url            => "http://${$neutron_ip_address}:9696",
     vif_plugging_is_fatal  => false,
     vif_plugging_timeout   => '0',
   }

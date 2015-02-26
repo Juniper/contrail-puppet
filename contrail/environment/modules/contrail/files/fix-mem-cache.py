@@ -43,6 +43,10 @@ def main(args_str=None):
         commands.getstatusoutput('echo "net.ipv4.tcp_tw_reuse = 1" >> /etc/sysctl.conf')
     if commands.getstatusoutput("grep '^net.ipv4.tcp_fin_timeout' /etc/sysctl.conf")[0] != 0:
         commands.getstatusoutput('echo "net.ipv4.tcp_fin_timeout = 30" >> /etc/sysctl.conf')
+    if commands.getstatusoutput("grep '^net.unix.max_dgram_qlen' /etc/sysctl.conf")[0] != 0:
+        commands.getstatusoutput('echo "net.unix.max_dgram_qlen  = 1000" >> /etc/sysctl.conf')
+
+    commands.getstatusoutput('sysctl -p')
 
 if __name__ == "__main__":
      main(sys.argv[1:])
