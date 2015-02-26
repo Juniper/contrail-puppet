@@ -386,12 +386,6 @@ class contrail::config (
 	    content => template("$module_name/ctrl-details.erb"),
 	}
     }
-    if ! defined(File["/etc/contrail/contrail-keystone-auth.conf"]) {
-	file { "/etc/contrail/contrail-keystone-auth.conf" :
-	    ensure  => present,
-	    content => template("$module_name/contrail-keystone-auth.conf.erb"),
-	}
-    }
 
     # Ensure service.token file is present with right content.
     if ! defined(File["/etc/contrail/service.token"]) {
