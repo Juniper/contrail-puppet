@@ -453,7 +453,7 @@ class contrail::params (
     $keystone_admin_tenant = "admin",
     $keystone_service_tenant = "services",
     $keystone_region_name = "RegionOne",
-    $multi_tenancy = true,
+    $multi_tenancy = false,
     $zookeeper_ip_list = undef,
     $quantum_port = "9697",
     $quantum_service_protocol = "http",
