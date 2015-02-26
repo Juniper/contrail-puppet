@@ -91,7 +91,7 @@ class contrail::keepalived(
           garp_master_repeat => 3,
           vmac_xmit_base => true,
           track_interface => $control_data_intf,
-	  track_script      => ['check_proxy','check_peers'],
+	  track_script      => ['check_haproxy','check_peers'],
 	}
     }
 }
