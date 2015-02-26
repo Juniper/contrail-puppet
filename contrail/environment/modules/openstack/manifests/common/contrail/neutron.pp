@@ -9,12 +9,22 @@ class openstack::common::contrail::neutron {
   $data_network = $::openstack::config::network_data
   $data_address = ip_for_network($data_network)
 
+  $internal_vip = $::contrail::params::internal_vip
+  if ($internal_vip != "" and $internal_vip != undef) {
+    $contrail_rabbit_port = "5673"
+    $contrail_rabbit_host = $controller_management_address
+  } else {
+    $contrail_rabbit_port = "5672"
+    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
+  }
+
+
   # neutron auth depends upon a keystone configuration
   include ::openstack::common::keystone
 
   class { '::neutron':
-    rabbit_host           => $controller_management_address,
-    rabbit_port           => '5673',
+    rabbit_host           => $contrail_rabbit_host,
+    rabbit_port           => $contrail_rabbit_port,
     core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',
     allow_overlapping_ips => true,
     rabbit_user           => $::openstack::config::rabbitmq_user,
