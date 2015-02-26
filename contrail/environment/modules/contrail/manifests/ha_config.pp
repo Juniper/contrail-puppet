@@ -93,7 +93,7 @@ class contrail::ha_config (
 
         $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=$mysql_root_password ADMIN_TOKEN=$keystone_admin_token setup-vnc-galera --self_ip $host_control_ip --keystone_ip $keystone_ip_to_use --galera_ip_list $openstack_ip_list_shell --internal_vip $internal_vip --openstack_index $openstack_index && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_check_wsrep = "python check-wsrep-status.py $openstack_mgmt_ip_list_shell  && echo check-wsrep >> /etc/contrail/contrail_openstack_exec.out"
-        $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py $os_master $host_control_ip $internal_vip  && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"
+        $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py $os_master $host_control_ip $internal_vip $openstack_mgmt_ip_list_shell && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"
 
         $contrail_exec_password_less_ssh = "python /opt/contrail/bin/setup_passwordless_ssh.py $openstack_mgmt_ip_list_shell $openstack_user_list_shell $openstack_passwd_list_shell && echo exec-setup-password-less-ssh >> /etc/contrail/contrail_openstack_exec.out"
         #########Chhandak-HA
@@ -178,7 +178,7 @@ class contrail::ha_config (
 	    }
             ->
             exec { "create-nfs" :
-                command => "echo \"/var/lib/glance/images *(rw,sync,no_subtree_check)\" >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ",
+                command => "echo \"/var/lib/glance/images *(rw,sync,no_subtree_check)\" >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && chown root:root /var/lib/glance/images && chmod 777 /var/lib/glance/images && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ",
                 require => [  ],
                 unless  => "grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out",
                 provider => shell,
@@ -273,15 +273,15 @@ class contrail::ha_config (
 	    }
             ->
 	    exec { "mount-nfs" :
-		command => "sudo mount $nfs_server:$glance_path /var/lib/glance/images && echo create-nfs >> /etc/contrail/contrail_openstack_exec.out",
+		command => "sudo mount $nfs_server:$glance_path /var/lib/glance/images && echo mount-nfs >> /etc/contrail/contrail_openstack_exec.out",
 		require => [  ],
-		unless  => "grep -qx create-nfs  /etc/contrail/contrail_openstack_exec.out",
+		unless  => "grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
 		logoutput => "true"
 	    }
 	    exec { "add-fstab" :
 		command => "echo \"$nfs_server:$glance_path /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
-		unless  => "grep -qx create-nfs  /etc/contrail/contrail_oprenstack_exec.out",
+		unless  => "grep -qx add-fstab  /etc/contrail/contrail_oprenstack_exec.out",
 		provider => shell,
 		logoutput => "true"
 	    }

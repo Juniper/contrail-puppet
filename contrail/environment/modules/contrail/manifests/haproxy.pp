@@ -271,7 +271,7 @@ class contrail::haproxy (
 	}
     }
     #Add collector HA
-    if ($host_ip in $config_ip_list and $contrail_internal_vip != "") {
+    if ($host_ip in $collector_ip_list and ($contrail_internal_vip != "" or $internal_vip != "")) {
 	notify { "Haproxy - Setting up ha-cfg for collector":;}
 
 	haproxy::listen { 'contrail-analyticsapi':

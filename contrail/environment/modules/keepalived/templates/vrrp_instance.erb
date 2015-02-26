@@ -22,6 +22,14 @@ vrrp_instance <%= @name %> {
   garp_master_refresh         <%= @garp_master_refresh %>
   <%- end -%>
 
+  <%- if @garp_master_repeat -%>
+  garp_master_repeat         <%= @garp_master_repeat %>
+  <%- end -%>
+
+  <%- if @vmac_xmit_base == true -%>
+  vmac_xmit_base
+  <%- end -%>
+
   # notify scripts and alerts are optional
   #
   # filenames of scripts to run on transitions

@@ -12,6 +12,8 @@ def main(argv):
     os_master = sys.argv[1]
     self_ip = sys.argv[2]
     internal_vip = sys.argv[3]
+    openstack_ip_list_str = sys.argv[4]
+    openstack_ip_list = openstack_ip_list_str.split(",")
 
     mysql_svc = 'mysql'
 
@@ -46,7 +48,9 @@ def main(argv):
         status,output = commands.getstatusoutput('%s "GRANT ALL PRIVILEGES on *.* TO cmon@%s IDENTIFIED BY \'cmon\' WITH GRANT OPTION"' %
                    (mysql_cmd, internal_vip))
 
-
+    for openstack_ip in openstack_ip_list:
+        status,output = commands.getstatusoutput('%s "GRANT ALL PRIVILEGES on *.* TO cmon@%s IDENTIFIED BY \'cmon\' WITH GRANT OPTION"' %
+                   (mysql_cmd, openstack_ip))
 
     mysql_cmon_user_cmd = 'mysql -u root -p%s -e "CREATE USER \'cmon\'@\'%s\' IDENTIFIED BY \'cmon\'"' % (
                                            mysql_token, self_ip)
