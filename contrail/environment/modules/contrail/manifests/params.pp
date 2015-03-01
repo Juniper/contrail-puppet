@@ -498,6 +498,8 @@ class contrail::params (
     $storage_monitor_hosts = "",
     $storage_osd_disks = "",
     $storage_enabled = "",
+    $storage_chassis_config = "",
+    $storage_hostnames = "",
     $live_migration_host = "",
     $live_migration_storage_scope = "local",
     $nfs_server = "",
