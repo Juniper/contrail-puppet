@@ -13,7 +13,9 @@ class contrail::storage (
     $contrail_storage_hostname = $::hostname,
     $contrail_live_migration_host = $::contrail::params::live_migration_host,
     $contrail_lm_storage_scope = $::contrail::params::live_migration_storage_scope,
-    $contrail_storage_cluster_network = $::contrail::params::storage_cluster_network
+    $contrail_storage_cluster_network = $::contrail::params::storage_cluster_network,
+    $contrail_storage_hostnames = $::contrail::params::storage_hostnames,
+    $contrail_storage_chassis_config = $::contrail::params::storage_chassis_config
 ) inherits ::contrail::params {
 
     #include contrail::lib::storage_common
@@ -51,6 +53,8 @@ class contrail::storage (
 	    contrail_storage_hostname => $contrail_storage_hostname,
             contrail_live_migration_host => $contrail_live_migration_host,
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
+            contrail_storage_hostnames => $contrail_storage_hostnames,
+            contrail_storage_chassis_config => $contrail_storage_chassis_config,
             contrail_storage_cluster_network => $contrail_storage_cluster_network }
         } else {
 	    file { "contrail-storage-exit-file":
@@ -83,6 +87,8 @@ class contrail::storage (
 	    contrail_storage_hostname => $contrail_storage_hostname,
             contrail_live_migration_host => $contrail_live_migration_host,
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
+            contrail_storage_hostnames => $contrail_storage_hostnames,
+            contrail_storage_chassis_config => $contrail_storage_chassis_config,
             contrail_storage_cluster_network => $contrail_storage_cluster_network
 	}
     }
