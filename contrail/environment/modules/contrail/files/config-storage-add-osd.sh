@@ -299,12 +299,17 @@ check_and_setup_osd()
 
   ## Add osd key to auth list
   ## TOO: there should be a check before adding it ot auth list
-  ceph auth add osd.${OSD_NUM} osd 'allow *' mon 'allow profile osd' -i /var/lib/ceph/osd/ceph-${OSD_NUM}/keyring
+  ceph auth list | grep -wq "^osd.${OSD_NUM}"
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
   then
-    echo "ceph auth  add for : ${OSD_NUM}  failed : ${RETVAL}"
-    exit ${RETVAL}
+    ceph auth add osd.${OSD_NUM} osd 'allow *' mon 'allow profile osd' -i /var/lib/ceph/osd/ceph-${OSD_NUM}/keyring
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ] 
+    then
+      echo "ceph auth  add for : ${OSD_NUM}  failed : ${RETVAL}"
+      exit ${RETVAL}
+    fi
   fi
 
   ## active file is created by ceph-disk, so we are creating is manually.
@@ -331,20 +336,25 @@ check_and_setup_osd()
       echo "ceph osd crush add-bucket for ${hostname}  failed : ${RETVAL}"
       exit ${RETVAL}
     fi
-  fi
 
-  ceph osd crush move ${hostname} root=default
-  RETVAL=$?
-  if [ ${RETVAL} -ne 0 ] 
-  then
-    echo "ceph osd crush move failed for ${hostname}: ${RETVAL}"
-    exit ${RETVAL}
+    ceph osd crush move ${hostname} root=default
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ] 
+    then
+      echo "ceph osd crush move failed for ${hostname}: ${RETVAL}"
+      exit ${RETVAL}
+    fi
   fi
-  ## disk weight is based on disk size. for 800GB disk, weight is ~ .80
-  disk_size=`fdisk -s ${disk_name}`
-  disk_weight=$(awk "BEGIN {printf \"%.2f\", ${disk_size}  / (1024 * 1024 * 1024)}")
-  ## TODO: check if disk already added to osd tree with correct weight
-  ceph osd crush add osd.${OSD_NUM} ${disk_weight} host=${hostname}
+  ceph osd tree | grep -qw osd.${OSD_NUM}
+  RETVAL=$?
+  if [ ${RETVAL} -ne 0 ]
+  then
+    ## disk weight is based on disk size. for 800GB disk, weight is ~ .80
+    disk_size=`fdisk -s ${disk_name}`
+    disk_weight=$(awk "BEGIN {printf \"%.2f\", ${disk_size}  / (1024 * 1024 * 1024)}")
+    ## TODO: check if disk already added to osd tree with correct weight
+    ceph osd crush add osd.${OSD_NUM} ${disk_weight} host=${hostname}
+  fi
 }
 
 ## Following is the flow of addiing/Checking OSDs
