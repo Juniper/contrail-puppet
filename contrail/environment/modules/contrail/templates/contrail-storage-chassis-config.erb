@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys
-from contrail_provisioning.storage.storagefs import crush_utils
+from contrail_provisioning.storage.storagefs import ceph_utils
 
 NUM_TARGET_OSD=<%=@contrail_storage_num_osd %>
 storage_hostnames=<%= @contrail_storage_hostnames %>
@@ -14,19 +14,19 @@ if len(storage_chassis_config) == 0:
     print 'storage_chassis_config is empty'
     sys.exit(1)
 
-crush_setup_utils = crush_utils.SetupCrushUtils()
-NUM_CURR_OSD = crush_setup_utils.exec_local("ceph -s | grep 'osdmap' | awk '{print $7}' ")
+ceph_setup_utils = ceph_utils.SetupCephUtils()
+NUM_CURR_OSD = ceph_setup_utils.exec_local("ceph -s | grep 'osdmap' | awk '{print $7}' ")
 
 if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
    
     # Initialize crush map
-    crush_map = crush_setup_utils.initialize_crush()
+    crush_map = ceph_setup_utils.initialize_crush()
     # Do chassis configuration
-    crush_map = crush_setup_utils.do_chassis_config(crush_map,
+    crush_map = ceph_setup_utils.do_chassis_config(crush_map,
                                 storage_hostnames,
                                 storage_chassis_config)
     # Apply crushmap
-    crush_setup_utils.apply_crush(crush_map)
+    ceph_setup_utils.apply_crush(crush_map)
 else:
     print 'Exiting as current OSDs={0}, needed= {1}'.format(NUM_CURR_OSD, NUM_TARGET_OSD)
     sys.exit (1)
