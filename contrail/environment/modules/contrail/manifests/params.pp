@@ -320,7 +320,7 @@
 # [*kernel_version*]
 #     kernel version to upgrade to.
 #     Not exposed to SM for modification.
-#     (optional) - Defaults to "3.13.0-34".
+#     (optional) - Defaults to "".
 #
 # [*storage_num_osd*]
 #     Storage parameter needed only if storage role is configured.
@@ -487,7 +487,7 @@ class contrail::params (
     $contrail_repo_type,
     $contrail_repo_ip = $serverip,
     $kernel_upgrade = "yes",
-    $kernel_version = "3.13.0-34",
+    $kernel_version = "",
     $storage_num_osd = "",
     $storage_fsid = "",
     $storage_num_hosts = "",
