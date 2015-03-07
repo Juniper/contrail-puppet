@@ -263,6 +263,11 @@
 #     configured to run contrail openstack node.
 #     (optional) - Defaults to undef (same as openstack_ip_list)
 #
+# [*config_mgmt_ip_list*]
+#     List of management interface IP addresses of all the servers in cluster
+#     configured to run contrail config node.
+#     (optional) - Defaults to undef (same as config_ip_list)
+#
 # [*encap_priority*]
 #     Encapsulation priority setting.
 #     (optional) - Defaults to "MPLSoUDP,MPLSoGRE,VXLAN"
@@ -451,7 +456,7 @@ class contrail::params (
     $keystone_service_token = "contrail123",
     $keystone_admin_user = "admin",
     $keystone_admin_tenant = "admin",
-    $keystone_service_tenant = "services",
+    $keystone_service_tenant = "service",
     $keystone_region_name = "RegionOne",
     $multi_tenancy = true,
     $zookeeper_ip_list = undef,
@@ -475,6 +480,7 @@ class contrail::params (
     $keepalived_vrid = 100,
     $mysql_root_password = "c0ntrail123",
     $openstack_mgmt_ip_list = undef,
+    $config_mgmt_ip_list = undef,
     $encap_priority = "MPLSoUDP,MPLSoGRE,VXLAN",
     $router_asn = "64512",
     $metadata_secret = "",
@@ -541,4 +547,11 @@ class contrail::params (
     else {
         $openstack_mgmt_ip_list_to_use = $openstack_mgmt_ip_list
     }
+    if ($config_mgmt_ip_list == undef) {
+        $config_mgmt_ip_list_to_use = $config_ip_list
+    }
+    else {
+        $config_mgmt_ip_list_to_use = $config_mgmt_ip_list
+    }
+
 }

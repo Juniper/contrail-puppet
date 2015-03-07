@@ -22,7 +22,7 @@ def main(args_str=None):
     host_password_list = host_password_list_str.split(",")
 
     cmd_to_execute= "grep -qx exec_vnc_galera \
-                        /etc/contrail/contrail_openstack_exec.out"
+                        /etc/contrail/contrail_ha_exec.out"
 
     for host in host_ip_list:
         i = 0
