@@ -22,7 +22,7 @@ def main(args_str=None):
     host_password_list = host_password_list_str.split(",")
 
     cmd_to_execute= "grep -qx exec_vnc_galera \
-                        /etc/contrail/contrail_openstack_exec.out"
+                        /etc/contrail/contrail_ha_exec.out"
 
     for host in host_ip_list:
         i = 0
@@ -32,9 +32,11 @@ def main(args_str=None):
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        print "Connection to %s" % (host)
         ssh.connect(host, 22, username, password)
         ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd_to_execute)
         if ssh_stdout.channel.recv_exit_status() != 0 :
+            print "Gallera didnt execute at %s" % (host)
             sys.exit(1)
 
 if __name__ == "__main__":

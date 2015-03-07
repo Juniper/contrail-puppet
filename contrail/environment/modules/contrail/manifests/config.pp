@@ -217,6 +217,8 @@ class contrail::config (
     $vmware_vswitch = $::contrail::params::vmware_vswitch
 ) inherits ::contrail::params {
 
+    $config_ip = $::contrail::params::config_ip_list[0]
+
     # Main code for class starts here
     if $use_certs == true {
 	$ifmap_server_port = '8444'
@@ -635,6 +637,29 @@ class contrail::config (
 	require => File["/opt/contrail/bin/quantum-server-setup.sh"],
 	unless  => "grep -qx setup-quantum-server-setup /etc/contrail/contrail_config_exec.out",
 	provider => shell
+    }
+    ->
+    file { "/opt/contrail/bin/setup-quantum-in-keystone.py":
+        ensure  => present,
+        mode => 0755,
+        owner => root,
+        group => root,
+    }
+    ->
+    file { "/etc/contrail/contrail_setup_utils/setup_verify_quantum_in_keystone.py" :
+        ensure  => present,
+        mode => 0755,
+    #    user => root,
+        group => root,
+        source => "puppet:///modules/$module_name/setup_verify_quantum_in_keystone.py"
+    }
+    ->
+    exec { "setup-verify-quantum-in-keystone" :
+        command => "python /etc/contrail/contrail_setup_utils/setup_verify_quantum_in_keystone.py  --contrail_openstack_ip $openstack_ip --contrail_config_ip $config_ip --contrail_ks_admin_tenant $keystone_admin_tenant --contrail_ks_admin_user $keystone_admin_user --contrail_ks_admin_passwd $keystone_admin_password --contrail_service_token $keystone_service_token --contrail_region_name $keystone_region_name && echo setup-verify-quantum-in-keystone >> /etc/contrail/contrail_config_exec.out",
+        require => [ File["/etc/contrail/contrail_setup_utils/setup_verify_quantum_in_keystone.py"] ],
+        unless  => "grep -qx setup-verify-quantum-in-keystone /etc/contrail/contrail_config_exec.out",
+        provider => shell,
+        logoutput => "true"
     }
     ->
     service { "supervisor-config" :

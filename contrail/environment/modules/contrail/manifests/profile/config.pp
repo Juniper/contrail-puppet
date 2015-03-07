@@ -3,5 +3,5 @@ class contrail::profile::config {
 
     contain ::contrail::config
     #contrail expects neutron server to run on configs
-    contain ::contrail::profile::neutron_server
+#    contain ::contrail::profile::neutron_server
 }
