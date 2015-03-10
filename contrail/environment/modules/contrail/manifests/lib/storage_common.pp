@@ -124,14 +124,15 @@ define contrail::lib::storage_common(
         -> 
         ## XXX : add logic to call this only after all OSDs are up
         exec { "setup-config-storage-openstack" :
-            command => "/etc/contrail/contrail_setup_utils/config-storage-openstack.sh \
+            command => "/bin/true
+ /etc/contrail/contrail_setup_utils/config-storage-openstack.sh \
                   ${contrail_storage_virsh_uuid} ${contrail_openstack_ip} $contrail_storage_num_osd \
                   && echo setup-config-storage-openstack \
                   >> /etc/contrail/contrail-storage-exec.out" ,
              require => File["config-storage-openstack.sh"],
              unless  => "grep -qx setup-config-storage-openstack /etc/contrail/contrail-storage-exec.out",
              provider => shell,
-             logoutput => "true"
+             logoutput => $::contrail::params::contrail_logoutput
         }
         Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage_completed']
 
@@ -145,7 +146,7 @@ define contrail::lib::storage_common(
               exec { "setup_storage_chassis_config" :
                   command => 'python /opt/contrail/bin/contrail_storage_chassis_config.py',
                   provider => shell,
-                  logoutput => true
+                  logoutput => $::contrail::params::contrail_logoutput
               }
               Exec['setup_storage_chassis_config']-> Contrail::Lib::Report_status['storage_completed']
               Exec['setup_storage_chassis_config']-> Exec['setup-config-storage-live-migration']
@@ -192,7 +193,7 @@ define contrail::lib::storage_common(
                              $contrail_live_migration_host $contrail_storage_num_osd" ,
                   provider => shell,
                   timeout => 0,
-                  logoutput => "true"
+                  logoutput => $::contrail::params::contrail_logoutput
             }
             Exec['setup-config-storage-openstack'] -> Exec['setup-config-storage-live-migration']
             Exec['setup-config-storage-live-migration']-> Contrail::Lib::Report_status['storage_completed']
@@ -211,14 +212,15 @@ define contrail::lib::storage_common(
         }
         -> 
         exec { "setup-config-storage-compute" :
-            command => "/etc/contrail/contrail_setup_utils/config-storage-compute.sh \
+            command => "/bin/true
+                    /etc/contrail/contrail_setup_utils/config-storage-compute.sh \
                     ${contrail_storage_virsh_uuid} ${contrail_openstack_ip} \
                     && echo setup-config-storage-compute \
                     >> /etc/contrail/contrail-storage-exec.out" ,
             require => File["config-storage-compute.sh"],
             unless  => "grep -qx setup-config-storage-compute /etc/contrail/contrail-storage-exec.out",
             provider => shell,
-            logoutput => "true"
+            logoutput => $::contrail::params::contrail_logoutput
         }
 
         Exec['setup-config-storage-compute']-> Contrail::Lib::Report_status['storage_completed']
@@ -246,7 +248,7 @@ define contrail::lib::storage_common(
                          $contrail_live_migration_host $contrail_lm_storage_scope" ,
               provider => shell,
               timeout => 0,
-              logoutput => "true"
+              logoutput => $::contrail::params::contrail_logoutput
           }
           Exec['setup-config-storage-compute'] -> Exec['setup-config-storage-compute-live-migration']
           Exec['setup-config-storage-compute-live-migration']-> Contrail::Lib::Report_status['storage_completed']
@@ -262,6 +264,7 @@ define contrail::lib::storage_common(
                     allow rwx pool=volumes, allow rx pool=images' \
                     -o /etc/ceph/ceph.client.volumes.keyring",
         creates => '/etc/ceph/ceph.client.volumes.keyring',
+        logoutput => $::contrail::params::contrail_logoutput
     }
     ->
     exec { 'ceph-images-key':
@@ -269,6 +272,7 @@ define contrail::lib::storage_common(
                     mon 'allow r' osd 'allow class-read object_prefix rbd_children, \
                     allow rwx pool=images' -o /etc/ceph/ceph.client.images.keyring",
         creates => '/etc/ceph/ceph.client.images.keyring',
+        logoutput => $::contrail::params::contrail_logoutput
     }
     ->
     exec { 'ceph-virsh-secret' : 
@@ -277,7 +281,8 @@ define contrail::lib::storage_common(
                    <name>client.volumes secret</name></usage></secret>' > secret.xml\
                    && /usr/bin/virsh secret-define --file secret.xml && /bin/rm secret.xml",
         unless  => "/usr/bin/virsh secret-list | grep -q ${contrail_storage_virsh_uuid}",
-        require => Exec['ceph-volumes-key']
+        require => Exec['ceph-volumes-key'],
+        logoutput => $::contrail::params::contrail_logoutput
     }
     -> 
     exec { 'ceph-virsh-set-secret' : 
@@ -285,7 +290,8 @@ define contrail::lib::storage_common(
                      --base64 `/usr/bin/ceph auth get client.volumes  | \
                      grep \"key = \" | awk '{printf \$3}'`", 
         unless  => "/usr/bin/virsh secret-get-value ${contrail_storage_virsh_uuid} ",
-        require => Exec['ceph-virsh-secret']
+        require => Exec['ceph-virsh-secret'],
+        logoutput => $::contrail::params::contrail_logoutput
     }
     ->
     file { '/etc/ceph/virsh.conf':

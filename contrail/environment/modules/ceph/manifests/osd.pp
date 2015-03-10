@@ -67,7 +67,7 @@ define ceph::osd (
 set -ex
 /etc/contrail/contrail_setup_utils/config-storage-add-osd.sh ${data} ${hostname} ${journal_disk}
 ",
-        logoutput => true,
+    logoutput => $::contrail::params::contrail_logoutput,
 	require => File['ceph-osd-setup-file'] 
       }
 

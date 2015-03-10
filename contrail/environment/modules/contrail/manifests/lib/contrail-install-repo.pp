@@ -20,7 +20,7 @@ define contrail::lib::contrail-install-repo(
 	    require => Package[$package_name],
 	    unless  => "grep -qx exec-contrail-setup-$contrail_repo_type-sh /opt/contrail/contrail_packages/exec-contrail-setup-sh.out",
 	    provider => shell,
-	    logoutput => "true"
+        logoutput => $::contrail::params::contrail_logoutput
         }
     }
 }
