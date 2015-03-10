@@ -9,7 +9,7 @@ define contrail::lib::prepare_disk($ensure = 'present') {
                    ## TODO: Commenting for now, 
                    #require => File["ceph-disk-clean-file"],
                    provider => shell,
-                   logoutput => "true"
+                   logoutput => $::contrail::params::contrail_logoutput
            }
         }
         absent : {
