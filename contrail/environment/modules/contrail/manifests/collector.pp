@@ -40,6 +40,11 @@
 #     Virtual IP on the control/data interface (internal network) to be used for contrail.
 #     (optional) - Defaults to "".
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::collector (
     $host_control_ip = $::contrail::params::host_ip,
     $config_ip = $::contrail::params::config_ip_list[0],
@@ -48,7 +53,8 @@ class contrail::collector (
     $analytics_data_ttl = $::contrail::params::analytics_data_ttl,
     $analytics_syslog_port = $::contrail::params::analytics_syslog_port,
     $internal_vip = $::contrail::params::internal_vip,
-    $contrail_internal_vip = $::contrail::params::contrail_internal_vip
+    $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
     # If internal VIP is configured, use that address as config_ip.
@@ -76,7 +82,9 @@ class contrail::collector (
 	}
     }
 
-    contrail::lib::report_status { "collector_started": state => "collector_started" }
+    contrail::lib::report_status { "collector_started":
+        state => "collector_started",
+        contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-analytics' : ensure => present,}
@@ -110,7 +118,7 @@ class contrail::collector (
 	require => Package["contrail-openstack-analytics"],
 	unless  => "grep -qx redis-conf-exec /etc/contrail/contrail-collector-exec.out",
 	provider => shell,
-	logoutput => "true"
+	logoutput => $contrail_logoutput
     }
     ->
     # Ensure the services needed are running.
@@ -124,6 +132,8 @@ class contrail::collector (
 	ensure => running,
     }
     ->
-    contrail::lib::report_status { "collector_completed": state => "collector_completed" }
+    contrail::lib::report_status { "collector_completed":
+        state => "collector_completed",
+        contrail_logoutput => $contrail_logoutput }
 
 }

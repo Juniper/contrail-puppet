@@ -39,6 +39,11 @@
 #     Virtual IP for contrail config nodes in case of HA configuration.
 #     (Optional) - Defaults to "", meaning no HA configuration.
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::webui (
     $config_ip = $::contrail::params::config_ip_list[0],
     $collector_ip = $::contrail::params::collector_ip_list[0],
@@ -47,7 +52,8 @@ class contrail::webui (
     $is_storage_master = $::contrail::params::storage_enabled,
     $keystone_ip = $::contrail::params::keystone_ip,
     $internal_vip = $::contrail::params::internal_vip,
-    $contrail_internal_vip = $::contrail::params::contrail_internal_vip
+    $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
     case $::operatingsystem {
         Ubuntu: {
@@ -115,7 +121,9 @@ class contrail::webui (
     notify { "webui - contrail_internal_vip = $contrail_internal_vip":;}
     notify { "webui - contrail_internal_vip_to_use = $contrail_internal_vip_to_use":;}
 
-    contrail::lib::report_status { "webui_started": state => "webui_started" }
+    contrail::lib::report_status { "webui_started":
+        state => "webui_started", 
+        contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-webui' : ensure => present,}
@@ -160,6 +168,8 @@ class contrail::webui (
         ensure => running,
     }
     ->
-    contrail::lib::report_status { "webui_completed": state => "webui_completed" }
+    contrail::lib::report_status { "webui_completed":
+        state => "webui_completed", 
+        contrail_logoutput => $contrail_logoutput }
 
 }

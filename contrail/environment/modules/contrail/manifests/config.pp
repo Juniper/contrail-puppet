@@ -173,6 +173,11 @@
 #     VMware vswitch value (for ESXi/VMware host)
 #     (optional) - Defaults to ""
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::config (
     $host_control_ip = $::contrail::params::host_ip,
     $collector_ip = $::contrail::params::collector_ip_list[0],
@@ -214,7 +219,8 @@ class contrail::config (
     $vmware_ip = $::contrail::params::vmware_ip,
     $vmware_username = $::contrail::params::vmware_username,
     $vmware_password = $::contrail::params::vmware_password,
-    $vmware_vswitch = $::contrail::params::vmware_vswitch
+    $vmware_vswitch = $::contrail::params::vmware_vswitch,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
     # Main code for class starts here
@@ -362,7 +368,9 @@ class contrail::config (
 	}
     }
 
-    contrail::lib::report_status { "config_started": state => "config_started" }
+    contrail::lib::report_status { "config_started":
+        state => "config_started", 
+        contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-config' : ensure => present,}
@@ -399,7 +407,7 @@ class contrail::config (
 	onlyif => "test -f /etc/neutron/neutron.conf",
 	unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out",
 	provider => shell,
-	logoutput => true
+	logoutput => $contrail_logoutput
     }
     ->
     #form the sudoers
@@ -508,7 +516,7 @@ class contrail::config (
 	require => File["/etc/contrail/contrail_plugin.ini"],
 	onlyif => "test -d /etc/neutron/",
 	provider => shell,
-	logoutput => true
+	logoutput => $contrail_logoutput
     }
     ->
     exec { "create-contrail-plugin-quantum":
@@ -516,7 +524,7 @@ class contrail::config (
 	require => File["/etc/contrail/contrail_plugin.ini"],
 	onlyif => "test -d /etc/quantum/",
 	provider => shell,
-	logoutput => true
+	logoutput => $contrail_logoutput
     }
     ->
     exec { "config-neutron-server" :
@@ -524,7 +532,7 @@ class contrail::config (
          onlyif => "test -f /etc/default/neutron-server",
          unless  => "grep -qx config-neutron-server /etc/contrail/contrail_config_exec.out",
          provider => shell,
-         logoutput => 'true'
+         logoutput => $contrail_logoutput
     }
     ->
     # initd script wrapper for contrail-discovery
@@ -571,7 +579,7 @@ class contrail::config (
 	require => File["/etc/contrail/add_etc_host.py"],
 	unless  => "grep -qx add-etc-hosts /etc/contrail/contrail_config_exec.out",
 	provider => shell,
-	logoutput => true
+	logoutput => $contrail_logoutput
     }
     ->
     file { "/etc/contrail/form_rmq_cluster.sh" :
@@ -586,7 +594,7 @@ class contrail::config (
 	require => File["/etc/contrail/form_rmq_cluster.sh"],
 	unless  => "grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out",
 	provider => shell,
-	logoutput => true
+	logoutput => $contrail_logoutput
     }
 
     # run setup-pki.sh script
@@ -603,7 +611,7 @@ class contrail::config (
 	    require => File["/etc/contrail_setup_utils/setup-pki.sh"],
 	    unless  => "grep -qx setup-pki /etc/contrail/contrail_config_exec.out",
 	    provider => shell,
-	    logoutput => true
+	    logoutput => $contrail_logoutput
 	}
     }
     # Execute config-server-setup scripts
@@ -643,14 +651,16 @@ class contrail::config (
 	ensure => running,
     }
     ->
-    contrail::lib::report_status { "config_completed": state => "config_completed" }
+    contrail::lib::report_status { "config_completed":
+        state => "config_completed", 
+        contrail_logoutput => $contrail_logoutput }
 
     if($internal_vip != "") {
 	exec { "rabbit_os_fix":
 		command => "rabbitmqctl set_policy HA-all \"\" '{\"ha-mode\":\"all\",\"ha-sync-mode\":\"automatic\"}' && echo rabbit_os_fix >> /etc/contrail/contrail_openstack_exec.out",
 		unless  => "grep -qx rabbit_os_fix /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
-		logoutput => true,
+		logoutput => $contrail_logoutput,
 		tries => 3,
 		try_sleep => 15,
 		require => Service["supervisor-config"]
@@ -674,7 +684,7 @@ class contrail::config (
 	    unless  => "grep -qx exec_set_rabbitmq_tcp_params /etc/contrail/contrail_openstack_exec.out",
 	    provider => shell,
 	    require => [ File["/opt/contrail/bin/set_rabbit_tcp_params.py"] ],
-	    logoutput => true
+	    logoutput => $contrail_logoutput
 	}
     }
 # end of user defined type contrail_config.

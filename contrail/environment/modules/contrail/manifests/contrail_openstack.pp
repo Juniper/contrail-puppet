@@ -51,6 +51,11 @@
 #     Keystone authentication protocol.
 #     (optional) - Defaults to "http".
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::contrail_openstack (
     $openstack_ip = $::contrail::params::openstack_ip_list[0],
     $keystone_ip = $::contrail::params::keystone_ip,
@@ -61,7 +66,8 @@ class contrail::contrail_openstack (
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $keystone_service_token = $::contrail::params::keystone_service_token,
-    $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol
+    $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
     # Main code for class
     # Create openstackrc file.
@@ -86,20 +92,20 @@ class contrail::contrail_openstack (
         cwd => "/opt/contrail/bin/",
         provider => shell,
         require => [ File["/opt/contrail/bin/contrail-create-ec2rc.sh"] ],
-        logoutput => true
+        logoutput => $contrail_logoutput
     }
     # Set novncproxy_port to 5999, novncproxy_base_url to http://$openstack_mgmt_ip:5999/vnc_auto.html
     exec { "exec_set_novncproxy":
         command => "openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_port 5999 && openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_base_url http://$openstack_mgmt_ip:5999/vnc_auto.html && echo exec_set_novncproxy >> /etc/contrail/contrail_openstack_exec.out",
         provider => shell,
         require => [ File["/etc/nova/nova.conf"] ],
-        logoutput => true
+        logoutput => $contrail_logoutput
     }
     # Set service_neutron_metadata_proxy to True
     exec { "exec_set_service_neutron_metadata_proxy":
         command => "openstack-config --set /etc/nova/nova.conf DEFAULT service_neutron_metadata_proxy True && echo exec_set_service_neutron_metadata_proxy >> /etc/contrail/contrail_openstack_exec.out",
         provider => shell,
         require => [ File["/etc/nova/nova.conf"] ],
-        logoutput => true
+        logoutput => $contrail_logoutput
     }
 }

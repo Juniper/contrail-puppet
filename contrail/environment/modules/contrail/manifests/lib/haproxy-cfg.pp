@@ -1,5 +1,8 @@
 #source ha proxy files
-define contrail::lib::haproxy-cfg($server_id) {
+define contrail::lib::haproxy-cfg(
+    $server_id,
+    $contrail_logoutput = false,
+) {
     file { "/etc/haproxy/haproxy.cfg":
 	ensure  => present,
 	mode => 0755,
@@ -10,7 +13,7 @@ define contrail::lib::haproxy-cfg($server_id) {
     exec { "haproxy-exec":
 	command => "sudo sed -i 's/ENABLED=.*/ENABLED=1/g' /etc/default/haproxy",
 	provider => shell,
-	logoutput => "true",
+	logoutput => $contrail_logoutput,
 	require => File["/etc/haproxy/haproxy.cfg"]
     }
     service { "haproxy" :

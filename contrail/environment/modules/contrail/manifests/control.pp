@@ -31,13 +31,19 @@
 #     FQDN of puppet master, in case puppet master is used for certificates
 #     (optional) - Defaults to "".
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::control (
     $host_control_ip = $::contrail::params::host_ip,
     $config_ip = $::contrail::params::config_ip_list[0],
     $internal_vip = $::contrail::params::internal_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
     $use_certs = $::contrail::params::use_certs,
-    $puppet_server = $::contrail::params::puppet_server
+    $puppet_server = $::contrail::params::puppet_server,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
     # If internal VIP is configured, use that address as config_ip.
@@ -89,7 +95,9 @@ class contrail::control (
         default: {
         }
     }
-    contrail::lib::report_status { "control_started": state => "control_started" }
+    contrail::lib::report_status { "control_started":
+        state => "control_started",
+        contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-control' : ensure => present,}
@@ -130,7 +138,7 @@ class contrail::control (
     #    require => File["/opt/contrail/contrail_installer/contrail_setup_utils/control-server-setup.sh"],
     #    unless  => "grep -qx control-server-setup /etc/contrail/contrail_control_exec.out",
     #    provider => shell,
-    #    logoutput => "true"
+    #    logoutput => $contrail_logoutput
     #}
     ->
     # update rndc conf
@@ -140,7 +148,7 @@ class contrail::control (
         onlyif => "test -f /etc/contrail/dns/rndc.conf",
         unless  => "grep -qx update-rndc-conf-file /etc/contrail/contrail_control_exec.out",
         provider => shell,
-        logoutput => 'true'
+        logoutput => $contrail_logoutput
     }
     # Ensure the services needed are running.
     ->
@@ -160,6 +168,8 @@ class contrail::control (
         ensure => running,
     }
     ->
-    contrail::lib::report_status { "control_completed": state => "control_completed" }
+    contrail::lib::report_status { "control_completed":
+        state => "control_completed", 
+        contrail_logoutput => $contrail_logoutput }
 
 }

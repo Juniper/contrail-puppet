@@ -1,7 +1,8 @@
 #source ha proxy files
 define contrail::lib::contrail-exec-script(
     $script_name,
-    $args
+    $args,
+    $contrail_logoutput = false,
 ) {
     file { "/etc/contrail/${script_name}":
         ensure  => present,
@@ -13,7 +14,7 @@ define contrail::lib::contrail-exec-script(
     exec { "script-exec":
         command => "/etc/contrail/${script_name} $args; echo script-exec${script_name} >> /etc/contrail/contrail_common_exec.out",
         provider => shell,
-        logoutput => "true",
+        logoutput => $contrail_logoutput,
         unless  => "grep -qx script-exec${script_name} /etc/contrail/contrail_common_exec.out",
         require => File["/etc/contrail/${script_name}"]
     }

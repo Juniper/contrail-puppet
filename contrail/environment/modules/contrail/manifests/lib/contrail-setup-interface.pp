@@ -3,7 +3,8 @@ define contrail::lib::contrail-setup-interface(
 	$contrail_members,
 	$contrail_bond_opts,
 	$contrail_ip,
-	$contrail_gw
+	$contrail_gw,
+        $contrail_logoutput = false,
     ) {
 
     package {'ifenslave': ensure => present}
@@ -33,7 +34,7 @@ define contrail::lib::contrail-setup-interface(
     exec { "setup-intf-$contrail_device":
 	    command => $exec_full_cmd,
 	    provider => shell,
-	    logoutput => "true",
+	    logoutput => $contrail_logoutput,
 	require=> [Package["ifenslave"], Package["contrail-setup"]],
 	    unless  => "grep -qx setup-intf${contrail_device} /etc/contrail/contrail_common_exec.out"
     }

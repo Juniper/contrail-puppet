@@ -36,6 +36,11 @@
 #     than openstack controller.
 #     (optional) - Default "", meaning use same address as openstack controller.
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::ha_config (
     $host_control_ip = $::contrail::params::host_ip,
     $openstack_ip_list = $::contrail::params::openstack_ip_list,
@@ -53,6 +58,7 @@ class contrail::ha_config (
     $keystone_ip = $::contrail::params::keystone_ip,
     $nfs_server = $::contrail::params::nfs_server,
     $nfs_glance_path = $::contrail::params::nfs_glance_path,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
     # Main code for class
     if($internal_vip != '' and $host_control_ip in $openstack_ip_list) {
@@ -138,7 +144,7 @@ class contrail::ha_config (
 	    unless  => "grep -qx exec-setup-password-less-ssh /etc/contrail/contrail_openstack_exec.out",
 	    provider => shell,
 	    require => [ File["/opt/contrail/bin/setup_passwordless_ssh.py"] ],
-	    logoutput => 'true'
+	    logoutput => $contrail_logoutput
 	}
 
         ->
@@ -154,7 +160,7 @@ class contrail::ha_config (
             unless  => "grep -qx exec_vnc_galera /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
             require => [ File["/opt/contrail/bin/setup-vnc-galera"] ],
-            logoutput => 'true',
+            logoutput => $contrail_logoutput,
             tries => 3,
             try_sleep => 15,
         }
@@ -176,7 +182,7 @@ class contrail::ha_config (
 		unless  => "grep -qx check_galera /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
 		require => [ File["/opt/contrail/bin/check_galera.py"] ],
-		logoutput => 'true',
+		logoutput => $contrail_logoutput,
 	    }
             ->
 	    file { "/opt/contrail/bin/check-wsrep-status.py" :
@@ -192,7 +198,7 @@ class contrail::ha_config (
 		unless  => "grep -qx exec_check_wsrep /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
 		require => [ File["/opt/contrail/bin/check-wsrep-status.py"] ],
-		logoutput => 'true',
+		logoutput => $contrail_logoutput,
 	    }
 
 	    ->
@@ -203,7 +209,7 @@ class contrail::ha_config (
                 onlyif => "test -f $wsrep_conf",
                 unless  => "grep -qx exec_fix_wsrep_cluster_address /etc/contrail/contrail_openstack_exec.out",
                 provider => shell,
-                logoutput => 'true',
+                logoutput => $contrail_logoutput,
             }
 
 
@@ -219,7 +225,7 @@ class contrail::ha_config (
                 require => [  ],
                 unless  => "grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out",
                 provider => shell,
-                logoutput => "true"
+                logoutput => $contrail_logoutput
             }
 
         }
@@ -238,7 +244,7 @@ class contrail::ha_config (
             unless  => "grep -qx exec_setup_cmon_schema /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
             require => [ File["/opt/contrail/bin/setup-cmon-schema.py"] ],
-            logoutput => 'true',
+            logoutput => $contrail_logoutput,
         }
 /*
         ->
@@ -246,7 +252,7 @@ class contrail::ha_config (
             command => "service contrail-hamon restart && chkconfig contrail-hamon on  && echo setup-cluster-monitor >> /etc/contrail/contrail_openstack_exec.out ",
             unless  => "grep -qx setup-cluster-monitor  /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
-            logoutput => "true",
+            logoutput => $contrail_logoutput,
             tries => 3,
             try_sleep => 15,
         }
@@ -256,7 +262,7 @@ class contrail::ha_config (
             command => "sed -i -e 's#only_from = 0.0.0.0/0#only_from = $host_control_ip 127.0.0.1#' /etc/xinetd.d/contrail-mysqlprobe && service xinetd restart && chkconfig xinetd on && echo fix_xinetd_conf >> /etc/contrail/contrail_openstack_exec.out",
             unless  => "grep -qx fix_xinetd_conf  /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
-            logoutput => 'true',
+            logoutput => $contrail_logoutput,
         }
         # fix- mem-cache conf
         file { "/opt/contrail/bin/fix-mem-cache.py" :
@@ -272,7 +278,7 @@ class contrail::ha_config (
             unless  => "grep -qx fix-mem-cache /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
             require => [ File["/opt/contrail/bin/fix-mem-cache.py"] ],
-            logoutput => 'true',
+            logoutput => $contrail_logoutput,
         }
         #TODO tune tcp
         #fix cmon and add ssh keys
@@ -289,7 +295,7 @@ class contrail::ha_config (
             unless  => "grep -qx fix-cmon-params-and-add-ssh-keys /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
             require => [ File["/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py"], Exec["exec_vnc_galera"] ],
-            logoutput => 'true',
+            logoutput => $contrail_logoutput,
         }
         ->
         file { "/opt/contrail/bin/transfer_keys.py":
@@ -303,7 +309,7 @@ class contrail::ha_config (
         exec { "exec-transfer-keys":
                 command => "python /opt/contrail/bin/transfer_keys.py $os_master \"/etc/ssl/\" $os_username $os_passwd && echo exec-transfer-keys >> /etc/contrail/contrail_openstack_exec.out",
                 provider => shell,
-                logoutput => "true",
+                logoutput => $contrail_logoutput,
                 unless  => "grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out",
                 require => File["/opt/contrail/bin/transfer_keys.py"]
         }
@@ -318,13 +324,13 @@ class contrail::ha_config (
 		require => [  ],
 		unless  => "grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
-		logoutput => "true"
+		logoutput => $contrail_logoutput
 	    }
 	    exec { "add-fstab" :
 		command => "echo \"$contrail_nfs_server:$contrail_nfs_glance_path /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
 		unless  => "grep -qx add-fstab  /etc/contrail/contrail_openstack_exec.out",
 		provider => shell,
-		logoutput => "true"
+		logoutput => $contrail_logoutput
 	    }
 
         }

@@ -52,6 +52,11 @@
 #     Directory to be used for ssd data files (commit logs).
 #     (optional) - Defaults to "".
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::database (
     $host_control_ip = $::contrail::params::host_ip,
     $config_ip = $::contrail::params::config_ip_list[0],
@@ -61,7 +66,8 @@ class contrail::database (
     $database_initial_token = $::contrail::params::database_initial_token,
     $database_dir = $::contrail::params::database_dir,
     $analytics_data_dir = $::contrail::params::analytics_data_dir,
-    $ssd_data_dir = $::contrail::params::ssd_data_dir
+    $ssd_data_dir = $::contrail::params::ssd_data_dir,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
     # Main Class code
     case $::operatingsystem {
@@ -127,7 +133,9 @@ class contrail::database (
             notify => Service["supervisord-contrail-database"]
         }
     }
-    contrail::lib::report_status { "database_started": state => "database_started" }
+    contrail::lib::report_status { "database_started":
+        state => "database_started", 
+        contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-database' : ensure => present,}
@@ -141,7 +149,7 @@ class contrail::database (
                       "grep -qx exec-config-host-entry /etc/contrail/contrail_database_exec.out"],
         provider => "shell",
         require => Package['contrail-openstack-database'],
-        logoutput => "true"
+        logoutput => $contrail_logoutput
     }
     ->
     # database venv installation
@@ -153,7 +161,7 @@ class contrail::database (
                        "grep -qx database-venv /etc/contrail/contrail_database_exec.out"],
         require   => Package['contrail-openstack-database'],
         provider => "shell",
-        logoutput => "true"
+        logoutput => $contrail_logoutput
     }
     ->
     file { "$database_dir" :
@@ -199,7 +207,7 @@ class contrail::database (
         require => File["/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh"],
         unless  => "grep -qx setup-config-zk-files-setup /etc/contrail/contrail-config-exec.out",
         provider => shell,
-        logoutput => "true"
+        logoutput => $contrail_logoutput
     }
     ->
     file { "/etc/contrail/contrail-database-nodemgr.conf" :
@@ -225,7 +233,7 @@ class contrail::database (
 	require => File["/opt/contrail/bin/database-server-setup.sh"],
 	unless  => "grep -qx setup-database-server-setup /etc/contrail/contrail-compute-exec.out",
 	provider => shell,
-	logoutput => "true"
+	logoutput => $contrail_logoutput
     }
     ->
     # Ensure the services needed are running.
@@ -238,6 +246,8 @@ class contrail::database (
         ensure => running,
     }
     ->
-    contrail::lib::report_status { "database_completed": state => "database_completed" }
+    contrail::lib::report_status { "database_completed":
+        state => "database_completed", 
+        contrail_logoutput => $contrail_logoutput }
 
 }

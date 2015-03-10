@@ -15,7 +15,8 @@ class contrail::storage (
     $contrail_lm_storage_scope = $::contrail::params::live_migration_storage_scope,
     $contrail_storage_cluster_network = $::contrail::params::storage_cluster_network,
     $contrail_storage_hostnames = $::contrail::params::storage_hostnames,
-    $contrail_storage_chassis_config = $::contrail::params::storage_chassis_config
+    $contrail_storage_chassis_config = $::contrail::params::storage_chassis_config,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
     #include contrail::lib::storage_common
@@ -47,7 +48,8 @@ class contrail::storage (
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
             contrail_storage_hostnames => $contrail_storage_hostnames,
             contrail_storage_chassis_config => $contrail_storage_chassis_config,
-            contrail_storage_cluster_network => $contrail_storage_cluster_network }
+            contrail_storage_cluster_network => $contrail_storage_cluster_network,
+            contrail_logoutput => $contrail_logoutput }
         } else {
 	    file { "contrail-storage-exit-file":
 	        path => "/etc/contrail/contrail_setup_utils/config-storage-exit.sh",
@@ -81,7 +83,8 @@ class contrail::storage (
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
             contrail_storage_hostnames => $contrail_storage_hostnames,
             contrail_storage_chassis_config => $contrail_storage_chassis_config,
-            contrail_storage_cluster_network => $contrail_storage_cluster_network
+            contrail_storage_cluster_network => $contrail_storage_cluster_network,
+            contrail_logoutput => $contrail_logoutput
 	}
     }
 }

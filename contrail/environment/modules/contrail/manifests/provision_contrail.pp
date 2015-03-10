@@ -48,10 +48,14 @@
 #     Flag to indicate if openstack multi-tenancy is enabled.
 #     (optional) - Defaults to True.
 #
-#
 # [*external_bgp*]
 #     IP address of the external bgp peer.
 #     (optional) - Defaults to "".
+#
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
 #
 class contrail::provision_contrail (
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
@@ -67,6 +71,7 @@ class contrail::provision_contrail (
     $control_name_list = $::contrail::params::control_name_list,
     $multi_tenancy = $::contrail::params::multi_tenancy,
     $external_bgp = $::contrail::params::external_bgp,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
 
     # Initialize the multi tenancy option will update latter based on vns argument
@@ -114,7 +119,7 @@ class contrail::provision_contrail (
 	unless  => "grep -qx exec-provision-control /etc/contrail/contrail_config_exec.out",
 	provider => shell,
     require => [ File["/etc/contrail/contrail_setup_utils/exec_provision_control.py"] ],
-	logoutput => 'true'
+	logoutput => $contrail_logoutput
     }
     ->
     file { "/etc/contrail/contrail_setup_utils/setup_external_bgp.py" :
@@ -129,14 +134,14 @@ class contrail::provision_contrail (
 	require => [ File["/etc/contrail/contrail_setup_utils/setup_external_bgp.py"] ],
 	unless  => "grep -qx provision-external-bgp /etc/contrail/contrail_config_exec.out",
 	provider => shell,
-	logoutput => "true"
+	logoutput => $contrail_logoutput
     }
     ->
     exec { "provision-metadata-services" :
 	command => "python /opt/contrail/utils/provision_linklocal.py --admin_user \"$keystone_admin_user\" --admin_password \"$keystone_admin_password\" --linklocal_service_name metadata --linklocal_service_ip 169.254.169.254 --linklocal_service_port 80 --ipfabric_service_ip \"$openstack_ip_to_use\"  --ipfabric_service_port 8775 --oper add && echo provision-metadata-services >> /etc/contrail/contrail_config_exec.out",
 	unless  => "grep -qx provision-metadata-services /etc/contrail/contrail_config_exec.out",
 	provider => shell,
-	logoutput => "true",
+	logoutput => $contrail_logoutput,
 	tries => 100,
 	try_sleep => 15,
     }
@@ -145,7 +150,7 @@ class contrail::provision_contrail (
 	command => "python /opt/contrail/utils/provision_encap.py --admin_user \"$keystone_admin_user\" --admin_password \"$keystone_admin_password\" --encap_priority \"$encap_priority\" --oper add && echo provision-encap-type >> /etc/contrail/contrail_config_exec.out",
 	unless  => "grep -qx provision-encap-type /etc/contrail/contrail_config_exec.out",
 	provider => shell,
-	logoutput => "true",
+	logoutput => $contrail_logoutput,
 	tries => 100,
 	try_sleep => 15,
     }
