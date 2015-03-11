@@ -1,4 +1,9 @@
-define contrail::lib::post_openstack($host_control_ip, $openstack_ip_list, $internal_vip) {
+define contrail::lib::post_openstack(
+    $host_control_ip,
+    $openstack_ip_list,
+    $internal_vip,
+    $contrail_logoutput = false,
+) {
     if ($host_control_ip in $openstack_ip_list) {
 
       package { 'contrail-openstack':
@@ -10,7 +15,7 @@ define contrail::lib::post_openstack($host_control_ip, $openstack_ip_list, $inte
 	  unless  => "grep -qx start_supervisor_openstack /etc/contrail/contrail_openstack_exec.out",
 	  provider => shell,
 	  require => [ Package["contrail-openstack"]  ],
-	  logoutput => 'true'
+	  logoutput => $contrail_logoutput
       }
 
       #Make ha-mon start later
@@ -18,7 +23,7 @@ define contrail::lib::post_openstack($host_control_ip, $openstack_ip_list, $inte
             exec { "ha-mon-restart":
                 command => "service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out",
                 provider => shell,
-                logoutput => "true",
+                logoutput => $contrail_logoutput,
                 unless  => "grep -qx contrail-ha-mon  /etc/contrail/contrail_openstack_exec.out",
             }
       }

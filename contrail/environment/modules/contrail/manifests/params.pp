@@ -418,6 +418,11 @@
 #     Not exposed to SM for modification.
 #     (optional) - Defaults to "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'".
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -511,7 +516,8 @@ class contrail::params (
     $host_roles = "",
     $external_bgp = "",
     $sync_db = "",
-    $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'"
+    $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'",
+    $contrail_logoutput = false
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
     # that varible here.

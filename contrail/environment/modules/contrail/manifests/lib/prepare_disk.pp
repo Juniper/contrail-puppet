@@ -1,4 +1,6 @@
-define contrail::lib::prepare_disk($ensure = 'present') {
+define contrail::lib::prepare_disk(
+    $ensure = 'present',
+    $contrail_logoutput = false) {
 
     $disk_name = $name
     case $ensure {
@@ -9,7 +11,7 @@ define contrail::lib::prepare_disk($ensure = 'present') {
                    ## TODO: Commenting for now, 
                    #require => File["ceph-disk-clean-file"],
                    provider => shell,
-                   logoutput => "true"
+                   logoutput => $contrail_logoutput
            }
         }
         absent : {
