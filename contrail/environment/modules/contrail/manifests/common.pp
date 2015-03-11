@@ -21,11 +21,17 @@
 # [*contrail_repo_type*]
 #     Type of contrail repo (contrail-ubuntu-package or contrail-centos-package).
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::common(
     $host_mgmt_ip = $::contrail::params::host_ip,
     $contrail_repo_name = $::contrail::params::contrail_repo_name,
     $contrail_repo_ip = $::contrail::params::contrail_repo_ip,
-    $contrail_repo_type = $::contrail::params::contrail_repo_type
+    $contrail_repo_type = $::contrail::params::contrail_repo_type,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
     notify { "**** $module_name - host_mgmt_ip = $host_mgmt_ip": ; }
@@ -39,23 +45,28 @@ class contrail::common(
       'libvirt-dnsmasq' 	=> { user_uid => '497', user_group_name => 'libvirtd' , group_gid => '497',  user_home_dir => '/var/lib/libvirt/dnsmasq'},
     }
 
-    create_resources(contrail::lib::setup_uid, $contrail_users_details, {})
+    create_resources(contrail::lib::setup_uid, $contrail_users_details,
+                         {
+                             contrail_logoutput => $contrail_logoutput
+                         }
+                    )
 
     # Resource declarations for class contrail::common
     # macro to perform common functions
     # Create repository config on target.
     contrail::lib::contrail-setup-repo{ $contrail_repo_name:
-        #contrail_repo_name => $contrail_repo_name,
-        contrail_repo_ip => $contrail_repo_ip
+        contrail_repo_ip => $contrail_repo_ip,
+        contrail_logoutput => $contrail_logoutput
     } ->
 
     contrail::lib::contrail-install-repo{ $contrail_repo_type:
-        #contrail_repo_type => $contrail_repo_type
+        contrail_logoutput => $contrail_logoutput
     }
     ->
     contrail::lib::upgrade-kernel{ kernel_upgrade:
         contrail_kernel_upgrade => $kernel_upgrade,
-        contrail_kernel_version => $kernel_version
+        contrail_kernel_version => $kernel_version,
+        contrail_logoutput      => $contrail_logoutput
     } ->
     # Ensure /etc/hosts has an entry for self to map dns name to ip address
     host { "$hostname" :
@@ -68,7 +79,7 @@ class contrail::common(
 	command => "mkdir -p /var/log/mysql && echo setmysql >> /etc/contrail/contrail_common_exec.out",
 	unless  => "grep -qx setmysql /etc/contrail/contrail_common_exec.out",
 	provider => shell,
-	logoutput => "true"
+	logoutput => $contrail_logoutput
     }
     ->
     package { 'libssl0.9.8' : ensure => present,}
@@ -81,7 +92,7 @@ class contrail::common(
 	    onlyif    => '[ -d /etc/selinux ]',
 	    unless    => "grep -qFx 'SELINUX=disabled' '/etc/selinux/config'",
 	    provider  => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	}
 
 	# disable selinux runtime
@@ -89,7 +100,7 @@ class contrail::common(
 	    command   => "setenforce 0 || true",
 	    unless    => "getenforce | grep -qi disabled",
 	    provider  => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	}
 
 	# Disable iptables
@@ -105,7 +116,7 @@ class contrail::common(
 	    command   => "ufw disable",
 	    unless    => "ufw status | grep -qi inactive",
 	    provider  => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	}
 	# Create symbolic link to chkconfig. This does not exist on Ubuntu.
 	file { '/sbin/chkconfig':
@@ -115,7 +126,7 @@ class contrail::common(
     }
 
     # Flush ip tables.
-    exec { 'iptables --flush': provider => shell, logoutput => true }
+    exec { 'iptables --flush': provider => shell, logoutput => $contrail_logoutput }
 
     # Remove any core limit configured
     if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
@@ -123,7 +134,7 @@ class contrail::common(
 	    command   => "sed -i \'/DAEMON_COREFILE_LIMIT=.*/d\' /etc/sysconfig/init; echo DAEMON_COREFILE_LIMIT=\"\'unlimited\'\" >> /etc/sysconfig/init",
 	    unless    => "grep -qx \"DAEMON_COREFILE_LIMIT='unlimited'\" /etc/sysconfig/init",
 	    provider => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	}
     }
     if ($operatingsystem == "Ubuntu") {
@@ -131,7 +142,7 @@ class contrail::common(
 	    command   => "ulimit -c unlimited",
 	    unless    => "ulimit -c | grep -qi unlimited",
 	    provider  => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	}
     }
 
@@ -150,7 +161,7 @@ class contrail::common(
 #	unless  => "grep -qx exec_check_mysql /etc/contrail/contrail_common_exec.out",
 	provider => shell,
 	require => [ File["/opt/check-mysql-status.py"] ],
-	logoutput => 'true',
+	logoutput => $contrail_logoutput
     }
 }
 
@@ -159,7 +170,7 @@ class contrail::common(
 	command   => 'echo \'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t\' >> /etc/sysctl.conf',
 	unless    => "grep -q 'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t' /etc/sysctl.conf",
 	provider => shell,
-	logoutput => "true"
+	logoutput => $contrail_logoutput
     }
 
     # Enable ip forwarding in sysctl.conf for vgw
@@ -168,10 +179,10 @@ class contrail::common(
 	unless    => ["[ ! -f /etc/sysctl.conf ]",
 		      "grep -qx \"net.ipv4.ip_forward = 1\" /etc/sysctl.conf"],
 	provider => shell,
-	logoutput => "true"
+	logoutput => $contrail_logoutput
     }
 
-    #exec { 'sysctl -e -p' : provider => shell, logoutput => on_failure }
+    #exec { 'sysctl -e -p' : provider => shell, logoutput => $contrail_logoutput }
     file { "/var/crashes":
 	ensure => "directory",
     }
@@ -198,7 +209,7 @@ class contrail::common(
 	require => File["/etc/contrail/contrail_setup_utils/enable_kernel_core.py" ],
 	unless  => "grep -qx enable-kernel-core /etc/contrail/contrail_common_exec.out",
 	provider => shell,
-	logoutput => "true"
+	logoutput => $contrail_logoutput
     }
     file { "/tmp/facts.yaml":
         content => inline_template("<%= scope.to_hash.reject { |k,v| !( k.is_a?(String) && v.is_a?(String) ) }.to_yaml %>"),
@@ -222,7 +233,7 @@ class contrail::common(
             cwd => "/opt/contrail/bin/",
             unless  => "grep -qx add_reserved_ports /etc/contrail/contrail_common_exec.out",
             provider => shell,
-            logoutput => 'true'
+            logoutput => $contrail_logoutput
         }
     }
 #}

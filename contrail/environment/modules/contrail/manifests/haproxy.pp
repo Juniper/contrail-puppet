@@ -10,6 +10,11 @@
 # [*config_name_list*]
 #     List of host names of all the servers running config role.
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 # The puppet module to set up a haproxy server
 class contrail::haproxy (
     $config_ip_list = $::contrail::params::config_ip_list,
@@ -20,7 +25,8 @@ class contrail::haproxy (
     $collector_name_list =  $::contrail::params::collector_name_list,
     $contrail_internal_vip =  $::contrail::params::contrail_internal_vip,
     $internal_vip =  $::contrail::params::internal_vip,
-    $host_ip = $::contrail::params::host_ip
+    $host_ip = $::contrail::params::host_ip,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
     require ::contrail::params
 
@@ -87,7 +93,7 @@ class contrail::haproxy (
 	unless  => "grep -qx generate_ha_config /etc/contrail/contrail_openstack_exec.out",
 	provider => shell,
 	require => [ File["/opt/contrail/bin/generate_haproxy.py"] ],
-	logoutput => 'true'
+	logoutput => $contrail_logoutput
     }
 
 

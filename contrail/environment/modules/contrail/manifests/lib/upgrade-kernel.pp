@@ -1,4 +1,8 @@
-define contrail::lib::upgrade-kernel($contrail_kernel_upgrade, $contrail_kernel_version) {
+define contrail::lib::upgrade-kernel(
+    $contrail_kernel_upgrade,
+    $contrail_kernel_version,
+    $contrail_logoutput = false,
+) {
 
     if ($operatingsystem == "Ubuntu" and $contrail_kernel_upgrade == "yes")
     {
@@ -25,7 +29,7 @@ define contrail::lib::upgrade-kernel($contrail_kernel_upgrade, $contrail_kernel_
             exec { "upgrade-kernel-reboot":
                 command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
                 provider => shell,
-                logoutput => "true",
+                logoutput => $contrail_logoutput,
                 unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
             }
         } else {
@@ -51,7 +55,7 @@ define contrail::lib::upgrade-kernel($contrail_kernel_upgrade, $contrail_kernel_
             exec { "upgrade-kernel-reboot":
                 command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
                 provider => shell,
-                logoutput => "true",
+                logoutput => $contrail_logoutput,
                 unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
             }
         }

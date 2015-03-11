@@ -15,7 +15,8 @@ define contrail::lib::storage_common(
         $contrail_lm_storage_scope,
         $contrail_storage_hostnames,
         $contrail_storage_chassis_config,
-        $contrail_storage_cluster_network
+        $contrail_storage_cluster_network,
+        $contrail_logoutput = false
         ) {
 
     contrail::lib::report_status { "storage_started": state => "storage_started" }
@@ -131,7 +132,7 @@ define contrail::lib::storage_common(
              require => File["config-storage-openstack.sh"],
              unless  => "grep -qx setup-config-storage-openstack /etc/contrail/contrail-storage-exec.out",
              provider => shell,
-             logoutput => "true"
+             logoutput => $contrail_logoutput
         }
         Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage_completed']
 
@@ -145,7 +146,7 @@ define contrail::lib::storage_common(
               exec { "setup_storage_chassis_config" :
                   command => 'python /opt/contrail/bin/contrail_storage_chassis_config.py',
                   provider => shell,
-                  logoutput => true
+                  logoutput => $contrail_logoutput
               }
               Exec['setup_storage_chassis_config']-> Contrail::Lib::Report_status['storage_completed']
               Exec['setup_storage_chassis_config']-> Exec['setup-config-storage-live-migration']
@@ -191,7 +192,7 @@ define contrail::lib::storage_common(
                              $contrail_live_migration_host $contrail_storage_num_osd" ,
                   provider => shell,
                   timeout => 0,
-                  logoutput => "true"
+                  logoutput => $contrail_logoutput
             }
             Exec['setup-config-storage-openstack'] -> Exec['setup-config-storage-live-migration']
             Exec['setup-config-storage-live-migration']-> Contrail::Lib::Report_status['storage_completed']
@@ -217,7 +218,7 @@ define contrail::lib::storage_common(
             require => File["config-storage-compute.sh"],
             unless  => "grep -qx setup-config-storage-compute /etc/contrail/contrail-storage-exec.out",
             provider => shell,
-            logoutput => "true"
+            logoutput => $contrail_logoutput
         }
 
         Exec['setup-config-storage-compute']-> Contrail::Lib::Report_status['storage_completed']
@@ -245,7 +246,7 @@ define contrail::lib::storage_common(
                          $contrail_live_migration_host $contrail_lm_storage_scope" ,
               provider => shell,
               timeout => 0,
-              logoutput => "true"
+              logoutput => $contrail_logoutput
           }
           Exec['setup-config-storage-compute'] -> Exec['setup-config-storage-compute-live-migration']
           Exec['setup-config-storage-compute-live-migration']-> Contrail::Lib::Report_status['storage_completed']
@@ -281,8 +282,8 @@ define contrail::lib::storage_common(
     -> 
     exec { 'ceph-virsh-set-secret' : 
         command => "/usr/bin/virsh secret-set-value ${contrail_storage_virsh_uuid} \
-                     --base64 `/usr/bin/ceph auth get client.volumes  | \
-                     grep \"key = \" | awk '{printf \$3}'`", 
+                     --base64 usr/bin/ceph auth get client.volumes  | \
+                     grep \"key = \" | awk '{printf \$3}'
         unless  => "/usr/bin/virsh secret-get-value ${contrail_storage_virsh_uuid} ",
         require => Exec['ceph-virsh-secret']
     }
@@ -305,3 +306,5 @@ define contrail::lib::storage_common(
     ->
     contrail::lib::report_status { "storage_completed": state => "storage_completed" }
 }
+
+

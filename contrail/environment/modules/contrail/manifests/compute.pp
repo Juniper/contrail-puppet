@@ -159,6 +159,11 @@
 #     orchestrator being used for launching VMs.
 #     (optional) - Defaults to "openstack"
 #
+# [*contrail_logoutput*]
+#     Variable to specify if output of exec commands is to be logged or not.
+#     Values are true, false or on_failure
+#     (optional) - Defaults to false
+#
 class contrail::compute (
     $host_control_ip = $::contrail::params::host_ip,
     $config_ip = $::contrail::params::config_ip_list[0],
@@ -194,7 +199,8 @@ class contrail::compute (
     $vgw_interface = $::contrail::params::vgw_interface,
     $vgw_gateway_routes = $::contrail::params::vgw_gateway_routes,
     $nfs_server = $::contrail::params::nfs_server,
-    $orchestrator = $::contrail::params::orchestrator
+    $orchestrator = $::contrail::params::orchestrator,
+    $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
     $contrail_num_controls = inline_template("<%= @control_ip_list.length %>")
@@ -352,7 +358,9 @@ class contrail::compute (
     notify {"hypervisor_type = $hypervisor_type":; } ->
     notify {"vmware_physical_intf = $vmware_physical_intf":; } ->
 
-    contrail::lib::report_status { "compute_started": state => "compute_started" }
+    contrail::lib::report_status { "compute_started":
+        state => "compute_started", 
+        contrail_logoutput => $contrail_logoutput }
     ->
     # Main code for class starts here
     # Ensure all needed packages are present
@@ -376,7 +384,7 @@ class contrail::compute (
             require => [  ],
             unless  => "grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out",
             provider => shell,
-            logoutput => "true"
+            logoutput => $contrail_logoutput
         }
     }
 
@@ -387,7 +395,7 @@ class contrail::compute (
 		    "grep -qx \"neutron_admin_auth_url = http://$keystone_ip_to_use:5000/v2.0\" /etc/nova/nova.conf"],
 	require => [ Package["contrail-openstack-vrouter"] ],
 	provider => shell,
-	logoutput => 'true'
+	logoutput => $contrail_logoutput
     } ->
 
     # set rpc backend in nova.conf
@@ -397,7 +405,7 @@ class contrail::compute (
 		    "grep -qx exec-update-nova-conf /etc/contrail/contrail_common_exec.out"],
 	require => [ Package["contrail-openstack-vrouter"] ],
         provider => shell,
-        logoutput => "true"
+        logoutput => $contrail_logoutput
     }
 
     if ! defined(Exec["neutron-conf-exec"]) {
@@ -407,7 +415,7 @@ class contrail::compute (
 	    unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out",
 	    require => [ Package["contrail-openstack-vrouter"] ],
 	    provider => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	}
     }
 
@@ -418,7 +426,7 @@ class contrail::compute (
 	    unless  => "grep -qx quantum-conf-exec /etc/contrail/contrail_openstack_exec.out",
 	    require => [ Package["contrail-openstack-vrouter"] ],
 	    provider => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	}
     }
 
@@ -445,7 +453,7 @@ class contrail::compute (
         require => [ File["/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh"] ],
         unless  => "grep -qx add_dev_tun_in_cgroup_device_acl /etc/contrail/contrail_compute_exec.out",
         provider => shell,
-        logoutput => 'true'
+        logoutput => $contrail_logoutput
     }
 
     file { "/etc/contrail/vrouter_nodemgr_param" :
@@ -480,7 +488,7 @@ class contrail::compute (
 	    unless  => "grep -qx exec_set_rabbitmq_tcp_params /etc/contrail/contrail_openstack_exec.out",
 	    provider => shell,
 	    require => [ File["/opt/contrail/bin/set_rabbit_tcp_params.py"] ],
-	    logoutput => true
+	    logoutput => $contrail_logoutput
 	}
     }
 
@@ -532,7 +540,7 @@ class contrail::compute (
 	    require => [ File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] ],
 	    unless  => "grep -qx update-dev-net-config /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
-	    logoutput => 'true'
+	    logoutput => $contrail_logoutput
 	} ->
 
 	file { "/opt/contrail/utils/provision_vrouter.py":
@@ -546,7 +554,7 @@ class contrail::compute (
 	    require => File["/opt/contrail/utils/provision_vrouter.py"],
 	    unless  => "grep -qx add-vnc-config /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
-	    logoutput => 'true'
+	    logoutput => $contrail_logoutput
 	} ->
 
 	file { "/opt/contrail/bin/compute-server-setup.sh":
@@ -561,30 +569,32 @@ class contrail::compute (
 	    require => File["/opt/contrail/bin/compute-server-setup.sh"],
 	    unless  => "grep -qx setup-compute-server-setup /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 	} ->
         exec { "fix-neutron-tenant-name" :
 	    command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out",
 	    unless  => "grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 
         } ->
         exec { "fix-neutron-admin-password" :
 	    command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password $keystone_admin_password && echo fix-neutron-admin-password >> /etc/contrail/contrail_compute_exec.out",
 	    unless  => "grep -qx fix-neutron-admin-password /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 
         } ->
         exec { "fix-keystone-admin-password" :
 	    command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password $keystone_admin_password && echo fix-keystone-admin-password >> /etc/contrail/contrail_compute_exec.out",
 	    unless  => "grep -qx fix-keystone-admin-password /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
-	    logoutput => "true"
+	    logoutput => $contrail_logoutput
 
         } ->
-        contrail::lib::report_status { "compute_completed": state => "compute_completed" } ->
+        contrail::lib::report_status { "compute_completed":
+            state => "compute_completed", 
+            contrail_logoutput => $contrail_logoutput } ->
         file { "/etc/contrail/interface_renamed" :
             ensure  => present,
             mode => 0644,
@@ -594,7 +604,7 @@ class contrail::compute (
 	    command   => "echo flag-reboot-server >> /etc/contrail/contrail_compute_exec.out",
 	    unless => ["grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out"],
 	    provider => "shell",
-	    logoutput => 'true'
+	    logoutput => $contrail_logoutput
 	} 
 	# Now reboot the system
 	if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
@@ -604,7 +614,7 @@ class contrail::compute (
 		unless  => "grep -qx cp-ifcfg-file /etc/contrail/contrail_compute_exec.out",
 		provider => "shell",
 	        require => Exec["flag-reboot-server"],
-		logoutput => 'true'
+		logoutput => $contrail_logoutput
 	    }
 	}
     }

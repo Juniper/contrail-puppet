@@ -1,5 +1,6 @@
 define contrail::lib::fix-memcache-conf (
-   $listen_ip = "" 
+    $listen_ip = "",
+    $contrail_logoutput = false,
 ) {
         file { "/opt/contrail/bin/fix-mem-cache.py":
             ensure  => present,
@@ -12,7 +13,7 @@ define contrail::lib::fix-memcache-conf (
         exec { "exec-fix-memcache":
             command => "python /opt/contrail/bin/fix-mem-cache.py $listen_ip && echo exec-fix-memcache >> /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
-            logoutput => "true",
+            logoutput => $contrail_logoutput,
             unless  => "grep -qx exec-fix-memcache  /etc/contrail/contrail_openstack_exec.out"
         }
 
