@@ -8,11 +8,13 @@ class mysql::server (
   $package_name            = $mysql::params::server_package_name,
   $purge_conf_dir          = $mysql::params::purge_conf_dir,
   $remove_default_accounts = false,
-  $restart                 = $mysql::params::restart,
+#  $restart                 = $mysql::params::restart,
+  $restart                 = false,
   $root_group              = $mysql::params::root_group,
   $root_password           = $mysql::params::root_password,
   $service_enabled         = $mysql::params::server_service_enabled,
   $service_manage          = $mysql::params::server_service_manage,
+#  $service_manage          = false,
   $service_name            = $mysql::params::server_service_name,
   $service_provider        = $mysql::params::server_service_provider,
   $users                   = {},
@@ -23,6 +25,9 @@ class mysql::server (
   $enabled                 = undef,
   $manage_service          = undef
 ) inherits mysql::params {
+
+    notify { "Mysql - restart = $restart":; }
+    notify { "Mysql- service_manage = $service_manage":; }
 
   # Deprecated parameters.
   if $enabled {

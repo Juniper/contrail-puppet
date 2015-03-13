@@ -669,6 +669,7 @@ class contrail::config (
 
     if ! defined(File["/opt/contrail/bin/set_rabbit_tcp_params.py"]) {
 
+/*
 	# check_wsrep
 	file { "/opt/contrail/bin/set_rabbit_tcp_params.py" :
 	    ensure  => present,
@@ -686,6 +687,7 @@ class contrail::config (
 	    require => [ File["/opt/contrail/bin/set_rabbit_tcp_params.py"] ],
 	    logoutput => $contrail_logoutput
 	}
+*/
     }
 # end of user defined type contrail_config.
 

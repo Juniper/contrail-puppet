@@ -22,17 +22,17 @@ def main(args_str=None):
     print "wsrep_cluster_size: %s" % output
     #if output.find("4") == -1:
     if output.find(str(number_openstack_nodes)) == -1:
-        uuid, output = commands.getstatusoutput("cat /var/lib/mysql/grastate.dat | grep uuid | awk '{print $2;}'")
-        commands.getstatusoutput("service mysql restart")
-      
-        for os_ip in os_ip_list:
-#          if not os.path.exists("/etc/clear_mysql"):
-              status,output = commands.getstatusoutput('ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s "rm -rf /var/lib/mysql/grastate.dat"' % (os_ip))
-              status,output = commands.getstatusoutput('ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s "service mysql restart"' % (os_ip))
-              print "cleaning mysql in %s" % (output)
-              open("/etc/clear_mysql", 'a').close() 
- 
         sys.exit(1)
+#        uuid, output = commands.getstatusoutput("cat /var/lib/mysql/grastate.dat | grep uuid | awk '{print $2;}'")
+#        commands.getstatusoutput("service mysql restart")
+      
+#        for os_ip in os_ip_list:
+#          if not os.path.exists("/etc/clear_mysql"):
+#              status,output = commands.getstatusoutput('ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s "rm -rf /var/lib/mysql/grastate.dat"' % (os_ip))
+#              status,output = commands.getstatusoutput('ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s "service mysql restart"' % (os_ip))
+#              print "cleaning mysql in %s" % (output)
+#              open("/etc/clear_mysql", 'a').close() 
+ 
 if __name__ == "__main__":
          main(sys.argv[1:])
 
