@@ -5,6 +5,8 @@ RETVAL=0
 VM_HOST=0
 VM_HOSTNAME=$1
 STORAGE_SCOPE=$2
+LIVEMNFS_IP=192.168.101.3
+LIVEMNFS_NETWORK=192.168.101.0/24
 MY_HOSTNAME=`hostname`
 
 if [ ${VM_HOSTNAME} != ${MY_HOSTNAME} ]
@@ -134,50 +136,50 @@ then
   ## TODO: Check individual configuration values.
   CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/contrail/contrail-vrouter-agent.conf GATEWAY-1 ip_blocks`
   RETVAL=$?
-  if [ ${RETVAL} -ne 0 ] || [ ! "x${CONFIG_VALUE}" = "x192.168.101.0/24" ]
+  if [ ${RETVAL} -ne 0 ] || [ ! "x${CONFIG_VALUE}" = "x${LIVEMNFS_NETWORK}" ]
   then
     openstack-config --set /etc/contrail/contrail-vrouter-agent.conf GATEWAY-1 routing_instance default-domain:admin:livemnfs:livemnfs
     openstack-config --set /etc/contrail/contrail-vrouter-agent.conf GATEWAY-1 interface livemnfsvgw
-    openstack-config --set /etc/contrail/contrail-vrouter-agent.conf GATEWAY-1 ip_blocks 192.168.101.0/24
+    openstack-config --set /etc/contrail/contrail-vrouter-agent.conf GATEWAY-1 ip_blocks ${LIVEMNFS_NETWORK}
     service contrail-vrouter-agent restart
   fi
   
   ## Check if route to NFS VM exists ?
-  netstat -nr | grep -q 192.168.101.3
+  netstat -nr | grep -q ${LIVEMNFS_IP}
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    route add -host 192.168.101.3/32 dev livemnfsvgw
+    route add -host ${LIVEMNFS_IP}/32 dev livemnfsvgw
   fi
   ## Add route to syartup files. as well.
-  grep -q "up route add -host 192.168.101.3/32 dev livemnfsvgw" /etc/network/interfaces
+  grep -q "up route add -host ${LIVEMNFS_IP}/32 dev livemnfsvgw" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    echo "up route add -host 192.168.101.3/32 dev livemnfsvgw" >> /etc/network/interfaces
+    echo "up route add -host ${LIVEMNFS_IP}/32 dev livemnfsvgw" >> /etc/network/interfaces
   fi
 else 
   ## Check routes on compute nodes (non-vm host)
-  netstat -nr | grep -q 192.168.101.3
+  netstat -nr | grep -q ${LIVEMNFS_IP}
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    route add 192.168.101.3 gw ${NOVA_HOST_IP}
+    route add ${LIVEMNFS_IP} gw ${NOVA_HOST_IP}
   fi
 
   ## Add route to system start-up files
-  grep -q "up route add 192.168.101.3 gw ${NOVA_HOST_IP}" /etc/network/interfaces
+  grep -q "up route add ${LIVEMNFS_IP} gw ${NOVA_HOST_IP}" /etc/network/interfaces
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    echo "up route add 192.168.101.3 gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
+    echo "up route add ${LIVEMNFS_IP} gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
   fi
 fi
 
 
 ## Ping VM and check if its reachable, if yes, then mount the NFS path
 ## TODO: Exit with error
-ping -c 5 192.168.101.3
+ping -c 5 ${LIVEMNFS_IP}
 RETVAL=$?
 if [ $RETVAL -eq 0 ]
 then 
@@ -185,7 +187,7 @@ then
   stat -c '%U:%G'  /var/lib/nova/instances/global
   STAT_OUTPUT=`stat -c '%U:%G'  /var/lib/nova/instances/global`
   echo "current ownership of instances : ${STAT_OUTPUT}"
-  mount 192.168.101.3:/livemnfsvol /var/lib/nova/instances/global
+  mount ${LIVEMNFS_IP}:/livemnfsvol /var/lib/nova/instances/global
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
