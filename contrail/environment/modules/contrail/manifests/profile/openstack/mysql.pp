@@ -17,9 +17,9 @@ class contrail::profile::openstack::mysql {
 
   # This class requires Service['mysqld']
   #include contrail::ha_config
-  class {'::contrail::ha_config':
-    require => Service['mysqld']
-  }
+#  class {'::contrail::ha_config':
+#    require => Service['mysqld']
+#  }
 
   Service['mysqld'] -> Anchor['database-service']
 

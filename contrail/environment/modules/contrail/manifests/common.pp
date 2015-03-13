@@ -146,24 +146,6 @@ class contrail::common(
 	}
     }
 
-##HACk for mysql on openstack-ha
-  if ($::contrail::params::internal_vip != "") {
-    file { "/opt/check-mysql-status.py" :
-	ensure  => present,
-	mode => 0755,
-	group => root,
-	source => "puppet:///modules/$module_name/check-mysql-status.py"
-    }
-    ->
-    exec { "exec_check_mysql" :
-	command => "python /opt/check-mysql-status.py",  
-	cwd => "/opt/",
-#	unless  => "grep -qx exec_check_mysql /etc/contrail/contrail_common_exec.out",
-	provider => shell,
-	require => [ File["/opt/check-mysql-status.py"] ],
-	logoutput => $contrail_logoutput
-    }
-}
 
     # Core pattern
     exec { 'core_pattern_1':

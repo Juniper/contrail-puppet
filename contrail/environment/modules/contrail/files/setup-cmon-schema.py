@@ -57,7 +57,7 @@ def main(argv):
     status,output = commands.getstatusoutput(mysql_cmon_user_cmd)
     status,output = commands.getstatusoutput('%s "GRANT ALL PRIVILEGES on *.* TO cmon@%s IDENTIFIED BY \'cmon\' WITH GRANT OPTION"' %
                    (mysql_cmd, self_ip))
-    status,output = commands.getstatusoutput("service mysql restart")
+#    status,output = commands.getstatusoutput("service mysql restart")
 
 if __name__ == "__main__":
      main(sys.argv[1:])
