@@ -148,6 +148,13 @@ class contrail::ha_config (
 	}
 
         ->
+        file { "/usr/local/lib/python2.7/dist-packages/contrail_provisioning/openstack/ha/galera_setup.py" :
+            ensure  => present,
+            mode =>    0755,
+            group => root,
+            source => "puppet:///modules/$module_name/galera_setup_gcomm_mod.py"
+        }
+        -> 
         file { "/opt/contrail/bin/setup-vnc-galera" :
             ensure  => present,
             mode =>    0755,
@@ -201,16 +208,6 @@ class contrail::ha_config (
 		logoutput => $contrail_logoutput,
 	    }
 
-	    ->
-            exec { "fix_wsrep_cluster_address" :
-                command => "sudo sed -ibak 's#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://$openstack_ip_list_wsrep#g' $wsrep_conf && service mysql restart && echo exec_fix_wsrep_cluster_address >> /etc/contrail/contrail_openstack_exec.out",
-                require =>  [package["contrail-openstack-ha"],
-                             Exec['exec_vnc_galera']],
-                onlyif => "test -f $wsrep_conf",
-                unless  => "grep -qx exec_fix_wsrep_cluster_address /etc/contrail/contrail_openstack_exec.out",
-                provider => shell,
-                logoutput => $contrail_logoutput,
-            }
 
 
         }

@@ -13,6 +13,7 @@ class mysql::server::service {
       name     => $mysql::server::service_name,
       enable   => $mysql::server::real_service_enabled,
       provider => $mysql::server::service_provider,
+      subscribe => File['/etc/mysql/my.cnf'],
     }
   }
 
