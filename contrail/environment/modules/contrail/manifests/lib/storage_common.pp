@@ -136,7 +136,7 @@ define contrail::lib::storage_common(
         }
         Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage_completed']
 
-        if $contrail_storage_hostnames != '' {
+        if $contrail_storage_chassis_config != '' {
              file { "storage_chassis_config" :
                  path => '/opt/contrail/bin/contrail_storage_chassis_config.py',
                  content => template("$module_name/contrail-storage-chassis-config.erb"),
@@ -176,6 +176,7 @@ define contrail::lib::storage_common(
                 pgp_num => $contrail_ceph_pg_num,
         }
         Ceph::Pool['images'] -> Contrail::Lib::Report_status['storage_completed']
+        Ceph::Pool['images'] -> Exec['setup-config-storage-openstack']
     
         if $contrail_live_migration_host != '' {
             file { "config-storage-live-migration.sh":
