@@ -103,17 +103,17 @@ define contrail::lib::storage_common(
         inject => true,
       }
 
-    if $contrail_storage_osd_disks != 'undef' {
-        #Ceph::Osd<| |> -> Ceph::Pool['volumes']
-        #Ceph::Osd<| |> -> Ceph::Pool['images']
-        contrail::lib::prepare_disk{ $contrail_storage_osd_disks :
-            contrail_logoutput => $contrail_logoutput
-        } ->
-        ceph::osd { $contrail_storage_osd_disks: 
-            require => Contrail::Lib::Prepare_disk[$contrail_storage_osd_disks]
-        } -> 
-        Contrail::Lib::Report_status['storage_completed']
-    }
+     if 'storage-compute' in $contrail_host_roles {
+       if $contrail_storage_osd_disks != 'undef' {
+          contrail::lib::prepare_disk{ $contrail_storage_osd_disks :
+              contrail_logoutput => $contrail_logoutput
+          } ->
+          ceph::osd { $contrail_storage_osd_disks: 
+              require => Contrail::Lib::Prepare_disk[$contrail_storage_osd_disks]
+          } -> 
+          Contrail::Lib::Report_status['storage_completed']
+       }
+     }
 
     if 'openstack' in $contrail_host_roles {
         Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['setup-config-storage-openstack']
