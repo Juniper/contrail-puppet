@@ -669,8 +669,7 @@ class contrail::config (
 
     if ! defined(File["/opt/contrail/bin/set_rabbit_tcp_params.py"]) {
 
-/*
-	# check_wsrep
+	#set tcp params to handle tcp connections when VIP moves
 	file { "/opt/contrail/bin/set_rabbit_tcp_params.py" :
 	    ensure  => present,
 	    mode => 0755,
@@ -687,7 +686,6 @@ class contrail::config (
 	    require => [ File["/opt/contrail/bin/set_rabbit_tcp_params.py"] ],
 	    logoutput => $contrail_logoutput
 	}
-*/
     }
 # end of user defined type contrail_config.
 
