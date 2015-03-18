@@ -8,7 +8,7 @@ import sys
 import argparse
 import ConfigParser
 import time
-
+import commands
 from fabric.api import local,run
 from fabric.context_managers import lcd, hide, settings
 from fabric.operations import get, put
@@ -37,6 +37,16 @@ class GaleraSetup(ContrailSetup):
         self.parse_args(args_str)
         self.mysql_redo_log_sz = '5242880'
 
+    def check_cluster(self, galera_ip_list, self_ip):
+        status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
+        mysql_token = output
+        status,output = commands.getstatusoutput('mysql -uroot -p%s -e "show status like \'wsrep_incoming_addresses\'"' %  mysql_token )
+        print "wsrep_incoming_addresses: %s" % output
+        if output.find(self_ip) >= 0:
+            return True
+        else:
+            return False
+
     def parse_args(self, args_str):
         '''
         Eg. setup-vnc-galera --openstack0_user root --openstack0_password c0ntrail123 --self_ip 10.1.5.11
@@ -55,6 +65,8 @@ class GaleraSetup(ContrailSetup):
         self._args = parser.parse_args(self.remaining_argv)
 
     def fixup_config_files(self):
+        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
+            return
         with settings(warn_only=True):
             local("service contrail-hamon stop")
             local("service cmon stop")
@@ -220,6 +232,8 @@ class GaleraSetup(ContrailSetup):
         local('rm %s/galera_cron' % self._temp_dir_name)
 
     def run_services(self):
+        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
+            return
         self.cleanup_redo_log()
         if self._args.openstack_index == 1:
             local("service %s stop" % self.mysql_svc)
