@@ -196,26 +196,20 @@ class contrail::common(
     file { "/tmp/facts.yaml":
         content => inline_template("<%= scope.to_hash.reject { |k,v| !( k.is_a?(String) && v.is_a?(String) ) }.to_yaml %>"),
     } 
-#    if ( ($internal_vip != "" and $internal_vip != undef) or
-#         ($contrail_internal_vip != "" and $contrail_internal_vip != undef) or
-#         ($external_vip != "" and $external_vip != undef) or
-#         ($contrail_external_vip != "" and $contrail_external_vip != undef))
-        #set the reserved ports
-#    {
 
-         file { "/opt/contrail/bin/add_reserved_ports.py" :
-            ensure  => present,
-            mode => 0755,
-            group => root,
-            source => "puppet:///modules/$module_name/add_reserved_ports.py"
-        }
-        ->
-        exec { "add_reserved_ports" :
-            command => "python add_reserved_ports.py 35357,35358,33306 && echo add_reserved_ports >> /etc/contrail/contrail_common_exec.out",
-            cwd => "/opt/contrail/bin/",
-            unless  => "grep -qx add_reserved_ports /etc/contrail/contrail_common_exec.out",
-            provider => shell,
-            logoutput => $contrail_logoutput
-        }
+    file { "/etc/contrail/contrail_setup_utils/add_reserved_ports.py" :
+	ensure  => present,
+	mode => 0755,
+	group => root,
+	require => File["/etc/contrail/contrail_setup_utils"],
+	source => "puppet:///modules/$module_name/add_reserved_ports.py"
     }
-#}
+    ->
+    exec { "add_reserved_ports" :
+	command => "python add_reserved_ports.py 35357,35358,33306 && echo add_reserved_ports >> /etc/contrail/contrail_common_exec.out",
+	cwd => "/etc/contrail/contrail_setup_utils/",
+	unless  => "grep -qx add_reserved_ports /etc/contrail/contrail_common_exec.out",
+	provider => shell,
+	logoutput => $contrail_logoutput
+    }
+}
