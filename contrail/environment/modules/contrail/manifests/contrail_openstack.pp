@@ -108,13 +108,6 @@ class contrail::contrail_openstack (
         require => [ File["/etc/nova/nova.conf"] ],
         logoutput => $contrail_logoutput
     }
-    # Set novncproxy_port to 5999, novncproxy_base_url to http://$openstack_mgmt_ip:5999/vnc_auto.html
-    exec { "exec_set_novncproxy":
-        command => "openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_port 5999 && openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_base_url http://$openstack_mgmt_ip:5999/vnc_auto.html && echo exec_set_novncproxy >> /etc/contrail/contrail_openstack_exec.out",
-        provider => shell,
-        require => [ File["/etc/nova/nova.conf"] ],
-        logoutput => true
-    }
     # Set service_neutron_metadata_proxy to True
     exec { "exec_set_service_neutron_metadata_proxy":
         command => "openstack-config --set /etc/nova/nova.conf DEFAULT service_neutron_metadata_proxy True && echo exec_set_service_neutron_metadata_proxy >> /etc/contrail/contrail_openstack_exec.out",
