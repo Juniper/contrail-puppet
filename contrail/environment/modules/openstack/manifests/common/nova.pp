@@ -54,6 +54,8 @@ class openstack::common::nova ($is_compute    = false) {
     nova_config {
       'DEFAULT/osapi_compute_listen_port':     value => '9774';
       'DEFAULT/metadata_listen_port':     value => '9775';
+      'DEFAULT/scheduler_max_attempts':     value => '10';
+      'DEFAULT/disable_process_locking':     value => 'True';
       'database/min_pool_size':                 value => '100';
       'database/max_pool_size':                 value => '350';
       'database/max_overflow':                 value => '700';
