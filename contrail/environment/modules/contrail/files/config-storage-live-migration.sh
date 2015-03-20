@@ -10,6 +10,8 @@ NOVA_HOST=$2
 ## number of OSDs configured by admin. this is check if all the OSDs
 ## has came up. else we will wait for them to come-up
 NUM_TARGET_OSD=$3
+LIVEMNFS_IP=192.168.101.3
+LIVEMNFS_NETWORK=192.168.101.0/24
 
 ## check if all the OSDs configured are in and up. This is required as we
 ## need to create 15% of total available space as volume for NFS VM
@@ -196,7 +198,7 @@ if [ -z ${LIVE_MIGRATE_SUBNET} ]
 then
   ## as of now, we have fixed subnet to 192.168.101.0/24.
   ## TODO: take subnet as argument
-  neutron subnet-create --name livemnfs livemnfs 192.168.101.0/24 
+  neutron subnet-create --name livemnfs livemnfs ${LIVEMNFS_NETWORK}
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
   then
@@ -270,13 +272,13 @@ fi
 ## checking if route is already present ?
 ## TODO: we are using FIXED ip address right now. move this to
 ## TODO: dynamic ip address.
-netstat -nr | grep 192.168.101.3 | grep -q ${NOVA_HOST_IP}
+netstat -nr | grep ${LIVEMNFS_IP} | grep -q ${NOVA_HOST_IP}
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
 then
   echo "route check failed"
   ## add the route
-  route add 192.168.101.3 gw ${NOVA_HOST_IP}
+  route add ${LIVEMNFS_IP} gw ${NOVA_HOST_IP}
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ] 
   then
@@ -287,12 +289,12 @@ fi
 
 ## Check if route is added to startup scripts. this is required 
 ## to bring-up route on system start-up
-grep -q "up route add 192.168.101.3 gw ${NOVA_HOST_IP}" /etc/network/interfaces
+grep -q "up route add ${LIVEMNFS_IP} gw ${NOVA_HOST_IP}" /etc/network/interfaces
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
 then
   echo "route not there in net-interfaces"
-  echo "up route add 192.168.101.3 gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
+  echo "up route add ${LIVEMNFS_IP} gw ${NOVA_HOST_IP}" >> /etc/network/interfaces
 fi
 
 
