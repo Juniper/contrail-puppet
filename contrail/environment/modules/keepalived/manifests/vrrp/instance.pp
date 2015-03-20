@@ -19,6 +19,10 @@
 #                             e.g. `{ 'ip' => '10.0.0.1', 'label' => 'webvip' }`
 #                             Supported properties: dev, brd, label, scope.
 #
+#
+# $network::               Set network mask for the vip.
+#
+#
 # $virtual_routes::        Set floating routes.
 #
 #                          May be specified as a hash (or array of hashes) containing extra properties
@@ -101,6 +105,7 @@ define keepalived::vrrp::instance (
   $priority,
   $state,
   $virtual_ipaddress,
+  $network,
   $virtual_router_id,
   $ensure                     = present,
   $auth_type                  = undef,

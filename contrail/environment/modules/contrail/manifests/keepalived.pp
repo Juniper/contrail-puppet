@@ -76,6 +76,8 @@ class contrail::keepalived(
 
 
         $e_interface = find_matching_interface($external_vip)
+        $e_netmask = inline_template("<%= scope.lookupvar('netmask_' + @e_interface) %>")
+        $e_cidr = convert_netmask_to_cidr($e_netmask)
 
         $e_contrail_keepalived_vrid = $keepalived_vrid + 1
         $e_keepalived_priority = $e_contrail_keepalived_vrid - $e_config_index
@@ -104,6 +106,7 @@ class contrail::keepalived(
 	  auth_type         => 'PASS',
 	  auth_pass         => 'secret',
 	  virtual_ipaddress => $external_vip,
+          network           => $e_cidr,
           garp_master_refresh => 1,
           garp_master_repeat => 3,
           garp_master_delay => $e_contrail_garp_master_delay,
@@ -119,6 +122,8 @@ class contrail::keepalived(
 	include ::keepalived
 
         $i_interface = find_matching_interface($internal_vip)
+        $i_netmask = inline_template("<%= scope.lookupvar('netmask_' + @e_interface) %>")
+        $i_cidr = convert_netmask_to_cidr($i_netmask)
 
         $i_contrail_keepalived_vrid = $keepalived_vrid + 2
         notify { "Keepalived - Setting up internal_vip":; }
@@ -173,6 +178,7 @@ class contrail::keepalived(
 	  auth_type         => 'PASS',
 	  auth_pass         => 'secret',
 	  virtual_ipaddress => $internal_vip,
+          network           => $i_cidr,
           garp_master_refresh => 1,
           garp_master_repeat => 3,
           garp_master_delay => $i_contrail_garp_master_delay,
@@ -220,6 +226,9 @@ class contrail::keepalived(
         $ci_keepalived_priority = $ci_contrail_keepalived_vrid - $ci_config_index
 
         $ci_interface = find_matching_interface($contrail_internal_vip)
+        $ci_netmask = inline_template("<%= scope.lookupvar('netmask_' + @ci_interface) %>")
+        $ci_cidr = convert_netmask_to_cidr($ci_netmask)
+
 	keepalived::vrrp::script { 'check_haproxy_contrail_internal_vip':
 	  script => '/usr/bin/killall -0 haproxy',
           timeout => '3',
@@ -244,6 +253,7 @@ class contrail::keepalived(
 	  auth_type         => 'PASS',
 	  auth_pass         => 'secret',
 	  virtual_ipaddress => $contrail_internal_vip,
+          network           => $ci_cidr,
           garp_master_refresh => 1,
           garp_master_repeat => 3,
           garp_master_delay => $ci_contrail_garp_master_delay,
@@ -287,6 +297,8 @@ class contrail::keepalived(
         $ce_keepalived_priority = $ce_contrail_keepalived_vrid - $ce_config_index
 
         $ce_interface = find_matching_interface($contrail_external_vip)
+        $ce_netmask = inline_template("<%= scope.lookupvar('netmask_' + @ce_interface) %>")
+        $ce_cidr = convert_netmask_to_cidr($ce_netmask)
 
 	keepalived::vrrp::script { 'check_haproxy_contrail_external_vip':
 	  script => '/usr/bin/killall -0 haproxy',
@@ -312,6 +324,7 @@ class contrail::keepalived(
 	  auth_type         => 'PASS',
 	  auth_pass         => 'secret',
 	  virtual_ipaddress => $contrail_external_vip,
+          network           => $ce_cidr,
           garp_master_refresh => 1,
           garp_master_repeat => 3,
           garp_master_delay => $ce_contrail_garp_master_delay,
