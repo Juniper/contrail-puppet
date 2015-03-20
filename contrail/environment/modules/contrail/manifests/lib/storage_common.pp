@@ -193,7 +193,7 @@ define contrail::lib::storage_common(
             ->
             exec { "setup-config-storage-live-migration":
                   command => "/etc/contrail/contrail_setup_utils/config-storage-live-migration.sh $serverip \
-                             $contrail_live_migration_host $contrail_storage_num_osd" ,
+                             $contrail_live_migration_host $contrail_storage_num_osd $contrail_openstack_ip" ,
                   provider => shell,
                   timeout => 0,
                   logoutput => $contrail_logoutput
