@@ -10,6 +10,16 @@ NOVA_HOST=$2
 ## number of OSDs configured by admin. this is check if all the OSDs
 ## has came up. else we will wait for them to come-up
 NUM_TARGET_OSD=$3
+
+OPENSTACK_IPADDRESS=$4
+ip addr | grep -q ${OPENSTACK_IPADDRESS}
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ]
+then
+  echo "I am not the storage-master"
+  exit 0
+fi
+
 LIVEMNFS_IP=192.168.101.3
 LIVEMNFS_NETWORK=192.168.101.0/24
 
