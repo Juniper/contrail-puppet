@@ -108,11 +108,4 @@ class contrail::contrail_openstack (
         require => [ File["/etc/nova/nova.conf"] ],
         logoutput => $contrail_logoutput
     }
-    # Set service_neutron_metadata_proxy to True
-    exec { "exec_set_service_neutron_metadata_proxy":
-        command => "openstack-config --set /etc/nova/nova.conf DEFAULT service_neutron_metadata_proxy True && echo exec_set_service_neutron_metadata_proxy >> /etc/contrail/contrail_openstack_exec.out",
-        provider => shell,
-        require => [ File["/etc/nova/nova.conf"] ],
-        logoutput => true
-    }
 }
