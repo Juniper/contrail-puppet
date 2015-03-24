@@ -17,6 +17,7 @@ define contrail::lib::storage_common(
         $contrail_storage_chassis_config,
         $contrail_storage_cluster_network,
         $contrail_logoutput = false,
+        $contrail_storage_api_port = "5005"
         ) {
 
     contrail::lib::report_status { "storage_started":
@@ -36,11 +37,6 @@ define contrail::lib::storage_common(
         source => "puppet:///modules/$module_name/config-storage-rest-api.conf",
     }
     ->
-    exec { "ceph-rest-api" :
-        command => "service ceph-rest-api restart",
-        provider => shell,
-        require => File['contrail-storage-rest-api.conf']
-    } ->
     file { "ceph-osd-setup-file":
         path => "/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh",
         ensure  => present,
@@ -130,6 +126,7 @@ define contrail::lib::storage_common(
         exec { "setup-config-storage-openstack" :
             command => "/etc/contrail/contrail_setup_utils/config-storage-openstack.sh \
                   ${contrail_storage_virsh_uuid} ${contrail_openstack_ip} $contrail_storage_num_osd \
+                  ${contrail_storage_api_port} \
                   && echo setup-config-storage-openstack \
                   >> /etc/contrail/contrail-storage-exec.out" ,
              require => File["config-storage-openstack.sh"],
@@ -306,6 +303,12 @@ define contrail::lib::storage_common(
         hasstatus => 'true',
         require  => Exec['ceph-virsh-secret'],
         subscribe => File['/etc/ceph/virsh.conf'],
+    }
+    ->
+    exec { "ceph-rest-api" :
+        command => "service ceph-rest-api restart",
+        provider => shell,
+        require => File['contrail-storage-rest-api.conf']
     }
     ->
     contrail::lib::report_status { "storage_completed":

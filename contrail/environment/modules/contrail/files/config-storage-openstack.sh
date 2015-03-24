@@ -2,21 +2,25 @@ set -x
 RETVAL=0
 ## TODO: Change arguments from positional to options
 ## virsh secret that is configured on all conmpute nodes.
-virsh_secret=$1
+VIRSH_SECRET=$1
 ## openstack ip address
 ## TODO: This should be server where rabbit-mq server is running 
-openstack_ip=$2
+OPENSTACK_IP=$2
 ## Number of OSDs configured by user. This is used to ensure that all OSDs
 ## came up. and avoid restarting cinder-volume without ceph cluster is 
 ## completely online
 NUM_TARGET_OSD=$3
+
+## Port on which cpeh-rest-api wil listen, default is "5005"
+CEPH_REST_API_PORT=$4
+
 #sed -i "s/^bind-address/#bind-address/" /etc/mysql/my.cnf
 openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enabled_backends rbd-disk
-openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${openstack_ip}
+openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${OPENSTACK_IP}
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_pool volumes
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_user volumes
-openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_secret_uuid $virsh_secret
+openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_secret_uuid ${VIRSH_SECRET}
 openstack-config --set /etc/cinder/cinder.conf rbd-disk glance_api_version 2
 openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_backend_name RBD
 openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_driver cinder.volume.drivers.rbd.RBDDriver
@@ -29,7 +33,7 @@ openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_pool images
 openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_ceph_conf /etc/ceph/ceph.conf
 
 ## configure ceph-rest-api 
-sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5005)/" /usr/bin/ceph-rest-api
+sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=${CEPH_REST_API_PORT})/" /usr/bin/ceph-rest-api
 
 ## Check if "ceph -s" is returing or it is waiting for other monitors to be up
 timeout 10 ceph -s 

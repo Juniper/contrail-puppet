@@ -21,8 +21,10 @@ class contrail::storage (
 
     if ($::contrail::params::internal_vip != "") {
         $contrail_openstack_ip_use = $::contrail::params::internal_vip
+        $contrail_storage_api_port = "5006"
     } else {
         $contrail_openstack_ip_use = $::contrail::params::openstack_ip_list[0]
+        $contrail_storage_api_port = "5005"
     }
     #include contrail::lib::storage_common
     # Main resource declarations for the class
@@ -40,6 +42,7 @@ class contrail::storage (
 	    contrail_storage_fsid => $contrail_storage_fsid,
             contrail_openstack_ip => $contrail_openstack_ip_use,
             contrail_host_roles => $contrail_host_roles,
+            contrail_storage_api_port => $contrail_storage_api_port,
             contrail_storage_num_osd => $contrail_storage_num_osd,
 	    contrail_num_storage_hosts => $contrail_num_storage_hosts,
 	    contrail_storage_mon_secret => $contrail_storage_mon_secret,
@@ -74,6 +77,7 @@ class contrail::storage (
 	contrail::lib::storage_common { 'storage-master':
 	    contrail_storage_fsid => $contrail_storage_fsid,
             contrail_openstack_ip => $contrail_openstack_ip_use,
+            contrail_storage_api_port => $contrail_storage_api_port,
             contrail_storage_num_osd => $contrail_storage_num_osd,
             contrail_host_roles => $contrail_host_roles,
 	    contrail_num_storage_hosts => $contrail_num_storage_hosts,
