@@ -364,6 +364,8 @@ class contrail::compute (
     ->
     # Main code for class starts here
     # Ensure all needed packages are present
+    package { 'contrail-vrouter-common' : ensure => present,}->
+
     package { 'contrail-openstack-vrouter' : ensure => present,}
 
     if ($operatingsystem == "Ubuntu"){
