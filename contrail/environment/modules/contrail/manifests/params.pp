@@ -423,6 +423,46 @@
 #     Values are true, false or on_failure
 #     (optional) - Defaults to false
 #
+# [*enable_keepalived*]
+#     Flag to include or exclude keepalived module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_haproxy*]
+#     Flag to include or exclude haproxy module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_database*]
+#     Flag to include or exclude database module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_openstack*]
+#     Flag to include or exclude openstack module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_control*]
+#     Flag to include or exclude controller module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_config*]
+#     Flag to include or exclude config module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_collector*]
+#     Flag to include or exclude collector module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_webui*]
+#     Flag to include or exclude webui module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_compute*]
+#     Flag to include or exclude compute module functionality dynamically.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_post_provision*]
+#     Flag to include or exclude reporting of status during catalog execution to server manager.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -519,7 +559,17 @@ class contrail::params (
     $external_bgp = "",
     $sync_db = "",
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'",
-    $contrail_logoutput = false
+    $contrail_logoutput = false,
+    $enable_keepalived = true,
+    $enable_haproxy = true,
+    $enable_database = true,
+    $enable_openstack = true,
+    $enable_control = true,
+    $enable_config = true,
+    $enable_collector = true,
+    $enable_webui = true,
+    $enable_compute = true,
+    $enable_post_provision = true
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
     # that varible here.
