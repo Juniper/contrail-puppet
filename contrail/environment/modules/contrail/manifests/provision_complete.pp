@@ -6,12 +6,6 @@ class contrail::provision_complete(
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 )
 {
-    contrail::lib::post_openstack { post_openstack:
-        host_control_ip => $host_control_ip,
-        openstack_ip_list => $openstack_ip_list,
-        internal_vip => $internal_vip,
-        contrail_logoutput => $contrail_logoutput }
-    ->
     contrail::lib::report_status { $state:
         state => $state, 
         contrail_logoutput => $contrail_logoutput }
