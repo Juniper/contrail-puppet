@@ -146,7 +146,8 @@ class contrail::ha_config (
 	    require => [ File["/opt/contrail/bin/setup_passwordless_ssh.py"] ],
 	    logoutput => $contrail_logoutput
 	}
-
+        ->
+        contrail::lib::check-os-master{ "check_os_master": host_control_ip => $host_control_ip, openstack_master => $os_master}
         ->
         file { "/usr/local/lib/python2.7/dist-packages/contrail_provisioning/openstack/ha/galera_setup.py" :
             ensure  => present,
