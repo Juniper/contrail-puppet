@@ -311,19 +311,14 @@ fi
 ADMIN_TENANT_ID=`keystone tenant-list |grep " admin" | awk '{print $2}'`
 ## calculating 15% of total available disk space (in GBs)
 RADOS_SPACE=`rados df | grep 'total avail' | awk '{printf $3}'`
+CINDER_QUOTA_SIZE=$(((${RADOS_SPACE} * 50) / (1024 * 1024 * 100)))
 NFS_VOLUME_SIZE=$(((${RADOS_SPACE} * 15) / (1024 * 1024 * 100)))
-echo $NFS_VOLUME_SIZE
-# TODO: this check should more with existing quota instead of 1000
-if [ ${NFS_VOLUME_SIZE} -gt 1000 ]
+cinder quota-update --gigabytes=${CINDER_QUOTA_SIZE} ${ADMIN_TENANT_ID}
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ]
 then
-  echo "${NFS_VOLUME_SIZE} is more than 1000"
-  cinder quota-update --gigabytes=${NFS_VOLUME_SIZE} ${ADMIN_TENANT_ID}
-  RETVAL=$?
-  if [ ${RETVAL} -ne 0 ] 
-  then
-    echo "cinder quota-update failed"
-    exit 1
-  fi
+  echo "cinder quota-update failed"
+  exit 1
 fi
 
 ## get the number of livemnfsvol
@@ -331,7 +326,7 @@ fi
 ## TODO: check for livemnfsvol only
 CINDER_NUM=`cinder list | grep livemnfsvol | wc -l`
 RETVAL=$?
-if [ ${RETVAL} -ne 0 ] 
+if [ ${RETVAL} -ne 0 ]
 then
   echo "cinder list failed"
   exit 1
