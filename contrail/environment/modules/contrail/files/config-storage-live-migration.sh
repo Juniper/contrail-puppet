@@ -79,6 +79,8 @@ libvirtd=${virtd_gid}
 #end of file
 EOF
 
+sync
+
 . /etc/contrail/openstackrc
 ## Check if we have already created the image
 ## TODO: 1. break command to check failures.
@@ -151,6 +153,22 @@ then
     echo "Glance image create failed"
     exit 1
   fi
+fi
+
+NOVA_IMAGE_STATUS=`nova image-list | grep livemnfs | awk -F '|' '{print $4}' | tr -d ' '`
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ] 
+then
+  echo "nova image-list failed"
+  exit 1
+fi
+
+if [ "x${NOVA_IMAGE_STATUS}"  = "xACTIVE" ]
+then
+  echo "nova image livemnfs is ACTIVE"
+else
+  echo "nova image livemnfs is not ACTIVE"
+  exit 2
 fi
 
 ## create network for livemnfs
