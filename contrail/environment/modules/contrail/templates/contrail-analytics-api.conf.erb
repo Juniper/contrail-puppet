@@ -15,6 +15,9 @@ log_level = SYS_NOTICE
 log_category =
 log_file = /var/log/contrail/contrail-analytics-api.log
 
+# Time-to-live in hours of the data stored by collector into cassandra
+analytics_data_ttl=<%= @analytics_data_ttl %>
+
 [DISCOVERY]
 disc_server_ip = <%= @config_ip_to_use %>
 disc_server_port = 5998
