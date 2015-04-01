@@ -19,6 +19,11 @@ class contrail::storage (
     $contrail_logoutput = $::contrail::params::contrail_logoutput
 ) inherits ::contrail::params {
 
+    if ($::contrail::params::internal_vip != "") {
+        $contrail_openstack_ip_use = $::contrail::params::internal_vip
+    } else {
+        $contrail_openstack_ip_use = $::contrail::params::openstack_ip_list[0]
+    }
     #include contrail::lib::storage_common
     # Main resource declarations for the class
     #notify { "disk-names => $contrail_storage_osd_disks" :;}
@@ -33,7 +38,7 @@ class contrail::storage (
         if  ($contrail_interface_rename_done == 2) {
 	contrail::lib::storage_common { 'storage-compute':
 	    contrail_storage_fsid => $contrail_storage_fsid,
-            contrail_openstack_ip => $contrail_openstack_ip,
+            contrail_openstack_ip => $contrail_openstack_ip_use,
             contrail_host_roles => $contrail_host_roles,
             contrail_storage_num_osd => $contrail_storage_num_osd,
 	    contrail_num_storage_hosts => $contrail_num_storage_hosts,
@@ -68,7 +73,7 @@ class contrail::storage (
     } else {
 	contrail::lib::storage_common { 'storage-master':
 	    contrail_storage_fsid => $contrail_storage_fsid,
-            contrail_openstack_ip => $contrail_openstack_ip,
+            contrail_openstack_ip => $contrail_openstack_ip_use,
             contrail_storage_num_osd => $contrail_storage_num_osd,
             contrail_host_roles => $contrail_host_roles,
 	    contrail_num_storage_hosts => $contrail_num_storage_hosts,
