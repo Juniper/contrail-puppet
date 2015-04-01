@@ -27,7 +27,7 @@ define contrail::lib::upgrade-kernel(
             package { $image_extra : ensure => present, }
             ->
             exec { "upgrade-kernel-reboot":
-                command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
+                command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot -f now",
                 provider => shell,
                 logoutput => $contrail_logoutput,
                 unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
@@ -53,7 +53,7 @@ define contrail::lib::upgrade-kernel(
             package { $image : ensure => present, }
             ->
             exec { "upgrade-kernel-reboot":
-                command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot ",
+                command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot -f now",
                 provider => shell,
                 logoutput => $contrail_logoutput,
                 unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
