@@ -12,6 +12,7 @@ define contrail::lib::storage_common(
         $contrail_storage_osd_disks, 
         $contrail_storage_hostname,
         $contrail_live_migration_host,
+        $contrail_live_migration_ip,
         $contrail_lm_storage_scope,
         $contrail_storage_hostnames,
         $contrail_storage_chassis_config,
@@ -150,7 +151,9 @@ define contrail::lib::storage_common(
                   logoutput => $contrail_logoutput
               }
               Exec['setup_storage_chassis_config']-> Contrail::Lib::Report_status['storage_completed']
-              Exec['setup_storage_chassis_config']-> Exec['setup-config-storage-live-migration']
+              if $contrail_live_migration_host != '' {
+                  Exec['setup_storage_chassis_config']-> Exec['setup-config-storage-live-migration']
+              }
               Exec['setup_storage_chassis_config']-> Ceph::Pool['data']
               Exec['setup_storage_chassis_config']-> Exec['setup-config-storage-openstack']
         }
@@ -191,7 +194,8 @@ define contrail::lib::storage_common(
             ->
             exec { "setup-config-storage-live-migration":
                   command => "/etc/contrail/contrail_setup_utils/config-storage-live-migration.sh $serverip \
-                             $contrail_live_migration_host $contrail_storage_num_osd $contrail_openstack_ip" ,
+                             $contrail_live_migration_host $contrail_storage_num_osd $contrail_openstack_ip \
+                             $contrail_live_migration_ip" ,
                   provider => shell,
                   timeout => 0,
                   logoutput => $contrail_logoutput
@@ -245,7 +249,8 @@ define contrail::lib::storage_common(
           } ->
           exec { "setup-config-storage-compute-live-migration":
               command => "/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh \
-                         $contrail_live_migration_host $contrail_lm_storage_scope" ,
+                         $contrail_live_migration_host $contrail_lm_storage_scope \
+                         $contrail_live_migration_ip" ,
               provider => shell,
               timeout => 0,
               logoutput => $contrail_logoutput
