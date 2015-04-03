@@ -595,11 +595,6 @@ class contrail::compute (
         contrail::lib::report_status { "compute_completed":
             state => "compute_completed", 
             contrail_logoutput => $contrail_logoutput } ->
-        file { "/etc/contrail/interface_renamed" :
-            ensure  => present,
-            mode => 0644,
-            content => "2"
-        } ->
 	exec { "flag-reboot-server" :
 	    command   => "echo flag-reboot-server >> /etc/contrail/contrail_compute_exec.out",
 	    unless => ["grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out"],

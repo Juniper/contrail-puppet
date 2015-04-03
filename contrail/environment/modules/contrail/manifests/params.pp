@@ -506,6 +506,7 @@ class contrail::params (
     $storage_chassis_config = "",
     $storage_hostnames = "",
     $live_migration_host = "",
+    $live_migration_ip = "",
     $live_migration_storage_scope = "local",
     $nfs_server = "",
     $nfs_glance_path = "",

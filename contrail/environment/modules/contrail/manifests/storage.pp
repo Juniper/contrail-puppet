@@ -12,6 +12,7 @@ class contrail::storage (
     $contrail_storage_osd_disks = $::contrail::params::storage_osd_disks,
     $contrail_storage_hostname = $::hostname,
     $contrail_live_migration_host = $::contrail::params::live_migration_host,
+    $contrail_live_migration_ip = $::contrail::params::live_migration_ip,
     $contrail_lm_storage_scope = $::contrail::params::live_migration_storage_scope,
     $contrail_storage_cluster_network = $::contrail::params::storage_cluster_network,
     $contrail_storage_hostnames = $::contrail::params::storage_hostnames,
@@ -36,7 +37,13 @@ class contrail::storage (
         unless => "grep -qx do-reboot-server /etc/contrail/contrail_common_exec.out",
         provider => shell,
         logoutput => 'true'
-    }
+    } -> 
+        file {"update_interface_renamed":
+            path=> "/etc/contrail/interface_renamed",
+            ensure  => present,
+            mode => 0644,
+            content => "2"
+        } 
         if  ($contrail_interface_rename_done == 2) {
 	contrail::lib::storage_common { 'storage-compute':
 	    contrail_storage_fsid => $contrail_storage_fsid,
@@ -53,6 +60,7 @@ class contrail::storage (
 	    contrail_storage_osd_disks => $contrail_storage_osd_disks,
 	    contrail_storage_hostname => $contrail_storage_hostname,
             contrail_live_migration_host => $contrail_live_migration_host,
+            contrail_live_migration_ip => $contrail_live_migration_ip,
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
             contrail_storage_hostnames => $contrail_storage_hostnames,
             contrail_storage_chassis_config => $contrail_storage_chassis_config,
@@ -89,6 +97,7 @@ class contrail::storage (
 	    contrail_storage_osd_disks => $contrail_storage_osd_disks,
 	    contrail_storage_hostname => $contrail_storage_hostname,
             contrail_live_migration_host => $contrail_live_migration_host,
+            contrail_live_migration_ip => $contrail_live_migration_ip,
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
             contrail_storage_hostnames => $contrail_storage_hostnames,
             contrail_storage_chassis_config => $contrail_storage_chassis_config,
