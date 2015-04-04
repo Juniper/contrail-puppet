@@ -79,6 +79,12 @@ class contrail::contrail_openstack (
        $novncproxy_port = "5999"
     }
 
+    if ($external_vip != "") {
+       $vnc_base_url_ip = $external_vip 
+    } else {
+       $vnc_base_url_ip = $internal_vip 
+    }
+
     # Create openstackrc file.
     file { "/etc/contrail/openstackrc" :
 	ensure  => present,
@@ -105,7 +111,7 @@ class contrail::contrail_openstack (
     }
     # Set novncproxy_port to 5999, novncproxy_base_url to http://$openstack_mgmt_ip:5999/vnc_auto.html
     exec { "exec_set_novncproxy":
-        command => "openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_port $novncproxy_port && openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_base_url http://$openstack_mgmt_ip:$novncproxy_port/vnc_auto.html && openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_host $openstack_mgmt_ip && echo exec_set_novncproxy >> /etc/contrail/contrail_openstack_exec.out",
+        command => "openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_port $novncproxy_port && openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_base_url http://$vnc_base_url_ip:$vnc_base_url_port/vnc_auto.html && openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_host $openstack_ip && echo exec_set_novncproxy >> /etc/contrail/contrail_openstack_exec.out",
         provider => shell,
         require => [ File["/etc/nova/nova.conf"] ],
         logoutput => $contrail_logoutput
