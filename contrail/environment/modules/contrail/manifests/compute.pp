@@ -607,7 +607,16 @@ class contrail::compute (
 	    unless => ["grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out"],
 	    provider => "shell",
 	    logoutput => $contrail_logoutput
-	} 
+	}
+        -> 
+        service { "nova-compute" :
+            enable => true,
+            require => [ Package['contrail-openstack-vrouter']
+                     ],
+#            subscribe => File['/etc/nova/nova.conf'],
+            ensure => running,
+        }
+
 	# Now reboot the system
 	if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
 	    exec { "cp-ifcfg-file" :
