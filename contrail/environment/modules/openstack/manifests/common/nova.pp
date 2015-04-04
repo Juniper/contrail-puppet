@@ -114,13 +114,16 @@ class openstack::common::nova ($is_compute    = false) {
     enabled => $is_controller,
   }
 
-  # TODO: it's important to set up the vnc properly
+  # nova-compute is managed by contrail,is_compute flag only disables the service,
+  # It still declares the nova-compute service,leading to 1435692. 
+  /*
   class { '::nova::compute':
     enabled                       => $is_compute,
     vnc_enabled                   => true,
     vncserver_proxyclient_address => $management_address,
     vncproxy_host                 => $::openstack::config::controller_address_api,
   }
+  */
 
   class { '::nova::compute::neutron':
     libvirt_vif_driver => "nova_contrail_vif.contrailvif.VRouterVIFDriver"
