@@ -24,7 +24,7 @@ class openstack::common::keystone {
       'database/min_pool_size':   value => "100";
       'database/max_pool_size':   value => "700";
       'database/max_overflow':   value => "100";
-      'database/retry_interva':   value => "5";
+      'database/retry_interval':   value => "5";
       'database/max_retries':   value => "-1";
       'database/db_max_retries':   value => "-1";
       'database/db_retry_interval':   value => "1";

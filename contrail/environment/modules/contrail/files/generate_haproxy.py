@@ -8,6 +8,7 @@ import sys
 haproxy_template = string.Template("""
 
 global
+        maxconn 10000
         spread-checks 4
         tune.maxrewrite 1024
         tune.bufsize 16384
@@ -494,11 +495,11 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
         nova_vnc_server_lines  +=\
             '%s server %s %s:6999 check inter 2000 rise 2 fall 3\n'\
              % (space, mgmt_host_ip, mgmt_host_ip)
-        if server_index <= 2:
+        if server_index <= 1:
             memcached_server_lines +=\
                 '%s server repcache%s %s:11211 check inter 2000 rise 2 fall 3\n'\
                  % (space, server_index, host_ip)
-        if server_index == 1:
+        if server_index == 0:
             rabbitmq_server_lines +=\
                 '%s server rabbit%s %s:5672 weight 200 check inter 2000 rise 2 fall 3\n'\
                  % (space, server_index, host_ip)
@@ -506,7 +507,7 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
             rabbitmq_server_lines +=\
                 '%s server rabbit%s %s:5672 weight 100 check inter 2000 rise 2 fall 3 backup\n'\
                  % (space, server_index, host_ip)
-        if server_index == 1:
+        if server_index == 0:
              mysql_server_lines +=\
                    '%s server mysql%s %s:3306 weight 200 check inter 2000 rise 2 fall 3\n'\
                    % (space, server_index, host_ip)
