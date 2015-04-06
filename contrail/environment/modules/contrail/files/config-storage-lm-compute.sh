@@ -5,6 +5,7 @@ RETVAL=0
 VM_HOST=0
 VM_HOSTNAME=$1
 STORAGE_SCOPE=$2
+NOVA_HOST_IP=$3
 LIVEMNFS_IP=192.168.101.3
 LIVEMNFS_NETWORK=192.168.101.0/24
 MY_HOSTNAME=`hostname`
@@ -59,7 +60,7 @@ fi
 ## Get the ip address of nova-host.
 ## NOTE: we already checked about the ip resolution. so awk must
 ## NOTE: give correct results
-NOVA_HOST_IP=`host ${VM_HOSTNAME} | awk '{printf $4}'`
+#NOVA_HOST_IP=`host ${VM_HOSTNAME} | awk '{printf $4}'`
 
 ## Get the configured value of live_migration_flag. Checking this value will
 ## help to identify if values has been configured or not. if yes, no need to
@@ -184,6 +185,13 @@ RETVAL=$?
 if [ $RETVAL -eq 0 ]
 then 
   echo "ping done"
+  grep -q "livemnfsvol" /etc/fstab
+  RETVAL=$?
+  if [ ${RETVAL} -ne 0 ]
+  then
+    echo "${LIVEMNFS_IP}:/livemnfsvol  /var/lib/nova/instances/global nfs rw,bg,soft 0 0" >> /etc/fstab
+  fi
+
   stat -c '%U:%G'  /var/lib/nova/instances/global
   STAT_OUTPUT=`stat -c '%U:%G'  /var/lib/nova/instances/global`
   echo "current ownership of instances : ${STAT_OUTPUT}"
