@@ -12,6 +12,7 @@ NOVA_HOST=$2
 NUM_TARGET_OSD=$3
 
 OPENSTACK_IPADDRESS=$4
+NOVA_HOST_IP=$5
 ip addr | grep -q ${OPENSTACK_IPADDRESS}
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ]
@@ -48,7 +49,7 @@ fi
 ## Get the ip address of nova-host.
 ## NOTE: we already checked about the ip resolution. so awk must
 ## NOTE: give correct results
-NOVA_HOST_IP=`host ${NOVA_HOST} | awk '{printf $4}'`
+#NOVA_HOST_IP=`host ${NOVA_HOST} | awk '{printf $4}'`
 
 ## GET the UIDs/GIDs of required users/groups. we generate a file out of it.
 nova_uid=`id -u nova`
@@ -429,10 +430,48 @@ if [ -z ${CINDER_OUTPUT} ]
 then
   echo "livemnfs-volume not attached to any instance"
   nova volume-attach ${NFS_VM_ID} ${NFS_VOLUME_ID} /dev/vdb
+  ## Exit after attach, allow VM to settle
+  exit 1
 elif [ "x${CINDER_OUTPUT}" != "x${NFS_VM_ID}" ]
 then
   echo "nova and volumes are already attached but to different ids"
   exit 1
 else
   echo "nova and volume are associated to each-other"
+fi
+
+## VM should be settled by now, try mount
+ping -c 5 ${LIVEMNFS_IP}
+RETVAL=$?
+if [ $RETVAL -eq 0 ]
+then 
+  mkdir -p /tmp/livemnfsvol
+  RETVAL=$?
+  if [ ${RETVAL} -ne 0 ]
+  then
+    echo "mkdir failed"
+    exit ${RETVAL}
+  fi
+  mount ${LIVEMNFS_IP}:/livemnfsvol /tmp/livemnfsvol
+  RETVAL=$?
+  if [ ${RETVAL} -ne 0 ]
+  then
+    echo "mount to livemnfsvol failed"
+    nova stop livemnfs
+    sleep 5
+    nova start livemnfs
+    # exit with error to come back 
+    exit 1
+  else
+    # unmount it and exit
+    umount /tmp/livemnfsvol
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ]
+    then
+      echo "mkdir failed"
+      exit ${RETVAL}
+    fi
+  fi
+else
+  exit 1
 fi
