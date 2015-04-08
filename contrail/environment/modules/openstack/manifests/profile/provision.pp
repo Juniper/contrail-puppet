@@ -3,15 +3,18 @@ class openstack::profile::provision {
     require ::openstack::profile::keystone
 
     $internal_vip = $::contrail::params::internal_vip
+    $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
-    if ($internal_vip != "" and $internal_vip != undef) {
+    if ($contrail_internal_vip != "" and $contrail_internal_vip != undef) {
+      $contrail_controller_address_api = $contrail_internal_vip
+      $contrail_controller_address_management = $contrail_internal_vip
+    } elsif ($internal_vip != "" and $internal_vip != undef) {
       $contrail_controller_address_api = $::openstack::config::controller_address_api
-      $contrail_controller_address_management = $::openstack::config::controller_address_management 
+      $contrail_controller_address_management = $::openstack::config::controller_address_management
     } else {
       $contrail_controller_address_api = $::contrail::params::config_ip_list[0]
-      $contrail_controller_address_management = $::contrail::params::config_ip_list[0] 
+      $contrail_controller_address_management = $::contrail::params::config_ip_list[0]
     }
-
     $tenants = $::openstack::config::keystone_tenants
     $users   = $::openstack::config::keystone_users
     class { 'keystone::endpoint':

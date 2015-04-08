@@ -5,6 +5,12 @@
 # on the controller
 class openstack::common::glance {
   $internal_vip = $::contrail::params::internal_vip
+  $contrail_internal_vip = $::contrail::params::contrail_internal_vip
+
+  $contrail_rabbit_host = $::contrail::params::config_ip_to_use
+  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+
+
 
   if ($internal_vip != "" and $internal_vip != undef) {
     class { '::glance::api':
@@ -21,8 +27,6 @@ class openstack::common::glance {
       bind_port     => '9393',
       mysql_module      => '2.2',
     }
-    $contrail_rabbit_host = $::openstack::config::controller_address_management
-    $contrail_rabbit_port = '5673'
 
   } else {
 
@@ -39,8 +43,6 @@ class openstack::common::glance {
       database_idle_timeout      => "180",
       mysql_module      => '2.2',
     }
-    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
-    $contrail_rabbit_port = '5672'
 
   }
 
