@@ -362,12 +362,12 @@ def main(args_str=None):
 
 
     if host_ip in config_ip_list:
-        config_stanza = generate_config_ha_config(config_ip_list, openstack_ip_list, host_ip)
+        config_stanza = generate_config_ha_config(config_ip_list, openstack_ip_list, host_ip, internal_vip, contrail_internal_vip)
 
     if host_ip in config_ip_list and (internal_vip != "none" or contrail_internal_vip != "none"):
         collector_stanza = generate_collector_ha_config(collector_ip_list, host_ip)
 
-    if (internal_vip != "none" or contrail_internal_vip != "none") and (host_ip in openstack_ip_list):
+    if (internal_vip != "none") and (host_ip in openstack_ip_list):
         openstack_stanza = generate_openstack_ha_config(openstack_ip_list, host_ip)
 
     haproxy_config = haproxy_template.safe_substitute({
@@ -401,7 +401,7 @@ def generate_collector_ha_config(collector_ip_list, mgmt_host_ip):
 	})
     return haproxy_config
 
-def generate_config_ha_config(config_ip_list, openstack_ip_list, mgmt_ip):
+def generate_config_ha_config(config_ip_list, openstack_ip_list, mgmt_ip, internal_vip, contrail_internal_vip):
     q_listen_port = 9697
     q_server_lines = ''
     api_listen_port = 9100
@@ -436,7 +436,8 @@ listen  rabbitmq 0.0.0.0:5673
             '%s server rabbit%s %s:5672 check inter 2000 rise 2 fall 3 weight 1 maxconn 500\n'\
              % (space, server_index, host_ip)
 
-    if mgmt_ip in openstack_ip_list:
+    if ( mgmt_ip in openstack_ip_list and internal_vip != "none" ) or \
+        contrail_internal_vip == "none" :
         # Openstack and cfgm are same nodes.
         # Dont add rabbitmq confing twice in haproxy, as setup_ha has added already.
         rabbitmq_config = ''

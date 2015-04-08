@@ -1,16 +1,9 @@
 [DEFAULTS]
-<% if @internal_vip != "" -%>
-rabbit_server=<%= @internal_vip %>
-rabbit_port=5673
-api_server_ip=<%= @internal_vip %>
-disc_server_ip=<%= @internal_vip %>
-<% else -%>
-rabbit_server=<%= @host_control_ip %>
-rabbit_port=5672
-api_server_ip=<%= @host_control_ip %>
-disc_server_ip=<%= @host_control_ip %>
-<% end -%>
+rabbit_server=<%= @config_ip %>
+api_server_ip=<%= @config_ip %>
+disc_server_ip=<%= @config_ip %>
 api_server_port=8082
+rabbit_port=<%= @contrail_rabbit_port %>
 zk_server_ip=<%= @zookeeper_ip_list.map{ |ip| "#{ip}:#{@zk_ip_port}" }.join(',') %>
 log_file=/var/log/contrail/contrail-device-manager.log
 cassandra_server_list=<%= @database_ip_list.map{ |ip| "#{ip}:#{@database_ip_port}" }.join(' ') %>

@@ -11,23 +11,11 @@ multi_tenancy=<%= @multi_tenancy %>
 log_file=/var/log/contrail/api.log
 log_local=1
 log_level=SYS_NOTICE
-<% if @internal_vip != "" -%>
-disc_server_ip=<%= @internal_vip %>
-<% else -%>
-disc_server_ip=<%= @host_control_ip %>
-<% end -%>
+disc_server_ip=<%= @config_ip %>
 disc_server_port=5998
 zk_server_ip=<%= @zookeeper_ip_list.map{ |ip| "#{ip}:#{@zk_ip_port}" }.join(',') %>
-<% if @internal_vip != "" -%>
-rabbit_server=<%= @internal_vip %>
-<% else -%>
-rabbit_server=<%= @host_control_ip %>
-<% end -%>
-<% if @internal_vip != "" -%>
-rabbit_port=5673
-<% else -%>
-rabbit_port=5672
-<% end -%>
+rabbit_server=<%= @config_ip %>
+rabbit_port=<%= @contrail_rabbit_port %>
 
 [SECURITY]
 use_certs=<%= @use_certs %>

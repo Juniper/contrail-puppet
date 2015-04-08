@@ -59,7 +59,7 @@
 #
 class contrail::database (
     $host_control_ip = $::contrail::params::host_ip,
-    $config_ip = $::contrail::params::config_ip_list[0],
+    $config_ip = $::contrail::params::config_ip_to_use,
     $database_ip_list = $::contrail::params::database_ip_list,
     $internal_vip = $::contrail::params::internal_vip,
     $zookeeper_ip_list = $::contrail::params::database_ip_list,
@@ -103,14 +103,6 @@ class contrail::database (
         $cassandra_seeds = $database_ip_list
     }
 
-    # Set config_ip to be used to internal_vip, if internal_vip is not "".
-    if ($internal_vip != "") {
-        $config_ip_to_use = $internal_vip
-    }
-    else {
-        $config_ip_to_use = $config_ip
-    }
-
     $zk_ip_list_for_shell = inline_template('<%= @zookeeper_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
     $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $database_index $zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
 
@@ -118,7 +110,6 @@ class contrail::database (
     notify { "Database - contrail cassandra dir is $contrail_cassandra_dir":; }
     notify { "Database - host_control_ip = $host_control_ip":;}
     notify { "Database - config_ip = $config_ip":;}
-    notify { "Database - config_ip_to_use = $config_ip_to_use":;}
     notify { "Database - internal_vip = $internal_vip":;}
     notify { "Database - database_ip_list = $database_ip_list":;}
     notify { "Database - zookeeper_ip_list = $zookeeper_ip_list":;}
@@ -144,8 +135,8 @@ class contrail::database (
     # For Centos/Fedora - contrail-api-lib, contrail-database, contrail-setup, openstack-quantum-contrail, supervisor
     ->
     exec { "exec-config-host-entry" :
-        command   => 'echo \"$config_ip_to_use   $system_name\" >> /etc/hosts && echo exec-config-host-entry >> /etc/contrail/contrail_database_exec.out',
-        unless    => ["grep -q $config_ip_to_use /etc/hosts",
+        command   => 'echo \"$config_ip   $system_name\" >> /etc/hosts && echo exec-config-host-entry >> /etc/contrail/contrail_database_exec.out',
+        unless    => ["grep -q $config_ip /etc/hosts",
                       "grep -qx exec-config-host-entry /etc/contrail/contrail_database_exec.out"],
         provider => "shell",
         require => Package['contrail-openstack-database'],
