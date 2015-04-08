@@ -14,15 +14,11 @@ class openstack::common::nova ($is_compute    = false) {
   $storage_management_address = $::openstack::config::storage_address_management
   $controller_management_address = $::openstack::config::controller_address_management
   $internal_vip = $::contrail::params::internal_vip
-  if ($internal_vip != "" and $internal_vip != undef) {
-    $contrail_rabbit_port = "5673"
-    $contrail_rabbit_host = $controller_management_address
-    $contrail_neutron_server = $controller_management_address
-  } else {
-    $contrail_rabbit_port = "5672"
-    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
-    $contrail_neutron_server = $::contrail::params::config_ip_list[0]
-  }
+  $contrail_internal_vip = $::contrail::params::contrail_internal_vip
+
+  $contrail_rabbit_host = $::contrail::params::config_ip_to_use
+  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+  $contrail_neutron_server = $::contrail::params::config_ip_to_use
 
 
   class { '::nova':
