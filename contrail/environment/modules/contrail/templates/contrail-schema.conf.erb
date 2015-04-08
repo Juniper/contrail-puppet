@@ -3,20 +3,12 @@ ifmap_server_ip=<%= @host_control_ip %>
 ifmap_server_port=<%= @ifmap_server_port %>
 ifmap_username=schema-transformer
 ifmap_password=schema-transformer
-<% if @internal_vip != "" -%>
-api_server_ip=<%= @internal_vip %>
-<% else -%>
-api_server_ip=<%= @host_control_ip %>
-<% end -%>
+api_server_ip=<%= @config_ip %>
 api_server_port=8082
 zk_server_ip=<%= @zookeeper_ip_list.map{ |ip| "#{ip}:#{@zk_ip_port}" }.join(',') %>
 log_file=/var/log/contrail/schema.log
 cassandra_server_list=<%= @database_ip_list.map{ |ip| "#{ip}:#{@database_ip_port}" }.join(' ') %>
-<% if @internal_vip != "" -%>
-disc_server_ip=<%= @internal_vip %>
-<% else -%>
-disc_server_ip=<%= @host_control_ip %>
-<% end -%>
+disc_server_ip=<%= @config_ip %>
 disc_server_port=5998
 log_local=1
 log_level=SYS_NOTICE

@@ -644,4 +644,41 @@ class contrail::params (
     else {
         $openstack_mgmt_ip_list_to_use = $openstack_mgmt_ip_list
     }
+
+    #config_ip_to_use
+    if $contrail_internal_vip != "" {
+        $config_ip_to_use = $contrail_internal_vip
+    } elsif $internal_vip != "" {
+         $config_ip_to_use = $internal_vip
+    }else {
+         $config_ip_to_use = $config_ip_list[0]
+    }
+
+    #vip_to_use
+    if $contrail_internal_vip != "" {
+        $vip_to_use = $contrail_internal_vip
+    } elsif $internal_vip != "" {
+         $vip_to_use = $internal_vip
+    }else {
+         $vip_to_use = ""
+    }
+
+    #collectto_ip_to_use
+    if $contrail_internal_vip != "" {
+        $collector_ip_to_use = $contrail_internal_vip
+    } elsif $internal_vip != "" {
+         $collector_ip_to_use = $internal_vip
+    }else {
+         $collector_ip_to_use = $collector_ip
+    }
+
+    #rabbitmq_port_to_use
+    if $contrail_internal_vip != "" {
+        $contrail_rabbit_port = "5673"
+    } elsif $internal_vip != "" {
+        $contrail_rabbit_port = "5673"
+    }else {
+        $contrail_rabbit_port = "5672"
+    }
+
 }

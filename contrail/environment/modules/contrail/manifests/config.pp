@@ -220,6 +220,10 @@ class contrail::config (
     $vmware_username = $::contrail::params::vmware_username,
     $vmware_password = $::contrail::params::vmware_password,
     $vmware_vswitch = $::contrail::params::vmware_vswitch,
+    $config_ip = $::contrail::params::config_ip_to_use,
+    $collector_ip = $::contrail::params::collector_ip_to_use,
+    $vip = $::contrail::params::vip_to_use,
+    $contrail_rabbit_port= $::contrail::params::contrail_rabbit_port,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
@@ -655,7 +659,8 @@ class contrail::config (
         state => "config_completed", 
         contrail_logoutput => $contrail_logoutput }
 
-    if($internal_vip != "") {
+    #Set rabbit params for both internal and contrail_internal_vip
+    if($vip != "") {
 	exec { "rabbit_os_fix":
 		command => "rabbitmqctl set_policy HA-all \"\" '{\"ha-mode\":\"all\",\"ha-sync-mode\":\"automatic\"}' && echo rabbit_os_fix >> /etc/contrail/contrail_openstack_exec.out",
 		unless  => "grep -qx rabbit_os_fix /etc/contrail/contrail_openstack_exec.out",
