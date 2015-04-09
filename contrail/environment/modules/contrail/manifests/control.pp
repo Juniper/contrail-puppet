@@ -85,12 +85,6 @@ class contrail::control (
                 target => '/lib/init/upstart-job',
                 before => Service["supervisor-dns"]
             }
-            file { '/etc/init.d/contrail-named':
-                ensure => link,
-                       target => '/lib/init/upstart-job',
-                       before => Service["contrail-named"]
-            }
-
         }
         default: {
         }
