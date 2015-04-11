@@ -624,4 +624,10 @@ class contrail::compute (
 	    }
 	}
     }
+    else {
+        contrail::lib::report_status { "compute_completed":
+            state => "compute_completed", 
+            contrail_logoutput => $contrail_logoutput
+        }
+    }
 }
