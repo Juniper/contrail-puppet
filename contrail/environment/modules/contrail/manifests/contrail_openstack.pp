@@ -127,4 +127,11 @@ class contrail::contrail_openstack (
         require => [ File["/etc/nova/nova.conf"] ],
         logoutput => $contrail_logoutput
     }
+    # Set glance-registry to 0.0.0.0
+    exec { "exec_set_glance_registry":
+        command => "openstack-config --set /etc/glance/glance-api.conf DEFAULT registry_host 0.0.0.0 && echo exec_set_glance_registry >> /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => $contrail_logoutput
+    }
+
 }
