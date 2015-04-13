@@ -452,7 +452,8 @@ class contrail::compute (
     exec { "add_dev_tun_in_cgroup_device_acl" :
         command => "./add_dev_tun_in_cgroup_device_acl.sh && echo add_dev_tun_in_cgroup_device_acl >> /etc/contrail/contrail_compute_exec.out",
 	cwd => "/etc/contrail/contrail_setup_utils/",
-        require => [ File["/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh"] ],
+        require => [ File["/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh"],
+                     Package["contrail-openstack-vrouter"] ],
         unless  => "grep -qx add_dev_tun_in_cgroup_device_acl /etc/contrail/contrail_compute_exec.out",
         provider => shell,
         logoutput => $contrail_logoutput
