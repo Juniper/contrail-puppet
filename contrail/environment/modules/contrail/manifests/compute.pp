@@ -504,11 +504,6 @@ class contrail::compute (
     }
 
     if ($contrail_dev != undef and $contrail_dev != "vhost0") {
-        file { "/etc/contrail/default_pmac" :
-            ensure  => present,
-            require => Package["contrail-openstack-vrouter"],
-            content => template("$module_name/default_pmac.erb"),
-	} ->
         file { "/etc/contrail/agent_param" :
             ensure  => present,
             require => Package["contrail-openstack-vrouter"],
