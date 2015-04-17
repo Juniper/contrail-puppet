@@ -311,6 +311,9 @@ class contrail::ha_config (
                 unless  => "grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out",
                 require => File["/opt/contrail/bin/transfer_keys.py"]
         }
+        ->
+        contrail::lib::check-transfer-keys{ $openstack_mgmt_ip_list :;}
+
         #This wil be executed for all openstacks ,if there is an external nfs server
         if ($contrail_nfs_server != $host_control_ip ) {
 	    package { 'nfs-common':
