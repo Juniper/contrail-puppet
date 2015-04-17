@@ -617,7 +617,9 @@ class contrail::params (
     $enable_pre_exec_vnc_galera = true,
     $enable_post_exec_vnc_galera = true,
     $enable_post_provision = true,
-    $enable_sequence_provisioning = false
+    $enable_sequence_provisioning = false,
+    $enable_storage_compute = true,
+    $enable_storage_master = true,
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
     # that varible here.

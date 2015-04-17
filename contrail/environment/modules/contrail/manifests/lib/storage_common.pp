@@ -110,7 +110,7 @@ define contrail::lib::storage_common(
           ceph::osd { $contrail_storage_osd_disks: 
               require => Contrail::Lib::Prepare_disk[$contrail_storage_osd_disks]
           } -> 
-          Contrail::Lib::Report_status['storage_completed']
+          Contrail::Lib::Report_status['storage-compute_completed']
        }
      }
 
@@ -125,7 +125,6 @@ define contrail::lib::storage_common(
             source => "puppet:///modules/$module_name/config-storage-openstack.sh"
         }
         -> 
-        ## XXX : add logic to call this only after all OSDs are up
         exec { "setup-config-storage-openstack" :
             command => "/etc/contrail/contrail_setup_utils/config-storage-openstack.sh \
                   ${contrail_storage_virsh_uuid} ${contrail_openstack_ip} $contrail_storage_num_osd \
@@ -136,7 +135,7 @@ define contrail::lib::storage_common(
              provider => shell,
              logoutput => $contrail_logoutput
         }
-        Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage_completed']
+        Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage-master_completed']
 
         if $contrail_storage_chassis_config != '' {
              file { "storage_chassis_config" :
@@ -150,7 +149,7 @@ define contrail::lib::storage_common(
                   provider => shell,
                   logoutput => $contrail_logoutput
               }
-              Exec['setup_storage_chassis_config']-> Contrail::Lib::Report_status['storage_completed']
+              Exec['setup_storage_chassis_config']-> Contrail::Lib::Report_status['storage-master_completed']
               if $contrail_live_migration_host != '' {
                   Exec['setup_storage_chassis_config']-> Exec['setup-config-storage-live-migration']
               }
@@ -179,7 +178,7 @@ define contrail::lib::storage_common(
                 pg_num => $contrail_ceph_pg_num,
                 pgp_num => $contrail_ceph_pg_num,
         }
-        Ceph::Pool['images'] -> Contrail::Lib::Report_status['storage_completed']
+        Ceph::Pool['images'] -> Contrail::Lib::Report_status['storage-master_completed']
         Ceph::Pool['images'] -> Exec['setup-config-storage-openstack']
     
         if $contrail_live_migration_host != '' {
@@ -201,7 +200,7 @@ define contrail::lib::storage_common(
                   logoutput => $contrail_logoutput
             }
             Exec['setup-config-storage-openstack'] -> Exec['setup-config-storage-live-migration']
-            Exec['setup-config-storage-live-migration']-> Contrail::Lib::Report_status['storage_completed']
+            Exec['setup-config-storage-live-migration']-> Contrail::Lib::Report_status['storage-master_completed']
         }
     }
 
@@ -227,7 +226,7 @@ define contrail::lib::storage_common(
             logoutput => $contrail_logoutput
         }
 
-        Exec['setup-config-storage-compute']-> Contrail::Lib::Report_status['storage_completed']
+        Exec['setup-config-storage-compute']-> Contrail::Lib::Report_status['storage-compute_completed']
 
         if $contrail_live_migration_host != '' {
           file { "config-storage-lm-compute.sh":
@@ -256,7 +255,7 @@ define contrail::lib::storage_common(
               logoutput => $contrail_logoutput
           }
           Exec['setup-config-storage-compute'] -> Exec['setup-config-storage-compute-live-migration']
-          Exec['setup-config-storage-compute-live-migration']-> Contrail::Lib::Report_status['storage_completed']
+          Exec['setup-config-storage-compute-live-migration']-> Contrail::Lib::Report_status['storage-compute_completed']
         }
      }
 
@@ -290,7 +289,7 @@ define contrail::lib::storage_common(
     exec { 'ceph-virsh-set-secret' : 
         command => "/usr/bin/virsh secret-set-value ${contrail_storage_virsh_uuid} \
                      --base64 usr/bin/ceph auth get client.volumes  | \
-                     grep \"key = \" | awk '{printf \$3}'
+                     grep \"key = \" | awk '{printf \$3}'",
         unless  => "/usr/bin/virsh secret-get-value ${contrail_storage_virsh_uuid} ",
         require => Exec['ceph-virsh-secret']
     }
@@ -311,7 +310,8 @@ define contrail::lib::storage_common(
         subscribe => File['/etc/ceph/virsh.conf'],
     }
     ->
-    contrail::lib::report_status { "storage_completed": state => "storage_completed" }
+    contrail::lib::report_status { "storage-master_completed": state => "storage-master_completed" }
+    contrail::lib::report_status { "storage-compute_completed": state => "storage-compute_completed" }
 }
 
 
