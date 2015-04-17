@@ -570,6 +570,8 @@ class contrail::params (
     $enable_collector = true,
     $enable_webui = true,
     $enable_compute = true,
+    $enable_storage_compute = true,
+    $enable_storage_master = true,
     $enable_post_provision = true
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
