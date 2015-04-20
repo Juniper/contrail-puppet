@@ -27,9 +27,9 @@ class contrail::profile::openstack_controller (
         #Contrail expects neutron to run on config nodes only
         class {'::contrail::profile::openstack::neutron::server' : } ->
 
-        package { 'contrail-openstack-dashboard':
-          ensure  => present,
-        } ->
+    package { 'contrail-openstack-dashboard':
+      ensure  => latest,
+    } ->
 
         # Though neutron runs on config, setup the db in openstack node 
         exec { 'neutron-db-sync':

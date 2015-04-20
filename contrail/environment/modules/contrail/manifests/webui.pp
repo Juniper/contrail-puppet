@@ -126,11 +126,11 @@ class contrail::webui (
         contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
-    package { 'contrail-openstack-webui' : ensure => present,}
+    package { 'contrail-openstack-webui' : ensure => latest, notify => "Service[supervisor-webui]"}
 
     if ($is_storage_master) {
         package { 'contrail-web-storage' :
-            ensure => present,}
+            ensure => latest,}
 	-> file { "storage.config.global.js":
             path => "/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js",
             ensure => present,
