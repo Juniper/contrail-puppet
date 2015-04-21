@@ -483,9 +483,22 @@
 #     Flag to include or exclude compute module functionality dynamically.
 #     (optional) - Defaults to true (when included in node definition, enable the module logic).
 #
+# [*enable_pre_exec_vnc_galera*]
+#     Flag to include or exclude pre exec vnc galera logic of openstack HA module (ha_config)
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_post_exec_vnc_galera*]
+#     Flag to include or exclude post exec vnc galera logic of openstack HA module (ha_config)
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
 # [*enable_post_provision*]
 #     Flag to include or exclude reporting of status during catalog execution to server manager.
 #     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
+# [*enable_sequence_provisioning*]
+#     Flag to indicate if sequence provisioning logic is enabled. If true, explicit wait
+#     within puppet manifest is not used and we rely on sequencing to help with that.
+#     (optional) - Defaults to false.
 #
 class contrail::params (
     $host_ip,
@@ -602,7 +615,10 @@ class contrail::params (
     $enable_compute = true,
     $enable_storage_compute = true,
     $enable_storage_master = true,
-    $enable_post_provision = true
+    $enable_pre_exec_vnc_galera = true,
+    $enable_post_exec_vnc_galera = true,
+    $enable_post_provision = true,
+    $enable_sequence_provisioning = false
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
     # that varible here.
