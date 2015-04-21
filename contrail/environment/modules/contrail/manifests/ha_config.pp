@@ -41,6 +41,14 @@
 #     Values are true, false or on_failure
 #     (optional) - Defaults to false
 #
+# [*enable_pre_exec_vnc_galera*]
+#     Flag to indicate if pre exec galera logic is enabled. If true, the logic is invoked.
+#     (optional) - Defaults to true.
+#
+# [*enable_post_exec_vnc_galera*]
+#     Flag to indicate if pre exec galera logic is enabled. If true, the logic is invoked.
+#     (optional) - Defaults to true.
+#
 class contrail::ha_config (
     $host_control_ip = $::contrail::params::host_ip,
     $openstack_ip_list = $::contrail::params::openstack_ip_list,
@@ -59,6 +67,8 @@ class contrail::ha_config (
     $nfs_server = $::contrail::params::nfs_server,
     $nfs_glance_path = $::contrail::params::nfs_glance_path,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $enable_pre_exec_vnc_galera = $::contrail::params::enable_pre_exec_vnc_galera,
+    $enable_post_exec_vnc_galera = $::contrail::params::enable_post_exec_vnc_galera,
 ) inherits ::contrail::params {
     # Main code for class
     if($internal_vip != '' and $host_control_ip in $openstack_ip_list) {
@@ -118,8 +128,9 @@ class contrail::ha_config (
         $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py $os_master $host_control_ip $internal_vip $openstack_mgmt_ip_list_shell && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"
 
         $contrail_exec_password_less_ssh = "python /opt/contrail/bin/setup_passwordless_ssh.py $openstack_mgmt_ip_list_shell $openstack_user_list_shell $openstack_passwd_list_shell && echo exec-setup-password-less-ssh >> /etc/contrail/contrail_openstack_exec.out"
-        #########Chhandak-HA
+        if ($enable_pre_exec_vnc_galera) {
         # GALERA
+        contrail::lib::report_status { "pre_exec_vnc_galera_started": state => "pre_exec_vnc_galera_started" } ->
         package { 'contrail-openstack-ha':
             ensure  => present,
         }
@@ -130,7 +141,7 @@ class contrail::ha_config (
             group => root,
             content => "$mysql_root_password"
         }
-
+        ->
         file { "/opt/contrail/bin/setup_passwordless_ssh.py" :
             ensure  => present,
             mode => 0755,
@@ -172,11 +183,14 @@ class contrail::ha_config (
             tries => 3,
             try_sleep => 15,
         }
+        contrail::lib::report_status { "pre_exec_vnc_galera_completed": state => "pre_exec_vnc_galera_completed" }
+        }
+        if ($enable_post_exec_vnc_galera) {
+        contrail::lib::report_status { "post_exec_vnc_galera_started": state => "post_exec_vnc_galera_started" }
         if ($openstack_index == "1" ) {
             # Fix WSREP cluster address
             # Need check this from provisioned ha box
-
-
+            Contrail::Lib::Report_status['post_exec_vnc_galera_started'] -> File['/opt/contrail/bin/check_galera.py']
 	    file { "/opt/contrail/bin/check_galera.py" :
 		ensure  => present,
 		mode => 0755,
@@ -214,6 +228,7 @@ class contrail::ha_config (
         }
         #This will be skipped if there is an external nfs server
         if ($contrail_nfs_server == $host_control_ip) {
+            Contrail::Lib::Report_status['post_exec_vnc_galera_started'] -> Package['nfs-kernel-server']
 	    package { 'nfs-kernel-server':
 		ensure  => present,
 	    }
@@ -229,6 +244,7 @@ class contrail::ha_config (
         }
 
         # setup_cmon
+        Contrail::Lib::Report_status['post_exec_vnc_galera_started'] -> File['/opt/contrail/bin/setup-cmon-schema.py']
         file { "/opt/contrail/bin/setup-cmon-schema.py" :
             ensure  => present,
             mode => 0755,
@@ -292,7 +308,7 @@ class contrail::ha_config (
             cwd => "/opt/contrail/bin/",
             unless  => "grep -qx fix-cmon-params-and-add-ssh-keys /etc/contrail/contrail_openstack_exec.out",
             provider => shell,
-            require => [ File["/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py"], Exec["exec_vnc_galera"] ],
+            require => [ File["/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py"] ],
             logoutput => $contrail_logoutput,
         }
         ->
@@ -311,6 +327,10 @@ class contrail::ha_config (
                 unless  => "grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out",
                 require => File["/opt/contrail/bin/transfer_keys.py"]
         }
+        ->
+        contrail::lib::check-transfer-keys{ $openstack_mgmt_ip_list :;}
+        ->
+        contrail::lib::report_status { "post_exec_vnc_galera_completed": state => "post_exec_vnc_galera_completed" }
         #This wil be executed for all openstacks ,if there is an external nfs server
         if ($contrail_nfs_server != $host_control_ip ) {
 	    package { 'nfs-common':
@@ -330,8 +350,8 @@ class contrail::ha_config (
 		provider => shell,
 		logoutput => $contrail_logoutput
 	    }
-
+            Exec['add-fstab'] -> Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
         }
-
+        }
     }
 }
