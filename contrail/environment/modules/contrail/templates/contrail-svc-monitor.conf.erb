@@ -13,6 +13,16 @@ disc_server_port=5998
 region_name=<%= @keystone_region_name %>
 log_local=1
 log_level=SYS_NOTICE     
+<% if @internal_vip != "" -%>
+rabbit_server=<%= @internal_vip %>
+<% else -%>
+rabbit_server=<%= @host_control_ip %>
+<% end -%>
+<% if @internal_vip != "" -%>
+rabbit_port=5673
+<% else -%>
+rabbit_port=5672
+<% end -%>
 
 [SECURITY]
 use_certs=<%= @use_certs %>
