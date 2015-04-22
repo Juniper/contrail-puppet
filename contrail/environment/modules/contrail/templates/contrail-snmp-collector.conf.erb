@@ -1,0 +1,17 @@
+[DEFAULTS]
+log_local = 1
+log_level = SYS_NOTICE
+#log_category =
+log_file = /var/log/contrail/contrail-snmp-collector.log
+scan_frequency = <%= @snmp_scan_frequency %>
+fast_scan_frequency = <%= @snmp_fast_scan_frequency %>
+http_server_port = 5920
+zookeeper=<%= @zookeeper_ip_list.map{ |ip| "#{ip}:#{@zk_ip_port}" }.join(',') %>
+
+[DISCOVERY]
+<% if @internal_vip != "" -%>
+disc_server_ip=<%= @internal_vip %>
+<% else -%>
+disc_server_ip=<%= @host_control_ip %>
+<% end -%>
+disc_server_port=5998
