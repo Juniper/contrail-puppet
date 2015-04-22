@@ -162,6 +162,11 @@ class contrail::collector (
 	ensure  => present,
 	require => Package["contrail-openstack-analytics"],
 	content => template("$module_name/contrail-topology.conf.erb"),
+    ->
+    file { "/etc/contrail/contrail-alarm-gen.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-analytics"],
+	content => template("$module_name/contrail-alarm-gen.conf.erb"),
     }
     ->
     exec { "redis-conf-exec":
