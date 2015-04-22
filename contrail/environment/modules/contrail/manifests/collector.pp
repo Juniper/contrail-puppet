@@ -112,6 +112,12 @@ class contrail::collector (
 	content => template("$module_name/contrail-query-engine.conf.erb"),
     }
     ->
+    file { "/etc/contrail/contrail-alarm-gen.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-analytics"],
+	content => template("$module_name/contrail-alarm-gen.conf.erb"),
+    }
+    ->
     exec { "redis-conf-exec":
 	command => "sed -i -e '/^[ ]*bind/s/^/#/' /etc/redis/redis.conf;chkconfig redis-server on; service redis-server restart && echo redis-conf-exec>> /etc/contrail/contrail-collector-exec.out",
 	onlyif => "test -f /etc/redis/redis.conf",
