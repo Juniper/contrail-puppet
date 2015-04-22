@@ -561,6 +561,7 @@ class contrail::params (
     $sync_db = "",
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'",
     $contrail_logoutput = false,
+    $contrail_upgrade = false,
     $enable_keepalived = true,
     $enable_haproxy = true,
     $enable_database = true,
