@@ -121,7 +121,7 @@ class contrail::ha_config (
         #########Chhandak-HA
         # GALERA
         package { 'contrail-openstack-ha':
-            ensure  => present,
+            ensure  => latest,
         }
         ->
         file { "/etc/contrail/mysql.token" :

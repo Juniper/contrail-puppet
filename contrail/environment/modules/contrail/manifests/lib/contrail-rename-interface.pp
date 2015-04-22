@@ -6,7 +6,7 @@ define contrail::lib::contrail-rename-interface {
 
     if (inline_template('<%= operatingsystem.downcase %>') == "centos") {
 	# Ensure contrail-interface-name package is installed, which renames the interface
-	package { 'contrail-interface-name' : ensure => present,}
+	package { 'contrail-interface-name' : ensure => latest,}
 
 	# Now reboot the system
 	exec { "reboot-server" :

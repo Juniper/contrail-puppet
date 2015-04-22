@@ -127,7 +127,7 @@ class contrail::collector (
         contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
-    package { 'contrail-openstack-analytics' : ensure => present,}
+    package { 'contrail-openstack-analytics' : ensure => latest, notify => "Service[supervisor-analytics]"}
     ->
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, python-contrail, contrail-analytics, contrail-setup, contrail-nodemgr
