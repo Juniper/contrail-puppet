@@ -87,6 +87,30 @@
 #     Time to live (TTL) for analytics data in number of hours.
 #     (optional) - Defaults to "48". UI parameter.
 #
+# [*analytics_config_audit_ttl*]
+#     TTL for config audit data in hours.
+#     (optional) - Defaults to 168 hours. UI parameter.
+#
+# [*analytics_statistics_ttl*]
+#     TTL for statistics data in hours.
+#     (optional) - Defaults to 24 hours. UI parameter.
+#
+# [*analytics_flow_ttl*]
+#     TTL for flow data in hours.
+#     (optional) - Defaults to 2 hours. UI parameter.
+#
+# [*snmp_scan_frequency*]
+#     SNMP full scan frequency (in seconds).
+#     (optional) - Defaults to 600 seconds. UI parameter.
+#
+# [*snmp_fast_scan_frequency*]
+#     SNMP fast scan frequency (in seconds).
+#     (optional) - Defaults to 60 seconds. UI parameter.
+#
+# [*topology_scan_frequency*]
+#     Topology scan frequency (in seconds).
+#     (optional) - Defaults to 60 seconds. UI parameter.
+#
 # [*analytics_syslog_port*]
 #     Syslog port number used by analytics.
 #     (optional) - Defaults to "-1". UI parameter.
@@ -484,6 +508,12 @@ class contrail::params (
     $contrail_external_vip = "",
     $database_ip_port = "9160",
     $analytics_data_ttl = 48,
+    $analytics_config_audit_ttl = 168,
+    $analytics_statistics_ttl = 24,
+    $analytics_flow_ttl = 2,
+    $snmp_scan_frequency = 600,
+    $snmp_fast_scan_frequency = 60,
+    $topology_scan_frequency = 60,
     $analytics_syslog_port = -1,
     $use_certs = False,
     $puppet_server = '',
