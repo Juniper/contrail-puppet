@@ -31,6 +31,7 @@ class contrail::common(
     $contrail_repo_name = $::contrail::params::contrail_repo_name,
     $contrail_repo_ip = $::contrail::params::contrail_repo_ip,
     $contrail_repo_type = $::contrail::params::contrail_repo_type,
+    $contrail_upgrade = $::contrail::params::contrail_upgrade,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
@@ -50,6 +51,10 @@ class contrail::common(
                              contrail_logoutput => $contrail_logoutput
                          }
                     )
+    contrail::lib::contrail-upgrade{ "contrail_upgrade":
+        contrail_upgrade => $contrail_upgrade,
+        contrail_logoutput => $contrail_logoutput
+    } ->
 
     # Resource declarations for class contrail::common
     # macro to perform common functions

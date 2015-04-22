@@ -13,7 +13,7 @@ define contrail::lib::contrail-install-repo(
 
 
     if ( $package_name != '' ) {
-        package {$package_name: ensure => present, install_options => '--force-yes'}
+        package {$package_name: ensure => latest, install_options => '--force-yes'}
 
         exec { "exec-contrail-setup-$contrail_repo_type-sh" :
     	    command => $setup_script,
