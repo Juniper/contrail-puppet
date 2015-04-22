@@ -28,6 +28,38 @@
 #     Time for which analytics data is maintained.
 #     (optional) - Defaults to 48 hours
 #
+# [*analytics_config_audit_ttl*]
+#     TTL for config audit data in hours.
+#     (optional) - Defaults to 168 hours.
+#
+# [*analytics_statistics_ttl*]
+#     TTL for statistics data in hours.
+#     (optional) - Defaults to 24 hours.
+#
+# [*analytics_flow_ttl*]
+#     TTL for flow data in hours.
+#     (optional) - Defaults to 2 hours.
+#
+# [*snmp_scan_frequency*]
+#     SNMP full scan frequency (in seconds).
+#     (optional) - Defaults to 600 seconds.
+#
+# [*snmp_fast_scan_frequency*]
+#     SNMP fast scan frequency (in seconds).
+#     (optional) - Defaults to 60 seconds.
+#
+# [*topology_scan_frequency*]
+#     Topology scan frequency (in seconds).
+#     (optional) - Defaults to 60 seconds.
+#
+# [*zookeeper_ip_list*]
+#     List of control interface IP addresses of all servers running zookeeper services.
+#     (optional) - Defaults to database_ip_list
+#
+# [*zk_ip_port*]
+#     Zookeeper IP port number
+#     (optional) - Defaults to "2181"
+#
 # [*analytics_syslog_port*]
 #     TCP and UDP ports to listen on for receiving syslog messages. -1 to disable.
 #     (optional) - Defaults to -1 (disable)
@@ -51,6 +83,14 @@ class contrail::collector (
     $database_ip_list = $::contrail::params::database_ip_list,
     $database_ip_port = $::contrail::params::database_ip_port,
     $analytics_data_ttl = $::contrail::params::analytics_data_ttl,
+    $analytics_config_audit_ttl = $::contrail::params::analytics_config_audit_ttl,
+    $analytics_statistics_ttl = $::contrail::params::analytics_statistics_ttl,
+    $analytics_flow_ttl = $::contrail::params::analytics_flow_ttl,
+    $snmp_scan_frequency = $::contrail::params::snmp_scan_frequency,
+    $snmp_fast_scan_frequency = $::contrail::params::snmp_fast_scan_frequency,
+    $topology_scan_frequency = $::contrail::params::topology_scan_frequency,
+    $zookeeper_ip_list = $::contrail::params::zk_ip_list_to_use,
+    $zk_ip_port = $::contrail::params::zk_ip_port,
     $analytics_syslog_port = $::contrail::params::analytics_syslog_port,
     $internal_vip = $::contrail::params::internal_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
@@ -110,6 +150,18 @@ class contrail::collector (
 	ensure  => present,
 	require => Package["contrail-openstack-analytics"],
 	content => template("$module_name/contrail-query-engine.conf.erb"),
+    }
+    ->
+    file { "/etc/contrail/contrail-snmp-collector.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-analytics"],
+	content => template("$module_name/contrail-snmp-collector.conf.erb"),
+    }
+    ->
+    file { "/etc/contrail/contrail-topology.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-analytics"],
+	content => template("$module_name/contrail-topology.conf.erb"),
     }
     ->
     exec { "redis-conf-exec":
