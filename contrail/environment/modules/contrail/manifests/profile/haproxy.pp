@@ -11,6 +11,8 @@ class contrail::profile::haproxy (
     $enable_module = $::contrail::params::enable_haproxy
 ) {
     if ($enable_module) {
-        contain ::contrail::haproxy
+        contrail::lib::report_status { "haproxy_started": state => "haproxy_started" } ->
+        class {'::contrail::haproxy' : } ->
+        contrail::lib::report_status { "haproxy_completed": state => "haproxy_completed" }
     }
 }
