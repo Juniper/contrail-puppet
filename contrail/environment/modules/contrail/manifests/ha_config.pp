@@ -138,7 +138,7 @@ class contrail::ha_config (
         # GALERA
         contrail::lib::report_status { "pre_exec_vnc_galera_started": state => "pre_exec_vnc_galera_started" } ->
         package { 'contrail-openstack-ha':
-            ensure  => present,
+            ensure  => latest,
         }
         ->
         file { "/etc/contrail/mysql.token" :
