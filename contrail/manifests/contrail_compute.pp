@@ -370,8 +370,7 @@ define contrail_compute_part_2 (
 	}
 
         # Ensure all config files with correct content are present.
-        compute-template-scripts { ["default_pmac",
-                                    "agent_param.tmpl",
+        compute-template-scripts { [ "agent_param.tmpl",
                                     "rpm_agent.conf",
                                     "vnc_api_lib.ini",
 				    "contrail-vrouter-agent.conf"]: 
@@ -453,7 +452,7 @@ define contrail_compute_part_2 (
             provider => "shell",
             logoutput => 'true'
         }
-        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["default_pmac"] ->  Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
+        Package['contrail-openstack-vrouter'] -> File["/etc/libvirt/qemu.conf"] -> Compute-template-scripts["vrouter_nodemgr_param"] -> Compute-template-scripts["agent_param.tmpl"] ->  Compute-template-scripts["rpm_agent.conf"] -> File["/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py"] -> Exec["update-dev-net-config"] -> Exec["update-compute-nova-conf-file1"] -> Exec["update-compute-nova-conf-file2"] ->  Compute-template-scripts["contrail-vrouter-agent.conf"] -> File["/etc/contrail/contrail_setup_utils/provision_vrouter.py"]->Compute-template-scripts["vnc_api_lib.ini"]-> Exec["add-vnc-config"] -> Compute-scripts["compute-server-setup"] -> File["/etc/contrail/interface_renamed"] -> Exec["reboot-server"]
     }
     else {
         file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
