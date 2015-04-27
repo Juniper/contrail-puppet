@@ -666,7 +666,7 @@ class contrail::config (
 		require => Service["supervisor-config"]
 	}
     }
-
+    #test
     if ! defined(File["/opt/contrail/bin/set_rabbit_tcp_params.py"]) {
 
 	#set tcp params to handle tcp connections when VIP moves
