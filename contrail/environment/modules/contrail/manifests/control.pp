@@ -122,6 +122,12 @@ class contrail::control (
 	require => Package["contrail-openstack-control"],
 	content => template("$module_name/contrail-control.conf.erb"),
     }
+    ->
+    file { "/etc/contrail/contrail-control-nodemgr.conf" :
+        ensure  => present,
+        require => Package["contrail-openstack-control"],
+        content => template("$module_name/contrail-control-nodemgr.conf.erb"),
+    }
 
     # The below script can be avoided. Sets up puppet agent and waits to get certificate from puppet master.
     # also has service restarts for puppet agent and supervisor-control. Abhay
