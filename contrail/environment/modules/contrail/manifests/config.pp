@@ -458,6 +458,12 @@ class contrail::config (
 	content => template("$module_name/contrail-api.conf.erb"),
     }
     ->
+    file { "/etc/contrail/contrail-config-nodemgr.conf" :
+        ensure  => present,
+        require => Package["contrail-openstack-config"],
+        content => template("$module_name/contrail-config-nodemgr.conf.erb"),
+    }
+    ->
     file { "/etc/contrail/contrail-keystone-auth.conf" :
 	ensure  => present,
 	require => Package["contrail-openstack-config"],

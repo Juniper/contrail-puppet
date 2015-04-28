@@ -158,6 +158,12 @@ class contrail::collector (
 	content => template("$module_name/contrail-snmp-collector.conf.erb"),
     }
     ->
+    file { "/etc/contrail/contrail-analytics-nodemgr.conf" :
+        ensure  => present,
+        require => Package["contrail-openstack-analytics"],
+        content => template("$module_name/contrail-analytics-nodemgr.conf.erb"),
+    }
+    ->
     file { "/etc/contrail/contrail-topology.conf" :
 	ensure  => present,
 	require => Package["contrail-openstack-analytics"],

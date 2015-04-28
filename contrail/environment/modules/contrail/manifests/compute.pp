@@ -521,7 +521,11 @@ class contrail::compute (
 	    require => Package["contrail-openstack-vrouter"],
 	    content => template("$module_name/contrail-vrouter-agent.conf.erb"),
 	} ->
-
+        file { "/etc/contrail/contrail-vrouter-nodemgr.conf" :
+            ensure  => present,
+            require => Package["contrail-openstack-vrouter"],
+            content => template("$module_name/contrail-vrouter-nodemgr.conf.erb"),
+        } ->
 	file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
 	    ensure  => present,
 	    mode => 0755,
