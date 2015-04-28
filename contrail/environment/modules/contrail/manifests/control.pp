@@ -94,7 +94,7 @@ class contrail::control (
         contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
-    package { 'contrail-openstack-control' : ensure => present,}
+    package { 'contrail-openstack-control' : ensure => latest, notify => "Service[supervisor-control]"}
     ->
 
     # The above wrapper package should be broken down to the below packages

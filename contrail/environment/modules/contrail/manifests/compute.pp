@@ -264,7 +264,13 @@ class contrail::compute (
         $multinet_opt = ""
         $vhost_ip = $host_control_ip
     }
-    $contrail_dev = get_device_name("$vhost_ip")
+    $physical_dev = get_device_name("$vhost_ip")
+    if ($physical_dev != "vhost0") {
+        $contrail_dev = $physical_dev
+    } else {
+        $contrail_dev_mac = inline_template("<%= scope.lookupvar('macaddress_' + @physical_dev) %>")
+        $contrail_dev = get_device_name_by_mac("$contrail_dev_mac") 
+    }
     if ($multinet) {
         $contrail_compute_dev = get_device_name("$host_control_ip")
     }
@@ -272,14 +278,14 @@ class contrail::compute (
         $contrail_compute_dev = ""
     }
 
-    if ($contrail_dev == undef) {
+    if ($physical_dev == undef) {
 	fail("contrail device is not found")
     }
 
     # Get Mac, netmask and gway
-    if ($contrail_dev != undef and $contrail_dev != "vhost0") {
-	$contrail_macaddr = inline_template("<%= scope.lookupvar('macaddress_' + @contrail_dev) %>")
-	$contrail_netmask = inline_template("<%= scope.lookupvar('netmask_' + @contrail_dev) %>")
+    if ($physical_dev != undef and $physical_dev != "vhost0") {
+	$contrail_macaddr = inline_template("<%= scope.lookupvar('macaddress_' + @physical_dev) %>")
+	$contrail_netmask = inline_template("<%= scope.lookupvar('netmask_' + @physical_dev) %>")
 	$contrail_cidr = convert_netmask_to_cidr($contrail_netmask)
     }
     if ($multinet == true) {
@@ -344,7 +350,7 @@ class contrail::compute (
     notify {"multinet = $multinet":; } ->
     notify {"multinet_opt = $multinet_opt":; } ->
     notify {"vhost_ip = $vhost_ip":; } ->
-    notify {"contrail_dev = $contrail_dev":; } ->
+    notify {"physical_dev = $physical_dev":; } ->
     notify {"contrail_compute_dev = $contrail_compute_dev":; } ->
     notify {"contrail_macaddr = $contrail_macaddr":; } ->
     notify {"contrail_netmask = $contrail_netmask":; } ->
@@ -365,8 +371,7 @@ class contrail::compute (
     # Main code for class starts here
     # Ensure all needed packages are present
     package { 'contrail-vrouter-common' : ensure => present,}->
-
-    package { 'contrail-openstack-vrouter' : ensure => present,}
+    package { 'contrail-openstack-vrouter' : ensure => latest, notify => "Service[supervisor-vrouter]"}
 
     if ($operatingsystem == "Ubuntu"){
 	file {"/etc/init/supervisor-vrouter.override": ensure => absent, require => Package['contrail-openstack-vrouter']}
@@ -503,29 +508,7 @@ class contrail::compute (
 	}
     }
 
-    if ($contrail_dev != undef and $contrail_dev != "vhost0") {
-        file { "/etc/contrail/agent_param" :
-            ensure  => present,
-            require => Package["contrail-openstack-vrouter"],
-            content => template("$module_name/agent_param.tmpl.erb"),
-        }
-        if ! defined(File["/etc/contrail/vnc_api_lib.ini"]) {
-    	    file { "/etc/contrail/vnc_api_lib.ini" :
-	        ensure  => present,
-	        require => Package["contrail-openstack-vrouter"],
-	        content => template("$module_name/vnc_api_lib.ini.erb"),
-	    }
-        }
-	file { "/etc/contrail/contrail-vrouter-agent.conf" :
-	    ensure  => present,
-	    require => Package["contrail-openstack-vrouter"],
-	    content => template("$module_name/contrail-vrouter-agent.conf.erb"),
-	} ->
-        file { "/etc/contrail/contrail-vrouter-nodemgr.conf" :
-            ensure  => present,
-            require => Package["contrail-openstack-vrouter"],
-            content => template("$module_name/contrail-vrouter-nodemgr.conf.erb"),
-        } ->
+    if ($physical_dev != undef and $physical_dev != "vhost0") {
 	file { "/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py":
 	    ensure  => present,
 	    mode => 0755,
@@ -533,7 +516,7 @@ class contrail::compute (
 	    group => root,
 	    source => "puppet:///modules/$module_name/update_dev_net_config_files.py"
 	}
-    $update_dev_net_cmd = "/bin/bash -c \"python /etc/contrail/contrail_setup_utils/update_dev_net_config_files.py --vhost_ip $vhost_ip $multinet_opt --dev \'$contrail_dev\' --compute_dev \'$contrail_compute_dev\' --netmask \'$contrail_netmask\' --gateway \'$contrail_gway\' --cidr \'$contrail_cidr\' --host_non_mgmt_ip \'$host_non_mgmt_ip\' --mac $contrail_macaddr && echo update-dev-net-config >> /etc/contrail/contrail_compute_exec.out\""
+        $update_dev_net_cmd = "/bin/bash -c \"python /etc/contrail/contrail_setup_utils/update_dev_net_config_files.py --vhost_ip $vhost_ip $multinet_opt --dev \'$physical_dev\' --compute_dev \'$contrail_compute_dev\' --netmask \'$contrail_netmask\' --gateway \'$contrail_gway\' --cidr \'$contrail_cidr\' --host_non_mgmt_ip \'$host_non_mgmt_ip\' --mac $contrail_macaddr && echo update-dev-net-config >> /etc/contrail/contrail_compute_exec.out\""
 
 	notify { "Update dev net config is $update_dev_net_cmd":; }
 
@@ -543,91 +526,121 @@ class contrail::compute (
 	    unless  => "grep -qx update-dev-net-config /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
 	    logoutput => $contrail_logoutput
-	} ->
+	} 
 
-	file { "/opt/contrail/utils/provision_vrouter.py":
-	    ensure  => present,
-	    mode => 0755,
-	    owner => root,
-	    group => root
-	}
-	exec { "add-vnc-config" :
-	    command => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name $::hostname --host_ip $host_control_ip --api_server_ip $config_ip_to_use --oper add --admin_user $keystone_admin_user --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant --openstack_ip $openstack_ip && echo add-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
-	    require => File["/opt/contrail/utils/provision_vrouter.py"],
-	    unless  => "grep -qx add-vnc-config /etc/contrail/contrail_compute_exec.out",
+    } else {
+	exec { "service_network_restart" :
+	    command => "/etc/init.d/networking restart && echo service_network_restart >> /etc/contrail/contrail_compute_exec.out",
+	    require => Package["contrail-openstack-vrouter"],
+	    unless  => "grep -qx service_network_restart /etc/contrail/contrail_compute_exec.out",
 	    provider => shell,
-	    logoutput => $contrail_logoutput
-	} ->
-
-	file { "/opt/contrail/bin/compute-server-setup.sh":
-	    ensure  => present,
-	    mode => 0755,
-	    owner => root,
-	    group => root,
-	    require => File["/etc/contrail/ctrl-details"],
-	} ->
-	exec { "setup-compute-server-setup" :
-	    command => "/opt/contrail/bin/compute-server-setup.sh; echo setup-compute-server-setup >> /etc/contrail/contrail_compute_exec.out",
-	    require => File["/opt/contrail/bin/compute-server-setup.sh"],
-	    unless  => "grep -qx setup-compute-server-setup /etc/contrail/contrail_compute_exec.out",
-	    provider => shell,
-	    logoutput => $contrail_logoutput
-	} ->
-        exec { "fix-neutron-tenant-name" :
-	    command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out",
-	    unless  => "grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out",
-	    provider => shell,
-	    logoutput => $contrail_logoutput
-
-        } ->
-        exec { "fix-neutron-admin-password" :
-	    command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password $keystone_admin_password && echo fix-neutron-admin-password >> /etc/contrail/contrail_compute_exec.out",
-	    unless  => "grep -qx fix-neutron-admin-password /etc/contrail/contrail_compute_exec.out",
-	    provider => shell,
-	    logoutput => $contrail_logoutput
-
-        } ->
-        exec { "fix-keystone-admin-password" :
-	    command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password $keystone_admin_password && echo fix-keystone-admin-password >> /etc/contrail/contrail_compute_exec.out",
-	    unless  => "grep -qx fix-keystone-admin-password /etc/contrail/contrail_compute_exec.out",
-	    provider => shell,
-	    logoutput => $contrail_logoutput
-
-        } ->
-        contrail::lib::report_status { "compute_completed":
-            state => "compute_completed", 
-            contrail_logoutput => $contrail_logoutput } ->
-	exec { "flag-reboot-server" :
-	    command   => "echo flag-reboot-server >> /etc/contrail/contrail_compute_exec.out",
-	    unless => ["grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out"],
-	    provider => "shell",
 	    logoutput => $contrail_logoutput
 	}
-        -> 
-        service { "nova-compute" :
-            enable => true,
-            require => [ Package['contrail-openstack-vrouter']
-                     ],
-#            subscribe => File['/etc/nova/nova.conf'],
-            ensure => running,
-        }
-
-	# Now reboot the system
-	if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
-	    exec { "cp-ifcfg-file" :
-		command   => "cp -f /etc/contrail/ifcfg-* /etc/sysconfig/network-scripts && echo cp-ifcfg-file >> /etc/contrail/contrail_compute_exec.out",
-		before => Exec["reboot-server"],
-		unless  => "grep -qx cp-ifcfg-file /etc/contrail/contrail_compute_exec.out",
-		provider => "shell",
-	        require => Exec["flag-reboot-server"],
-		logoutput => $contrail_logoutput
-	    }
-	}
-    }
-    else {
+        ->
         contrail::lib::report_status { "compute_completed":
             state => "compute_completed", 
             contrail_logoutput => $contrail_logoutput
         }
+    }
+
+    file { "/etc/contrail/agent_param" :
+	ensure  => present,
+	require => Package["contrail-openstack-vrouter"],
+	content => template("$module_name/agent_param.tmpl.erb"),
+    }
+    if ! defined(File["/etc/contrail/vnc_api_lib.ini"]) {
+	file { "/etc/contrail/vnc_api_lib.ini" :
+	    ensure  => present,
+	    require => Package["contrail-openstack-vrouter"],
+	    content => template("$module_name/vnc_api_lib.ini.erb"),
+	}
+    }
+    file { "/etc/contrail/contrail-vrouter-agent.conf" :
+	ensure  => present,
+	require => Package["contrail-openstack-vrouter"],
+	content => template("$module_name/contrail-vrouter-agent.conf.erb"),
+    } ->
+
+
+    file { "/opt/contrail/utils/provision_vrouter.py":
+	ensure  => present,
+	mode => 0755,
+	owner => root,
+	group => root
+    }
+    exec { "add-vnc-config" :
+	command => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name $::hostname --host_ip $host_control_ip --api_server_ip $config_ip_to_use --oper add --admin_user $keystone_admin_user --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant --openstack_ip $openstack_ip && echo add-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
+	require => File["/opt/contrail/utils/provision_vrouter.py"],
+	unless  => "grep -qx add-vnc-config /etc/contrail/contrail_compute_exec.out",
+	provider => shell,
+	logoutput => $contrail_logoutput
+    } ->
+
+    file { "/opt/contrail/bin/compute-server-setup.sh":
+	ensure  => present,
+	mode => 0755,
+	owner => root,
+	group => root,
+	require => File["/etc/contrail/ctrl-details"],
+    } ->
+    exec { "setup-compute-server-setup" :
+	command => "/opt/contrail/bin/compute-server-setup.sh; echo setup-compute-server-setup >> /etc/contrail/contrail_compute_exec.out",
+	require => File["/opt/contrail/bin/compute-server-setup.sh"],
+	unless  => "grep -qx setup-compute-server-setup /etc/contrail/contrail_compute_exec.out",
+	provider => shell,
+	logoutput => $contrail_logoutput
+    } ->
+    exec { "fix-neutron-tenant-name" :
+	command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out",
+	unless  => "grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out",
+	provider => shell,
+	logoutput => $contrail_logoutput
+
+    } ->
+    exec { "fix-neutron-admin-password" :
+	command => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password $keystone_admin_password && echo fix-neutron-admin-password >> /etc/contrail/contrail_compute_exec.out",
+	unless  => "grep -qx fix-neutron-admin-password /etc/contrail/contrail_compute_exec.out",
+	provider => shell,
+	logoutput => $contrail_logoutput
+
+    } ->
+    exec { "fix-keystone-admin-password" :
+	command => "openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password $keystone_admin_password && echo fix-keystone-admin-password >> /etc/contrail/contrail_compute_exec.out",
+	unless  => "grep -qx fix-keystone-admin-password /etc/contrail/contrail_compute_exec.out",
+	provider => shell,
+	logoutput => $contrail_logoutput
+
+    } ->
+    exec { "flag-reboot-server" :
+	command   => "echo flag-reboot-server >> /etc/contrail/contrail_compute_exec.out",
+	unless => ["grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out"],
+	provider => "shell",
+	logoutput => $contrail_logoutput
+    }
+    -> 
+    service { "supervisor-vrouter" :
+	enable => true,
+	require => [ Package['contrail-openstack-vrouter']
+		 ],
+	ensure => running,
+    }
+    ->
+    service { "nova-compute" :
+	enable => true,
+	require => [ Package['contrail-openstack-vrouter']
+		 ],
+	ensure => running,
+    }
+
+    # Now reboot the system
+    if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
+	exec { "cp-ifcfg-file" :
+	    command   => "cp -f /etc/contrail/ifcfg-* /etc/sysconfig/network-scripts && echo cp-ifcfg-file >> /etc/contrail/contrail_compute_exec.out",
+	    before => Exec["reboot-server"],
+	    unless  => "grep -qx cp-ifcfg-file /etc/contrail/contrail_compute_exec.out",
+	    provider => "shell",
+	    require => Exec["flag-reboot-server"],
+	    logoutput => $contrail_logoutput
+	}
     }
 }
