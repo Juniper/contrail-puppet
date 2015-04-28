@@ -138,7 +138,7 @@ class contrail::database (
         contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
-    package { 'contrail-openstack-database' : ensure => present,}
+    package { 'contrail-openstack-database' : ensure => latest, notify => "Service[supervisor-database]"}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - cassandra (>= 1.1.12) , contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-database, contrail-setup, openstack-quantum-contrail, supervisor
@@ -187,7 +187,7 @@ class contrail::database (
 	    ensure => link,
 	    target => '/lib/init/upstart-job',
             require => File["$contrail_cassandra_dir/cassandra-env.sh"],
-	    before => Service["supervisord-contrail-database"]
+	    before => Service["supervisor-database"]
 	}
     }
     # set high session timeout to survive glance led disk activity
@@ -212,13 +212,13 @@ class contrail::database (
     ->
     file { "/etc/contrail/contrail-nodemgr-database.conf" :
 	ensure  => present,
-	before => Service["supervisord-contrail-database"],
+	before => Service["supervisor-database"],
 	content => template("$module_name/contrail-nodemgr-database.conf.erb"),
     }
     ->
     file { "/etc/contrail/database_nodemgr_param" :
 	ensure  => present,
-	before => Service["supervisord-contrail-database"],
+	before => Service["supervisor-database"],
 	content => template("$module_name/database_nodemgr_param.erb"),
     }
     ->
@@ -237,7 +237,7 @@ class contrail::database (
     }
     ->
     # Ensure the services needed are running.
-    service { "supervisord-contrail-database" :
+    service { "supervisor-database" :
         enable => true,
         require => [ Package["contrail-openstack-database"],
                      Exec['database-venv'] ],

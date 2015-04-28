@@ -7,12 +7,12 @@ define contrail::lib::post_openstack(
     if ($host_control_ip in $openstack_ip_list) {
 
       package { 'contrail-openstack':
-	ensure  => present,
+	ensure  => latest,
       }
       ->
       exec { "exec_start_supervisor_openstack" :
-	  command => "service supervisor-openstack start && echo start_supervisor_openstack >> /etc/contrail/contrail_openstack_exec.out",
-	  unless  => "grep -qx start_supervisor_openstack /etc/contrail/contrail_openstack_exec.out",
+	  command => "service supervisor-openstack restart && echo start_supervisor_openstack >> /etc/contrail/contrail_openstack_exec.out",
+          unless  => "grep -qx start_supervisor_openstack /etc/contrail/contrail_openstack_exec.out",
 	  provider => shell,
 	  require => [ Package["contrail-openstack"]  ],
 	  logoutput => $contrail_logoutput

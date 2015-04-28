@@ -373,7 +373,7 @@ class contrail::config (
         contrail_logoutput => $contrail_logoutput }
     ->
     # Ensure all needed packages are present
-    package { 'contrail-openstack-config' : ensure => present,}
+    package { 'contrail-openstack-config' : ensure => latest, notify => "Service[supervisor-config]"}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, contrail-nodemgr, contrail-lib, contrail-config, neutron-plugin-contrail, neutron-server, python-novaclient,
     #                     python-keystoneclient, contrail-setup, haproxy, euca2ools, rabbitmq-server, python-qpid, python-iniparse, python-bottle,
