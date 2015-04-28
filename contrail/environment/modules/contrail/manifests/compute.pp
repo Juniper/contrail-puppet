@@ -528,6 +528,11 @@ class contrail::compute (
 	} 
 
     } else {
+        #Not needed for now, as compute upgrade anyways goes for a reboot,
+        #On 14.04, since network restart is not supported,
+        #We need to stop vrouter, modprobe -r vrouter and start vrouter again.
+        #
+        /*
 	exec { "service_network_restart" :
 	    command => "/etc/init.d/networking restart && echo service_network_restart >> /etc/contrail/contrail_compute_exec.out",
 	    require => Package["contrail-openstack-vrouter"],
@@ -536,6 +541,7 @@ class contrail::compute (
 	    logoutput => $contrail_logoutput
 	}
         ->
+        */
         contrail::lib::report_status { "compute_completed":
             state => "compute_completed", 
             contrail_logoutput => $contrail_logoutput
