@@ -21,6 +21,11 @@
 # Enable/disable debug logging. Possible values are 0 (disable) and 1 (enable)
 # debug=0
 
+# Agent mode : can be vrouter / tsn / tor (default is vrouter)
+<% if @contrail_agent_mode != "" -%>
+agent_mode=tsn
+<% end -%>
+
 # Aging time for flow-records in seconds
 # flow_cache_timeout=0
 
