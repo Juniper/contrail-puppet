@@ -201,6 +201,7 @@ class contrail::compute (
     $nfs_server = $::contrail::params::nfs_server,
     $orchestrator = $::contrail::params::orchestrator,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $contrail_host_roles = $::contrail::params::host_roles,
 ) inherits ::contrail::params {
 
     $contrail_num_controls = inline_template("<%= @control_ip_list.length %>")
@@ -310,6 +311,11 @@ class contrail::compute (
 	$vmware_physical_intf = "eth1"
     }
 
+    if 'tsn' in $contrail_host_roles {
+        $contrail_agent_mode = 'tsn'
+    } else {
+        $contrail_agent_mode = ""
+    }
     # Debug Print all variable values
     notify {"host_control_ip = $host_control_ip":; } ->
     notify {"config_ip = $config_ip":; } ->
