@@ -375,9 +375,15 @@ class contrail::compute (
         contrail_logoutput => $contrail_logoutput }
     ->
     # Main code for class starts here
-    # Ensure all needed packages are present
-    package { 'contrail-vrouter-common' : ensure => present,}->
-    package { 'contrail-openstack-vrouter' : ensure => latest, notify => "Service[supervisor-vrouter]"}
+    # Ensure all needed packages are latest
+    package { 'contrail-vrouter-common' : ensure => latest,}->
+    package { 'contrail-openstack-vrouter' : ensure => latest,}
+
+    #The below way should be the ideal one,
+    #But when vrouter-agent starts , the actual physical interface is not removed,
+    #when vhost comes up.
+    #This results in non-reachablity
+    #package { 'contrail-openstack-vrouter' : ensure => latest, notify => "Service[supervisor-vrouter]"}
 
     if ($operatingsystem == "Ubuntu"){
 	file {"/etc/init/supervisor-vrouter.override": ensure => absent, require => Package['contrail-openstack-vrouter']}
@@ -463,7 +469,7 @@ class contrail::compute (
     exec { "add_dev_tun_in_cgroup_device_acl" :
         command => "./add_dev_tun_in_cgroup_device_acl.sh && echo add_dev_tun_in_cgroup_device_acl >> /etc/contrail/contrail_compute_exec.out",
 	cwd => "/etc/contrail/contrail_setup_utils/",
-        require => [ File["/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh"] ],
+        require => [ File["/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh"] ,Package['contrail-openstack-vrouter'] ],
         unless  => "grep -qx add_dev_tun_in_cgroup_device_acl /etc/contrail/contrail_compute_exec.out",
         provider => shell,
         logoutput => $contrail_logoutput
@@ -548,10 +554,6 @@ class contrail::compute (
 	}
         ->
         */
-        contrail::lib::report_status { "compute_completed":
-            state => "compute_completed", 
-            contrail_logoutput => $contrail_logoutput
-        }
     }
 
     file { "/etc/contrail/default_pmac" :
@@ -627,12 +629,17 @@ class contrail::compute (
 	logoutput => $contrail_logoutput
 
     } ->
+        contrail::lib::report_status { "compute_completed":
+            state => "compute_completed", 
+            contrail_logoutput => $contrail_logoutput } ->
     exec { "flag-reboot-server" :
 	command   => "echo flag-reboot-server >> /etc/contrail/contrail_compute_exec.out",
 	unless => ["grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out"],
 	provider => "shell",
 	logoutput => $contrail_logoutput
     }
+    #1449971
+    /*
     -> 
     service { "supervisor-vrouter" :
 	enable => true,
@@ -640,6 +647,7 @@ class contrail::compute (
 		 ],
 	ensure => running,
     }
+    */
     ->
     service { "nova-compute" :
 	enable => true,
