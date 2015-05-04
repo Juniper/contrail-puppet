@@ -289,7 +289,7 @@
 #
 # [*encap_priority*]
 #     Encapsulation priority setting.
-#     (optional) - Defaults to "MPLSoUDP,MPLSoGRE,VXLAN"
+#     (optional) - Defaults to "VXLAN,MPLSoUDP,MPLSoGRE"
 #
 # [*router_asn*]
 #     Router ASN value
@@ -565,7 +565,7 @@ class contrail::params (
     $keepalived_vrid = 100,
     $mysql_root_password = "c0ntrail123",
     $openstack_mgmt_ip_list = undef,
-    $encap_priority = "MPLSoUDP,MPLSoGRE,VXLAN",
+    $encap_priority = "VXLAN,MPLSoUDP,MPLSoGRE",
     $router_asn = "64512",
     $metadata_secret = "",
     $vgw_public_subnet = "",
