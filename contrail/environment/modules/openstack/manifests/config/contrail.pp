@@ -9,7 +9,7 @@ class openstack::config::contrail(
     $database_initial_token = "",
     $bgp_params = "",
     $supervisorctl_lines = 'supervisorctl -s http://localhost:9004 ${1} `basename ${0}:0`',
-    $encap_priority = "MPLSoUDP,MPLSoGRE,VXLAN",
+    $encap_priority = "VXLAN,MPLSoUDP,MPLSoGRE",
     $rabbit_user = undef,
     $multi_tenancy = "True",
     $cassandra_ip_port = "9160",

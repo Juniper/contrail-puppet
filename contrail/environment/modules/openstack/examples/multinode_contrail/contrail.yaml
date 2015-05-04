@@ -7,7 +7,7 @@ openstack::config::contrail::api_nworkers: "1"
 openstack::config::contrail::database_initial_token: ""
 openstack::config::contrail::bgp_params: ""
 openstack::config::contrail::supervisorctl_lines: 'supervisorctl -s http://localhost:9004 ${1} `basename ${0}:0`'
-openstack::config::contrail::encap_priority: "MPLSoUDP,MPLSoGRE,VXLAN"
+openstack::config::contrail::encap_priority: "VXLAN,MPLSoUDP,MPLSoGRE"
 openstack::config::contrail::multi_tenancy: "True"
 openstack::config::contrail::cassandra_ip_port: "9160"
 openstack::config::contrail::router_asn: "64512"
