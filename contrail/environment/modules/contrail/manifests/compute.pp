@@ -284,11 +284,9 @@ class contrail::compute (
     }
 
     # Get Mac, netmask and gway
-    if ($physical_dev != undef and $physical_dev != "vhost0") {
-	$contrail_macaddr = inline_template("<%= scope.lookupvar('macaddress_' + @physical_dev) %>")
-	$contrail_netmask = inline_template("<%= scope.lookupvar('netmask_' + @physical_dev) %>")
-	$contrail_cidr = convert_netmask_to_cidr($contrail_netmask)
-    }
+    $contrail_macaddr = inline_template("<%= scope.lookupvar('macaddress_' + @physical_dev) %>")
+    $contrail_netmask = inline_template("<%= scope.lookupvar('netmask_' + @physical_dev) %>")
+    $contrail_cidr = convert_netmask_to_cidr($contrail_netmask)
     if ($multinet == true) {
         $contrail_gway = $host_non_mgmt_gateway
     }
