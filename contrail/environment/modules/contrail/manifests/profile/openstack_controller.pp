@@ -13,6 +13,9 @@ class contrail::profile::openstack_controller (
     if ($enable_module) {
         contrail::lib::report_status { "openstack_started": state => "openstack_started" } ->
         class {'::openstack::profile::base' : } ->
+        class {'::nova::quota' :
+              quota_instances => 10000,
+        } ->
         class {'::openstack::profile::firewall' : } ->
         class {'::contrail::profile::openstack::mysql' : } ->
         class {'::openstack::profile::keystone' : } ->
