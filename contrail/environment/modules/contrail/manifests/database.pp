@@ -121,7 +121,7 @@ class contrail::database (
             ensure => link,
             target => "$analytics_data_dir/ContrailAnalytics",
             require => File["$database_dir"],
-            notify => Service["supervisord-contrail-database"]
+            notify => Service["supervisor-database"]
         }
     }
     contrail::lib::report_status { "database_started":
@@ -205,6 +205,12 @@ class contrail::database (
 	ensure  => present,
 	before => Service["supervisor-database"],
 	content => template("$module_name/contrail-nodemgr-database.conf.erb"),
+    }
+    ->
+    file { "/etc/contrail/contrail-database-nodemgr.conf" :
+        ensure  => present,
+        before => Service["supervisor-database"],
+        content => template("$module_name/contrail-database-nodemgr.conf.erb"),
     }
     ->
     file { "/etc/contrail/database_nodemgr_param" :
