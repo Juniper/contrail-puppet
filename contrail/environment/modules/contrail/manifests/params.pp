@@ -447,6 +447,10 @@
 #     Values are true, false or on_failure
 #     (optional) - Defaults to false
 #
+# [*enable_provision_started*]
+#     Flag to include or exclude reporting of provision_started during catalog execution to server manager.
+#     (optional) - Defaults to true (when included in node definition, enable the module logic).
+#
 # [*enable_keepalived*]
 #     Flag to include or exclude keepalived module functionality dynamically.
 #     (optional) - Defaults to true (when included in node definition, enable the module logic).
@@ -607,6 +611,7 @@ class contrail::params (
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'",
     $contrail_logoutput = false,
     $contrail_upgrade = false,
+    $enable_provision_started = true,
     $enable_keepalived = true,
     $enable_haproxy = true,
     $enable_database = true,
