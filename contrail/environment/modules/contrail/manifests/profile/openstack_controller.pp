@@ -23,6 +23,7 @@ class contrail::profile::openstack_controller (
         class {'::contrail::profile::openstack::glance::api' : } ->
         class {'::openstack::profile::cinder::api' : } ->
         class {'::openstack::profile::nova::api' : } ->
+        class {'::contrail::profile::openstack::heat' : } ->
         class {'::openstack::profile::horizon' : } ->
         class {'::openstack::profile::auth_file' : } ->
         class {'::openstack::profile::provision' : } ->
