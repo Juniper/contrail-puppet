@@ -366,7 +366,32 @@ class contrail::compute (
     notify {"quantum_service_protocol = $quantum_service_protocol":; } ->
     notify {"discovery_ip = $discovery_ip":; } ->
     notify {"hypervisor_type = $hypervisor_type":; } ->
-    notify {"vmware_physical_intf = $vmware_physical_intf":; } ->
+    notify {"vmware_physical_intf = $vmware_physical_intf":; }
+
+    #Determine vrouter package to be installed based on the kernel
+    #TODO add DPDK support here
+
+
+    if ($operatingsystem == "Ubuntu"){
+
+        if ($lsbdistrelease == "14.04") {
+            if ($kernelrelease == "3.13.0-40-generic") {
+            	$vrouter_pkg = "contrail-vrouter-3.13.0-40-generic" 
+            } else {
+            	$vrouter_pkg = "contrail-vrouter-dkms" 
+            }
+        } elsif ($lsbdistrelease == "12.04") {
+            if ($kernelrelease == "3.13.0-34-generic") {
+            	$vrouter_pkg = "contrail-vrouter-3.13.0-34-generic" 
+            } else {
+            	$vrouter_pkg = "contrail-vrouter-dkms" 
+            }
+        }
+    }
+    else {
+      	$vrouter_pkg = "contrail-vrouter" 
+    }
+
 
     contrail::lib::report_status { "compute_started":
         state => "compute_started", 
@@ -374,7 +399,7 @@ class contrail::compute (
     ->
     # Main code for class starts here
     # Ensure all needed packages are latest
-    package { 'contrail-vrouter-common' : ensure => latest,}->
+    package { $vrouter_pkg : ensure => latest,}->
     package { 'contrail-openstack-vrouter' : ensure => latest,}
 
     #The below way should be the ideal one,
