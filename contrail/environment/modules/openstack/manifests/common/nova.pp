@@ -20,11 +20,14 @@ class openstack::common::nova ($is_compute    = false) {
   $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
   $contrail_neutron_server = $::contrail::params::config_ip_to_use
 
+  $openstack_ip_list = $::contrail::params::openstack_ip_list
+  $contrail_memcache_servers = inline_template('<%= @openstack_ip_list.map{ |ip| "#{ip}:11211" }.join(",") %>')
+
 
   class { '::nova':
     sql_connection     => $::openstack::resources::connectors::nova,
     glance_api_servers => "http://${storage_management_address}:9292",
-    memcached_servers  => ["${controller_management_address}:11211"],
+    memcached_servers  => ["$contrail_memcache_servers"],
     rabbit_hosts       => [$contrail_rabbit_host],
     rabbit_userid      => $::openstack::config::rabbitmq_user,
     rabbit_password    => $::openstack::config::rabbitmq_password,
