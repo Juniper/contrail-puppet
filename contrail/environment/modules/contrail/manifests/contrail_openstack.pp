@@ -75,7 +75,7 @@ class contrail::contrail_openstack (
     #slect the novncproxy based on presence of internal_vip
     if ($internal_vip != ""){
        $novncproxy_port = "6999"
-       $vnc_proxy_host = $openstack_ip
+       $vnc_proxy_host = $host_control_ip
     } else {
        $novncproxy_port = "5999"
        $vnc_proxy_host = $openstack_mgmt_ip

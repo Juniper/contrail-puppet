@@ -495,7 +495,7 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
              % (space, host_ip, host_ip)
         nova_vnc_server_lines  +=\
             '%s server %s %s:6999 check inter 2000 rise 2 fall 3\n'\
-             % (space, mgmt_host_ip, mgmt_host_ip)
+             % (space, host_ip, host_ip)
         if server_index <= 1:
             memcached_server_lines +=\
                 '%s server repcache%s %s:11211 check inter 2000 rise 2 fall 3\n'\
