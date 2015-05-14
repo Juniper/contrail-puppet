@@ -45,6 +45,15 @@ then
   journal_name=${disk_name}
 fi
 
+timeout 10 ceph -s
+
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ]
+then
+  echo "ceph -s failed"
+  exit 1
+fi
+
 check_disk_avail ()
 {
 

@@ -17,6 +17,7 @@ define contrail::lib::storage_common(
         $contrail_storage_hostnames,
         $contrail_storage_chassis_config,
         $contrail_storage_cluster_network,
+        $contrail_host_ip,
         $contrail_logoutput = false
         ) {
 
@@ -75,32 +76,62 @@ define contrail::lib::storage_common(
         monthday => 'absent',
         weekday => 'absent',
     }
+    if size($contrail_storage_mon_hosts) > 10 {
+        $contrail_storage_max_monitors = 10
+    } else {
+        $contrail_storage_max_monitors = size($contrail_storage_mon_hosts)
+    }
+
+    $contrail_ceph_monitors = inline_template('<%= @contrail_storage_mon_hosts.first(@contrail_storage_max_monitors) %>')
+    notify {" monitors = $contrail_ceph_monitors":; }
+    $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_mon_hosts.first(@contrail_storage_max_monitors).map{ |ip| "#{ip}" }.join(", ")  %>')
+
+    file { "ceph-disk-clean-file1":
+        path => "/etc/ceph/test2.conf",
+        ensure  => present,
+        mode => 0755,
+        owner => root,
+        group => root,
+        content => "hello new secret : $contrail_ceph_monitors ====> $contrail_ceph_monitors_map",
+}
     class { 'ceph' : 
         fsid => $contrail_storage_fsid,
-        mon_host => "$contrail_storage_mon_hosts",
+        mon_host => "$contrail_ceph_monitors_map",
         keyring => '/etc/ceph/$cluster.$name.keyring',
         cluster_network => $contrail_storage_cluster_network,
         #require => Package['contrail-storage'],
-    } ->
-    ceph::mon { $contrail_storage_hostname: 
-        key => $contrail_storage_mon_secret
-    } -> 
-    ceph::key{'client.admin':
-        secret => $contrail_storage_admin_key,
-        cap_mon => 'allow *',
-        cap_osd => 'allow *',
-        inject_as_id => 'mon.',
-        inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
-        inject => true,
-     } ->
-
-     ceph::key{'client.bootstrap-osd':
-        secret => $contrail_storage_osd_bootstrap_key,
-        cap_mon => 'allow profile bootstrap-osd',
-        inject_as_id => 'mon.',
-        inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
-        inject => true,
-      }
+    }
+    if ($contrail_host_ip in $contrail_ceph_monitors) {
+        ceph::mon { $contrail_storage_hostname:
+            key => $contrail_storage_mon_secret
+        }
+        ->
+        ceph::key{'client.admin':
+            secret => $contrail_storage_admin_key,
+            cap_mon => 'allow *',
+            cap_osd => 'allow *',
+            inject_as_id => 'mon.',
+            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+            inject => true,
+         }
+         ->
+         ceph::key{'client.bootstrap-osd':
+            secret => $contrail_storage_osd_bootstrap_key,
+            cap_mon => 'allow profile bootstrap-osd',
+            inject_as_id => 'mon.',
+            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+            inject => true,
+          }
+    } else {
+        ceph::key{'client.admin':
+            secret => $contrail_storage_admin_key,
+            cap_mon => 'allow *',
+            cap_osd => 'allow *',
+            #inject_as_id => 'mon.',
+            #inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+            #inject => true,
+         }
+}
 
      if 'storage-compute' in $contrail_host_roles {
        if $contrail_storage_osd_disks != 'undef' {
@@ -109,7 +140,7 @@ define contrail::lib::storage_common(
           } ->
           ceph::osd { $contrail_storage_osd_disks: 
               require => Contrail::Lib::Prepare_disk[$contrail_storage_osd_disks]
-          } -> 
+          } ->
           Contrail::Lib::Report_status['storage-compute_completed']
        }
      }
@@ -138,6 +169,8 @@ define contrail::lib::storage_common(
         Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage-master_completed']
 
         if $contrail_storage_chassis_config != '' {
+             ##'["cmbu-is1-12:0","cmbu-ixs1-5:1","cmbu-gravity-11:0","cmbu-cl73:0"]'-
+             $contrail_chassis_map = inline_template('<%= @contrail_storage_chassis_config.map{ |hostname| "\'#{hostname}\'" }.join(", ")  %>')
              file { "storage_chassis_config" :
                  path => '/opt/contrail/bin/contrail_storage_chassis_config.py',
                  content => template("$module_name/contrail-storage-chassis-config.erb"),
@@ -288,8 +321,8 @@ define contrail::lib::storage_common(
     -> 
     exec { 'ceph-virsh-set-secret' : 
         command => "/usr/bin/virsh secret-set-value ${contrail_storage_virsh_uuid} \
-                     --base64 usr/bin/ceph auth get client.volumes  | \
-                     grep \"key = \" | awk '{printf \$3}'",
+                     --base64 `/usr/bin/ceph auth get client.volumes  | \
+                     grep \"key = \" | awk '{printf \$3}'`",
         unless  => "/usr/bin/virsh secret-get-value ${contrail_storage_virsh_uuid} ",
         require => Exec['ceph-virsh-secret']
     }
