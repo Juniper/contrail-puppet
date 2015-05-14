@@ -144,6 +144,10 @@
 #     Directory used for ssd data files.
 #     (optional) - Defaults to "" (use database_dir). UI parameter.
 #
+# [*database_minimum_diskGB*]
+#     Minimum disk space needed in GB for database.
+#     (optional) - Defaults to 256
+#
 # [*keystone_ip*]
 #     Control interface IP address of server where keystone service is
 #     running. Used only in non-HA configuration, where keystone service
@@ -540,6 +544,7 @@ class contrail::params (
     $database_dir = "/var/lib/cassandra",
     $analytics_data_dir = "",
     $ssd_data_dir = "",
+    $database_minimum_diskGB = 256,
     $keystone_ip = "",
     $keystone_admin_password = "contrail123",
     $keystone_service_token = "contrail123",
