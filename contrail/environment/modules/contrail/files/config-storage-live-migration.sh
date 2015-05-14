@@ -24,6 +24,16 @@ fi
 LIVEMNFS_IP=192.168.101.3
 LIVEMNFS_NETWORK=192.168.101.0/24
 
+## Check if "ceph -s" is returing or it is waiting for other monitors to be up
+timeout 10 ceph -s 
+
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ] 
+then
+  echo "ceph -s failed"
+  exit 1
+fi
+
 ## check if all the OSDs configured are in and up. This is required as we
 ## need to create 15% of total available space as volume for NFS VM
 ## for Live-Migration

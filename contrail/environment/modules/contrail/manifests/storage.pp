@@ -17,6 +17,7 @@ class contrail::storage (
     $contrail_storage_cluster_network = $::contrail::params::storage_cluster_network,
     $contrail_storage_hostnames = $::contrail::params::storage_hostnames,
     $contrail_storage_chassis_config = $::contrail::params::storage_chassis_config,
+    $contrail_host_ip = $::contrail::params::host_ip,
     $contrail_logoutput = $::contrail::params::contrail_logoutput
 ) inherits ::contrail::params {
 
@@ -43,63 +44,65 @@ class contrail::storage (
             content => "2"
         } 
         if  ($contrail_interface_rename_done == 2) {
-	contrail::lib::storage_common { 'storage-compute':
-	    contrail_storage_fsid => $contrail_storage_fsid,
+        contrail::lib::storage_common { 'storage-compute':
+            contrail_storage_fsid => $contrail_storage_fsid,
             contrail_openstack_ip => $contrail_openstack_ip_use,
             contrail_host_roles => $contrail_host_roles,
             contrail_storage_num_osd => $contrail_storage_num_osd,
-	    contrail_num_storage_hosts => $contrail_num_storage_hosts,
-	    contrail_storage_mon_secret => $contrail_storage_mon_secret,
-	    contrail_storage_osd_bootstrap_key => $contrail_storage_osd_bootstrap_key,
-	    contrail_storage_admin_key => $contrail_storage_admin_key,
-	    contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
-	    contrail_storage_mon_hosts => $contrail_storage_mon_hosts,
-	    contrail_storage_osd_disks => $contrail_storage_osd_disks,
-	    contrail_storage_hostname => $contrail_storage_hostname,
+            contrail_num_storage_hosts => $contrail_num_storage_hosts,
+            contrail_storage_mon_secret => $contrail_storage_mon_secret,
+            contrail_storage_osd_bootstrap_key => $contrail_storage_osd_bootstrap_key,
+            contrail_storage_admin_key => $contrail_storage_admin_key,
+            contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
+            contrail_storage_mon_hosts => $contrail_storage_mon_hosts,
+            contrail_storage_osd_disks => $contrail_storage_osd_disks,
+            contrail_storage_hostname => $contrail_storage_hostname,
             contrail_live_migration_host => $contrail_live_migration_host,
             contrail_live_migration_ip => $contrail_live_migration_ip,
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
             contrail_storage_hostnames => $contrail_storage_hostnames,
             contrail_storage_chassis_config => $contrail_storage_chassis_config,
             contrail_storage_cluster_network => $contrail_storage_cluster_network,
+            contrail_host_ip => $contrail_host_ip,
             contrail_logoutput => $contrail_logoutput }
         } else {
-	    file { "contrail-storage-exit-file":
-	        path => "/etc/contrail/contrail_setup_utils/config-storage-exit.sh",
-	        ensure  => present,
-	        mode => 0755,
-	        owner => root,
-	        group => root,
+            file { "contrail-storage-exit-file":
+                path => "/etc/contrail/contrail_setup_utils/config-storage-exit.sh",
+                ensure  => present,
+                mode => 0755,
+                owner => root,
+                group => root,
                 content => "exit 1",
            }
            ->
           exec { "contrail-storage-exit" :
-	     command => "/etc/contrail/contrail_setup_utils/config-storage-exit.sh",
-	     provider => shell,
+              command => "/etc/contrail/contrail_setup_utils/config-storage-exit.sh",
+              provider => shell,
           }
        }
     } else {
-	contrail::lib::storage_common { 'storage-master':
-	    contrail_storage_fsid => $contrail_storage_fsid,
+        contrail::lib::storage_common { 'storage-master':
+            contrail_storage_fsid => $contrail_storage_fsid,
             contrail_openstack_ip => $contrail_openstack_ip_use,
             contrail_storage_num_osd => $contrail_storage_num_osd,
             contrail_host_roles => $contrail_host_roles,
-	    contrail_num_storage_hosts => $contrail_num_storage_hosts,
-	    contrail_storage_mon_secret => $contrail_storage_mon_secret,
-	    contrail_storage_osd_bootstrap_key => $contrail_storage_osd_bootstrap_key,
-	    contrail_storage_admin_key => $contrail_storage_admin_key,
-	    contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
-	    contrail_storage_mon_hosts => $contrail_storage_mon_hosts,
-	    contrail_storage_osd_disks => $contrail_storage_osd_disks,
-	    contrail_storage_hostname => $contrail_storage_hostname,
+            contrail_num_storage_hosts => $contrail_num_storage_hosts,
+            contrail_storage_mon_secret => $contrail_storage_mon_secret,
+            contrail_storage_osd_bootstrap_key => $contrail_storage_osd_bootstrap_key,
+            contrail_storage_admin_key => $contrail_storage_admin_key,
+            contrail_storage_virsh_uuid => $contrail_storage_virsh_uuid,
+            contrail_storage_mon_hosts => $contrail_storage_mon_hosts,
+            contrail_storage_osd_disks => $contrail_storage_osd_disks,
+            contrail_storage_hostname => $contrail_storage_hostname,
             contrail_live_migration_host => $contrail_live_migration_host,
             contrail_live_migration_ip => $contrail_live_migration_ip,
             contrail_lm_storage_scope => $contrail_lm_storage_scope,
             contrail_storage_hostnames => $contrail_storage_hostnames,
             contrail_storage_chassis_config => $contrail_storage_chassis_config,
             contrail_storage_cluster_network => $contrail_storage_cluster_network,
+            contrail_host_ip => $contrail_host_ip,
             contrail_logoutput => $contrail_logoutput
-	}
+        }
     }
 }
 
