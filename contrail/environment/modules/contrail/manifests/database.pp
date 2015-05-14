@@ -57,6 +57,10 @@
 #     Values are true, false or on_failure
 #     (optional) - Defaults to false
 #
+# [*database_minimum_diskGB*]
+#     Minimum disk space needed in GB for database.
+#     (optional) - Defaults to 256
+#
 class contrail::database (
     $host_control_ip = $::contrail::params::host_ip,
     $config_ip = $::contrail::params::config_ip_to_use,
@@ -68,6 +72,7 @@ class contrail::database (
     $analytics_data_dir = $::contrail::params::analytics_data_dir,
     $ssd_data_dir = $::contrail::params::ssd_data_dir,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $database_minimum_diskGB = $::contrail::params::database_minimum_diskGB,
 ) inherits ::contrail::params {
     # Main Class code
     case $::operatingsystem {
