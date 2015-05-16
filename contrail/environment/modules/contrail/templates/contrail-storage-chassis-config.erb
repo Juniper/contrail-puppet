@@ -4,7 +4,7 @@ from contrail_provisioning.storage.storagefs import ceph_utils
 
 NUM_TARGET_OSD=<%=@contrail_storage_num_osd %>
 storage_hostnames=<%= @contrail_storage_hostnames %>
-storage_chassis_config=<%= @contrail_storage_chassis_config %>
+storage_chassis_config=[<%= @contrail_chassis_map%>]
 
 if len(storage_hostnames) == 0:
     print 'storage_hostnames empty'
