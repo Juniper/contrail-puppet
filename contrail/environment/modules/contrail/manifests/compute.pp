@@ -202,6 +202,7 @@ class contrail::compute (
     $orchestrator = $::contrail::params::orchestrator,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_host_roles = $::contrail::params::host_roles,
+    $enable_lbass =  $::contrail::params::enable_lbass,
 ) inherits ::contrail::params {
 
     $contrail_num_controls = inline_template("<%= @control_ip_list.length %>")
@@ -401,6 +402,12 @@ class contrail::compute (
     # Ensure all needed packages are latest
     package { $vrouter_pkg : ensure => latest,}->
     package { 'contrail-openstack-vrouter' : ensure => latest,}
+
+    if ($enable_lbass == true) {
+        package{'haproxy': ensure => present,} ->
+        package{'iproute': ensure => present,}
+
+    }
 
     #The below way should be the ideal one,
     #But when vrouter-agent starts , the actual physical interface is not removed,

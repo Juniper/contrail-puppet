@@ -235,6 +235,8 @@ class contrail::config (
 	$ifmap_server_port = '8443'
     }
 
+    $analytics_api_port = '8081'
+    $contrail_plugin_file = '/etc/neutron/plugins/opencontrail/ContrailPlugin.ini'
     # Set keystone IP to be used.
     if ($keystone_ip != "") {
         $keystone_ip_to_use = $keystone_ip
@@ -533,6 +535,14 @@ class contrail::config (
 	command => "cp /etc/contrail/contrail_plugin.ini /etc/quantum/plugins/contrail/contrail_plugin.ini",
 	require => File["/etc/contrail/contrail_plugin.ini"],
 	onlyif => "test -d /etc/quantum/",
+	provider => shell,
+	logoutput => $contrail_logoutput
+    }
+    ->
+    exec { "contrail-plugin-set-lbass-params":
+	command => "openstack-config --set $contrail_plugin_file COLLECTOR analytics_api_ip $collector_ip &&
+                   openstack-config --set $contrail_plugin_file COLLECTOR analytics_api_port $analytics_api_port &&
+                   echo exec_contrail_plugin_set_lbass_params >> /etc/contrail/contrail_config_exec.out",
 	provider => shell,
 	logoutput => $contrail_logoutput
     }

@@ -616,6 +616,7 @@ class contrail::params (
     $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'",
     $contrail_logoutput = false,
     $contrail_upgrade = false,
+    $enable_lbass = false,
     $enable_provision_started = true,
     $enable_keepalived = true,
     $enable_haproxy = true,
@@ -686,7 +687,7 @@ class contrail::params (
     } elsif $internal_vip != "" {
          $collector_ip_to_use = $internal_vip
     }else {
-         $collector_ip_to_use = $collector_ip
+         $collector_ip_to_use = $collector_ip_list[0]
     }
 
     #rabbitmq_port_to_use
