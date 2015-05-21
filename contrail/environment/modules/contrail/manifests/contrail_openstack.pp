@@ -127,6 +127,13 @@ class contrail::contrail_openstack (
         require => [ File["/etc/nova/nova.conf"] ],
         logoutput => $contrail_logoutput
     }
+    # Set ec2_private_dns_show_ip to False
+    exec { "exec_set_ec2_private_dns_show_ip":
+        command => "openstack-config --set /etc/nova/nova.conf DEFAULT ec2_private_dns_show_ip False && echo exec_set_ec2_private_dns_show_ip >> /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        require => [ File["/etc/nova/nova.conf"] ],
+        logoutput => $contrail_logoutput
+    }
     # Set glance-registry to 0.0.0.0
     exec { "exec_set_glance_registry":
         command => "openstack-config --set /etc/glance/glance-api.conf DEFAULT registry_host 0.0.0.0 && echo exec_set_glance_registry >> /etc/contrail/contrail_openstack_exec.out",
