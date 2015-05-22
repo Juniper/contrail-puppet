@@ -23,22 +23,6 @@ class openstack::common::nova ($is_compute    = false) {
   $openstack_ip_list = $::contrail::params::openstack_ip_list
   $contrail_memcache_servers = inline_template('<%= @openstack_ip_list.map{ |ip| "#{ip}:11211" }.join(",") %>')
 
-
-  class { '::nova':
-    sql_connection     => $::openstack::resources::connectors::nova,
-    glance_api_servers => "http://${storage_management_address}:9292",
-    memcached_servers  => ["$contrail_memcache_servers"],
-    rabbit_hosts       => [$contrail_rabbit_host],
-    rabbit_userid      => $::openstack::config::rabbitmq_user,
-    rabbit_password    => $::openstack::config::rabbitmq_password,
-    debug              => $::openstack::config::debug,
-    verbose            => $::openstack::config::verbose,
-    mysql_module       => '2.2',
-    rabbit_port        => $contrail_rabbit_port,
-    database_idle_timeout => '180',
-    notification_driver => "nova.openstack.common.notifier.rpc_notifier",
-  }
-
   nova_config { 'DEFAULT/rabbit_port':
      value => $contrail_rabbit_port,
   } ->
@@ -50,19 +34,38 @@ class openstack::common::nova ($is_compute    = false) {
   }
 
   if ($internal_vip != "" and $internal_vip != undef) {
+    class { '::nova':
+      sql_connection     => $::openstack::resources::connectors::nova,
+      glance_api_servers => "http://${storage_management_address}:9292",
+      memcached_servers  => ["$contrail_memcache_servers"],
+      rabbit_hosts       => [$contrail_rabbit_host],
+      rabbit_userid      => $::openstack::config::rabbitmq_user,
+      rabbit_password    => $::openstack::config::rabbitmq_password,
+      debug              => $::openstack::config::debug,
+      verbose            => $::openstack::config::verbose,
+      mysql_module       => '2.2',
+      rabbit_port        => $contrail_rabbit_port,
+      database_idle_timeout => '180',
+      notification_driver => "nova.openstack.common.notifier.rpc_notifier",
+    }
+
     nova_config {
       'DEFAULT/osapi_compute_listen_port':     value => '9774';
-      'DEFAULT/metadata_listen_port':     value => '9775';
-      'DEFAULT/scheduler_max_attempts':     value => '10';
-      'DEFAULT/disable_process_locking':     value => 'True';
-      'database/min_pool_size':                 value => '100';
-      'database/max_pool_size':                 value => '350';
+      'DEFAULT/metadata_listen_port':          value => '9775';
+      'DEFAULT/scheduler_max_attempts':        value => '10';
+      'DEFAULT/disable_process_locking':       value => 'True';
+      'DEFAULT/rabbit_retry_interval':         value => '1';
+      'DEFAULT/rabbit_retry_backoff':          value => '2';
+      'DEFAULT/rabbit_max_retries':            value => '0';
+      'DEFAULT/rabbit_interval':               value => '15';
+      'database/min_pool_size':                value => '100';
+      'database/max_pool_size':                value => '350';
       'database/max_overflow':                 value => '700';
-      'database/retry_interval':                 value => '5';
-      'database/max_retries':                 value => '-1';
-      'database/db_max_retries':                 value => '3';
-      'database/db_retry_interval':                 value => '1';
-      'database/connection_debug':                 value => '10';
+      'database/retry_interval':               value => '5';
+      'database/max_retries':                  value => '-1';
+      'database/db_max_retries':               value => '3';
+      'database/db_retry_interval':            value => '1';
+      'database/connection_debug':             value => '10';
 
     }
     ->
@@ -88,6 +91,20 @@ class openstack::common::nova ($is_compute    = false) {
 
 
   } else {
+    class { '::nova':
+      sql_connection     => $::openstack::resources::connectors::nova,
+      glance_api_servers => "http://${storage_management_address}:9292",
+      memcached_servers  => ["$contrail_memcache_servers"],
+      rabbit_hosts       => [$contrail_rabbit_host],
+      rabbit_userid      => $::openstack::config::rabbitmq_user,
+      rabbit_password    => $::openstack::config::rabbitmq_password,
+      debug              => $::openstack::config::debug,
+      verbose            => $::openstack::config::verbose,
+      mysql_module       => '2.2',
+      rabbit_port        => $contrail_rabbit_port,
+      notification_driver => "nova.openstack.common.notifier.rpc_notifier",
+    }
+
     class { '::nova::api':
       admin_password                       => $::openstack::config::nova_password,
       auth_host                            => $controller_management_address,

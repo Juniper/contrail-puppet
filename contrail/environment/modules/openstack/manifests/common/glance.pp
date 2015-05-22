@@ -23,9 +23,35 @@ class openstack::common::glance {
       verbose           => $::openstack::config::verbose,
       debug             => $::openstack::config::debug,
       enabled           => $::openstack::profile::base::is_storage,
-      database_idle_timeout      => "180",
+      database_idle_timeout => '180',
       bind_port     => '9393',
       mysql_module      => '2.2',
+    }
+
+    glance_api_config {
+#      'database/idle_timeout':             value => "180";
+      'database/min_pool_size':            value => "100";
+      'database/max_pool_size':            value => "700";
+      'database/max_overflow':             value => "1080";
+      'database/retry_interval':           value => "5";
+      'database/max_retries':              value => "-1";
+      'database/db_max_retries':           value => "3";
+      'database/db_retry_interval':        value => "1";
+      'database/connection_debug':         value => "10";
+      'database/pool_timeout':             value => "120";
+    }
+
+    glance_registry_config {
+#      'database/idle_timeout':             value => "180";
+      'database/min_pool_size':            value => "100";
+      'database/max_pool_size':            value => "700";
+      'database/max_overflow':             value => "1080";
+      'database/retry_interval':           value => "5";
+      'database/max_retries':              value => "-1";
+      'database/db_max_retries':           value => "3";
+      'database/db_retry_interval':        value => "1";
+      'database/connection_debug':         value => "10";
+      'database/pool_timeout':             value => "120";
     }
 
   } else {
@@ -40,29 +66,12 @@ class openstack::common::glance {
       verbose           => $::openstack::config::verbose,
       debug             => $::openstack::config::debug,
       enabled           => $::openstack::profile::base::is_storage,
-      database_idle_timeout      => "180",
       mysql_module      => '2.2',
     }
 
   }
 
 
-  glance_api_config {
-#    'database/idle_timeout':             value => "180";
-    'database/min_pool_size':            value => "100";
-    'database/max_pool_size':            value => "700";
-    'database/max_overflow':             value => "1080";
-    'database/retry_interval':           value => "5";
-    'database/max_retries':              value => "-1";
-    'database/db_max_retries':           value => "3";
-    'database/db_retry_interval':        value => "1";
-    'database/connection_debug':         value => "10";
-    'database/pool_timeout':             value => "120";
-#     notify => Service['glance-api']
-
-  }
-
-  ->
   # basic service config
   glance_api_config {'DEFAULT/rabbit_host': 
      value => $contrail_rabbit_host,
