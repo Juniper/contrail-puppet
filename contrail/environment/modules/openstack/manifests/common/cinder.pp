@@ -13,18 +13,48 @@ class openstack::common::cinder {
     cinder_config {
       'DEFAULT/osapi_volume_listen_port':  value => '9776';
     }
+
+    class { '::cinder':
+      sql_connection  => $::openstack::resources::connectors::cinder,
+      rabbit_host     => $contrail_rabbit_host,
+      rabbit_userid   => $::openstack::config::rabbitmq_user,
+      rabbit_password => $::openstack::config::rabbitmq_password,
+      debug           => $::openstack::config::debug,
+      verbose         => $::openstack::config::verbose,
+      mysql_module    => '2.2',
+      database_idle_timeout => '180',
+      rabbit_port     => $contrail_rabbit_port,
+    }
+
+    cinder_config {
+#      'database/idle_timeout':             value => "180";
+      'database/min_pool_size':            value => "100";
+      'database/max_pool_size':            value => "700";
+      'database/max_overflow':             value => "1080";
+      'database/retry_interval':           value => "5";
+      'database/max_retries':              value => "-1";
+      'database/db_max_retries':           value => "3";
+      'database/db_retry_interval':        value => "1";
+      'database/connection_debug':         value => "10";
+      'database/pool_timeout':             value => "120";
+    }
+
+
+  } else {
+    class { '::cinder':
+      sql_connection  => $::openstack::resources::connectors::cinder,
+      rabbit_host     => $contrail_rabbit_host,
+      rabbit_userid   => $::openstack::config::rabbitmq_user,
+      rabbit_password => $::openstack::config::rabbitmq_password,
+      debug           => $::openstack::config::debug,
+      verbose         => $::openstack::config::verbose,
+      mysql_module    => '2.2',
+      rabbit_port     => $contrail_rabbit_port,
+    }
+
+
   }
 
-  class { '::cinder':
-    sql_connection  => $::openstack::resources::connectors::cinder,
-    rabbit_host     => $contrail_rabbit_host,
-    rabbit_userid   => $::openstack::config::rabbitmq_user,
-    rabbit_password => $::openstack::config::rabbitmq_password,
-    debug           => $::openstack::config::debug,
-    verbose         => $::openstack::config::verbose,
-    mysql_module    => '2.2',
-    rabbit_port     => $contrail_rabbit_port,
-  }
 
   $storage_server = $::openstack::config::storage_address_api
   $glance_api_server = "${storage_server}:9292"
