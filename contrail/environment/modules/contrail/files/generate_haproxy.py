@@ -247,6 +247,54 @@ backend nova-vnc-backend
     balance  roundrobin
     $__nova_vnc_backend_servers__
 
+frontend heat-cfn *:8000
+    default_backend heat-cfn-api-backend
+
+frontend heat-srv *:8004
+    default_backend heat-api-backend
+
+backend heat-api-backend
+    option tcpka
+    option nolinger
+    timeout server 24h
+    balance   roundrobin
+
+    option tcp-check
+    tcp-check connect port 3306
+    default-server error-limit 1 on-error mark-down
+
+    option tcp-check
+    option httpchk
+    tcp-check connect port 3337
+    tcp-check send Host:localhost
+    http-check expect ! rstatus ^5
+    default-server error-limit 1 on-error mark-down
+
+    option tcp-check
+    tcp-check connect port 8005
+$__heat_api_backend_servers__
+
+backend heat-cfn-api-backend
+    option tcpka
+    option nolinger
+    timeout server 24h
+    balance   roundrobin
+
+    option tcp-check
+    tcp-check connect port 3306
+    default-server error-limit 1 on-error mark-down
+
+    option tcp-check
+    option httpchk
+    tcp-check connect port 3337
+    tcp-check send Host:localhost
+    http-check expect ! rstatus ^5
+    default-server error-limit 1 on-error mark-down
+
+    option tcp-check
+    tcp-check connect port 8001
+$__heat_cfn_api_backend_servers__
+
 listen memcached 0.0.0.0:11222
    mode tcp
    balance roundrobin
@@ -463,6 +511,8 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
     nova_api_server_lines = ''
     nova_meta_server_lines = ''
     nova_vnc_server_lines = ''
+    heat_api_server_lines= ''
+    heat_cfn_api_server_lines = ''
     memcached_server_lines = ''
     rabbitmq_server_lines = ''
     mysql_server_lines = ''
@@ -496,6 +546,12 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
         nova_vnc_server_lines  +=\
             '%s server %s %s:6999 check inter 2000 rise 2 fall 3\n'\
              % (space, host_ip, host_ip)
+        heat_api_server_lines  +=\
+            '%s server %s %s:8005 check inter 2000 rise 2 fall 1\n'\
+             % (space, host_ip, host_ip)
+        heat_cfn_api_server_lines  +=\
+            '%s server %s %s:8001 check inter 2000 rise 2 fall 1\n'\
+             % (space, host_ip, host_ip)
         if server_index <= 1:
             memcached_server_lines +=\
                 '%s server repcache%s %s:11211 check inter 2000 rise 2 fall 3\n'\
@@ -527,6 +583,8 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
 	'__nova_api_backend_servers__' : nova_api_server_lines,
 	'__nova_meta_backend_servers__' : nova_meta_server_lines,
 	'__nova_vnc_backend_servers__' : nova_vnc_server_lines,
+	'__heat_api_backend_servers__': heat_api_server_lines,
+	'__heat_cfn_api_backend_servers__': heat_cfn_api_server_lines,
 	'__memcached_servers__' : memcached_server_lines,
 	'__rabbitmq_servers__' : rabbitmq_server_lines,
 	'__mysql_servers__' : mysql_server_lines,
