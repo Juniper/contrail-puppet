@@ -71,6 +71,12 @@ class contrail::provision_contrail (
     $control_name_list = $::contrail::params::control_name_list,
     $multi_tenancy = $::contrail::params::multi_tenancy,
     $external_bgp = $::contrail::params::external_bgp,
+    $config_ip_list = $::contrail::params::config_ip_list,
+    $config_name_list = $::contrail::params::config_name_list,
+    $database_ip_list = $::contrail::params::database_ip_list,
+    $database_name_list = $::contrail::params::database_name_list,
+    $collector_ip_list = $::contrail::params::collector_ip_list,
+    $collector_name_list = $::contrail::params::collector_name_list,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
 
@@ -154,4 +160,33 @@ class contrail::provision_contrail (
 	tries => 100,
 	try_sleep => 15,
     }
+    ->
+    file { "/opt/contrail/provision_role.py" :
+	    ensure  => present,
+	    mode => 0755,
+	    group => root,
+	    source => "puppet:///modules/$module_name/provision_role.py"
+    }
+    ->
+   exec { "provision-role-config" :
+	command => "python /opt/contrail/provision_role.py $config_ip_list $config_name_list $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'config' && echo provision-role-config >> /etc/contrail/contrail_config_exec.out",
+	require => [ File["/opt/contrail/provision_role.py"] ],
+	provider => shell,
+	logoutput => $contrail_logoutput
+    }
+    ->
+    exec { "provision-role-database" :
+	command => "python /opt/contrail/provision_role.py $database_ip_list $database_name_list $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'database' && echo provision-role-database- >> /etc/contrail/contrail_config_exec.out",
+	require => [ File["/opt/contrail/provision_role.py"] ],
+	provider => shell,
+	logoutput => $contrail_logoutput
+    }
+    ->
+    exec { "provision-role-collector" :
+	command => "python /opt/contrail/provision_role.py $collector_ip_list $collector_name_list $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'collector' && echo provision-role-collector >> /etc/contrail/contrail_config_exec.out",
+	require => [ File["/opt/contrail/provision_role.py"] ],
+	provider => shell,
+	logoutput => $contrail_logoutput
+    }
+
 }
