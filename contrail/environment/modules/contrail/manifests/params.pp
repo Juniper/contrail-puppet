@@ -47,6 +47,10 @@
 #     List of host names of all the servers in cluster configured to run
 #     contrail control node.
 #
+# [*database_name_list*]
+#     List of host names of all the servers in cluster configured to run
+#     contrail database node.
+#
 # [*collector_name_list*]
 #     List of host names of all the servers in cluster configured to run
 #     contrail collector node.
@@ -522,6 +526,7 @@ class contrail::params (
     $config_name_list,
     $compute_name_list,
     $control_name_list,
+    $database_name_list,
     $collector_name_list,
     $openstack_name_list,
     $tsn_name_list = "",
