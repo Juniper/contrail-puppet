@@ -106,6 +106,17 @@ class contrail::provision_contrail (
         $openstack_ip_to_use = $openstack_ip
     }
 
+    $database_ip_list_for_shell = inline_template('<%= database_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
+    $database_name_list_for_shell = inline_template('<%= database_name_list.map{ |name| "#{name}" }.join(",") %>')
+
+    $config_ip_list_for_shell = inline_template('<%= config_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
+    $config_name_list_for_shell = inline_template('<%= config_name_list.map{ |name| "#{name}" }.join(",") %>')
+
+
+    $collector_ip_list_for_shell = inline_template('<%= collector_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
+    $collector_name_list_for_shell = inline_template('<%= collector_name_list.map{ |name| "#{name}" }.join(",") %>')
+
+
     $host_ip_list_for_shell = inline_template('<%= control_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
     $host_name_list_for_shell = inline_template('<%= control_name_list.map{ |name| "#{name}" }.join(",") %>')
     $contrail_exec_provision_control = "python  exec_provision_control.py --api_server_ip \"$config_ip_to_use\" --api_server_port 8082 --host_name_list \"$host_name_list_for_shell\" --host_ip_list \"$host_ip_list_for_shell\" --router_asn \"$router_asn\" --mt_options \"$mt_options\" && echo exec-provision-control >> /etc/contrail/contrail_config_exec.out"
@@ -169,21 +180,21 @@ class contrail::provision_contrail (
     }
     ->
    exec { "provision-role-config" :
-	command => "python /opt/contrail/provision_role.py $config_ip_list $config_name_list $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'config' && echo provision-role-config >> /etc/contrail/contrail_config_exec.out",
+	command => "python /opt/contrail/provision_role.py $config_ip_list_for_shell $config_name_list_for_shell $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'config' && echo provision-role-config >> /etc/contrail/contrail_config_exec.out",
 	require => [ File["/opt/contrail/provision_role.py"] ],
 	provider => shell,
 	logoutput => $contrail_logoutput
     }
     ->
     exec { "provision-role-database" :
-	command => "python /opt/contrail/provision_role.py $database_ip_list $database_name_list $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'database' && echo provision-role-database- >> /etc/contrail/contrail_config_exec.out",
+	command => "python /opt/contrail/provision_role.py $database_ip_list_for_shell $database_name_list_for_shell $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'database' && echo provision-role-database- >> /etc/contrail/contrail_config_exec.out",
 	require => [ File["/opt/contrail/provision_role.py"] ],
 	provider => shell,
 	logoutput => $contrail_logoutput
     }
     ->
     exec { "provision-role-collector" :
-	command => "python /opt/contrail/provision_role.py $collector_ip_list $collector_name_list $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'collector' && echo provision-role-collector >> /etc/contrail/contrail_config_exec.out",
+	command => "python /opt/contrail/provision_role.py $collector_ip_list_for_shell $collector_name_list_for_shell $config_ip $keystone_admin_user $keystone_admin_password $keystone_admin_tenant 'collector' && echo provision-role-collector >> /etc/contrail/contrail_config_exec.out",
 	require => [ File["/opt/contrail/provision_role.py"] ],
 	provider => shell,
 	logoutput => $contrail_logoutput
