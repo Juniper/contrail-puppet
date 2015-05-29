@@ -704,4 +704,13 @@ class contrail::params (
         $contrail_rabbit_port = "5672"
     }
 
+    #rabbitmq_host_to_use
+    if $contrail_internal_vip != "" {
+        $contrail_rabbit_host = $contrail_internal_vip
+    } elsif $internal_vip != "" {
+        $contrail_rabbit_host = $internal_vip
+    }else {
+        $contrail_rabbit_host = $config_ip_list[0]
+    }
+
 }
