@@ -6,13 +6,13 @@ class openstack::resources::connectors {
 
   if ($internal_vip != "" and $internal_vip != undef) {
     $mysql_port = "33306"
-    $management_ip_address = $::openstack::config::controller_address_management 
+    $management_ip_address = $::openstack::config::controller_address_management
 
     $nova_management_address = "${management_ip_address}:${mysql_port}"
     $heat_management_address = "${management_ip_address}:${mysql_port}"
     $keystone_management_address = "${management_ip_address}:${mysql_port}"
 
-  } else { 
+  } else {
     $nova_management_address = $::openstack::config::controller_address_management
     $heat_management_address = $::openstack::config::controller_address_management
     $keystone_management_address = $::openstack::config::controller_address_management
