@@ -9,20 +9,20 @@ class contrail::profile::openstack::heat () {
     openstack::resources::firewall { 'Heat CFN API': port => '8000', }
 
     $controller_management_address = $::openstack::config::controller_address_management
+    $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+    $contrail_rabbit_host = $::contrail::params::contrail_rabbit_host
     $internal_vip = $::contrail::params::internal_vip
     if ($internal_vip != "" and $internal_vip != undef) {
       $heat_api_bind_host = "0.0.0.0"
       $heat_api_bind_port = "8005"
       $heat_api_cfn_bind_host = "0.0.0.0"
       $heat_api_cfn_bind_port = "8001"
-      $rabbit_port = "5673"
     }
     else {
       $heat_api_bind_host = $::openstack::config::controller_address_api
       $heat_api_bind_port = "8004"
       $heat_api_cfn_bind_host = $::openstack::config::controller_address_api
       $heat_api_cfn_bind_port = "8000"
-      $rabbit_port = "5672"
     }
 
     class { '::heat::keystone::auth':
@@ -43,8 +43,8 @@ class contrail::profile::openstack::heat () {
 
     class { '::heat':
       sql_connection    => $::openstack::resources::connectors::heat,
-      rabbit_host       => $::openstack::config::controller_address_api,
-      rabbit_port       => $rabbit_port,
+      rabbit_host       => $contrail_rabbit_host,
+      rabbit_port       => $contrail_rabbit_port,
       rabbit_userid     => $::openstack::config::rabbitmq_user,
       rabbit_password   => $::openstack::config::rabbitmq_password,
       debug             => $::openstack::config::debug,
@@ -82,8 +82,8 @@ class contrail::profile::openstack::heat () {
     notify { "contrail::profile::openstack::heat - heat_api_bind_host = $heat_api_bind_host":; }
     notify { "contrail::profile::openstack::heat - heat_api_bind_port = $heat_api_bind_port":; }
     notify { "contrail::profile::openstack::heat - sql_connection = $::openstack::resources::connectors::heat":; }
-    notify { "contrail::profile::openstack::heat - rabbit_port = $rabbit_port":; }
-    notify { "contrail::profile::openstack::heat - rabbit_port = $::heat::rabbit_host":; }
+    notify { "contrail::profile::openstack::heat - rabbit_port = $::heat::rabbit_port":; }
+    notify { "contrail::profile::openstack::heat - rabbit_host = $::heat::rabbit_host":; }
     notify { "contrail::profile::openstack::heat - contrail_api_server = $contrail_api_server":; }
     notify { "contrail::profile::openstack::heat - keystone_auth_public_url = $::heat::keystone::auth::public_url":; }
 
