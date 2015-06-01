@@ -27,7 +27,7 @@ openstack-config --set /etc/glance/glance-api.conf DEFAULT workers 120
 openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_chunk_size 8
 openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_pool images
 openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_ceph_conf /etc/ceph/ceph.conf
-openstack-config --set /etc/glance/glance-api.conf DEFAULT known_stores glance.store.rbd.Store
+openstack-config --set /etc/glance/glance-api.conf DEFAULT known_stores glance.store.rbd.Store,glance.store.http.Store,glance.store.filesystem.Store
 
 ## configure ceph-rest-api 
 sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5005)/" /usr/bin/ceph-rest-api
