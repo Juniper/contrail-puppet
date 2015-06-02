@@ -54,6 +54,9 @@
 #    Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
 #    available on some distributions.
 #    Defaults to 'SSLv3'
+#  [*auth_strategy*]
+#    Ceilometer authentication strategy
+#    Defaults to 'keystone'
 #
 # [*qpid_hostname*]
 # [*qpid_port*]
@@ -104,7 +107,8 @@ class ceilometer(
   $qpid_reconnect_limit = 0,
   $qpid_reconnect_interval_min = 0,
   $qpid_reconnect_interval_max = 0,
-  $qpid_reconnect_interval = 0
+  $qpid_reconnect_interval = 0,
+  $auth_strategy = 'keystone'
 ) {
 
   validate_string($metering_secret)
@@ -275,6 +279,12 @@ class ceilometer(
   } else {
     ceilometer_config {
       'DEFAULT/use_syslog':           value => false;
+    }
+  }
+
+  if $auth_strategy {
+    ceilometer_config {
+        'DEFAULT/auth_strategy'      : value => $auth_strategy;
     }
   }
 
