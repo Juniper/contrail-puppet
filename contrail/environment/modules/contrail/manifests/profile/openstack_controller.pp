@@ -7,8 +7,13 @@
 #     Flag to indicate if profile is enabled. If true, the module is invoked.
 #     (optional) - Defaults to true.
 #
+# [*enable_ceilometer*]
+#     Flag to include or exclude ceilometer service as part of openstack module dynamically.
+#     (optional) - Defaults to false.
+#
 class contrail::profile::openstack_controller (
-    $enable_module = $::contrail::params::enable_openstack
+    $enable_module = $::contrail::params::enable_openstack,
+    $enable_ceilometer = $::contrail::params::enable_ceilometer
 ) {
     if ($enable_module) {
         contrail::lib::report_status { "openstack_started": state => "openstack_started" } ->
@@ -35,7 +40,7 @@ class contrail::profile::openstack_controller (
       ensure  => latest,
     } ->
 
-        # Though neutron runs on config, setup the db in openstack node 
+        # Though neutron runs on config, setup the db in openstack node
         exec { 'neutron-db-sync':
             command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
             path        => '/usr/bin',
@@ -47,5 +52,10 @@ class contrail::profile::openstack_controller (
 
         Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
         Class['::openstack::profile::provision']->Service['glance-api']
+        if ($enable_ceilometer) {
+            include ::contrail::profile::openstack::ceilometer
+        }
+        notify { "contrail::profile::openstack_controller - enable_ceilometer = $enable_ceilometer":; }
     }
+
 }
