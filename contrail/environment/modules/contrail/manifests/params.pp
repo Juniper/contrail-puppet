@@ -512,6 +512,10 @@
 #     within puppet manifest is not used and we rely on sequencing to help with that.
 #     (optional) - Defaults to false.
 #
+# [*enable_ceilometer*]
+#     Flag to include or exclude ceilometer service as part of openstack module dynamically.
+#     (optional) - Defaults to false.
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -639,7 +643,8 @@ class contrail::params (
     $enable_pre_exec_vnc_galera = true,
     $enable_post_exec_vnc_galera = true,
     $enable_post_provision = true,
-    $enable_sequence_provisioning = false
+    $enable_sequence_provisioning = false,
+    $enable_ceilometer = false
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
     # that varible here.
