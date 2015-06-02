@@ -141,13 +141,6 @@ class contrail::ha_config (
             ensure  => latest,
         }
         ->
-        file { "/etc/contrail/mysql.token" :
-            ensure  => present,
-            mode =>    0400,
-            group => root,
-            content => "$mysql_root_password"
-        }
-        ->
         file { "/opt/contrail/bin/setup_passwordless_ssh.py" :
             ensure  => present,
             mode => 0755,
