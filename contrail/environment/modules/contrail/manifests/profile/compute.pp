@@ -8,13 +8,19 @@
 #     (optional) - Defaults to true.
 #
 class contrail::profile::compute (
-    $enable_module = $::contrail::params::enable_compute
+    $enable_module = $::contrail::params::enable_compute,
+    $enable_ceilometer = $::contrail::params::enable_ceilometer
 ) {
     if ($enable_module) {
         require ::contrail::common
         require ::openstack::profile::firewall
         require ::contrail::profile::nova::compute
-        # require ::openstack::profile::ceilometer::agent
+
+        if ($enable_ceilometer) {
+            include ::openstack::common::ceilometer
+            include ::contrail::ceilometer::agent::auth
+            include ::ceilometer::agent::compute
+        }
     }
 }
 
