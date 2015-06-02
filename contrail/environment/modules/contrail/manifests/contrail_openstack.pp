@@ -89,6 +89,13 @@ class contrail::contrail_openstack (
        $vnc_base_url_ip = $openstack_mgmt_ip 
     }
 
+    # Create mysql token file.
+    file { "/etc/contrail/mysql.token" :
+	ensure  => present,
+	mode =>    0400,
+	group => root,
+	content => "$mysql_root_password"
+    }
     # Create openstackrc file.
     file { "/etc/contrail/openstackrc" :
 	ensure  => present,
