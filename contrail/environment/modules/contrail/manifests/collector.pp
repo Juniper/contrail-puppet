@@ -171,7 +171,7 @@ class contrail::collector (
     }
     ->
     exec { "redis-conf-exec":
-	command => "sed -i -e '/^[ ]*bind/s/^/#/' /etc/redis/redis.conf;chkconfig redis-server on; service redis-server restart && echo redis-conf-exec>> /etc/contrail/contrail-collector-exec.out",
+	command => "sed -i -e '/^[ ]*bind/s/^/#/' /etc/redis/redis.conf; dbfilename=$(grep '^dbfilename' /etc/redis/redis.conf | awk '{print $2}'); if [ -n \"${dbfilename}\" ]; then dbdir=$(grep '^dir' /etc/redis/redis.conf | awk '{print $2}'); if [ -n \"${dbdir}\" ]; then rm -f \"${dbdir}\"/\"${dbfilename}\"; fi; fi; sed -i -e '/^[ ]*save/s/^/#/' /etc/redis/redis.conf; sed -i -e '/^[ ]*dbfilename/s/^/#/' /etc/redis/redis.conf; chkconfig redis-server on; service redis-server restart && echo redis-conf-exec>> /etc/contrail/contrail-collector-exec.out",
 	onlyif => "test -f /etc/redis/redis.conf",
 	require => Package["contrail-openstack-analytics"],
 	unless  => "grep -qx redis-conf-exec /etc/contrail/contrail-collector-exec.out",
