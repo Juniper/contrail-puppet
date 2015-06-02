@@ -51,7 +51,10 @@ class ceilometer::agent::compute (
   Nova_config<| |> {
     before +> File_line_after[
       'nova-notification-driver-common',
-      'nova-notification-driver-ceilometer'
+      'nova-notification-driver-ceilometer',
+      'nova-notify-on-state-change',
+      'nova-instance-usage-audit',
+      'nova-instance-usage-audit-period'
     ],
   }
 
@@ -64,6 +67,21 @@ class ceilometer::agent::compute (
       notify => Service['nova-compute'];
     'nova-notification-driver-ceilometer':
       line   => 'notification_driver=ceilometer.compute.nova_notifier',
+      path   => '/etc/nova/nova.conf',
+      after  => '^\s*\[DEFAULT\]',
+      notify => Service['nova-compute'];
+    'nova-notify-on-state-change':
+      line   => 'notify_on_state_change=vm_and_task_state',
+      path   => '/etc/nova/nova.conf',
+      after  => '^\s*\[DEFAULT\]',
+      notify => Service['nova-compute'];
+    'nova-instance-usage-audit':
+      line   => 'instance_usage_audit=True',
+      path   => '/etc/nova/nova.conf',
+      after  => '^\s*\[DEFAULT\]',
+      notify => Service['nova-compute'];
+    'nova-instance-usage-audit-period':
+      line   => 'instance_usage_audit_period=hour',
       path   => '/etc/nova/nova.conf',
       after  => '^\s*\[DEFAULT\]',
       notify => Service['nova-compute'];
