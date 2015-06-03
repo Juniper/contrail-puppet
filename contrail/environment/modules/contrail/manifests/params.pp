@@ -600,6 +600,7 @@ class contrail::params (
     $storage_admin_key = "",
     $storage_virsh_uuid = "",
     $storage_monitor_hosts = "",
+    $storage_ip_list = "",
     $storage_osd_disks = "",
     $storage_enabled = "",
     $storage_chassis_config = "",
