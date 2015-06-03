@@ -8,6 +8,7 @@ define contrail::lib::storage_common(
         $contrail_storage_admin_key,
         $contrail_openstack_ip,
         $contrail_storage_virsh_uuid,
+        $contrail_storage_ip_list,
         $contrail_storage_mon_hosts,
         $contrail_storage_osd_disks, 
         $contrail_storage_hostname,
@@ -76,15 +77,15 @@ define contrail::lib::storage_common(
         monthday => 'absent',
         weekday => 'absent',
     }
-    if size($contrail_storage_mon_hosts) > 10 {
+    if size($contrail_storage_ip_list) > 10 {
         $contrail_storage_max_monitors = 10
     } else {
-        $contrail_storage_max_monitors = size($contrail_storage_mon_hosts)
+        $contrail_storage_max_monitors = size($contrail_storage_ip_list)
     }
 
-    $contrail_ceph_monitors = inline_template('<%= @contrail_storage_mon_hosts.first(@contrail_storage_max_monitors) %>')
+    $contrail_ceph_monitors = inline_template('<%= @contrail_storage_ip_list.first(@contrail_storage_max_monitors) %>')
     notify {" monitors = $contrail_ceph_monitors":; }
-    $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_mon_hosts.first(@contrail_storage_max_monitors).map{ |ip| "#{ip}" }.join(", ")  %>')
+    $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.first(@contrail_storage_max_monitors).map{ |ip| "#{ip}" }.join(", ")  %>')
 
     file { "ceph-disk-clean-file1":
         path => "/etc/ceph/test2.conf",
