@@ -122,6 +122,15 @@ class contrail::collector (
 	}
     }
 
+    if ! defined(File["/etc/contrail/contrail-keystone-auth.conf"]) {
+        file { "/etc/contrail/contrail-keystone-auth.conf" :
+            ensure  => present,
+            require => Package["contrail-openstack-config"],
+            notify =>  Service["supervisor-config"],
+            content => template("$module_name/contrail-keystone-auth.conf.erb"),
+        }
+    }
+
     contrail::lib::report_status { "collector_started":
         state => "collector_started",
         contrail_logoutput => $contrail_logoutput }
@@ -154,8 +163,23 @@ class contrail::collector (
     ->
     file { "/etc/contrail/contrail-snmp-collector.conf" :
 	ensure  => present,
-	require => Package["contrail-openstack-analytics"],
+        require => [Package["contrail-openstack-analytics"],
+                    File["/etc/contrail/contrail-keystone-auth.conf"]
+                   ],
 	content => template("$module_name/contrail-snmp-collector.conf.erb"),
+    }
+    ->
+    file { "/etc/contrail/supervisord_analytics_files/contrail-snmp-collector.ini" :
+        ensure  => present,
+        require => Package["contrail-openstack-analytics"],
+        content => template("$module_name/contrail-snmp-collector.ini.erb"),
+    }
+    ->
+    exec { "setsnmpmib":
+        command => "mkdir -p /etc/snmp && echo 'mibs +ALL' > /etc/snmp/snmp.conf",
+        require => Package["contrail-openstack-analytics"],
+        provider => shell,
+        logoutput => $contrail_logoutput
     }
     ->
     file { "/etc/contrail/contrail-analytics-nodemgr.conf" :
