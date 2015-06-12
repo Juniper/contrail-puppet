@@ -592,6 +592,7 @@ class contrail::params (
     $contrail_repo_ip = $serverip,
     $kernel_upgrade = "yes",
     $kernel_version = "",
+    $redis_password = "",
     $storage_num_osd = "",
     $storage_fsid = "",
     $storage_num_hosts = "",
