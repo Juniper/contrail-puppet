@@ -6,7 +6,7 @@
 class openstack::common::nova ($is_compute    = false) {
   $is_controller = $::openstack::profile::base::is_controller
   $sync_db = $::contrail::params::sync_db
-
+  $enable_ceilometer = $::contrail::params::enable_ceilometer
 
   $management_network = $::openstack::config::network_management
   $management_address = ip_for_network($management_network)
@@ -31,6 +31,12 @@ class openstack::common::nova ($is_compute    = false) {
   nova_config { 'conductor/workers':
        value => '40',
        notify => Service['nova-api']
+  }
+
+  if ($enable_ceilometer) {
+     $notify_on_state_change = 'vm_and_task_state'
+  } else {
+    $notify_on_state_change = ''
   }
 
   if ($internal_vip != "" and $internal_vip != undef) {
@@ -91,6 +97,7 @@ class openstack::common::nova ($is_compute    = false) {
 
 
   } else {
+
     class { '::nova':
       sql_connection     => $::openstack::resources::connectors::nova,
       glance_api_servers => "http://${storage_management_address}:9292",
@@ -103,6 +110,7 @@ class openstack::common::nova ($is_compute    = false) {
       mysql_module       => '2.2',
       rabbit_port        => $contrail_rabbit_port,
       notification_driver => "nova.openstack.common.notifier.rpc_notifier",
+      notify_on_state_change => $notify_on_state_change,
     }
 
     class { '::nova::api':
@@ -118,6 +126,7 @@ class openstack::common::nova ($is_compute    = false) {
       enabled => $is_controller,
     }
 
+
   }
 
   class { [
@@ -131,7 +140,7 @@ class openstack::common::nova ($is_compute    = false) {
   }
 
   # nova-compute is managed by contrail,is_compute flag only disables the service,
-  # It still declares the nova-compute service,leading to 1435692. 
+  # It still declares the nova-compute service,leading to 1435692.
   /*
   class { '::nova::compute':
     enabled                       => $is_compute,
@@ -155,5 +164,19 @@ class openstack::common::nova ($is_compute    = false) {
     vif_plugging_is_fatal  => false,
     vif_plugging_timeout   => '0',
   }
-  
+
+  if ($enable_ceilometer) {
+    file_line_after {
+      'nova-notification-driver-common':
+        line   =>
+          'notification_driver=nova.openstack.common.notifier.rpc_notifier',
+        path   => '/etc/nova/nova.conf',
+        after  => '^\s*\[DEFAULT\]';
+      'nova-notification-driver-ceilometer':
+        line   => 'notification_driver=ceilometer.compute.nova_notifier',
+        path   => '/etc/nova/nova.conf',
+        after  => '^\s*\[DEFAULT\]';
+    }
+  }
+
 }
