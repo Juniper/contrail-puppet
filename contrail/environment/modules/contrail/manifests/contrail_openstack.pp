@@ -56,6 +56,10 @@
 #     Values are true, false or on_failure
 #     (optional) - Defaults to false
 #
+# [*enable_ceilometer*]
+#     Flag to include or exclude ceilometer service as part of openstack module dynamically.
+#     (optional) - Defaults to false.
+#
 class contrail::contrail_openstack (
     $openstack_ip = $::contrail::params::openstack_ip_list[0],
     $keystone_ip = $::contrail::params::keystone_ip,
@@ -69,6 +73,7 @@ class contrail::contrail_openstack (
     $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_control_ip = $::contrail::params::host_ip,
+    $enable_ceilometer = $::contrail::params::enable_ceilometer,
 ) inherits ::contrail::params {
     # Main code for class
 
@@ -82,11 +87,11 @@ class contrail::contrail_openstack (
     }
 
     if ($external_vip != "") {
-       $vnc_base_url_ip = $external_vip 
+       $vnc_base_url_ip = $external_vip
     } elsif ($internal_vip != "" ) {
-       $vnc_base_url_ip = $internal_vip 
+       $vnc_base_url_ip = $internal_vip
     } else {
-       $vnc_base_url_ip = $openstack_mgmt_ip 
+       $vnc_base_url_ip = $openstack_mgmt_ip
     }
 
     # Create openstackrc file.
@@ -140,5 +145,20 @@ class contrail::contrail_openstack (
         provider => shell,
         logoutput => $contrail_logoutput
     }
-
+    if ($enable_ceilometer) {
+      # Set instance_usage_audit_period to hour
+      exec { "exec_set_instance_usage_audit_period":
+          command => "openstack-config --set /etc/nova/nova.conf DEFAULT instance_usage_audit_period hour && echo exec_set_instance_usage_audit_period >> /etc/contrail/contrail_openstack_exec.out",
+          provider => shell,
+          require => [ File["/etc/nova/nova.conf"] ],
+          logoutput => $contrail_logoutput
+      }
+      # Set instance_usage_audit_period to hour
+      exec { "exec_set_instance_usage_audit":
+          command => "openstack-config --set /etc/nova/nova.conf DEFAULT instance_usage_audit True && echo exec_set_instance_usage_audit >> /etc/contrail/contrail_openstack_exec.out",
+          provider => shell,
+          require => [ File["/etc/nova/nova.conf"] ],
+          logoutput => $contrail_logoutput
+      }
+    }
 }
