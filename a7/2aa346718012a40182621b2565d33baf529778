@@ -1,0 +1,9 @@
+Verified+2: Zuul <zuul@lists.opencontrail.org>
+Approved+1: Ashish Ranjan <aranjan@juniper.net>
+Code-Review+2: Thilak Raj <tsurendra@juniper.net>
+Approved+1: Karl Klashinsky <klash@juniper.net>
+Submitted-by: Zuul <zuul@lists.opencontrail.org>
+Submitted-at: Fri, 12 Jun 2015 16:03:47 -0700
+Reviewed-on: https://review.opencontrail.org/11195
+Project: Juniper/contrail-puppet
+Branch: refs/heads/R2.20
