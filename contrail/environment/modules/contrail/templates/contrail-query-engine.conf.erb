@@ -25,4 +25,7 @@
 [REDIS]
   port=6379
   server=127.0.0.1
+<% if @redis_password != "" -%>
+  password = <%= @redis_password%>
+<% end -%>
 
