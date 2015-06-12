@@ -122,11 +122,18 @@ class contrail::collector (
 	}
     }
 
+    if $multi_tenancy == true {
+        $memcached_opt = "memcache_servers=127.0.0.1:11211"
+    }
+    else {
+        $memcached_opt = ""
+    }
+
     if ! defined(File["/etc/contrail/contrail-keystone-auth.conf"]) {
         file { "/etc/contrail/contrail-keystone-auth.conf" :
             ensure  => present,
-            require => Package["contrail-openstack-config"],
-            notify =>  Service["supervisor-config"],
+            require => Package["contrail-openstack-analytics"],
+            notify =>  Service["supervisor-analytics"],
             content => template("$module_name/contrail-keystone-auth.conf.erb"),
         }
     }
