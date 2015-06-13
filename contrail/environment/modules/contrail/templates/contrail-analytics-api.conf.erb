@@ -28,3 +28,7 @@ disc_server_port = 5998
 [REDIS]
 redis_server_port = 6379
 redis_query_port = 6379
+<% if @redis_password != "" -%>
+redis_password = <%= @redis_password%>
+<% end -%>
+

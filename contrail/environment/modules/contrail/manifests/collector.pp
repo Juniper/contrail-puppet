@@ -194,11 +194,16 @@ class contrail::collector (
         content => template("$module_name/contrail-topology.conf.erb"),
     }
     ->
-    exec { "redis-conf-exec":
-	command => "sed -i -e '/^[ ]*bind/s/^/#/' /etc/redis/redis.conf; dbfilename=$(grep '^dbfilename' /etc/redis/redis.conf | awk '{print $2}'); if [ -n \"${dbfilename}\" ]; then dbdir=$(grep '^dir' /etc/redis/redis.conf | awk '{print $2}'); if [ -n \"${dbdir}\" ]; then rm -f \"${dbdir}\"/\"${dbfilename}\"; fi; fi; sed -i -e '/^[ ]*save/s/^/#/' /etc/redis/redis.conf; sed -i -e '/^[ ]*dbfilename/s/^/#/' /etc/redis/redis.conf; sed -i -e 's/lua-time-limit.*/lua-time-limit 15000/' /etc/redis/redis.conf; chkconfig redis-server on; service redis-server restart && echo redis-conf-exec>> /etc/contrail/contrail-collector-exec.out",
-	onlyif => "test -f /etc/redis/redis.conf",
+    file { "/etc/redis/redis.conf" :
+        ensure  => present,
+        require => Package["contrail-openstack-analytics"],
+        content => template("$module_name/redis.conf.erb"),
+    }
+    ->
+    exec { "redis-del-db-dir":
+	command => "rm -f /var/lib/redis/dump.rb && service redis-server restart && echo redis-del-db-dir etc/contrail/contrail-collector-exec.out",
 	require => Package["contrail-openstack-analytics"],
-	unless  => "grep -qx redis-conf-exec /etc/contrail/contrail-collector-exec.out",
+	unless  => "grep -qx redis-del-db-dir /etc/contrail/contrail-collector-exec.out",
 	provider => shell,
 	logoutput => $contrail_logoutput
     }

@@ -76,6 +76,10 @@ server=<%= @config_ip_to_use %>
 # Port to connect to for communicating with redis-server
 port=6379
 
+<% if @redis_password != "" -%>
+password = <%= @redis_password%>
+<% end -%>
+
 # IP address of redis-server
 server=127.0.0.1
 
