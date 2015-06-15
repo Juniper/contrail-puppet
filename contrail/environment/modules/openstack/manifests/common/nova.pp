@@ -97,7 +97,6 @@ class openstack::common::nova ($is_compute    = false) {
 
 
   } else {
-
     class { '::nova':
       sql_connection     => $::openstack::resources::connectors::nova,
       glance_api_servers => "http://${storage_management_address}:9292",
