@@ -61,9 +61,10 @@ clean_disk_parts()
       return 0
     fi
   fi
+  ceph-disk zap ${disk_name}
   
   ## clean partition table
-  dd if=/dev/zero of=${disk_name} bs=512 count=1
+  #dd if=/dev/zero of=${disk_name} bs=512 count=1
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
@@ -72,13 +73,13 @@ clean_disk_parts()
   fi
   
   ## convert the disk to GPT
-  parted -s ${disk_name} mklabel gpt
-  RETVAL=$?
-  if [ ${RETVAL} -ne 0 ]
-  then
-    echo "parted mklabel failed for ${disk_name}"
-    exit ${RETVAL}
-  fi
+  #parted -s ${disk_name} mklabel gpt
+  #RETVAL=$?
+  #if [ ${RETVAL} -ne 0 ]
+  #then
+    #echo "parted mklabel failed for ${disk_name}"
+    #exit ${RETVAL}
+  #fi
   
   new_disk_guid=`sgdisk -p ${disk_name}  | grep "Disk identifier (GUID):" | awk '{printf $4}'`
 
