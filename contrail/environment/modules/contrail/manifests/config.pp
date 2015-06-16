@@ -185,7 +185,7 @@ class contrail::config (
     $control_ip_list = $::contrail::params::control_ip_list,
     $openstack_ip = $::contrail::params::openstack_ip_list[0],
     $uuid = $::contrail::params::uuid,
-    $keystone_ip = "",
+    $keystone_ip = $::contrail::params::keystone_ip,
     $keystone_admin_token = $::contrail::params::keystone_admin_token,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
