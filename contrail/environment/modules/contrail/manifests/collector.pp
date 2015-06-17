@@ -15,6 +15,15 @@
 #     contrail cluster is configured. If there are multiple config nodes,
 #     address of the first config node is specified here.
 #
+# [*keystone_ip*]
+#     Key stone IP address, if keystone service is running on a node other
+#     than openstack controller.
+#     (optional) - Default "", meaning use internal_vip if defined, else use
+#     same address as first openstack controller.
+#
+# [*openstack_ip*]
+#     IP address of openstack controller node.
+#
 # [*database_ip_list*]
 #     List of control interface IP addresses of all the nodes running
 #     Database role (cassandra cluster). If current host is also running
@@ -71,6 +80,40 @@
 # [*contrail_internal_vip*]
 #     Virtual IP on the control/data interface (internal network) to be used for contrail.
 #     (optional) - Defaults to "".
+#     (optional) - Defaults to "http".
+#
+# [*keystone_auth_protocol*]
+#     Keystone authentication protocol.
+#     (Optional) - Defaults to "http".
+#
+# [*keystone_auth_port*]
+#     Keystone authentication port.
+#     (Optional) - Defaults to 35357
+#
+# [*keystone_admin_user*]
+#     Keystone admin user name.
+#     (optional) - Defaults to "admin".
+#
+# [*keystone_admin_password*]
+#     Keystone admin password.
+#     (optional) - Defaults to "contrail123".
+#
+# [*keystone_admin_tenant*]
+#     Keystone admin tenant name.
+#     (optional) - Defaults to "admin".
+#
+# [*keystone_admin_token*]
+#     Keystone admin token. Admin token value from /etc/keystone/keystone.conf file of
+#     keystone/openstack node.
+#     (optional) - Defaults to "c0ntrail123"
+#
+# [*keystone_service_token*]
+#     Keystone service token.
+#     (optional) - Defaults to "c0ntrail123".
+#
+# [*keystone_insecure_flag*]
+#     Flag for Keystone secure/insecure
+#     (Optional) - Defaults to false
 #
 # [*contrail_logoutput*]
 #     Variable to specify if output of exec commands is to be logged or not.
@@ -80,6 +123,8 @@
 class contrail::collector (
     $host_control_ip = $::contrail::params::host_ip,
     $config_ip = $::contrail::params::config_ip_list[0],
+    $keystone_ip = $::contrail::params::keystone_ip,
+    $openstack_ip = $::contrail::params::openstack_ip_list[0],
     $database_ip_list = $::contrail::params::database_ip_list,
     $database_ip_port = $::contrail::params::database_ip_port,
     $analytics_data_ttl = $::contrail::params::analytics_data_ttl,
@@ -94,6 +139,14 @@ class contrail::collector (
     $analytics_syslog_port = $::contrail::params::analytics_syslog_port,
     $internal_vip = $::contrail::params::internal_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+    $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
+    $keystone_auth_port = $::contrail::params::keystone_auth_port,
+    $keystone_admin_user = $::contrail::params::keystone_admin_user,
+    $keystone_admin_password = $::contrail::params::keystone_admin_password,
+    $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
+    $keystone_admin_token = $::contrail::params::keystone_admin_token,
+    $keystone_service_token = $::contrail::params::keystone_service_token,
+    $keystone_insecure_flag = $::contrail::params::keystone_insecure_flag,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
