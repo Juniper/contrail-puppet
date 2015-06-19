@@ -24,8 +24,6 @@ def main(args_str=None):
     commands.getstatusoutput("echo '%s' >> %s" % (computes, cmon_param))
     commands.getstatusoutput("echo 'COMPUTES_SIZE=%s' >> %s" % ("${#COMPUTES[@]}", cmon_param))
     commands.getstatusoutput("echo 'COMPUTES_USER=root' >> %s" % cmon_param)
-    commands.getstatusoutput("echo 'PERIODIC_RMQ_CHK_INTER=60' >> %s" % cmon_param)
-    commands.getstatusoutput("echo 'RABBITMQ_RESET=True' >> %s" % cmon_param)
     amqps = 'DIPHOSTS=("' + '" "'.join(amqp_host_list) + '")'
     commands.getstatusoutput("echo '%s' >> %s" % (amqps, cmon_param))
     commands.getstatusoutput("echo 'DIPS_HOST_SIZE=%s' >> %s" % ("${#DIPHOSTS[@]}", cmon_param))
