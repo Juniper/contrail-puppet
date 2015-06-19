@@ -95,6 +95,7 @@ define contrail::lib::storage_common(
      ceph::key{'client.bootstrap-osd':
         secret => $contrail_storage_osd_bootstrap_key,
         cap_mon => 'allow profile bootstrap-osd',
+        keyring_path => "/var/lib/ceph/bootstrap-osd/ceph.keyring",
         inject_as_id => 'mon.',
         inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
         inject => true,
