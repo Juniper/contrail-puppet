@@ -61,8 +61,8 @@ define ceph::osd (
 
     if $ensure == present {
 
-      $ceph_prepare = "ceph-osd-prepare-${name}"
-      $ceph_activate = "ceph-osd-activate-${name}"
+      $ceph_prepare = "ceph-osd-prepare-${disk_name}"
+      $ceph_activate = "ceph-osd-activate-${disk_name}"
 
       Ceph_Config<||> -> Exec[$ceph_prepare]
       Ceph::Mon<||> -> Exec[$ceph_prepare]
@@ -74,7 +74,7 @@ set -ex
 if ! test -b ${data} ; then
   mkdir -p ${data}
 fi
-ceph-disk prepare ${cluster_option} ${data} ${journal}
+ceph-disk prepare ${cluster_option} ${data} ${journal_disk}
 ",
         unless    => "/bin/true # comment to satisfy puppet syntax requirements
 set -ex
@@ -109,7 +109,7 @@ ls -ld /var/lib/ceph/osd/${cluster_name}-* | grep ' ${data}'
     } else {
 
       # ceph-disk: support osd removal http://tracker.ceph.com/issues/7454
-      exec { "remove-osd-${name}":
+      exec { "remove-osd-${disk_name}":
         command   => "/bin/true # comment to satisfy puppet syntax requirements
 set -ex
 if [ -z \"\$id\" ] ; then
