@@ -6,11 +6,7 @@
 class openstack::common::contrail::neutron {
   $controller_management_address = $::openstack::config::controller_address_management
   $enable_ceilometer = $::contrail::params::enable_ceilometer
-  if ($enable_ceilometer) {
-       $notification_driver = 'neutron.openstack.common.notifier.rpc_notifier'
-  } else {
-       $notification_driver = ''
-  }
+  $notification_driver = 'neutron.openstack.common.notifier.rpc_notifier'
 
   $data_network = $::openstack::config::network_data
   $data_address = ip_for_network($data_network)

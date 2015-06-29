@@ -192,7 +192,7 @@
 # [*notification_driver*]
 #   (optional) Driver or drivers to handle sending notifications.
 #   Value can be a string or a list.
-#   Defaults to []
+#   Defaults to 'neutron.openstack.common.notifier.rpc_notifier'
 #
 class neutron (
   $enabled                     = true,
@@ -251,7 +251,7 @@ class neutron (
   $log_facility                = 'LOG_USER',
   $log_file                    = false,
   $log_dir                     = '/var/log/neutron',
-  $notification_driver         = '',
+  $notification_driver         = 'neutron.openstack.common.notifier.rpc_notifier',
 ) {
 
   include neutron::params
