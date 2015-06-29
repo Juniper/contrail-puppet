@@ -189,11 +189,6 @@
 #   If set to boolean false, it will not log to any directory
 #   Defaults to /var/log/neutron
 #
-# [*notification_driver*]
-#   (optional) Driver or drivers to handle sending notifications.
-#   Value can be a string or a list.
-#   Defaults to []
-#
 class neutron (
   $enabled                     = true,
   $package_ensure              = 'present',
@@ -251,7 +246,6 @@ class neutron (
   $log_facility                = 'LOG_USER',
   $log_file                    = false,
   $log_dir                     = '/var/log/neutron',
-  $notification_driver         = '',
 ) {
 
   include neutron::params
@@ -321,7 +315,6 @@ class neutron (
     'DEFAULT/allow_overlapping_ips':   value => $allow_overlapping_ips;
     'DEFAULT/control_exchange':        value => $control_exchange;
     'DEFAULT/rpc_backend':             value => $rpc_backend;
-    'DEFAULT/notification_driver':     value => $notification_driver;
     'agent/root_helper':               value => $root_helper;
     'agent/report_interval':           value => $report_interval;
   }
