@@ -213,13 +213,7 @@ class contrail::database (
         logoutput => $contrail_logoutput
     }
     ->
-    file { '/etc/contrail/contrail-nodemgr-database.conf' :
-        ensure  => present,
-        before  => Service['supervisor-database'],
-        content => template("${module_name}/contrail-nodemgr-database.conf.erb"),
-    }
-    ->
-    file { '/etc/contrail/contrail-database-nodemgr.conf' :
+    file { "/etc/contrail/contrail-database-nodemgr.conf" :
         ensure  => present,
         before  => Service['supervisor-database'],
         content => template("${module_name}/contrail-database-nodemgr.conf.erb"),
