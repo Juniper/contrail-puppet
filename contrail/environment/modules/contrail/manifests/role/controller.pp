@@ -3,16 +3,16 @@ class openstack::role::contrail::controller {
     stage { 'first': }
     stage { 'last': }
     Stage['contrail_common']->Stage['first']->Stage['main']-> Stage['last']
-    class { '::contrail::common' : 
+    class { '::contrail::common' :
         stage => 'contrail_common'
     }
     class { '::openstack::profile::contrail::keepalived':
         #vip => "${::contrail::config::internal_vip}/${::contrail::config::contrail_cidr}",
         #interface => "${::contrail::common::physical_interface}",
         #state => "${::openstack::config::contrail::vrrp_state}",
-        vip => "10.84.51.100/24",
-        interface => "eth1",
-        state => "MASTER",
+        vip       => '10.84.51.100/24',
+        interface => 'eth1',
+        state     => 'MASTER',
     }
     include ::openstack::profile::contrail::haproxy
     include ::openstack::profile::base
