@@ -4,7 +4,6 @@
 class contrail::profile::openstack::glance::api {
   $api_network = $::openstack::config::network_api
   $api_address = ip_for_network($api_network)
- # $sync_db = true
 
   $internal_vip = $::contrail::params::internal_vip
   $sync_db = $::contrail::params::sync_db
@@ -23,22 +22,20 @@ class contrail::profile::openstack::glance::api {
 
   class { '::glance::backend::file': }
 
-  if ($internal_vip != "" and $internal_vip != undef) {
+  if ($internal_vip != '' and $internal_vip != undef) {
 
     class { '::glance::registry':
-      keystone_password => $::openstack::config::glance_password,
-      sql_connection    => $::openstack::resources::connectors::glance,
-      auth_host         => $::openstack::config::controller_address_management,
-      keystone_tenant   => 'services',
-      keystone_user     => 'glance',
-      verbose           => $::openstack::config::verbose,
-      debug             => $::openstack::config::debug,
-      database_idle_timeout      => '180',
-      mysql_module      => '2.2',
-      sync_db         => $sync_db,
+      keystone_password     => $::openstack::config::glance_password,
+      sql_connection        => $::openstack::resources::connectors::glance,
+      auth_host             => $::openstack::config::controller_address_management,
+      keystone_tenant       => 'services',
+      keystone_user         => 'glance',
+      verbose               => $::openstack::config::verbose,
+      debug                 => $::openstack::config::debug,
+      database_idle_timeout => '180',
+      mysql_module          => '2.2',
+      sync_db               => $sync_db,
     }
-
-
   } else {
 
     class { '::glance::registry':
@@ -50,7 +47,7 @@ class contrail::profile::openstack::glance::api {
       verbose           => $::openstack::config::verbose,
       debug             => $::openstack::config::debug,
       mysql_module      => '2.2',
-      sync_db         => $sync_db,
+      sync_db           => $sync_db,
     }
 
   }

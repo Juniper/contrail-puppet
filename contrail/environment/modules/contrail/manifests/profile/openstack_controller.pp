@@ -12,11 +12,11 @@
 #     (optional) - Defaults to false.
 #
 class contrail::profile::openstack_controller (
-    $enable_module = $::contrail::params::enable_openstack,
-    $enable_ceilometer = $::contrail::params::enable_ceilometer
+  $enable_module = $::contrail::params::enable_openstack,
+  $enable_ceilometer = $::contrail::params::enable_ceilometer
 ) {
     if ($enable_module) {
-        contrail::lib::report_status { "openstack_started": state => "openstack_started" } ->
+        contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
         class {'::openstack::profile::base' : } ->
         class {'::nova::quota' :
               quota_instances => 10000,
@@ -40,22 +40,21 @@ class contrail::profile::openstack_controller (
       ensure  => latest,
     } ->
 
-        # Though neutron runs on config, setup the db in openstack node
-        exec { 'neutron-db-sync':
-            command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
-            path        => '/usr/bin',
-            before      => Service['neutron-server'],
-            require     => Neutron_config['database/connection'],
-            refreshonly => true
-        } ->
-        contrail::lib::report_status { "openstack_completed": state => "openstack_completed" }
+    # Though neutron runs on config, setup the db in openstack node
+    exec { 'neutron-db-sync':
+        command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+        path        => '/usr/bin',
+        before      => Service['neutron-server'],
+        require     => Neutron_config['database/connection'],
+        refreshonly => true
+    } ->
+    contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
 
-        Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
-        Class['::openstack::profile::provision']->Service['glance-api']
-        if ($enable_ceilometer) {
-            include ::contrail::profile::openstack::ceilometer
-        }
-        notify { "contrail::profile::openstack_controller - enable_ceilometer = $enable_ceilometer":; }
+    Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
+    Class['::openstack::profile::provision']->Service['glance-api']
+    if ($enable_ceilometer) {
+        include ::contrail::profile::openstack::ceilometer
     }
-
+    notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; }
+  }
 }
