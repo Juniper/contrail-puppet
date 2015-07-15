@@ -2,38 +2,33 @@
 class contrail::profile::openstack::mysql {
   $internal_vip = $::contrail::params::internal_vip
 
-  if ($internal_vip != "" and $internal_vip != undef) {
+  if ($internal_vip != '' and $internal_vip != undef) {
     class { '::mysql::server':
-      root_password                => $::openstack::config::mysql_root_password,
-      restart                      => true,
-      override_options             => {
-	'mysqld'                   => {
-	  'bind_address'           => "0.0.0.0",
-	  'default-storage-engine' => 'innodb',
-	  'wait_timeout'           => '60',
-	  'interactive_timeout'    => '60',
-	  'lock_wait_timeout'      => '600',
-	  'max_connect_errors'     => '10000',
-
-	}
-
+      root_password    => $::openstack::config::mysql_root_password,
+      restart          => true,
+      override_options => {
+        'mysqld' => {
+            'bind_address'           => '0.0.0.0',
+            'default-storage-engine' => 'innodb',
+            'wait_timeout'           => '60',
+            'interactive_timeout'    => '60',
+            'lock_wait_timeout'      => '600',
+            'max_connect_errors'     => '10000',
+          }
       }
     }
-
   } else {
     class { '::mysql::server':
-      root_password                => $::openstack::config::mysql_root_password,
-      restart                      => true,
-      override_options             => {
-	'mysqld'                   => {
-	  'bind_address'           => "0.0.0.0",
-	  'default-storage-engine' => 'innodb',
-	  'max_connect_errors'     => '10000',
-	}
-
+      root_password    => $::openstack::config::mysql_root_password,
+      restart          => true,
+      override_options => {
+        'mysqld' => {
+          'bind_address'           => '0.0.0.0',
+          'default-storage-engine' => 'innodb',
+          'max_connect_errors'     => '10000',
+        }
       }
     }
-
   }
 
 
