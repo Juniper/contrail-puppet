@@ -293,7 +293,7 @@ then
 fi
 
 ## get the current status of livemnfs instance.  
-NOVA_BOOT_STATUS=`nova list | grep livemnfs | awk -F '|' '{print $4}'`
+NOVA_BOOT_STATUS=`nova list | grep livemnfs | awk -F '|' '{print $4}'| tr -d ' '`
 RETVAL=$?
 if [ ${RETVAL} -ne 0 ] 
 then
@@ -301,9 +301,10 @@ then
   exit 1
 fi
 
-if [ "x${NOVA_BOOT_STATUS}"  = "x ACTIVE" ]
+if [ ! "x${NOVA_BOOT_STATUS}"  = "xACTIVE" ]
 then
-  echo "nova livemnfs is ACTIVE"
+  echo "nova livemnfs is not ACTIVE"
+  exit 1
 fi
 
 

@@ -57,6 +57,7 @@ then
   exit 1
 fi
 
+RESTART_SERVICES=0
 ## Get the ip address of nova-host.
 ## NOTE: we already checked about the ip resolution. so awk must
 ## NOTE: give correct results
@@ -67,48 +68,53 @@ fi
 ## restart daemons. else configured and restart the daemons
 ## TODO: 1. break the condition into multiple conditions to check for each 
 ## TODO:    of it.
-## TODO: 2. merge this if condition and next if condition.
 CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/nova/nova.conf DEFAULT live_migration_flag`
 RETVAL=$?
-echo $?
-echo ${CONFIG_VALUE}
-if [ $RETVAL -ne 0 ]
+if [ ${RETVAL} -ne 0 ] || [ ! "x${CONFIG_VALUE}" = "xVIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE" ]
 then 
   echo "openstack-get-config failed, configure values "
+  RESTART_SERVICES=1
   openstack-config --set /etc/nova/nova.conf DEFAULT live_migration_flag VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE
-  openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen 0.0.0.0
-  openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope ${STORAGE_SCOPE}
   cat /etc/libvirt/libvirtd.conf | sed s/"#listen_tls = 0"/"listen_tls = 0"/ | sed s/"#listen_tcp = 1"/"listen_tcp = 1"/ | sed s/'#auth_tcp = "sasl"'/'auth_tcp = "none"'/ > /tmp/libvirtd.conf
   cp -f  /tmp/libvirtd.conf  /etc/libvirt/libvirtd.conf
   
   cat /etc/default/libvirt-bin | sed s/"-d"/"-d -l"/ > /tmp/libvirtd.tmp
   cp -f /tmp/libvirtd.tmp /etc/default/libvirt-bin
-  service nova-compute restart
   service libvirt-bin restart
-  ## get the value again
-  CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/nova/nova.conf DEFAULT live_migration_flag`
 fi
 
-## check config values again for comparision
-if [ ! "x${CONFIG_VALUE}" = "xVIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE" ]
+if [ ${VM_HOST} -eq 1 ]
 then
-  echo "live_migration_flag value is not correct"
-  openstack-config --set /etc/nova/nova.conf DEFAULT live_migration_flag VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE
+    CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/nova/nova.conf DEFAULT resume_guests_state_on_host_boot `
+    RETVAL=$?
+    if [ ${RETVAL} -ne 0 ] || [ ! "x${CONFIG_VALUE}" = "xTrue" ]
+    then 
+      openstack-config --set /etc/nova/nova.conf DEFAULT resume_guests_state_on_host_boot True
+      RESTART_SERVICES=1
+    fi
+fi
+
+CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/nova/nova.conf DEFAULT vncserver_listen`
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ] || [ ! "x${CONFIG_VALUE}" = "x0.0.0.0" ]
+then 
   openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen 0.0.0.0
+  RESTART_SERVICES=1
+fi
+
+CONFIG_VALUE=`/etc/contrail/contrail_setup_utils/openstack-get-config --get /etc/nova/nova.conf DEFAULT storage_scope`
+RETVAL=$?
+if [ ${RETVAL} -ne 0 ] || [ ! "x${CONFIG_VALUE}" = "x${STORAGE_SCOPE}" ]
+then 
   openstack-config --set /etc/nova/nova.conf DEFAULT storage_scope ${STORAGE_SCOPE}
-  if [ ${VM_HOST} -eq 1 ]
-  then
-    openstack-config --set /etc/nova/nova.conf DEFAULT resume_guests_state_on_host_boot True
-  fi
-  cat /etc/libvirt/libvirtd.conf | sed s/"#listen_tls = 0"/"listen_tls = 0"/ | sed s/"#listen_tcp = 1"/"listen_tcp = 1"/ | sed s/'#auth_tcp = "sasl"'/'auth_tcp = "none"'/ > /tmp/libvirtd.conf
-  cp -f  /tmp/libvirtd.conf  /etc/libvirt/libvirtd.conf
-  
-  cat /etc/default/libvirt-bin | sed s/"-d"/"-d -l"/ > /tmp/libvirtd.tmp
-  cp -f /tmp/libvirtd.tmp /etc/default/libvirt-bin
+  RESTART_SERVICES=1
+fi
+
+if [ ${RESTART_SERVICES} -eq 1 ]
+then
   service nova-compute restart
   service libvirt-bin restart
 fi
-
 
 ## Specific configuration for NFS VM HOST
 if [ ${VM_HOST} -eq 1 ]
@@ -126,11 +132,11 @@ then
   RETVAL=$?
   if [ ${RETVAL} -ne 0 ]
   then
-    echo \"\" >> /etc/network/interfaces
-    echo \"auto livemnfsvgw\" >> /etc/network/interfaces
-    echo \"iface livemnfsvgw inet manual\" >> /etc/network/interfaces
-    echo \"    pre-up vif --create livemnfsvgw --mac 00:00:5e:00:01:00\" >> /etc/network/interfaces
-    echo \"    pre-up ifconfig livemnfsvgw up\" >> /etc/network/interfaces
+    echo "" >> /etc/network/interfaces
+    echo "auto livemnfsvgw" >> /etc/network/interfaces
+    echo "iface livemnfsvgw inet manual" >> /etc/network/interfaces
+    echo "    pre-up vif --create livemnfsvgw --mac 00:00:5e:00:01:00" >> /etc/network/interfaces
+    echo "    pre-up ifconfig livemnfsvgw up" >> /etc/network/interfaces
   fi
 
   ## Check v-router configuration for NFS VM
