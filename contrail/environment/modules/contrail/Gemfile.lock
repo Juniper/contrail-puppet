@@ -1,0 +1,67 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    diff-lcs (1.2.5)
+    facter (2.4.4)
+    hiera (2.0.0)
+      json_pure
+    hiera-puppet-helper (1.0.1)
+    json (1.8.3)
+    json_pure (1.8.2)
+    metaclass (0.0.4)
+    metadata-json-lint (0.0.6)
+      json
+      spdx-licenses (~> 1.0)
+    mocha (1.1.0)
+      metaclass (~> 0.0.1)
+    puppet (4.2.0)
+      facter (> 2.0, < 4)
+      hiera (>= 2.0, < 3)
+      json_pure
+    puppet-lint (1.1.0)
+    puppet-syntax (2.0.0)
+      rake
+    puppetlabs_spec_helper (0.10.3)
+      mocha
+      puppet-lint
+      puppet-syntax
+      rake
+      rspec-puppet
+    rake (10.4.2)
+    rspec (3.3.0)
+      rspec-core (~> 3.3.0)
+      rspec-expectations (~> 3.3.0)
+      rspec-mocks (~> 3.3.0)
+    rspec-core (3.3.1)
+      rspec-support (~> 3.3.0)
+    rspec-expectations (3.3.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.3.0)
+    rspec-mocks (3.3.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.3.0)
+    rspec-puppet (2.2.0)
+      rspec
+    rspec-puppet-facts (0.11.0)
+      facter
+      json
+    rspec-support (3.3.0)
+    spdx-licenses (1.0.0)
+      json
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  facter (>= 1.7.0)
+  hiera-puppet-helper
+  metadata-json-lint
+  puppet
+  puppet-lint (>= 1.0.0)
+  puppetlabs_spec_helper
+  rake
+  rspec-puppet
+  rspec-puppet-facts
+
+BUNDLED WITH
+   1.10.5

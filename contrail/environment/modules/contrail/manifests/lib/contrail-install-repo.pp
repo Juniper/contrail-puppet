@@ -27,5 +27,5 @@ define contrail::lib::contrail-install-repo(
 	    provider => shell,
 	    logoutput => $contrail_logoutput
         }
-    }
+  }
 }
