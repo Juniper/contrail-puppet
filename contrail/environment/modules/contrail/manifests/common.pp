@@ -200,7 +200,13 @@ class contrail::common(
     }
     file { "/tmp/facts.yaml":
         content => inline_template("<%= scope.to_hash.reject { |k,v| !( k.is_a?(String) && v.is_a?(String) ) }.to_yaml %>"),
-    } 
+    }
+
+    $hiera_enable_compute = hiera('contrail::params::enable_compute', undef)
+    $hiera_enable_post = hiera('contrail::params::enable_post_provision', undef)
+
+    notify {"Hiera data: enable_compute $hiera_enable_compute":;}
+    notify {"Hiera data: enable_post $hiera_enable_post":;}
 
     file { "/etc/contrail/contrail_setup_utils/add_reserved_ports.py" :
 	ensure  => present,
