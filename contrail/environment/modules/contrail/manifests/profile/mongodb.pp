@@ -17,6 +17,7 @@ class contrail::profile::mongodb {
       $port = ':27017'
       $contrail_logoutput = $::contrail::params::contrail_logoutput
 
+      # TODO: Document the function
       define add_rs_members ($primary_db_ip) {
         # Mongo DB Add RS members
         exec { "exec_mongo_add_rs_member ${name}":

@@ -1,3 +1,4 @@
+#TODO: Document the class
 define contrail::lib::report_status(
     $state,
     $contrail_logoutput = false,

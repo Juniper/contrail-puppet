@@ -1,3 +1,4 @@
+#TODO: Document the class
 class contrail::profile::storage (
     $enable_storage_compute = $::contrail::params::enable_storage_compute,
     $enable_storage_master = $::contrail::params::enable_storage_master

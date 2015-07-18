@@ -1,3 +1,4 @@
+#TODO: Document the class
 class contrail::profile::tsn(
   $enable_tsn= $::contrail::params::enable_tsn
 )

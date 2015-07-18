@@ -229,36 +229,33 @@ class contrail::config (
 
     # Main code for class starts here
     if $use_certs == true {
-	$ifmap_server_port = '8444'
+$ifmap_server_port = '8444'
     }
     else {
-	$ifmap_server_port = '8443'
+$ifmap_server_port = '8443'
     }
 
     $analytics_api_port = '8081'
     $contrail_plugin_file = '/etc/neutron/plugins/opencontrail/ContrailPlugin.ini'
     # Set keystone IP to be used.
-    if ($keystone_ip != "") {
+    if ($keystone_ip != '') {
         $keystone_ip_to_use = $keystone_ip
-    }
-    elsif ($internal_vip != "") {
+    } elsif ($internal_vip != '') {
         $keystone_ip_to_use = $internal_vip
-    }
-    else {
+    } else {
         $keystone_ip_to_use = $openstack_ip
     }
 
     if $multi_tenancy == true {
-	$memcached_opt = "memcache_servers=127.0.0.1:11211"
-    }
-    else {
-	$memcached_opt = ""
+        $memcached_opt = 'memcache_servers=127.0.0.1:11211'
+    } else {
+        $memcached_opt = ''
     }
     # Initialize the multi tenancy option will update latter based on vns argument
     if ($multi_tenancy == true) {
-	$mt_options = "admin,$keystone_admin_password,$keystone_admin_tenant"
+        $mt_options = 'admin,$keystone_admin_password,$keystone_admin_tenant'
     } else {
-	$mt_options = "None"
+        $mt_options = 'None'
     }
 
     # Supervisor contrail-api.ini
@@ -268,22 +265,19 @@ class contrail::config (
     $disc_nworkers = $api_nworkers
 
     # Set amqp_server_ip
-    if ($amqp_sever_ip != "") {
-        $amqp_server_ip_to_use = $amqp_sever_ip
-    }
-    elsif ($openstack_manage_amqp) {
-        if ($internal_vip != "") {
+    if ($::contrail::params::amqp_sever_ip != '') {
+        $amqp_server_ip_to_use = $::contrail::params::amqp_sever_ip
+    } elsif ($openstack_manage_amqp) {
+        if ($internal_vip != '') {
             $amqp_server_ip_to_use = $internal_vip
-        }
-        else {
+        } else {
             $amqp_server_ip_to_use = $openstack_ip
         }
-    }
-    else {
-        if ($contrail_internal_vip != "") {
+    } else {
+        if ($contrail_internal_vip != '') {
             $amqp_server_ip_to_use = $contrail_internal_vip
         }
-        elsif ($internal_vip != "") {
+        elsif ($internal_vip != '') {
             $amqp_server_ip_to_use = $internal_vip
         }
         else {
@@ -294,92 +288,87 @@ class contrail::config (
     # Set number of config nodes
     $cfgm_number = size($config_ip_list)
     if ($cfgm_number == 1) {
-        $rabbitmq_conf_template = "rabbitmq_config_single_node.erb"
+        $rabbitmq_conf_template = 'rabbitmq_config_single_node.erb'
     }
     else {
-        $rabbitmq_conf_template = "rabbitmq_config.erb"
+        $rabbitmq_conf_template = 'rabbitmq_config.erb'
     }
 
     if ( $host_control_ip == $config_ip_list[0]) {
-
-        $master = "yes"		
+        $master = 'yes'
     } else {
-        $master = "no"
+        $master = 'no'
     }
 
 
     $cfgm_ip_list_shell = inline_template('<%= @config_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
     $cfgm_name_list_shell = inline_template('<%= @config_name_list.map{ |ip| "#{ip}" }.join(",") %>')
-    $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${hostname}ctl\n"
+    $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctl\n"
 
     case $::operatingsystem {
-	Ubuntu: {
-	    file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
-	    file {"/etc/init/neutron-server.override": ensure => absent, require => Package['contrail-openstack-config']}
+        Ubuntu: {
+            file {'/etc/init/supervisor-config.override': ensure => absent, require => Package['contrail-openstack-config']}
+            file {'/etc/init/neutron-server.override': ensure => absent, require => Package['contrail-openstack-config']}
 
-	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
-		ensure  => present,
-		require => Package["contrail-openstack-config"],
-		content => template("$module_name/contrail-api.ini.erb"),
-	    }
+            file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
+                ensure  => present,
+                require => Package['contrail-openstack-config'],
+                content => template("${module_name}/contrail-api.ini.erb"),
+            }
 
-	    file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" :
-		ensure  => present,
-		require => Package["contrail-openstack-config"],
-		content => template("$module_name/contrail-discovery.ini.erb"),
-	    }
+            file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
+                ensure  => present,
+                require => Package['contrail-openstack-config'],
+                content => template("${module_name}/contrail-discovery.ini.erb"),
+            }
 
-    # Below is temporary to work-around in Ubuntu as Service resource fails
-    # as upstart is not correctly linked to /etc/init.d/service-name
-	    file { '/etc/init.d/supervisor-config':
-		ensure => link,
-		target => '/lib/init/upstart-job',
-		before => Service["supervisor-config"]
-	    }
+            # Below is temporary to work-around in Ubuntu as Service resource fails
+            # as upstart is not correctly linked to /etc/init.d/service-name
+            file { '/etc/init.d/supervisor-config':
+                ensure => link,
+                target => '/lib/init/upstart-job',
+                before => Service['supervisor-config']
+            }
+        }
+        Centos: {
+            # notify { "OS is Ubuntu":; }
+            file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
+                ensure  => present,
+                require => Package['contrail-openstack-config'],
+                content => template("${module_name}/contrail-api-centos.ini.erb"),
+            }
 
+            file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
+                ensure  => present,
+                require => Package['contrail-openstack-config'],
+                content => template("${module_name}/contrail-discovery-centos.ini.erb"),
+            }
+        }
+        Fedora: {
+            file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
+                ensure  => present,
+                require => Package['contrail-openstack-config'],
+                content => template("${module_name}/contrail-api-centos.ini.erb"),
+            }
 
-	}
-	Centos: {
-		       # notify { "OS is Ubuntu":; }
-	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
-		ensure  => present,
-		require => Package["contrail-openstack-config"],
-		content => template("$module_name/contrail-api-centos.ini.erb"),
-	    }
-
-	    file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" :
-		ensure  => present,
-		require => Package["contrail-openstack-config"],
-		content => template("$module_name/contrail-discovery-centos.ini.erb"),
-	    }
-
-	}
-	Fedora: {
-		    #        notify { "OS is Ubuntu":; }
-	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
-		ensure  => present,
-		require => Package["contrail-openstack-config"],
-		content => template("$module_name/contrail-api-centos.ini.erb"),
-	    }
-
-	    file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" :
-		ensure  => present,
-		require => Package["contrail-openstack-config"],
-		content => template("$module_name/contrail-discovery-centos.ini.erb"),
-	    }
-
-	}
-	default: {
-	    # notify { "OS is $operatingsystem":; }
-	}
+            file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
+                ensure  => present,
+                require => Package['contrail-openstack-config'],
+                content => template("${module_name}/contrail-discovery-centos.ini.erb"),
+            }
+        }
+        default: {
+    # notify { "OS is $operatingsystem":; }
+        }
     }
 
-    contrail::lib::report_status { "config_started":
-        state => "config_started", 
-        contrail_logoutput => $contrail_logoutput }
+    contrail::lib::report_status { 'config_started':
+        state              => 'config_started',
+        contrail_logoutput => $contrail_logoutput
+    }
     ->
     # Ensure all needed packages are present
-    package { 'contrail-openstack-config' : ensure => latest, notify => "Service[supervisor-config]"}
+    package { 'contrail-openstack-config' : ensure => latest, notify => 'Service[supervisor-config]'}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, contrail-nodemgr, contrail-lib, contrail-config, neutron-plugin-contrail, neutron-server, python-novaclient,
     #                     python-keystoneclient, contrail-setup, haproxy, euca2ools, rabbitmq-server, python-qpid, python-iniparse, python-bottle,
@@ -388,326 +377,321 @@ class contrail::config (
     #                     python-psutil, mysql-server, contrail-setup, python-zope-interface, python-importlib, euca2ools, m2crypto, openstack-nova,
     #                     java-1.7.0-openjdk, haproxy, rabbitmq-server, python-bottle, contrail-nodemgr
     # Ensure ctrl-details file is present with right content.
-    if ! defined(File["/etc/contrail/ctrl-details"]) {
-	if $haproxy == true {
-	    $quantum_ip = "127.0.0.1"
-	} else {
-	    $quantum_ip = $host_control_ip
-	}
+    if ! defined(File['/etc/contrail/ctrl-details']) {
+        if $haproxy == true {
+            $quantum_ip = '127.0.0.1'
+        } else {
+            $quantum_ip = $host_control_ip
+        }
 
-	file { "/etc/contrail/ctrl-details" :
-	    ensure  => present,
-	    content => template("$module_name/ctrl-details.erb"),
-	}
+        file { '/etc/contrail/ctrl-details' :
+            ensure  => present,
+            content => template("${module_name}/ctrl-details.erb"),
+        }
     }
 
     # Ensure service.token file is present with right content.
-    if ! defined(File["/etc/contrail/service.token"]) {
-	file { "/etc/contrail/service.token" :
-	    ensure  => present,
-	    content => template("$module_name/service.token.erb"),
-	}
+    if ! defined(File['/etc/contrail/service.token']) {
+        file { '/etc/contrail/service.token' :
+            ensure  => present,
+            content => template("${module_name}/service.token.erb"),
+        }
     }
-    exec { "neutron-conf-exec":
-	command => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
-	onlyif => "test -f /etc/neutron/neutron.conf",
-	unless  => "grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out",
-	provider => shell,
-	logoutput => $contrail_logoutput
+    exec { 'neutron-conf-exec':
+        command   => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
+        onlyif    => 'test -f /etc/neutron/neutron.conf',
+        unless    => 'grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out',
+        provider  => shell,
+        logoutput => $contrail_logoutput
     }
     ->
     #form the sudoers
-    file { "/etc/sudoers.d/contrail_sudoers" :
-        ensure  => present,
-        mode => 0440,
-        group => root,
-        source => "puppet:///modules/$module_name/contrail_sudoers"
+    file { '/etc/sudoers.d/contrail_sudoers' :
+        ensure => present,
+        mode   => '0440',
+        group  => root,
+        source => "puppet:///modules/${module_name}/contrail_sudoers"
     }
     ->
     # Ensure log4j.properties file is present with right content.
-    file { "/etc/ifmap-server/log4j.properties" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	content => template("$module_name/log4j.properties.erb"),
+    file { '/etc/ifmap-server/log4j.properties' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/log4j.properties.erb"),
     }
     ->
     # Ensure authorization.properties file is present with right content.
-    file { "/etc/ifmap-server/authorization.properties" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	content => template("$module_name/authorization.properties.erb"),
+    file { '/etc/ifmap-server/authorization.properties' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/authorization.properties.erb"),
     }
     ->
     # Ensure basicauthusers.proprties file is present with right content.
-    file { "/etc/ifmap-server/basicauthusers.properties" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	content => template("$module_name/basicauthusers.properties.erb"),
+    file { '/etc/ifmap-server/basicauthusers.properties' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/basicauthusers.properties.erb"),
     }
     ->
     # Ensure publisher.properties file is present with right content.
-    file { "/etc/ifmap-server/publisher.properties" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	content => template("$module_name/publisher.properties.erb"),
+    file { '/etc/ifmap-server/publisher.properties' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/publisher.properties.erb"),
     }
     ->
     # Ensure all config files with correct content are present.
-    file { "/etc/contrail/contrail-api.conf" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/contrail-api.conf.erb"),
-    }
-    ->
-    file { "/etc/contrail/contrail-config-nodemgr.conf" :
+    file { '/etc/contrail/contrail-api.conf' :
         ensure  => present,
-        require => Package["contrail-openstack-config"],
-        content => template("$module_name/contrail-config-nodemgr.conf.erb"),
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/contrail-api.conf.erb"),
     }
     ->
-    file { "/etc/contrail/contrail-keystone-auth.conf" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/contrail-keystone-auth.conf.erb"),
+    file { '/etc/contrail/contrail-config-nodemgr.conf' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/contrail-config-nodemgr.conf.erb"),
     }
     ->
-    file { "/etc/contrail/contrail-schema.conf" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/contrail-schema.conf.erb"),
+    file { '/etc/contrail/contrail-keystone-auth.conf' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/contrail-keystone-auth.conf.erb"),
     }
     ->
-    file { "/etc/contrail/contrail-svc-monitor.conf" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/contrail-svc-monitor.conf.erb"),
+    file { '/etc/contrail/contrail-schema.conf' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/contrail-schema.conf.erb"),
     }
     ->
-    file { "/etc/contrail/contrail-device-manager.conf" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/contrail-device-manager.conf.erb"),
+    file { '/etc/contrail/contrail-svc-monitor.conf' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/contrail-svc-monitor.conf.erb"),
     }
     ->
-    file { "/etc/contrail/contrail-discovery.conf" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/contrail-discovery.conf.erb"),
+    file { '/etc/contrail/contrail-device-manager.conf' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/contrail-device-manager.conf.erb"),
     }
     ->
-    file { "/etc/contrail/vnc_api_lib.ini" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/vnc_api_lib.ini.erb"),
+    file { '/etc/contrail/contrail-discovery.conf' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/contrail-discovery.conf.erb"),
     }
     ->
-    file { "/etc/contrail/contrail_plugin.ini" :
-	ensure  => present,
-	require => Package["contrail-openstack-config"],
-	notify =>  Service["supervisor-config"],
-	content => template("$module_name/contrail_plugin.ini.erb"),
+    file { '/etc/contrail/vnc_api_lib.ini' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/vnc_api_lib.ini.erb"),
+    }
+    ->
+    file { '/etc/contrail/contrail_plugin.ini' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        notify  => Service['supervisor-config'],
+        content => template("${module_name}/contrail_plugin.ini.erb"),
     }
     ->
     # initd script wrapper for contrail-api
-    file { "/etc/init.d/contrail-api" :
-	ensure  => present,
-	mode => 0777,
-	require => Package["contrail-openstack-config"],
-	content => template("$module_name/contrail-api.svc.erb"),
+    file { '/etc/init.d/contrail-api' :
+        ensure  => present,
+        mode    => '0777',
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/contrail-api.svc.erb"),
     }
     ->
-    exec { "create-contrail-plugin-neutron":
-	command => "cp /etc/contrail/contrail_plugin.ini /etc/neutron/plugins/opencontrail/ContrailPlugin.ini",
-	require => File["/etc/contrail/contrail_plugin.ini"],
-	onlyif => "test -d /etc/neutron/",
-	provider => shell,
-	logoutput => $contrail_logoutput
+    exec { 'create-contrail-plugin-neutron':
+        command   => 'cp /etc/contrail/contrail_plugin.ini /etc/neutron/plugins/opencontrail/ContrailPlugin.ini',
+        require   => File['/etc/contrail/contrail_plugin.ini'],
+        onlyif    => 'test -d /etc/neutron/',
+        provider  => shell,
+        logoutput => $contrail_logoutput
     }
     ->
-    exec { "create-contrail-plugin-quantum":
-	command => "cp /etc/contrail/contrail_plugin.ini /etc/quantum/plugins/contrail/contrail_plugin.ini",
-	require => File["/etc/contrail/contrail_plugin.ini"],
-	onlyif => "test -d /etc/quantum/",
-	provider => shell,
-	logoutput => $contrail_logoutput
+    exec { 'create-contrail-plugin-quantum':
+        command   => 'cp /etc/contrail/contrail_plugin.ini /etc/quantum/plugins/contrail/contrail_plugin.ini',
+        require   => File['/etc/contrail/contrail_plugin.ini'],
+        onlyif    => 'test -d /etc/quantum/',
+        provider  => shell,
+        logoutput => $contrail_logoutput
     }
     ->
-    exec { "contrail-plugin-set-lbass-params":
-	command => "openstack-config --set $contrail_plugin_file COLLECTOR analytics_api_ip $collector_ip &&
-                   openstack-config --set $contrail_plugin_file COLLECTOR analytics_api_port $analytics_api_port &&
-                   echo exec_contrail_plugin_set_lbass_params >> /etc/contrail/contrail_config_exec.out",
-	provider => shell,
-	logoutput => $contrail_logoutput
+    exec { 'contrail-plugin-set-lbass-params':
+        command   => "openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_ip ${collector_ip} &&
+                           openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_port ${analytics_api_port} &&
+                           echo exec_contrail_plugin_set_lbass_params >> /etc/contrail/contrail_config_exec.out",
+        provider  => shell,
+        logoutput => $contrail_logoutput
     }
     ->
-    exec { "config-neutron-server" :
-         command => "sudo sed -i '/NEUTRON_PLUGIN_CONFIG.*/d' /etc/default/neutron-server && echo \"$contrail_plugin_location\" >> /etc/default/neutron-server && service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
-         onlyif => "test -f /etc/default/neutron-server",
-         unless  => "grep -qx config-neutron-server /etc/contrail/contrail_config_exec.out",
-         provider => shell,
-         logoutput => $contrail_logoutput
+    exec { 'config-neutron-server' :
+        command   => "sudo sed -i '/NEUTRON_PLUGIN_CONFIG.*/d' /etc/default/neutron-server && echo \"${contrail_plugin_location}\" >> /etc/default/neutron-server && service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
+        onlyif    => 'test -f /etc/default/neutron-server',
+        unless    => 'grep -qx config-neutron-server /etc/contrail/contrail_config_exec.out',
+        provider  => shell,
+        logoutput => $contrail_logoutput
     }
     ->
     # initd script wrapper for contrail-discovery
-    file { "/etc/init.d/contrail-discovery" :
-	ensure  => present,
-	mode => 0777,
-	require => Package["contrail-openstack-config"],
-	content => template("$module_name/contrail-discovery.svc.erb"),
+    file { '/etc/init.d/contrail-discovery' :
+        ensure  => present,
+        mode    => '0777',
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/contrail-discovery.svc.erb"),
     }
     ->
     # Handle rabbitmq.config changes
-    file {"/var/lib/rabbitmq/.erlang.cookie":
-	ensure  => present,
-	mode => 0400,
-	owner => rabbitmq,
-	group => rabbitmq,
-	content => "$uuid"
-    }->
-    file { "/etc/rabbitmq/rabbitmq.config" :
+    file {'/var/lib/rabbitmq/.erlang.cookie':
         ensure  => present,
-        require => Package["contrail-openstack-config"],
-        content => template("$module_name/$rabbitmq_conf_template"),
+        mode    => '0400',
+        owner   => rabbitmq,
+        group   => rabbitmq,
+        content => $uuid
+    }->
+    file { '/etc/rabbitmq/rabbitmq.config' :
+        ensure  => present,
+        require => Package['contrail-openstack-config'],
+        content => template("${module_name}/${rabbitmq_conf_template}"),
     }
     ->
-    file { "/etc/rabbitmq/rabbitmq-env.conf" :
-	ensure  => present,
-	mode => 0755,
-#	user => root,
-	group => root,
-        content => "$rabbit_env",
-#	source => "puppet:///modules/$module_name/add_etc_host.py"
+    file { '/etc/rabbitmq/rabbitmq-env.conf' :
+        ensure  => present,
+        mode    => '0755',
+        group   => root,
+        content => '$rabbit_env',
     }
     ->
-    file { "/etc/contrail/add_etc_host.py" :
-	ensure  => present,
-	mode => 0755,
-#	user => root,
-	group => root,
-	source => "puppet:///modules/$module_name/add_etc_host.py"
+    file { '/etc/contrail/add_etc_host.py' :
+        ensure => present,
+        mode   => '0755',
+        group  => root,
+        source => "puppet:///modules/${module_name}/add_etc_host.py"
     }
     ->
-    exec { "add-etc-hosts" :
-	command => "python /etc/contrail/add_etc_host.py $cfgm_ip_list_shell $cfgm_name_list_shell & echo add-etc-hosts >> /etc/contrail/contrail_config_exec.out",
-	require => File["/etc/contrail/add_etc_host.py"],
-	unless  => "grep -qx add-etc-hosts /etc/contrail/contrail_config_exec.out",
-	provider => shell,
-	logoutput => $contrail_logoutput
+    exec { 'add-etc-hosts' :
+        command   => "python /etc/contrail/add_etc_host.py ${cfgm_ip_list_shell} ${cfgm_name_list_shell} & echo add-etc-hosts >> /etc/contrail/contrail_config_exec.out",
+        require   => File['/etc/contrail/add_etc_host.py'],
+        unless    => 'grep -qx add-etc-hosts /etc/contrail/contrail_config_exec.out',
+        provider  => shell,
+        logoutput => $contrail_logoutput
     }
     ->
-    file { "/etc/contrail/form_rmq_cluster.sh" :
-	ensure  => present,
-	mode => 0755,
-#	user => root,
-	group => root,
-	source => "puppet:///modules/$module_name/form_rmq_cluster.sh"
+    file { '/etc/contrail/form_rmq_cluster.sh' :
+        ensure => present,
+        mode   => '0755',
+        group  => root,
+        source => "puppet:///modules/${module_name}/form_rmq_cluster.sh"
     }
-    exec { "verify-rabbitmq" :
-	command => "/etc/contrail/form_rmq_cluster.sh $master $host_control_ip $config_ip_list & echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
-	require => File["/etc/contrail/form_rmq_cluster.sh"],
-	unless  => "grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out",
-	provider => shell,
-	logoutput => $contrail_logoutput
+    exec { 'verify-rabbitmq' :
+        command   => "/etc/contrail/form_rmq_cluster.sh ${master} ${host_control_ip} ${config_ip_list} & echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
+        require   => File['/etc/contrail/form_rmq_cluster.sh'],
+        unless    => 'grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out',
+        provider  => shell,
+        logoutput => $contrail_logoutput
     }
 
     # run setup-pki.sh script
     if $use_certs == true {
-	file { "/etc/contrail_setup_utils/setup-pki.sh" :
-	    ensure  => present,
-	    mode => 0755,
-	    user => root,
-	    group => root,
-	    source => "puppet:///modules/$module_name/setup-pki.sh"
-	}
-	exec { "setup-pki" :
-	    command => "/etc/contrail_setup_utils/setup-pki.sh /etc/contrail/ssl; echo setup-pki >> /etc/contrail/contrail_config_exec.out",
-	    require => File["/etc/contrail_setup_utils/setup-pki.sh"],
-	    unless  => "grep -qx setup-pki /etc/contrail/contrail_config_exec.out",
-	    provider => shell,
-	    logoutput => $contrail_logoutput
-	}
+        file { '/etc/contrail_setup_utils/setup-pki.sh' :
+            ensure => present,
+            mode   => '0755',
+            user   => root,
+            group  => root,
+            source => "puppet:///modules/${module_name}/setup-pki.sh"
+        }
+        exec { 'setup-pki' :
+            command   => '/etc/contrail_setup_utils/setup-pki.sh /etc/contrail/ssl; echo setup-pki >> /etc/contrail/contrail_config_exec.out',
+            require   => File['/etc/contrail_setup_utils/setup-pki.sh'],
+            unless    => 'grep -qx setup-pki /etc/contrail/contrail_config_exec.out',
+            provider  => shell,
+            logoutput => $contrail_logoutput
+        }
     }
     # Execute config-server-setup scripts
-    file { "/opt/contrail/bin/config-server-setup.sh":
-	ensure  => present,
-	mode => 0755,
-	owner => root,
-	group => root,
-	require => File["/etc/contrail/ctrl-details", "/etc/contrail/contrail-schema.conf", "/etc/contrail/contrail-svc-monitor.conf"]
+    file { '/opt/contrail/bin/config-server-setup.sh':
+        ensure  => present,
+        mode    => '0755',
+        owner   => root,
+        group   => root,
+        require => File['/etc/contrail/ctrl-details', '/etc/contrail/contrail-schema.conf', '/etc/contrail/contrail-svc-monitor.conf']
     }
     ->
-    exec { "setup-config-server-setup" :
-	command => "/bin/bash /opt/contrail/bin/config-server-setup.sh $operatingsystem && echo setup-config-server-setup >> /etc/contrail/contrail_config_exec.out",
-	require => File["/opt/contrail/bin/config-server-setup.sh"],
-	unless  => "grep -qx setup-config-server-setup /etc/contrail/contrail_config_exec.out",
-	provider => shell
+    exec { 'setup-config-server-setup' :
+        command  => "/bin/bash /opt/contrail/bin/config-server-setup.sh ${::operatingsystem} && echo setup-config-server-setup >> /etc/contrail/contrail_config_exec.out",
+        require  => File['/opt/contrail/bin/config-server-setup.sh'],
+        unless   => 'grep -qx setup-config-server-setup /etc/contrail/contrail_config_exec.out',
+        provider => shell
     }
     ->
-    file { "/opt/contrail/bin/quantum-server-setup.sh":
-	ensure  => present,
-	mode => 0755,
-	owner => root,
-	group => root,
-	require => File["/etc/contrail/ctrl-details", "/etc/contrail/contrail-schema.conf", "/etc/contrail/contrail-svc-monitor.conf"]
+    file { '/opt/contrail/bin/quantum-server-setup.sh':
+        ensure  => present,
+        mode    => '0755',
+        owner   => root,
+        group   => root,
+        require => File['/etc/contrail/ctrl-details', '/etc/contrail/contrail-schema.conf', '/etc/contrail/contrail-svc-monitor.conf']
     }
     ->
-    exec { "setup-quantum-server-setup" :
-	command => "/bin/bash /opt/contrail/bin/quantum-server-setup.sh $operatingsystem && echo setup-quantum-server-setup >> /etc/contrail/contrail_config_exec.out",
-	require => File["/opt/contrail/bin/quantum-server-setup.sh"],
-	unless  => "grep -qx setup-quantum-server-setup /etc/contrail/contrail_config_exec.out",
-	provider => shell
+    exec { 'setup-quantum-server-setup' :
+        command  => "/bin/bash /opt/contrail/bin/quantum-server-setup.sh ${::operatingsystem} && echo setup-quantum-server-setup >> /etc/contrail/contrail_config_exec.out",
+        require  => File['/opt/contrail/bin/quantum-server-setup.sh'],
+        unless   => 'grep -qx setup-quantum-server-setup /etc/contrail/contrail_config_exec.out',
+        provider => shell
     }
     ->
-    service { "supervisor-config" :
-	enable => true,
-	require => [ Package['contrail-openstack-config']],
-	ensure => running,
+    service { 'supervisor-config' :
+        ensure  => running,
+        enable  => true,
+        require => [ Package['contrail-openstack-config']],
     }
     ->
-    contrail::lib::report_status { "config_completed":
-        state => "config_completed", 
-        contrail_logoutput => $contrail_logoutput }
+    contrail::lib::report_status { 'config_completed':
+        state              => 'config_completed',
+        contrail_logoutput => $contrail_logoutput
+    }
 
     #Set rabbit params for both internal and contrail_internal_vip
-    if($vip != "") {
-	exec { "rabbit_os_fix":
-		command => "rabbitmqctl set_policy HA-all \"\" '{\"ha-mode\":\"all\",\"ha-sync-mode\":\"automatic\"}' && echo rabbit_os_fix >> /etc/contrail/contrail_openstack_exec.out",
-		unless  => "grep -qx rabbit_os_fix /etc/contrail/contrail_openstack_exec.out",
-		provider => shell,
-		logoutput => $contrail_logoutput,
-		tries => 3,
-		try_sleep => 15,
-		require => Service["supervisor-config"]
-	}
+    if($vip != '') {
+        exec { 'rabbit_os_fix':
+            command   => "rabbitmqctl set_policy HA-all \"\" '{\"ha-mode\":\"all\",\"ha-sync-mode\":\"automatic\"}' && echo rabbit_os_fix >> /etc/contrail/contrail_openstack_exec.out",
+            unless    => 'grep -qx rabbit_os_fix /etc/contrail/contrail_openstack_exec.out',
+            provider  => shell,
+            logoutput => $contrail_logoutput,
+            tries     => 3,
+            try_sleep => 15,
+            require   => Service['supervisor-config']
+        }
     }
 
-    if ! defined(File["/opt/contrail/bin/set_rabbit_tcp_params.py"]) {
+    if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
 
-	#set tcp params to handle tcp connections when VIP moves
-	file { "/opt/contrail/bin/set_rabbit_tcp_params.py" :
-	    ensure  => present,
-	    mode => 0755,
-	    group => root,
-	    source => "puppet:///modules/$module_name/set_rabbit_tcp_params.py"
-	}
+        #set tcp params to handle tcp connections when VIP moves
+        file { '/opt/contrail/bin/set_rabbit_tcp_params.py' :
+            ensure => present,
+            mode   => '0755',
+            group  => root,
+            source => "puppet:///modules/${module_name}/set_rabbit_tcp_params.py"
+        }
 
-
-	exec { "exec_set_rabbitmq_tcp_params" :
-	    command => "python /opt/contrail/bin/set_rabbit_tcp_params.py && echo exec_set_rabbitmq_tcp_params >> /etc/contrail/contrail_openstack_exec.out",
-	    cwd => "/opt/contrail/bin/",
-	    unless  => "grep -qx exec_set_rabbitmq_tcp_params /etc/contrail/contrail_openstack_exec.out",
-	    provider => shell,
-	    require => [ File["/opt/contrail/bin/set_rabbit_tcp_params.py"] ],
-	    logoutput => $contrail_logoutput
-	}
+        exec { 'exec_set_rabbitmq_tcp_params' :
+            command   => 'python /opt/contrail/bin/set_rabbit_tcp_params.py && echo exec_set_rabbitmq_tcp_params >> /etc/contrail/contrail_openstack_exec.out',
+            cwd       => '/opt/contrail/bin/',
+            unless    => 'grep -qx exec_set_rabbitmq_tcp_params /etc/contrail/contrail_openstack_exec.out',
+            provider  => shell,
+            require   => [ File['/opt/contrail/bin/set_rabbit_tcp_params.py'] ],
+            logoutput => $contrail_logoutput
+        }
     }
 # end of user defined type contrail_config.
-
 }

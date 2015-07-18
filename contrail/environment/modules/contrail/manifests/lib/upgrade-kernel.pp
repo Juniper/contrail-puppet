@@ -1,14 +1,16 @@
+# TODO: Document the function
+
 define contrail::lib::upgrade-kernel(
     $contrail_kernel_upgrade,
     $contrail_kernel_version,
     $contrail_logoutput = false,
 ) {
 
-    if ($operatingsystem == "Ubuntu" and $contrail_kernel_upgrade == "yes")
+    if ($::operatingsystem == 'Ubuntu' and $contrail_kernel_upgrade == 'yes')
     {
-        if ($lsbdistrelease == "14.04") {
-            if ($contrail_kernel_version == "" ) {
-                $contrail_dist_kernel_version = "3.13.0-40"
+        if ($::lsbdistrelease == '14.04') {
+            if ($contrail_kernel_version == '' ) {
+                $contrail_dist_kernel_version = '3.13.0-40'
             } else {
                 $contrail_dist_kernel_version = $contrail_kernel_version
             }
@@ -26,15 +28,15 @@ define contrail::lib::upgrade-kernel(
             ->
             package { $image_extra : ensure => present, }
             ->
-            exec { "upgrade-kernel-reboot":
-                command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot -f now",
-                provider => shell,
+            exec { 'upgrade-kernel-reboot':
+                command   => 'echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot -f now',
+                provider  => shell,
                 logoutput => $contrail_logoutput,
-                unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
+                unless    => ['grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out']
             }
         } else {
-            if ($contrail_kernel_version == "" ) {
-                $contrail_dist_kernel_version = "3.13.0-34"
+            if ($contrail_kernel_version == '' ) {
+                $contrail_dist_kernel_version = '3.13.0-34'
             } else {
                 $contrail_dist_kernel_version = $contrail_kernel_version
             }
@@ -52,11 +54,11 @@ define contrail::lib::upgrade-kernel(
             ->
             package { $image : ensure => present, }
             ->
-            exec { "upgrade-kernel-reboot":
-                command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot -f now",
-                provider => shell,
+            exec { 'upgrade-kernel-reboot':
+                command   => 'echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot -f now',
+                provider  => shell,
                 logoutput => $contrail_logoutput,
-                unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
+                unless    => ['grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out']
             }
         }
     } else {

@@ -1,3 +1,4 @@
+#TODO: Document the class
 define contrail::lib::contrail-install-repo(
     $contrail_logoutput = false,
     ) {

@@ -1,3 +1,4 @@
+#TODO: Document the class
 define contrail::lib::check-os-master(
   $openstack_master,
   $host_control_ip,

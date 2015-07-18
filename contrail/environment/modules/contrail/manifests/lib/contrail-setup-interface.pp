@@ -1,3 +1,4 @@
+#TODO: Document the class
 define contrail::lib::contrail-setup-interface(
   $contrail_device,
   $contrail_members,
