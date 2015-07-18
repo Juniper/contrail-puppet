@@ -10,14 +10,14 @@ class contrail::ceilometer::agent::auth {
 
   $auth_url = "http://${controller_address_management}:5000/v2.0"
   $auth_password = $ceilometer_password
-  $auth_tenant_name = "service"
-  $auth_username = "ceilometer"
+  $auth_tenant_name = 'service'
+  $auth_username = 'ceilometer'
 
   class { '::ceilometer::agent::auth':
-    auth_url      => $auth_url,
-    auth_password => $auth_password,
+    auth_url         => $auth_url,
+    auth_password    => $auth_password,
     auth_tenant_name => $auth_tenant_name,
-    auth_user => $auth_username,
+    auth_user        => $auth_username,
   }
-  notify { "contrail::ceilometer::agent::auth - auth_url = $::ceilometer::agent::auth::auth_url":; }
+  notify { "contrail::ceilometer::agent::auth - auth_url = ${::ceilometer::agent::auth::auth_url}":; }
 }

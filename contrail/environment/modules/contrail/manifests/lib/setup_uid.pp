@@ -1,3 +1,4 @@
+#TODO: Document the class
 define contrail::lib::setup_uid(
     $user_uid,
     $user_group_name,

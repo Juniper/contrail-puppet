@@ -1,3 +1,4 @@
+#TODO: Document the class
 define contrail::lib::prepare_disk(
     $ensure = 'present',
     $contrail_logoutput = false) {

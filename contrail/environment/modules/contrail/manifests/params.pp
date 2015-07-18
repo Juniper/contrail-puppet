@@ -526,19 +526,19 @@ class contrail::params (
     $webui_ip_list,
     $openstack_ip_list,
     $compute_ip_list,
-    $tsn_ip_list = "",
+    $tsn_ip_list = '',
     $config_name_list,
     $compute_name_list,
     $control_name_list,
     $database_name_list,
     $collector_name_list,
     $openstack_name_list,
-    $tsn_name_list = "",
-    $internal_vip = "",
-    $external_vip = "",
-    $contrail_internal_vip = "",
-    $contrail_external_vip = "",
-    $database_ip_port = "9160",
+    $tsn_name_list = '',
+    $internal_vip = '',
+    $external_vip = '',
+    $contrail_internal_vip = '',
+    $contrail_external_vip = '',
+    $database_ip_port = '9160',
     $analytics_data_ttl = 48,
     $analytics_config_audit_ttl = 168,
     $analytics_statistics_ttl = 24,
@@ -550,81 +550,81 @@ class contrail::params (
     $use_certs = False,
     $puppet_server = '',
     $database_initial_token = 0,
-    $database_dir = "/var/lib/cassandra",
-    $analytics_data_dir = "",
-    $ssd_data_dir = "",
+    $database_dir = '/var/lib/cassandra',
+    $analytics_data_dir = '',
+    $ssd_data_dir = '',
     $database_minimum_diskGB = 256,
-    $keystone_ip = "",
-    $keystone_admin_password = "contrail123",
-    $keystone_service_token = "contrail123",
-    $keystone_admin_user = "admin",
-    $keystone_admin_tenant = "admin",
-    $keystone_service_tenant = "services",
-    $keystone_region_name = "RegionOne",
+    $keystone_ip = '',
+    $keystone_admin_password = 'contrail123',
+    $keystone_service_token = 'contrail123',
+    $keystone_admin_user = 'admin',
+    $keystone_admin_tenant = 'admin',
+    $keystone_service_tenant = 'services',
+    $keystone_region_name = 'RegionOne',
     $multi_tenancy = true,
     $zookeeper_ip_list = undef,
-    $quantum_port = "9697",
-    $quantum_service_protocol = "http",
-    $keystone_auth_protocol = "http",
-    $neutron_service_protocol = "http",
+    $quantum_port = '9697',
+    $quantum_service_protocol = 'http',
+    $keystone_auth_protocol = 'http',
+    $neutron_service_protocol = 'http',
     $keystone_auth_port = 35357,
     $keystone_insecure_flag = false,
     $api_nworkers = 1,
-    $haproxy_flag = "disable",
+    $haproxy_flag = 'disable',
     $manage_neutron = true,
     $openstack_manage_amqp = false,
-    $amqp_server_ip = "",
+    $amqp_server_ip = '',
     $zk_ip_port = '2181',
     $hc_interval = 5,
-    $vmware_ip = "",
-    $vmware_username = "",
-    $vmware_password = "",
-    $vmware_vswitch = "",
+    $vmware_ip = '',
+    $vmware_username = '',
+    $vmware_password = '',
+    $vmware_vswitch = '',
     $keepalived_vrid = 100,
-    $mysql_root_password = "c0ntrail123",
+    $mysql_root_password = 'c0ntrail123',
     $openstack_mgmt_ip_list = undef,
-    $encap_priority = "VXLAN,MPLSoUDP,MPLSoGRE",
-    $router_asn = "64512",
-    $metadata_secret = "",
-    $vgw_public_subnet = "",
-    $vgw_public_vn_name = "",
-    $vgw_interface = "",
-    $vgw_gateway_routes = "",
-    $orchestrator = "openstack",
+    $encap_priority = 'VXLAN,MPLSoUDP,MPLSoGRE',
+    $router_asn = '64512',
+    $metadata_secret = '',
+    $vgw_public_subnet = '',
+    $vgw_public_vn_name = '',
+    $vgw_interface = '',
+    $vgw_gateway_routes = '',
+    $orchestrator = 'openstack',
     $contrail_repo_name,
     $contrail_repo_type,
     $contrail_repo_ip = $serverip,
-    $kernel_upgrade = "yes",
-    $kernel_version = "",
-    $redis_password = "",
-    $storage_num_osd = "",
-    $storage_fsid = "",
-    $storage_num_hosts = "",
-    $storage_monitor_secret = "",
-    $osd_bootstrap_key = "",
-    $storage_admin_key = "",
-    $storage_virsh_uuid = "",
-    $storage_monitor_hosts = "",
-    $storage_ip_list = "",
-    $storage_osd_disks = "",
-    $storage_enabled = "",
-    $storage_chassis_config = "",
-    $storage_hostnames = "",
-    $live_migration_host = "",
-    $live_migration_ip = "",
-    $live_migration_storage_scope = "local",
-    $nfs_server = "",
-    $nfs_glance_path = "",
-    $host_non_mgmt_ip = "",
-    $host_non_mgmt_gateway = "",
-    $storage_cluster_network = "",
+    $kernel_upgrade = 'yes',
+    $kernel_version = '',
+    $redis_password = '',
+    $storage_num_osd = '',
+    $storage_fsid = '',
+    $storage_num_hosts = '',
+    $storage_monitor_secret = '',
+    $osd_bootstrap_key = '',
+    $storage_admin_key = '',
+    $storage_virsh_uuid = '',
+    $storage_monitor_hosts = '',
+    $storage_ip_list = '',
+    $storage_osd_disks = '',
+    $storage_enabled = '',
+    $storage_chassis_config = '',
+    $storage_hostnames = '',
+    $live_migration_host = '',
+    $live_migration_ip = '',
+    $live_migration_storage_scope = 'local',
+    $nfs_server = '',
+    $nfs_glance_path = '',
+    $host_non_mgmt_ip = '',
+    $host_non_mgmt_gateway = '',
+    $storage_cluster_network = '',
     $openstack_passwd_list,
     $openstack_user_list,
     $compute_passwd_list,
-    $host_roles = "",
-    $external_bgp = "",
-    $sync_db = "",
-    $contrail_plugin_location  = "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'",
+    $host_roles = '',
+    $external_bgp = '',
+    $sync_db = '',
+    $contrail_plugin_location  = 'NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'',
     $contrail_logoutput = false,
     $contrail_upgrade = false,
     $enable_lbass = false,
@@ -652,9 +652,9 @@ class contrail::params (
     # that varible here.
     $keystone_admin_token = $keystone_service_token
 
-    if (($contrail_internal_vip != "") or
-        ($internal_vip != "") or
-        ($haproxy_flag != "enable")) {
+    if (($contrail_internal_vip != '') or
+        ($internal_vip != '') or
+        ($haproxy_flag != 'enable')) {
         $haproxy = false
     }
     else {
@@ -676,45 +676,45 @@ class contrail::params (
     }
 
     #config_ip_to_use
-    if $contrail_internal_vip != "" {
+    if $contrail_internal_vip != '' {
         $config_ip_to_use = $contrail_internal_vip
-    } elsif $internal_vip != "" {
-         $config_ip_to_use = $internal_vip
+    } elsif $internal_vip != '' {
+        $config_ip_to_use = $internal_vip
     }else {
-         $config_ip_to_use = $config_ip_list[0]
+        $config_ip_to_use = $config_ip_list[0]
     }
 
     #vip_to_use
-    if $contrail_internal_vip != "" {
+    if $contrail_internal_vip != '' {
         $vip_to_use = $contrail_internal_vip
-    } elsif $internal_vip != "" {
-         $vip_to_use = $internal_vip
+    } elsif $internal_vip != '' {
+        $vip_to_use = $internal_vip
     }else {
-         $vip_to_use = ""
+        $vip_to_use = ''
     }
 
     #collectto_ip_to_use
-    if $contrail_internal_vip != "" {
+    if $contrail_internal_vip != '' {
         $collector_ip_to_use = $contrail_internal_vip
-    } elsif $internal_vip != "" {
-         $collector_ip_to_use = $internal_vip
+    } elsif $internal_vip != '' {
+        $collector_ip_to_use = $internal_vip
     }else {
-         $collector_ip_to_use = $collector_ip_list[0]
+        $collector_ip_to_use = $collector_ip_list[0]
     }
 
     #rabbitmq_port_to_use
-    if $contrail_internal_vip != "" {
-        $contrail_rabbit_port = "5673"
-    } elsif $internal_vip != "" {
-        $contrail_rabbit_port = "5673"
+    if $contrail_internal_vip != '' {
+        $contrail_rabbit_port = '5673'
+    } elsif $internal_vip != '' {
+        $contrail_rabbit_port = '5673'
     }else {
-        $contrail_rabbit_port = "5672"
+        $contrail_rabbit_port = '5672'
     }
 
     #rabbitmq_host_to_use
-    if $contrail_internal_vip != "" {
+    if $contrail_internal_vip != '' {
         $contrail_rabbit_host = $contrail_internal_vip
-    } elsif $internal_vip != "" {
+    } elsif $internal_vip != '' {
         $contrail_rabbit_host = $internal_vip
     }else {
         $contrail_rabbit_host = $config_ip_list[0]

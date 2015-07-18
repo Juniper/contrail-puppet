@@ -1,3 +1,4 @@
+#TODO: Document the class
 class contrail::role::compute {
   include ::openstack::profile::firewall
   include ::contrail::profile::nova::compute
