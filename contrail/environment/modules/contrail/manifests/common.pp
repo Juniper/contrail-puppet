@@ -112,7 +112,7 @@ class contrail::common(
 
         # Disable iptables
         service { 'iptables' :
-            ensure => stopped
+            ensure => stopped,
             enable => false,
         }
     }

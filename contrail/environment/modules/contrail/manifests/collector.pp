@@ -239,7 +239,7 @@ class contrail::collector (
     }
     ->
     exec { 'setsnmpmib':
-        command   => 'mkdir -p /etc/snmp && echo 'mibs +ALL' > /etc/snmp/snmp.conf',
+        command   => 'mkdir -p /etc/snmp && echo \'mibs +ALL\' > /etc/snmp/snmp.conf',
         require   => Package['contrail-openstack-analytics'],
         provider  => shell,
         logoutput => $contrail_logoutput

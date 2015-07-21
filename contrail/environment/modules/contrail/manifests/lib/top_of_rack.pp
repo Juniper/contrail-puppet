@@ -18,7 +18,7 @@ define contrail::lib::top_of_rack(
     $keystone_admin_password,
     $keystone_admin_tenant) {
 
-    notify { "**** ${module_name} - ${name} =>  ${tunnel_ip_address,} ${ovs_port,} ${http_server_port} , ${ip_address,} ${id,} ${vendor_name,} ${ovs_protocol,} ${ovs_protocol,} ${switch_name}": ; }
+    notify { "**** ${module_name} - ${name} =>  ${tunnel_ip_address}, ${ovs_port}, ${http_server_port} , ${ip_address}, ${id}, ${vendor_name}, ${ovs_protocol}, ${ovs_protocol}, ${switch_name}": ; }
 
     file { "tor-agent-config-${id}" :
         path    => "/etc/contrail/contrail-tor-agent-${id}.conf",
