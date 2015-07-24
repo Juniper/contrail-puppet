@@ -179,6 +179,7 @@
 #
 # [*heat_encryption_key*]
 #   The encyption key for the shared heat services.
+#   Defaults to "notgood but just long enough i think"
 #
 # == Horizon
 # [*horizon_secret_key*]
@@ -283,7 +284,7 @@ class openstack (
   $ceilometer_password = undef,
   $ceilometer_meteringsecret = undef,
   $heat_password = undef,
-  $heat_encryption_key = undef,
+  $heat_encryption_key = "notgood but just long enough i think",
   $horizon_secret_key = undef,
   $tempest_configure_images    = undef,
   $tempest_image_name          = undef,
@@ -348,7 +349,7 @@ class openstack (
       ceilometer_password           => hiera(openstack::ceilometer::password),
       ceilometer_meteringsecret     => hiera(openstack::ceilometer::meteringsecret),
       heat_password                 => hiera(openstack::heat::password),
-      heat_encryption_key           => hiera(openstack::heat::encryption_key),
+      heat_encryption_key           => hiera(openstack::heat::encryption_key, $heat_encryption_key),
       horizon_secret_key            => hiera(openstack::horizon::secret_key),
       verbose                       => hiera(openstack::verbose),
       debug                         => hiera(openstack::debug),
