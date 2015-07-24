@@ -64,8 +64,15 @@ class contrail::profile::openstack::heat () {
       bind_port => $heat_api_cfn_bind_port,
     }
 
+    if ($::openstack::config::heat_encryption_key == "" ) {
+      $heat_auth_encryption_key = "notgood but just long enough i think"
+    }
+    else {
+      $heat_auth_encryption_key = $::openstack::config::heat_encryption_key
+    }
+
     class { '::heat::engine':
-      auth_encryption_key => $::openstack::config::heat_encryption_key,
+      auth_encryption_key => $heat_auth_encryption_key
     }
 
     $contrail_api_server = $::contrail::params::config_ip_to_use
