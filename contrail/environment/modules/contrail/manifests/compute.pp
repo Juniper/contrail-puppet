@@ -312,8 +312,12 @@ class contrail::compute (
 
     if 'tsn' in $contrail_host_roles {
         $contrail_agent_mode = 'tsn'
+        $contrail_router_type = '--router_type tor-service-node'
+        $nova_compute_status = 'false'
     } else {
         $contrail_agent_mode = ""
+        $contrail_router_type = ''
+        $nova_compute_status = 'true'
     }
     # Debug Print all variable values
     notify {"host_control_ip = $host_control_ip":; } ->
@@ -416,6 +420,12 @@ class contrail::compute (
     #package { 'contrail-openstack-vrouter' : ensure => latest, notify => "Service[supervisor-vrouter]"}
 
     if ($operatingsystem == "Ubuntu"){
+        if 'tsn' in $contrail_host_roles {
+            file { "/etc/init/nova-compute.override":
+                ensure => present,
+                content => "manual",
+            }
+        }
 	file {"/etc/init/supervisor-vrouter.override": ensure => absent, require => Package['contrail-openstack-vrouter']}
     }
 
@@ -612,7 +622,7 @@ class contrail::compute (
 	group => root
     }
     exec { "add-vnc-config" :
-	command => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name $::hostname --host_ip $host_control_ip --api_server_ip $config_ip_to_use --oper add --admin_user $keystone_admin_user --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant --openstack_ip $openstack_ip && echo add-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
+	command => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name $::hostname --host_ip $host_control_ip --api_server_ip $config_ip_to_use --oper add --admin_user $keystone_admin_user --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant --openstack_ip $openstack_ip ${contrail_router_type} && echo add-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
 	require => File["/opt/contrail/utils/provision_vrouter.py"],
 	unless  => "grep -qx add-vnc-config /etc/contrail/contrail_compute_exec.out",
 	provider => shell,
@@ -675,10 +685,10 @@ class contrail::compute (
     */
     ->
     service { "nova-compute" :
-	enable => true,
+	enable => $nova_compute_status,
 	require => [ Package['contrail-openstack-vrouter']
 		 ],
-	ensure => running,
+	ensure => $nova_compute_status,
     }
 
     # Now reboot the system
