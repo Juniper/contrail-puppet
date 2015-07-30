@@ -54,9 +54,13 @@
 #     within puppet manifest is not used and we rely on sequencing to help with that.
 #     (optional) - Defaults to false.
 #
+# [*zookeeper_ip_list*]
+#     list of control interface IPs of all nodes running zookeeper service.
+#
 class contrail::ha_config (
     $host_control_ip = $::contrail::params::host_ip,
     $openstack_ip_list = $::contrail::params::openstack_ip_list,
+    $zookeeper_ip_list = $::contrail::params::database_ip_list,
     $compute_name_list = $::contrail::params::compute_name_list,
     $config_name_list = $::contrail::params::config_name_list,
     $compute_name_list = $::contrail::params::compute_name_list,
@@ -115,11 +119,16 @@ class contrail::ha_config (
 	   $contrail_nfs_glance_path = "/var/lib/glance/images"
         }
 
-      
+        $cmon_db_user = "cmon"
+        $cmon_db_pass = "cmon"
+        $keystone_db_user = "keystone"
+        $keystone_db_pass = "keystone"
+        # Hard-coded to true because this code runs only when internal vip is defined
+        $monitor_galera="True"
 
         $openstack_mgmt_ip_list_shell = inline_template('<%= @openstack_mgmt_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
         $openstack_ip_list_shell = inline_template('<%= @openstack_ip_list.map{ |name2| "#{name2}" }.join(" ") %>')
-
+        $zk_ip_list_for_shell = inline_template('<%= @zookeeper_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
         $config_name_list_shell = inline_template('<%= @config_name_list.map{ |name2| "#{name2}" }.join(",") %>')
         $compute_name_list_shell = inline_template('<%= @compute_name_list.map{ |name2| "#{name2}" }.join(",") %>')
 
@@ -135,9 +144,37 @@ class contrail::ha_config (
         } else {
             $external_vip_cmd = ""
         }
+        if ($zk_ip_list_for_shell != ""){
+            $zk_ip_list_cmd = "--zoo_ip_list ${zk_ip_list_for_shell}"
+        } else {
+            $zk_ip_list_cmd = ""
+        }
+        if ($keystone_db_user!= ""){
+            $keystone_db_user_cmd = "--keystone_user ${keystone_db_user}"
+        } else {
+            $keystone_db_user_cmd= ""
+        if ($keystone_db_pass!= ""){
+            $keystone_db_pass_cmd = "--keystone_pass ${keystone_db_pass}"
+        } else {
+            $keystone_db_pass_cmd = ""
+        }
+        if ($cmon_db_user != ""){
+            $cmon_db_user_cmd = "--cmon_user ${cmon_db_user}"
+        } else {
+            $cmon_db_user_cmd = ""
+        }
+        if ($cmon_db_pass != ""){
+            $cmon_db_pass_cmd = "--cmon_pass ${cmon_db_pass}"
+        } else {
+            $cmon_db_pass_cmd = ""
+        }
+        if ($monitor_galera != ""){
+            $monitor_galera_cmd = "--monitor_galera ${monitor_galera}"
+        } else {
+            $monitor_galera_cmd = ""
+        }
 
-        $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=$mysql_root_password ADMIN_TOKEN=$keystone_admin_token setup-vnc-galera --self_ip $host_control_ip --keystone_ip $keystone_ip_to_use --galera_ip_list $openstack_ip_list_shell --internal_vip $internal_vip ${external_vip_cmd} --openstack_index $openstack_index && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
-
+        $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=$mysql_root_password ADMIN_TOKEN=$keystone_admin_token setup-vnc-galera --self_ip $host_control_ip --keystone_ip $keystone_ip_to_use --galera_ip_list $openstack_ip_list_shell --internal_vip $internal_vip ${external_vip_cmd} ${zk_ip_list_cmd} ${keystone_db_user_cmd} ${keystone_db_pass_cmd} ${cmon_db_user_cmd} ${cmon_db_pass_cmd} ${monitor_galera_cmd} --openstack_index $openstack_index && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_check_wsrep = "python check-wsrep-status.py $openstack_mgmt_ip_list_shell  && echo check-wsrep >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py $os_master $host_control_ip $internal_vip $openstack_mgmt_ip_list_shell && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"
 
