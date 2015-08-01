@@ -2,7 +2,9 @@
 # The puppet module to set up openstack::heat for contrail
 #
 #
-class contrail::profile::openstack::heat () {
+class contrail::profile::openstack::heat (
+  $heat_auth_encryption_key = $::openstack::config::heat_encryption_key
+) {
     openstack::resources::controller { 'heat': }
     openstack::resources::database { 'heat': }
     openstack::resources::firewall { 'Heat API': port     => '8004', }
@@ -65,7 +67,7 @@ class contrail::profile::openstack::heat () {
     }
 
     class { '::heat::engine':
-      auth_encryption_key => $::openstack::config::heat_encryption_key,
+      auth_encryption_key => $heat_auth_encryption_key
     }
 
     $contrail_api_server = $::contrail::params::config_ip_to_use
