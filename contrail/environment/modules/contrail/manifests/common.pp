@@ -153,24 +153,16 @@ class contrail::common(
         }
     }
 
-    # Core pattern
-    exec { 'core_pattern_1':
-        command   => 'echo \'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t\' >> /etc/sysctl.conf',
-        unless    => "grep -q 'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t' /etc/sysctl.conf",
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    sysctl::value { 'kernel.core_pattern':
+      value => '/var/crashes/core.%e.%p.%h.%t'
+    }
+    sysctl::value { 'net.ipv4.ip_forward':
+      value => '1'
+    }
+    sysctl::value { 'net.ipv4.ip_local_reserved_ports':
+      value => "35357,35358,33306,${::ipv4_reserved_ports}"
     }
 
-    # Enable ip forwarding in sysctl.conf for vgw
-    exec { 'enable-ipf-for-vgw':
-        command   => "sed -i \"s/net.ipv4.ip_forward.*/net.ipv4.ip_forward = 1/g\" /etc/sysctl.conf",
-        unless    => ['[ ! -f /etc/sysctl.conf ]',
-                            "grep -qx \"net.ipv4.ip_forward = 1\" /etc/sysctl.conf"],
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
-
-    #exec { 'sysctl -e -p' : provider => shell, logoutput => $contrail_logoutput }
     file { '/var/crashes':
         ensure => 'directory',
     }
@@ -195,25 +187,6 @@ class contrail::common(
         command   => 'python /etc/contrail/contrail_setup_utils/enable_kernel_core.py; echo enable-kernel-core >> /etc/contrail/contrail_common_exec.out',
         require   => File['/etc/contrail/contrail_setup_utils/enable_kernel_core.py' ],
         unless    => 'grep -qx enable-kernel-core /etc/contrail/contrail_common_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
-    file { '/tmp/facts.yaml':
-        content => inline_template('<%= scope.to_hash.reject { |k,v| !( k.is_a?(String) && v.is_a?(String) ) }.to_yaml %>'),
-    }
-
-    file { '/etc/contrail/contrail_setup_utils/add_reserved_ports.py' :
-        ensure  => present,
-        mode    => '0755',
-        group   => root,
-        require => File['/etc/contrail/contrail_setup_utils'],
-        source  => "puppet:///modules/${module_name}/add_reserved_ports.py"
-    }
-    ->
-    exec { 'add_reserved_ports' :
-        command   => 'python add_reserved_ports.py 35357,35358,33306 && echo add_reserved_ports >> /etc/contrail/contrail_common_exec.out',
-        cwd       => '/etc/contrail/contrail_setup_utils/',
-        unless    => 'grep -qx add_reserved_ports /etc/contrail/contrail_common_exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput
     }
