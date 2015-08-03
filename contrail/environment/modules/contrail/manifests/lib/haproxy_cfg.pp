@@ -1,5 +1,5 @@
 #source ha proxy files
-define contrail::lib::haproxy-cfg(
+define contrail::lib::haproxy_cfg(
     $server_id,
     $contrail_logoutput = false,
 ) {

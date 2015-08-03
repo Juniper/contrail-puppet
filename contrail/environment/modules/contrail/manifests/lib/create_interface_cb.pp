@@ -1,6 +1,6 @@
 ## TODO: Change function name to avoid '-; hyphen name function name
 
-define contrail::lib::create-interface-cb(
+define contrail::lib::create_interface_cb(
   $contrail_package_id,
   $contrail_logoutput = false,
 ) {

@@ -1,5 +1,5 @@
 #TODO: Document the class
-define contrail::lib::contrail-install-repo(
+define contrail::lib::contrail_install_repo(
   $contrail_logoutput = false,
 ) {
   $contrail_repo_type = $name
