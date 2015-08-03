@@ -232,6 +232,15 @@ class contrail::ha_config (
             }
         }
 
+        $ha_config_sysctl_settings = {
+          'net.netfilter.nf_conntrack_max' => { value => 256000 },
+          'net.netfilter.nf_conntrack_tcp_timeout_time_wait' => { value => 30 },
+          'net.ipv4.tcp_syncookies' => { value => 1 },
+          'net.ipv4.tcp_tw_recycle' => { value => 1 },
+          'net.ipv4.tcp_tw_reuse' => { value => 1 },
+          'net.ipv4.tcp_fin_timeout' => { value => 30 },
+          'net.unix.max_dgram_qlen' => { value => 1000 },
+        }
         # setup_cmon
         Contrail::Lib::Report_status['post_exec_vnc_galera_started']
         -> File['/opt/contrail/bin/setup-cmon-schema.py']
@@ -260,22 +269,27 @@ class contrail::ha_config (
         }
         ->
         # fix- mem-cache conf
-        file { '/opt/contrail/bin/fix-mem-cache.py' :
-            ensure => present,
-            mode   => '0755',
-            group  => root,
-            source => "puppet:///modules/${module_name}/fix-mem-cache.py"
+        #file { '/opt/contrail/bin/fix-mem-cache.py' :
+            #ensure => present,
+            #mode   => '0755',
+            #group  => root,
+            #source => "puppet:///modules/${module_name}/fix-mem-cache.py"
+        #}
+        #->
+        #exec { 'fix-mem-cache' :
+            #command   => "python fix-mem-cache.py ${host_control_ip} && echo fix-mem-cache >> /etc/contrail/contrail_openstack_exec.out",
+            #cwd       => '/opt/contrail/bin/',
+            #unless    => 'grep -qx fix-mem-cache /etc/contrail/contrail_openstack_exec.out',
+            #provider  => shell,
+            #require   => [ File['/opt/contrail/bin/fix-mem-cache.py'] ],
+            #logoutput => $contrail_logoutput,
+        #}
+        class { 'memcached':
+            max_memory => 2048,
+            listen_ip => $host_control_ip
         }
-        ->
-        exec { 'fix-mem-cache' :
-            command   => "python fix-mem-cache.py ${host_control_ip} && echo fix-mem-cache >> /etc/contrail/contrail_openstack_exec.out",
-            cwd       => '/opt/contrail/bin/',
-            unless    => 'grep -qx fix-mem-cache /etc/contrail/contrail_openstack_exec.out',
-            provider  => shell,
-            require   => [ File['/opt/contrail/bin/fix-mem-cache.py'] ],
-            logoutput => $contrail_logoutput,
-        }
-        ->
+
+        create_resources(sysctl::value,$ha_config_sysctl_settings, {} )
         #TODO tune tcp
         #fix cmon and add ssh keys
         file { '/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py' :
