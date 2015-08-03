@@ -1,5 +1,5 @@
 #TODO: Document the class
-define contrail::lib::check-os-master(
+define contrail::lib::check_os_master(
   $openstack_master,
   $host_control_ip,
   $contrail_logoutput = false,

@@ -1,5 +1,5 @@
 #source ha proxy files
-define contrail::lib::contrail-exec-script(
+define contrail::lib::contrail_exec_script(
     $script_name,
     $args,
     $contrail_logoutput = false,

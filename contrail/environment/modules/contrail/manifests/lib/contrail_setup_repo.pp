@@ -1,4 +1,5 @@
-define contrail::lib::contrail-setup-repo(
+## TODO: Add documentation
+define contrail::lib::contrail_setup_repo(
     $contrail_repo_ip,
     $contrail_logoutput = false,
 ) {

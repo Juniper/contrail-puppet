@@ -51,7 +51,7 @@ class contrail::common(
                             contrail_logoutput => $contrail_logoutput
                         }
                     )
-    contrail::lib::contrail-upgrade{ 'contrail_upgrade':
+    contrail::lib::contrail_upgrade{ 'contrail_upgrade':
         contrail_upgrade   => $contrail_upgrade,
         contrail_logoutput => $contrail_logoutput
     }
@@ -60,16 +60,16 @@ class contrail::common(
     # Resource declarations for class contrail::common
     # macro to perform common functions
     # Create repository config on target.
-    contrail::lib::contrail-setup-repo{ $contrail_repo_name:
+    contrail::lib::contrail_setup_repo{ $contrail_repo_name:
         contrail_repo_ip   => $contrail_repo_ip,
         contrail_logoutput => $contrail_logoutput
     }
     ->
-    contrail::lib::contrail-install-repo{ $contrail_repo_type:
+    contrail::lib::contrail_install_repo{ $contrail_repo_type:
         contrail_logoutput => $contrail_logoutput
     }
     ->
-    contrail::lib::upgrade-kernel{ 'kernel_upgrade':
+    contrail::lib::upgrade_kernel{ 'kernel_upgrade':
         contrail_kernel_upgrade => $::contrail::params::kernel_upgrade,
         contrail_kernel_version => $::contrail::params::kernel_version,
         contrail_logoutput      => $contrail_logoutput

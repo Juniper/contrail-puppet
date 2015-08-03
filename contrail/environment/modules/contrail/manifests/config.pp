@@ -300,6 +300,9 @@ $ifmap_server_port = '8443'
         $master = 'no'
     }
 
+    File {
+      ensure => 'present'
+    }
 
     $cfgm_ip_list_shell = inline_template('<%= @config_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
     $cfgm_name_list_shell = inline_template('<%= @config_name_list.map{ |ip| "#{ip}" }.join(",") %>')
@@ -311,13 +314,11 @@ $ifmap_server_port = '8443'
             file {'/etc/init/neutron-server.override': ensure => absent, require => Package['contrail-openstack-config']}
 
             file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
-                ensure  => present,
                 require => Package['contrail-openstack-config'],
                 content => template("${module_name}/contrail-api.ini.erb"),
             }
 
             file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
-                ensure  => present,
                 require => Package['contrail-openstack-config'],
                 content => template("${module_name}/contrail-discovery.ini.erb"),
             }
@@ -333,26 +334,22 @@ $ifmap_server_port = '8443'
         Centos: {
             # notify { "OS is Ubuntu":; }
             file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
-                ensure  => present,
                 require => Package['contrail-openstack-config'],
                 content => template("${module_name}/contrail-api-centos.ini.erb"),
             }
 
             file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
-                ensure  => present,
                 require => Package['contrail-openstack-config'],
                 content => template("${module_name}/contrail-discovery-centos.ini.erb"),
             }
         }
         Fedora: {
             file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
-                ensure  => present,
                 require => Package['contrail-openstack-config'],
                 content => template("${module_name}/contrail-api-centos.ini.erb"),
             }
 
             file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
-                ensure  => present,
                 require => Package['contrail-openstack-config'],
                 content => template("${module_name}/contrail-discovery-centos.ini.erb"),
             }
@@ -385,7 +382,6 @@ $ifmap_server_port = '8443'
         }
 
         file { '/etc/contrail/ctrl-details' :
-            ensure  => present,
             content => template("${module_name}/ctrl-details.erb"),
         }
     }
@@ -393,7 +389,6 @@ $ifmap_server_port = '8443'
     # Ensure service.token file is present with right content.
     if ! defined(File['/etc/contrail/service.token']) {
         file { '/etc/contrail/service.token' :
-            ensure  => present,
             content => template("${module_name}/service.token.erb"),
         }
     }
@@ -407,7 +402,6 @@ $ifmap_server_port = '8443'
     ->
     #form the sudoers
     file { '/etc/sudoers.d/contrail_sudoers' :
-        ensure => present,
         mode   => '0440',
         group  => root,
         source => "puppet:///modules/${module_name}/contrail_sudoers"
@@ -415,90 +409,77 @@ $ifmap_server_port = '8443'
     ->
     # Ensure log4j.properties file is present with right content.
     file { '/etc/ifmap-server/log4j.properties' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/log4j.properties.erb"),
     }
     ->
     # Ensure authorization.properties file is present with right content.
     file { '/etc/ifmap-server/authorization.properties' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/authorization.properties.erb"),
     }
     ->
     # Ensure basicauthusers.proprties file is present with right content.
     file { '/etc/ifmap-server/basicauthusers.properties' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/basicauthusers.properties.erb"),
     }
     ->
     # Ensure publisher.properties file is present with right content.
     file { '/etc/ifmap-server/publisher.properties' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/publisher.properties.erb"),
     }
     ->
     # Ensure all config files with correct content are present.
     file { '/etc/contrail/contrail-api.conf' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/contrail-api.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-config-nodemgr.conf' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/contrail-config-nodemgr.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-keystone-auth.conf' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/contrail-keystone-auth.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-schema.conf' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/contrail-schema.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-svc-monitor.conf' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/contrail-svc-monitor.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-device-manager.conf' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/contrail-device-manager.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-discovery.conf' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/contrail-discovery.conf.erb"),
     }
     ->
     file { '/etc/contrail/vnc_api_lib.ini' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/vnc_api_lib.ini.erb"),
     }
     ->
     file { '/etc/contrail/contrail_plugin.ini' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         notify  => Service['supervisor-config'],
         content => template("${module_name}/contrail_plugin.ini.erb"),
@@ -506,7 +487,6 @@ $ifmap_server_port = '8443'
     ->
     # initd script wrapper for contrail-api
     file { '/etc/init.d/contrail-api' :
-        ensure  => present,
         mode    => '0777',
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/contrail-api.svc.erb"),
@@ -546,7 +526,6 @@ $ifmap_server_port = '8443'
     ->
     # initd script wrapper for contrail-discovery
     file { '/etc/init.d/contrail-discovery' :
-        ensure  => present,
         mode    => '0777',
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/contrail-discovery.svc.erb"),
@@ -554,27 +533,23 @@ $ifmap_server_port = '8443'
     ->
     # Handle rabbitmq.config changes
     file {'/var/lib/rabbitmq/.erlang.cookie':
-        ensure  => present,
         mode    => '0400',
         owner   => rabbitmq,
         group   => rabbitmq,
         content => $uuid
     }->
     file { '/etc/rabbitmq/rabbitmq.config' :
-        ensure  => present,
         require => Package['contrail-openstack-config'],
         content => template("${module_name}/${rabbitmq_conf_template}"),
     }
     ->
     file { '/etc/rabbitmq/rabbitmq-env.conf' :
-        ensure  => present,
         mode    => '0755',
         group   => root,
         content => '$rabbit_env',
     }
     ->
     file { '/etc/contrail/add_etc_host.py' :
-        ensure => present,
         mode   => '0755',
         group  => root,
         source => "puppet:///modules/${module_name}/add_etc_host.py"
@@ -589,7 +564,6 @@ $ifmap_server_port = '8443'
     }
     ->
     file { '/etc/contrail/form_rmq_cluster.sh' :
-        ensure => present,
         mode   => '0755',
         group  => root,
         source => "puppet:///modules/${module_name}/form_rmq_cluster.sh"
@@ -605,7 +579,6 @@ $ifmap_server_port = '8443'
     # run setup-pki.sh script
     if $use_certs == true {
         file { '/etc/contrail_setup_utils/setup-pki.sh' :
-            ensure => present,
             mode   => '0755',
             user   => root,
             group  => root,
@@ -621,7 +594,6 @@ $ifmap_server_port = '8443'
     }
     # Execute config-server-setup scripts
     file { '/opt/contrail/bin/config-server-setup.sh':
-        ensure  => present,
         mode    => '0755',
         owner   => root,
         group   => root,
@@ -636,7 +608,6 @@ $ifmap_server_port = '8443'
     }
     ->
     file { '/opt/contrail/bin/quantum-server-setup.sh':
-        ensure  => present,
         mode    => '0755',
         owner   => root,
         group   => root,
@@ -678,7 +649,6 @@ $ifmap_server_port = '8443'
 
         #set tcp params to handle tcp connections when VIP moves
         file { '/opt/contrail/bin/set_rabbit_tcp_params.py' :
-            ensure => present,
             mode   => '0755',
             group  => root,
             source => "puppet:///modules/${module_name}/set_rabbit_tcp_params.py"

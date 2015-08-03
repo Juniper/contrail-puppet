@@ -1,7 +1,7 @@
 ## TODO: Change function name to avoid '-' hyphen in function name
 ## TODO: take care of sed comamnds in update_interface_file1
 #
-define contrail::lib::contrail-upgrade(
+define contrail::lib::contrail_upgrade(
     $contrail_upgrade = false,
     $contrail_logoutput = false,
     ) {

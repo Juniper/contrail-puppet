@@ -1,6 +1,6 @@
 # TODO: Document the function
 
-define contrail::lib::upgrade-kernel(
+define contrail::lib::upgrade_kernel(
     $contrail_kernel_upgrade,
     $contrail_kernel_version,
     $contrail_logoutput = false,

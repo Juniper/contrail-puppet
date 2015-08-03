@@ -434,7 +434,7 @@ class contrail::compute (
 
     # Install interface rename package for centos.
     if (inline_template('<%= @operatingsystem.downcase %>') == 'centos') {
-        contrail::lib::contrail-rename-interface { 'centos-rename-interface' :
+        contrail::lib::contrail_rename_interface { 'centos-rename-interface' :
             require => Package['contrail-openstack-vrouter']
         }
     }
@@ -451,13 +451,16 @@ class contrail::compute (
     }
 
     # Set Neutron Admin auth URL (should be done only for ubuntu)
-    exec { 'exec-compute-neutron-admin' :
-        command   => "echo \"neutron_admin_auth_url = http://${keystone_ip_to_use}:5000/v2.0\" >> /etc/nova/nova.conf && echo exec-compute-neutron-admin >> /etc/contrail/contrail_compute_exec.out",
-        unless    => ['grep -qx exec-compute-neutron-admin /etc/contrail/contrail_compute_exec.out',
-                    "grep -qx \"neutron_admin_auth_url = http://${keystone_ip_to_use}:5000/v2.0\" /etc/nova/nova.conf"],
-        require   => [ Package['contrail-openstack-vrouter'] ],
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    #exec { 'exec-compute-neutron-admin' :
+        #command   => "echo \"neutron_admin_auth_url = http://${keystone_ip_to_use}:5000/v2.0\" >> /etc/nova/nova.conf && echo exec-compute-neutron-admin >> /etc/contrail/contrail_compute_exec.out",
+        #unless    => ['grep -qx exec-compute-neutron-admin /etc/contrail/contrail_compute_exec.out',
+                    #"grep -qx \"neutron_admin_auth_url = http://${keystone_ip_to_use}:5000/v2.0\" /etc/nova/nova.conf"],
+        ##require   => [ Package['contrail-openstack-vrouter'] ],
+        #provider  => shell,
+        #logoutput => $contrail_logoutput
+    #}
+    nova_config { 'DEFAULT/neutron_admin_auth_url':
+        value => "http://${keystone_ip_to_use}:5000/v2.0"
     }
     ->
     # set rpc backend in nova.conf
@@ -655,25 +658,37 @@ class contrail::compute (
         logoutput => $contrail_logoutput
     }
     ->
-    exec { 'fix-neutron-tenant-name' :
-        command   => 'openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out',
-        unless    => 'grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    #exec { 'fix-neutron-tenant-name' :
+        #command   => 'openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out',
+        #unless    => 'grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out',
+        #provider  => shell,
+        #logoutput => $contrail_logoutput
+    #}
+    #->
+    #exec { 'fix-neutron-admin-password' :
+        #command   => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password ${keystone_admin_password} && echo fix-neutron-admin-password >> /etc/contrail/contrail_compute_exec.out",
+        #unless    => 'grep -qx fix-neutron-admin-password /etc/contrail/contrail_compute_exec.out',
+        #provider  => shell,
+        #logoutput => $contrail_logoutput
+    #}
+    #->
+    #exec { 'fix-keystone-admin-password' :
+        #command   => "openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password ${keystone_admin_password} && echo fix-keystone-admin-password >> /etc/contrail/contrail_compute_exec.out",
+        #unless    => 'grep -qx fix-keystone-admin-password /etc/contrail/contrail_compute_exec.out',
+        #provider  => shell,
+        #logoutput => $contrail_logoutput
+#
+    #}
+    nova_config { 'DEFAULT/neutron_admin_tenant_name':
+        value => 'services'
     }
     ->
-    exec { 'fix-neutron-admin-password' :
-        command   => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password ${keystone_admin_password} && echo fix-neutron-admin-password >> /etc/contrail/contrail_compute_exec.out",
-        unless    => 'grep -qx fix-neutron-admin-password /etc/contrail/contrail_compute_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    nova_config { 'DEFAULT/neutron_admin_password':
+        value => "${keystone_admin_password}"
     }
     ->
-    exec { 'fix-keystone-admin-password' :
-        command   => "openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password ${keystone_admin_password} && echo fix-keystone-admin-password >> /etc/contrail/contrail_compute_exec.out",
-        unless    => 'grep -qx fix-keystone-admin-password /etc/contrail/contrail_compute_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    nova_config { 'keystone_authtoken/admin_password':
+        value => "${keystone_admin_password}"
     }
     ->
     contrail::lib::report_status { 'compute_completed':

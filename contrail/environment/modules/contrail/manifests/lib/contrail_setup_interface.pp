@@ -1,5 +1,5 @@
 #TODO: Document the class
-define contrail::lib::contrail-setup-interface(
+define contrail::lib::contrail_setup_interface(
   $contrail_device,
   $contrail_members,
   $contrail_bond_opts,

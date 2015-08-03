@@ -6,7 +6,7 @@
 # it reboots the box. Once rename and reboot # is done, subsequent executions
 # of this resource do not do anything.
 #
-define contrail::lib::contrail-rename-interface {
+define contrail::lib::contrail_rename_interface {
 
   if (inline_template('<%= operatingsystem.downcase %>') == 'centos') {
   # Ensure contrail-interface-name package is installed, which renames the
