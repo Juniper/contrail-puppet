@@ -81,18 +81,13 @@ class contrail::ha_config (
     $enable_sequence_provisioning = $::contrail::params::enable_sequence_provisioning,
 ) inherits ::contrail::params {
     # Main code for class
+    $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
+
     if($internal_vip != '' and $host_control_ip in $openstack_ip_list) {
         if ($::operatingsystem == 'Ubuntu') {
             $wsrep_conf='/etc/mysql/conf.d/wsrep.cnf'
         } else {
             $wsrep_conf='/etc/mysql/my.cnf'
-        }
-
-        if ($keystone_ip != '') {
-            $keystone_ip_to_use = $keystone_ip
-        }
-        else {
-            $keystone_ip_to_use = $internal_vip
         }
 
         $tmp_index = inline_template('<%= @openstack_ip_list.index(@host_control_ip) %>')

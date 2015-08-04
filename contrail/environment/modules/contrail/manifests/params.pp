@@ -670,54 +670,53 @@ class contrail::params (
 
     if ($openstack_mgmt_ip_list == undef) {
         $openstack_mgmt_ip_list_to_use = $openstack_ip_list
-    }
-    else {
+    } else {
         $openstack_mgmt_ip_list_to_use = $openstack_mgmt_ip_list
     }
 
-    #config_ip_to_use
-    if $contrail_internal_vip != '' {
-        $config_ip_to_use = $contrail_internal_vip
-    } elsif $internal_vip != '' {
-        $config_ip_to_use = $internal_vip
-    }else {
-        $config_ip_to_use = $config_ip_list[0]
+    # Set keystone IP to be used.
+    if ($keystone_ip != '') {
+        $keystone_ip_to_use = $keystone_ip
+    } elsif ($internal_vip != '') {
+        $keystone_ip_to_use = $internal_vip
+    } else {
+        $keystone_ip_to_use = $openstack_ip_list[0]
     }
 
     #vip_to_use
     if $contrail_internal_vip != '' {
         $vip_to_use = $contrail_internal_vip
+        $config_ip_to_use = $contrail_internal_vip
+        $collector_ip_to_use = $contrail_internal_vip
+        $contrail_rabbit_port = '5673'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
-    }else {
-        $vip_to_use = ''
-    }
-
-    #collectto_ip_to_use
-    if $contrail_internal_vip != '' {
-        $collector_ip_to_use = $contrail_internal_vip
-    } elsif $internal_vip != '' {
+        $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-    }else {
+        $contrail_rabbit_port = '5673'
+    } else {
+        $vip_to_use = ''
+        $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
-    }
-
-    #rabbitmq_port_to_use
-    if $contrail_internal_vip != '' {
-        $contrail_rabbit_port = '5673'
-    } elsif $internal_vip != '' {
-        $contrail_rabbit_port = '5673'
-    }else {
         $contrail_rabbit_port = '5672'
     }
 
-    #rabbitmq_host_to_use
-    if $contrail_internal_vip != '' {
-        $contrail_rabbit_host = $contrail_internal_vip
-    } elsif $internal_vip != '' {
-        $contrail_rabbit_host = $internal_vip
-    }else {
-        $contrail_rabbit_host = $config_ip_list[0]
+    # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
+    if ($internal_vip != '') {
+        $openstack_ip_to_use = $internal_vip
+    } else {
+        $openstack_ip_to_use = $openstack_ip_list[0]
     }
 
+    #rabbit host has same logic as config_ip
+    $contrail_rabbit_host = $config_ip_to_use
+
+    # Set amqp_server_ip
+    if ($::contrail::params::amqp_sever_ip != '') {
+        $amqp_server_ip_to_use = $amqp_sever_ip
+    } elsif ($openstack_manage_amqp) {
+        $amqp_server_ip_to_use = $openstack_ip_to_use
+    } else {
+        $amqp_server_ip_to_use = $config_ip_to_use
+    }
 }

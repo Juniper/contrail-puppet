@@ -76,36 +76,11 @@ class contrail::webui (
     # Set all variables as needed for config file using the class parameters.
     # if contrail_internal_vip is "", but internal_vip is not "", set contrail_internal_vip
     # to internal_vip.
-    if ($contrail_internal_vip == '') {
-        $contrail_internal_vip_to_use = $internal_vip
-    } else {
-        $contrail_internal_vip_to_use = $contrail_internal_vip
-    }
-    # Set config_ip to be used to internal_vip, if internal_vip is not "".
-    if ($contrail_internal_vip_to_use != '') {
-        $config_ip_to_use = $contrail_internal_vip_to_use
-        $collector_ip_to_use = $contrail_internal_vip_to_use
-    } else {
-        $config_ip_to_use = $config_ip
-        $collector_ip_to_use = $collector_ip
-    }
-    # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
-    if ($internal_vip != '') {
-        $openstack_ip_to_use = $internal_vip
-    }
-    else {
-        $openstack_ip_to_use = $openstack_ip
-    }
-    # Set keystone_ip to be used.
-    if ($keystone_ip != '') {
-        $keystone_ip_to_use = $keystone_ip
-    }
-    elsif ($internal_vip != '') {
-        $keystone_ip_to_use = $internal_vip
-    }
-    else {
-        $keystone_ip_to_use = $openstack_ip
-    }
+    $config_ip_to_use = $::contrail::params::config_ip_to_use
+    $collector_ip_to_use = $::contrail::params::collector_ip_to_use
+    $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
+    $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use
+
 
     # Print all the variables
     notify { "webui - config_ip = ${config_ip}":;}
@@ -136,10 +111,10 @@ class contrail::webui (
         package { 'contrail-web-storage' :
             ensure => latest,
         }
+        ->
         file { 'storage.config.global.js':
             ensure  => present,
             path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
-            require => Package['contrail-web-storage'],
             content => template("${module_name}/storage.config.global.js.erb"),
         }
         -> Service['supervisor-webui']
@@ -147,6 +122,7 @@ class contrail::webui (
         package { 'contrail-web-storage' :
             ensure => absent,
         }
+        ->
         file { 'storage.config.global.js':
             ensure  => absent,
             path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
