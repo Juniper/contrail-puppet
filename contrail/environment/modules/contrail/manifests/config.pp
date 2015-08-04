@@ -237,14 +237,8 @@ $ifmap_server_port = '8443'
 
     $analytics_api_port = '8081'
     $contrail_plugin_file = '/etc/neutron/plugins/opencontrail/ContrailPlugin.ini'
-    # Set keystone IP to be used.
-    if ($keystone_ip != '') {
-        $keystone_ip_to_use = $keystone_ip
-    } elsif ($internal_vip != '') {
-        $keystone_ip_to_use = $internal_vip
-    } else {
-        $keystone_ip_to_use = $openstack_ip
-    }
+    $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
+    $amqp_server_ip_to_use = $::contrail::params::amqp_server_ip_to_use
 
     if $multi_tenancy == true {
         $memcached_opt = 'memcache_servers=127.0.0.1:11211'
@@ -263,27 +257,6 @@ $ifmap_server_port = '8443'
     # Supervisor contrail-discovery.ini
     $disc_port_base = '911'
     $disc_nworkers = $api_nworkers
-
-    # Set amqp_server_ip
-    if ($::contrail::params::amqp_sever_ip != '') {
-        $amqp_server_ip_to_use = $::contrail::params::amqp_sever_ip
-    } elsif ($openstack_manage_amqp) {
-        if ($internal_vip != '') {
-            $amqp_server_ip_to_use = $internal_vip
-        } else {
-            $amqp_server_ip_to_use = $openstack_ip
-        }
-    } else {
-        if ($contrail_internal_vip != '') {
-            $amqp_server_ip_to_use = $contrail_internal_vip
-        }
-        elsif ($internal_vip != '') {
-            $amqp_server_ip_to_use = $internal_vip
-        }
-        else {
-            $amqp_server_ip_to_use = $config_ip
-        }
-    }
 
     # Set number of config nodes
     $cfgm_number = size($config_ip_list)

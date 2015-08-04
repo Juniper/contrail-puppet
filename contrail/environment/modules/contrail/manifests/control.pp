@@ -46,14 +46,7 @@ class contrail::control (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
-    # If internal VIP is configured, use that address as config_ip.
-    if ($contrail_internal_vip != '') {
-        $config_ip_to_use = $contrail_internal_vip
-    } elsif ($internal_vip != '') {
-        $config_ip_to_use = $internal_vip
-    } else {
-        $config_ip_to_use = $config_ip
-    }
+    $config_ip_to_use = $::contrail::params::config_ip_to_use
 
     # Main class code begins here
     case $::operatingsystem {

@@ -207,51 +207,10 @@ class contrail::compute (
 
     $contrail_num_controls = inline_template('<%= @control_ip_list.length %>')
 
-    # Set keystone IP to be used.
-    if ($keystone_ip != '') {
-        $keystone_ip_to_use = $keystone_ip
-    }
-    elsif ($internal_vip != '') {
-        $keystone_ip_to_use = $internal_vip
-    }
-    else {
-        $keystone_ip_to_use = $openstack_ip
-    }
+    $config_ip_to_use = $::contrail::params::config_ip_to_use
+    $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
+    $amqp_server_ip_to_use = $::contrail::params::amqp_server_ip_to_use
 
-    # Set config IP to be used.
-    if ($contrail_internal_vip != '') {
-        $config_ip_to_use = $contrail_internal_vip
-    }
-    elsif ($internal_vip != '') {
-        $config_ip_to_use = $internal_vip
-    }
-    else {
-        $config_ip_to_use = $config_ip
-    }
-
-    # Set amqp_server_ip
-    if ($::contrail::params::amqp_sever_ip != '') {
-        $amqp_server_ip_to_use = $::contrail::params::amqp_sever_ip
-    }
-    elsif ($openstack_manage_amqp) {
-        if ($internal_vip != '') {
-            $amqp_server_ip_to_use = $internal_vip
-        }
-        else {
-            $amqp_server_ip_to_use = $openstack_ip
-        }
-    }
-    else {
-        if ($contrail_internal_vip != '') {
-            $amqp_server_ip_to_use = $contrail_internal_vip
-        }
-        elsif ($internal_vip != '') {
-            $amqp_server_ip_to_use = $internal_vip
-        }
-        else {
-            $amqp_server_ip_to_use = $config_ip
-        }
-    }
 
     # set number of control nodes.
     $number_control_nodes = size($control_ip_list)

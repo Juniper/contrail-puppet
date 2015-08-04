@@ -11,16 +11,8 @@ class contrail::toragent(
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $haproxy = $::contrail::params::haproxy,
 ) {
-    # Set config IP to be used.
-    if ($contrail_internal_vip != '') {
-        $config_ip_to_use = $contrail_internal_vip
-    }
-    elsif ($internal_vip != '') {
-        $config_ip_to_use = $internal_vip
-    }
-    else {
-        $config_ip_to_use = $config_ip
-    }
+    $config_ip_to_use = $::contrail::params::config_ip_to_use
+
     if ($haproxy == true) {
         $discovery_ip = '127.0.0.1'
     } else {

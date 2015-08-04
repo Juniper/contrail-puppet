@@ -23,6 +23,7 @@ class contrail::storage (
     $contrail_logoutput = $::contrail::params::contrail_logoutput
 ) inherits ::contrail::params {
 
+    #$contrail_openstack_ip_use = $::contrail::params::contrail_openstack_ip_use
     if ($::contrail::params::internal_vip != '') {
         $contrail_openstack_ip_use = $::contrail::params::internal_vip
     } else {

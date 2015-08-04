@@ -150,21 +150,17 @@ class contrail::collector (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) inherits ::contrail::params {
 
-    # If internal VIP is configured, use that address as config_ip.
-    if ($contrail_internal_vip != '') {
-        $config_ip_to_use = $contrail_internal_vip
-    }
-    elsif ($internal_vip != '') {
-        $config_ip_to_use = $internal_vip
-    }
-    else {
-        $config_ip_to_use = $config_ip
+    $config_ip_to_use = $::contrail::params::config_ip_to_use
+
+    File {
+      ensure => 'present',
+      require => Package['contrail-openstack-analytics'],
     }
 
     # Main code for class
     case $::operatingsystem {
         Ubuntu: {
-            file {'/etc/init/supervisor-analytics.override': ensure => absent, require => Package['contrail-openstack-analytics']}
+            file {'/etc/init/supervisor-analytics.override': ensure => absent}
             file { '/etc/init.d/supervisor-analytics':
                 ensure => link,
                 target => '/lib/init/upstart-job',
@@ -184,8 +180,6 @@ class contrail::collector (
 
     if ! defined(File['/etc/contrail/contrail-keystone-auth.conf']) {
         file { '/etc/contrail/contrail-keystone-auth.conf' :
-            ensure  => present,
-            require => Package['contrail-openstack-analytics'],
             notify  => Service['supervisor-analytics'],
             content => template("${module_name}/contrail-keystone-auth.conf.erb"),
         }
@@ -207,25 +201,18 @@ class contrail::collector (
 
     # Ensure all config files with correct content are present.
     file { '/etc/contrail/contrail-analytics-api.conf' :
-        ensure  => present,
-        require => Package['contrail-openstack-analytics'],
         content => template("${module_name}/contrail-analytics-api.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-collector.conf' :
-        ensure  => present,
-        require => Package['contrail-openstack-analytics'],
         content => template("${module_name}/contrail-collector.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-query-engine.conf' :
-        ensure  => present,
-        require => Package['contrail-openstack-analytics'],
         content => template("${module_name}/contrail-query-engine.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-snmp-collector.conf' :
-        ensure  => present,
         require => [Package['contrail-openstack-analytics'],
                     File['/etc/contrail/contrail-keystone-auth.conf']
                     ],
@@ -233,39 +220,29 @@ class contrail::collector (
     }
     ->
     file { '/etc/contrail/supervisord_analytics_files/contrail-snmp-collector.ini' :
-        ensure  => present,
-        require => Package['contrail-openstack-analytics'],
         content => template("${module_name}/contrail-snmp-collector.ini.erb"),
     }
     ->
     exec { 'setsnmpmib':
         command   => 'mkdir -p /etc/snmp && echo \'mibs +ALL\' > /etc/snmp/snmp.conf',
-        require   => Package['contrail-openstack-analytics'],
         provider  => shell,
         logoutput => $contrail_logoutput
     }
     ->
     file { '/etc/contrail/contrail-analytics-nodemgr.conf' :
-        ensure  => present,
-        require => Package['contrail-openstack-analytics'],
         content => template("${module_name}/contrail-analytics-nodemgr.conf.erb"),
     }
     ->
     file { '/etc/contrail/contrail-topology.conf' :
-        ensure  => present,
-        require => Package['contrail-openstack-analytics'],
         content => template("${module_name}/contrail-topology.conf.erb"),
     }
     ->
     file { '/etc/redis/redis.conf' :
-        ensure  => present,
-        require => Package['contrail-openstack-analytics'],
         content => template("${module_name}/redis.conf.erb"),
     }
     ->
     exec { 'redis-del-db-dir':
-        command   => 'rm -f /var/lib/redis/dump.rb && service redis-server restart && echo redis-del-db-dir etc/contrail/contrail-collector-exec.out',
-        require   => Package['contrail-openstack-analytics'],
+        command   => 'rm -f /var/lib/redis/dump.rb && service redis-server restart && echo redis-del-db-dir /etc/contrail/contrail-collector-exec.out',
         unless    => 'grep -qx redis-del-db-dir /etc/contrail/contrail-collector-exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput
@@ -275,7 +252,6 @@ class contrail::collector (
     service { 'supervisor-analytics' :
         ensure    => running,
         enable    => true,
-        require   => [ Package['contrail-openstack-analytics'] ],
         subscribe => [ File['/etc/contrail/contrail-collector.conf'],
                         File['/etc/contrail/contrail-query-engine.conf'],
                         File['/etc/contrail/contrail-analytics-api.conf'] ],
