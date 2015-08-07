@@ -31,7 +31,8 @@ class contrail::keepalived(
     $contrail_external_vip = $::contrail::params::contrail_external_vip,
     $keepalived_vrid = $::contrail::params::keepalived_vrid,
     $openstack_ip_list = $::contrail::params::openstack_ip_list
-) inherits ::contrail::params {
+)  {
+    include ::contrail::params
     #$vip = undef
     #$ip_list = undef
 

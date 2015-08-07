@@ -203,7 +203,8 @@ class contrail::compute (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_host_roles = $::contrail::params::host_roles,
     $enable_lbass =  $::contrail::params::enable_lbass,
-) inherits ::contrail::params {
+) {
+    include ::contrail::params
 
     $contrail_num_controls = inline_template('<%= @control_ip_list.length %>')
 

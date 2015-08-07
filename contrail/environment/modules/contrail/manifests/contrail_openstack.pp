@@ -74,7 +74,8 @@ class contrail::contrail_openstack (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_control_ip = $::contrail::params::host_ip,
     $enable_ceilometer = $::contrail::params::enable_ceilometer,
-) inherits ::contrail::params {
+)  {
+    include ::contrail::params
     # Main code for class
 
     #slect the novncproxy based on presence of internal_vip

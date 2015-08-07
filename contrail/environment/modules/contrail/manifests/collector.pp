@@ -148,7 +148,8 @@ class contrail::collector (
     $keystone_service_token = $::contrail::params::keystone_service_token,
     $keystone_insecure_flag = $::contrail::params::keystone_insecure_flag,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) inherits ::contrail::params {
+)  {
+    include ::contrail::params
 
     $config_ip_to_use = $::contrail::params::config_ip_to_use
 

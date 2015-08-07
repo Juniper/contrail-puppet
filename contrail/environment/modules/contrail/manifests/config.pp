@@ -225,7 +225,8 @@ class contrail::config (
     $vip = $::contrail::params::vip_to_use,
     $contrail_rabbit_port= $::contrail::params::contrail_rabbit_port,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) inherits ::contrail::params {
+)  {
+    include ::contrail::params
 
     # Main code for class starts here
     if $use_certs == true {
