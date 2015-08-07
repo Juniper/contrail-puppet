@@ -148,7 +148,8 @@ class contrail::collector (
     $keystone_service_token = $::contrail::params::keystone_service_token,
     $keystone_insecure_flag = $::contrail::params::keystone_insecure_flag,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) inherits ::contrail::params {
+)  {
+    include ::contrail::params
 
     # If internal VIP is configured, use that address as config_ip.
     if ($contrail_internal_vip != "") {

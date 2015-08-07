@@ -79,7 +79,8 @@ class contrail::ha_config (
     $enable_pre_exec_vnc_galera = $::contrail::params::enable_pre_exec_vnc_galera,
     $enable_post_exec_vnc_galera = $::contrail::params::enable_post_exec_vnc_galera,
     $enable_sequence_provisioning = $::contrail::params::enable_sequence_provisioning,
-) inherits ::contrail::params {
+)  {
+    include ::contrail::params
     # Main code for class
     if($internal_vip != '' and $host_control_ip in $openstack_ip_list) {
         if ($operatingsystem == "Ubuntu") {

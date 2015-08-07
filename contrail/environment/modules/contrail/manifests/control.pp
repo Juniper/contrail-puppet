@@ -44,7 +44,8 @@ class contrail::control (
     $use_certs = $::contrail::params::use_certs,
     $puppet_server = $::contrail::params::puppet_server,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) inherits ::contrail::params {
+) {
+    include ::contrail::params
 
     # If internal VIP is configured, use that address as config_ip.
     if ($contrail_internal_vip != "") {

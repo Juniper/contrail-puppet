@@ -33,7 +33,8 @@ class contrail::common(
     $contrail_repo_type = $::contrail::params::contrail_repo_type,
     $contrail_upgrade = $::contrail::params::contrail_upgrade,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) inherits ::contrail::params {
+) {
+    include ::contrail::params
 
     notify { "**** $module_name - host_mgmt_ip = $host_mgmt_ip": ; }
     notify { "**** $module_name - contrail_repo_name = $contrail_repo_name": ; }

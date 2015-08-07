@@ -54,7 +54,8 @@ class contrail::webui (
     $internal_vip = $::contrail::params::internal_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) inherits ::contrail::params {
+) {
+    include ::contrail::params
     case $::operatingsystem {
         Ubuntu: {
             file {"/etc/init/supervisor-webui.override": ensure => absent, require => Package['contrail-openstack-webui']}

@@ -73,7 +73,8 @@ class contrail::database (
     $ssd_data_dir = $::contrail::params::ssd_data_dir,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $database_minimum_diskGB = $::contrail::params::database_minimum_diskGB,
-) inherits ::contrail::params {
+) {
+    include ::contrail::params
     # Main Class code
     case $::operatingsystem {
         Ubuntu: {
@@ -196,7 +197,7 @@ class contrail::database (
         source => "puppet:///modules/$module_name/config-zk-files-setup.sh"
     }
     ->
-    notify { "contrail contrail_zk_exec_cmd is $contrail_zk_exec_cmd":; }
+    notify { "contrail contrail_zk_exec_cmd is ${contrail_zk_exec_cmd}":; }
     ->
     exec { "setup-config-zk-files-setup" :
         command => $contrail_zk_exec_cmd,
