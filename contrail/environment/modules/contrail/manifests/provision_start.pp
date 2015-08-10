@@ -11,7 +11,8 @@ class contrail::provision_start(
     $state = undef,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $enable_module = $::contrail::params::enable_provision_started
-) inherits ::contrail::params {
+) {
+    include ::contrail::params
     if ($enable_module) {
         contrail::lib::report_status { $state:
             state              => $state,

@@ -21,7 +21,8 @@ class contrail::storage (
     $contrail_storage_chassis_config = $::contrail::params::storage_chassis_config,
     $contrail_host_ip = $::contrail::params::host_ip,
     $contrail_logoutput = $::contrail::params::contrail_logoutput
-) inherits ::contrail::params {
+)  {
+    include ::contrail::params
 
     #$contrail_openstack_ip_use = $::contrail::params::contrail_openstack_ip_use
     if ($::contrail::params::internal_vip != '') {

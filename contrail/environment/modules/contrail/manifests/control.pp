@@ -44,7 +44,8 @@ class contrail::control (
     $use_certs = $::contrail::params::use_certs,
     $puppet_server = $::contrail::params::puppet_server,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) inherits ::contrail::params {
+) {
+    include ::contrail::params
 
     $config_ip_to_use = $::contrail::params::config_ip_to_use
 
