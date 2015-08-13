@@ -16,7 +16,8 @@ define contrail::lib::top_of_rack(
     $contrail_host_ip,
     $keystone_admin_user,
     $keystone_admin_password,
-    $keystone_admin_tenant) {
+    $keystone_admin_tenant,
+    $host_control_ip) {
 
     notify { "**** $module_name - $name =>  $tunnel_ip_address, $ovs_port, $http_server_port , $ip_address, $id, $vendor_name, $ovs_protocol, $ovs_protocol, $switch_name": ; }
 
