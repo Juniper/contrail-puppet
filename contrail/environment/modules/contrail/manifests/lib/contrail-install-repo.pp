@@ -13,10 +13,13 @@ define contrail::lib::contrail-install-repo(
 
     if ( $package_name != '' ) {
         package {$package_name: ensure => latest, install_options => '--force-yes'} ->
+
         package { ['binutils', 'make', 'libdpkg-perl', 'patch', 'dpkg-dev',
                    'python-software-properties', 'contrail-fabric-utils', 'contrail-setup' ] :
             ensure => latest
         } ->
+
+        package {Fabric: ensure => present, provider => pip, install_options => ['--find-links=file://opt/contrail/python_packages']}
         # May need to install fabric-utils here. below commented out code is kept for reference, in case needed.
         # pip install --upgrade --no-deps --index-url='' /opt/contrail/python_packages/Fabric-*.tar.gz
 
