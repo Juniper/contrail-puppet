@@ -79,7 +79,7 @@ server=<%=@discovery_ip_to_use%>
 [NETWORKS]
 # control-channel IP address used by WEB-UI to connect to vnswad to fetch
 # required information (Optional)
-#control_network_ip=$__contrail_control_ip__
+control_network_ip=<%=@host_control_ip %>
 
 [TOR]
 # IP address of the TOR to manage
