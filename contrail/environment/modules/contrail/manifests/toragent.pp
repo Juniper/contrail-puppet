@@ -10,6 +10,7 @@ class contrail::toragent(
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $haproxy = $::contrail::params::haproxy,
+    $host_control_ip = $::contrail::params::host_ip
 ) {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
 
@@ -27,7 +28,8 @@ class contrail::toragent(
         'keystone_admin_user'     => $keystone_admin_user,
         'keystone_admin_password' => $keystone_admin_password,
         'keystone_admin_tenant'   => $keystone_admin_tenant,
-        'contrail_openstack_ip'   => $contrail_openstack_ip
+        'contrail_openstack_ip'   => $contrail_openstack_ip,
+        'host_control_ip'         => $host_control_ip
     }
     contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
     $tor_config = hiera('contrail::params::top_of_rack', {})
