@@ -97,13 +97,15 @@ tor_ovs_port=<%=@ovs_port%>
 # IP-Transport protocol used to connect to tor. Supported values are "tcp", "pssl"
 tor_ovs_protocol=<%=@ovs_protocol%>
 
+<% if @ovs_protocol == 'pssl' -%>
 # Path to ssl certificate for tor-agent, needed for pssl
-#ssl_cert=$__contrail_tor_ssl_cert__
+ssl_cert=/etc/contrail/ssl/certs/tor.<%=@id%>.cert.pem
 
 # Path to ssl private-key for tor-agent, needed for pssl
-#ssl_privkey=$__contrail_tor_ssl_privkey__
+ssl_privkey=/etc/contrail/ssl/private/tor.<%=@id%>.privkey.pem
 
 # Path to ssl cacert for tor-agent, needed for pssl
 #ssl_cacert=$__contrail_tor_ssl_cacert__
+<% end -%>
 
 tsn_ip=<%=@contrail_tsn_ip%>

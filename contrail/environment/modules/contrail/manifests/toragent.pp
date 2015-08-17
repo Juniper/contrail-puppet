@@ -34,6 +34,12 @@ class contrail::toragent(
     create_resources(contrail::lib::top_of_rack, $tor_config, $tor_defaults)
     contrail::lib::report_status { 'toragent_completed': state => 'toragent_completed' }
 
+    file { ["/etc/contrail/ssl",
+             "/etc/contrail/ssl/certs",
+            "/etc/contrail/ssl/private" ] :
+        ensure => directory
+    }
+
     Contrail::Lib::Report_status['toragent_started']
     -> Contrail::Lib::Top_of_rack <| |>
     -> Contrail::Lib::Report_status['toragent_completed']

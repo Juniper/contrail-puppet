@@ -20,6 +20,39 @@ define contrail::lib::top_of_rack(
 
     notify { "**** ${module_name} - ${name} =>  ${tunnel_ip_address,} ${ovs_port,} ${http_server_port} , ${ip_address,} ${id,} ${vendor_name,} ${ovs_protocol,} ${ovs_protocol,} ${switch_name}": ; }
 
+    if ( $ovs_protocol == "pssl") {
+        $ssl_enable = present
+
+        file { "tor-agent-ssl-cert-${id}" :
+            ensure => $ssl_enable,
+            path   => "/etc/contrail/ssl/certs/tor.${id}.cert.pem",
+            mode   => '0755',
+            owner  => root,
+            group  => root,
+            source => "puppet:///modules/${module_name}/tor.${id}.cert.pem",
+        }
+        ->
+        file { "tor-agent-ssl-key-${id}" :
+            ensure => $ssl_enable,
+            path   => "/etc/contrail/ssl/private/tor.${id}.privkey.pem",
+            mode   => '0755',
+            owner  => root,
+            group  => root,
+            source => "puppet:///modules/${module_name}/tor.${id}.privkey.pem",
+        }
+        File ["tor-agent-ssl-key-${id}"] ->  File["tor-agent-config-${id}"]
+    } else {
+        file { "tor-agent-ssl-cert-${id}-remove" :
+            ensure => absent,
+            path   => "/etc/contrail/ssl/certs/tor.${id}.cert.pem",
+        } ->
+        file { "tor-agent-ssl-key-${id}-remove" :
+            ensure => absent,
+            path   => "/etc/contrail/ssl/private/tor.${id}.privkey.pem",
+        }
+        File ["tor-agent-ssl-key-${id}-remove"] ->  File["tor-agent-config-${id}"]
+    }
+
     file { "tor-agent-config-${id}" :
         path    => "/etc/contrail/contrail-tor-agent-${id}.conf",
         content => template("${module_name}/contrail_tor_agent_config.erb"),
