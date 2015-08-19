@@ -27,7 +27,10 @@ class contrail::toragent(
         'keystone_admin_user'     => $keystone_admin_user,
         'keystone_admin_password' => $keystone_admin_password,
         'keystone_admin_tenant'   => $keystone_admin_tenant,
-        'contrail_openstack_ip'   => $contrail_openstack_ip
+        'contrail_openstack_ip'   => $contrail_openstack_ip,
+        'host_control_ip'         => $host_control_ip,
+        'product_name'            => "",
+        'keepalive_time'          => '10000000'
     }
     contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
     $tor_config = hiera('contrail::params::top_of_rack', {})
