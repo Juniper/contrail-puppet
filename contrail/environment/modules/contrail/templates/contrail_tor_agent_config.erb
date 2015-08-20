@@ -105,7 +105,7 @@ ssl_cert=/etc/contrail/ssl/certs/tor.<%=@id%>.cert.pem
 ssl_privkey=/etc/contrail/ssl/private/tor.<%=@id%>.privkey.pem
 
 # Path to ssl cacert for tor-agent, needed for pssl
-#ssl_cacert=$__contrail_tor_ssl_cacert__
+ssl_cacert=/etc/contrail/ssl/certs/cacert.pem
 <% end -%>
 
 tsn_ip=<%=@contrail_tsn_ip%>

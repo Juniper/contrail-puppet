@@ -704,8 +704,10 @@ class contrail::params (
     # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
     if ($internal_vip != '') {
         $openstack_ip_to_use = $internal_vip
+        $discovery_ip_to_use = $internal_vip
     } else {
         $openstack_ip_to_use = $openstack_ip_list[0]
+        $discovery_ip_to_use = $config_ip_list[0]
     }
 
     #rabbit host has same logic as config_ip

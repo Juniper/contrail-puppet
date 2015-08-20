@@ -12,15 +12,10 @@ class contrail::toragent(
     $haproxy = $::contrail::params::haproxy,
 ) {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
-
-    if ($haproxy == true) {
-        $discovery_ip = '127.0.0.1'
-    } else {
-        $discovery_ip = $config_ip_to_use
-    }
+    $discovery_ip_to_use = $::contrail::params::discovery_ip_to_use
 
     $tor_defaults  = {
-        'discovery_ip_to_use'     => $discovery_ip,
+        'discovery_ip_to_use'     => $discovery_ip_to_use,
         'contrail_tsn_ip'         => $contrail_tsn_ip,
         'contrail_tsn_hostname'   => $contrail_tsn_hostname,
         'contrail_config_ip'      => $config_ip_to_use,
@@ -30,7 +25,7 @@ class contrail::toragent(
         'contrail_openstack_ip'   => $contrail_openstack_ip,
         'host_control_ip'         => $host_control_ip,
         'product_name'            => "",
-        'keepalive_time'          => '10000000'
+        'keepalive_time'          => '10000'
     }
     contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
     $tor_config = hiera('contrail::params::top_of_rack', {})
@@ -41,6 +36,14 @@ class contrail::toragent(
              "/etc/contrail/ssl/certs",
             "/etc/contrail/ssl/private" ] :
         ensure => directory
+    } ->
+    file { "tor-agent-ssl-cacert" :
+        ensure => $ssl_enable,
+        path   => "/etc/contrail/ssl/certs/cacert.pem",
+        mode   => '0755',
+        owner  => root,
+        group  => root,
+        source => "puppet:///tor_certs/cacert.pem",
     }
 
     Contrail::Lib::Report_status['toragent_started']
