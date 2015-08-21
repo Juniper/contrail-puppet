@@ -39,7 +39,7 @@
 #
 # [*analytics_config_audit_ttl*]
 #     TTL for config audit data in hours.
-#     (optional) - Defaults to 168 hours.
+#     (optional) - Defaults to 2160 hours.
 #
 # [*analytics_statistics_ttl*]
 #     TTL for statistics data in hours.
