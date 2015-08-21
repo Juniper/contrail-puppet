@@ -93,11 +93,11 @@
 #
 # [*analytics_config_audit_ttl*]
 #     TTL for config audit data in hours.
-#     (optional) - Defaults to 168 hours. UI parameter.
+#     (optional) - Defaults to 2160 hours. UI parameter.
 #
 # [*analytics_statistics_ttl*]
 #     TTL for statistics data in hours.
-#     (optional) - Defaults to 24 hours. UI parameter.
+#     (optional) - Defaults to 168 hours. UI parameter.
 #
 # [*analytics_flow_ttl*]
 #     TTL for flow data in hours.
@@ -540,8 +540,8 @@ class contrail::params (
     $contrail_external_vip = "",
     $database_ip_port = "9160",
     $analytics_data_ttl = 48,
-    $analytics_config_audit_ttl = 168,
-    $analytics_statistics_ttl = 24,
+    $analytics_config_audit_ttl = 2160,
+    $analytics_statistics_ttl = 168,
     $analytics_flow_ttl = 2,
     $snmp_scan_frequency = 600,
     $snmp_fast_scan_frequency = 60,
