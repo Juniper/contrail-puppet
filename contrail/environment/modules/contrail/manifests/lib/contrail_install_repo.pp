@@ -6,7 +6,7 @@ define contrail::lib::contrail_install_repo(
 
     if (($contrail_repo_type == "contrail-ubuntu-package") or
         ($contrail_repo_type == "contrail-centos-repo")) {
-        $package_name = "contrail-install-packages"
+	$package_name = "contrail-install-packages"
     }
     else {
         $package_name = ''

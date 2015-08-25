@@ -1,0 +1,13 @@
+{
+    "server": [
+        {
+            "id": "vm5",
+            "parameters": {
+                "kernel_upgrade": "yes",
+                "interface_name": "eth0",
+                "partition": ""
+            }
+        }
+    ]
+}
+

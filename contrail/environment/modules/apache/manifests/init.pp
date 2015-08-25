@@ -28,7 +28,7 @@ class apache (
   $ip                   = undef,
   $service_enable       = true,
   $service_ensure       = 'running',
-  $purge_configs        = true,
+  $purge_configs        = false,
   $purge_vhost_dir      = undef,
   $serveradmin          = 'root@localhost',
   $sendfile             = 'On',
