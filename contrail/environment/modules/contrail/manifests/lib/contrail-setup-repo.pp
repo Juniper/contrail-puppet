@@ -10,8 +10,8 @@ define contrail::lib::contrail-setup-repo(
 	}
     }
     if ($operatingsystem == "Ubuntu") {
-	$pattern1 = "deb http:\/\/$contrail_repo_ip\/contrail\/repo\/$contrail_repo_name .\/"
-	$pattern2 = "deb http://$contrail_repo_ip/contrail/repo/$contrail_repo_name ./"
+	$pattern1 = "deb http://$contrail_repo_ip/contrail/repo/$contrail_repo_name contrail main"
+	$pattern2 = "deb http://$contrail_repo_ip/contrail/repo/$contrail_repo_name contrail main"
 	$repo_cfg_file = "/etc/apt/sources.list"
 	exec { "update-sources-list-$contrail_repo_name" :
 	    command   => "sed -i \"/$pattern1/d\" $repo_cfg_file && echo \"$pattern2\"|cat - $repo_cfg_file > /tmp/out && mv /tmp/out $repo_cfg_file && apt-get update",
