@@ -641,26 +641,16 @@ class contrail::compute (
         value => "${keystone_admin_password}"
     }
     ->
-    contrail::lib::report_status { 'compute_completed':
-        state              => 'compute_completed',
-        contrail_logoutput => $contrail_logoutput
+    reboot { 'compute':
+      apply => "immediately",
+      subscribe       => Exec["fix-keystone-admin-password"] ,
+      timeout => 0,
     }
     ->
-    exec { 'flag-reboot-server' :
-        command   => 'echo flag-reboot-server >> /etc/contrail/contrail_compute_exec.out',
-        unless    => ['grep -qx flag-reboot-server /etc/contrail/contrail_compute_exec.out'],
-        provider  => 'shell',
-        logoutput => $contrail_logoutput
-    }
-    #1449971
-    #/*
-    #->
-    #service { "supervisor-vrouter" :
-        #ensure => running,
-        #enable => true,
-        #require => [ Package['contrail-openstack-vrouter'] ],
-    #}
-    #*/
+    contrail::lib::report_status { "compute_completed":
+       state => "compute_completed",
+       contrail_logoutput => $contrail_logoutput
+     }
     ->
     service { 'nova-compute' :
         ensure  => running,
@@ -675,7 +665,6 @@ class contrail::compute (
             before    => Exec['reboot-server'],
             unless    => 'grep -qx cp-ifcfg-file /etc/contrail/contrail_compute_exec.out',
             provider  => 'shell',
-            require   => Exec['flag-reboot-server'],
             logoutput => $contrail_logoutput
         }
     }

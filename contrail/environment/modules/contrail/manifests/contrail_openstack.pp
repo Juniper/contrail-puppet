@@ -153,6 +153,13 @@ class contrail::contrail_openstack (
         provider  => shell,
         logoutput => $contrail_logoutput
     }
+    # Disable mpm_event apache module
+    exec { "exec_disable_mpm_event":
+        command => "a2dismod mpm_event && service apache2 restart && echo exec_disable_mpm_event>> /etc/contrail/contrail_openstack_exec.out",
+        provider => shell,
+        logoutput => $contrail_logoutput
+    }
+
     if ($enable_ceilometer) {
         # Set instance_usage_audit_period to hour
         exec { 'exec_set_instance_usage_audit_period':
