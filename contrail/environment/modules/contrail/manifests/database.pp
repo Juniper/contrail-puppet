@@ -141,15 +141,15 @@ class contrail::database (
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - cassandra (>= 1.1.12) , contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-database, contrail-setup, openstack-quantum-contrail, supervisor
-    ->
-    exec { 'exec-config-host-entry' :
-        command   => "echo \"${config_ip}   ${::system_name}\" >> /etc/hosts && echo exec-config-host-entry >> /etc/contrail/contrail_database_exec.out",
-        unless    => ["grep -q ${config_ip} /etc/hosts",
-                      'grep -qx exec-config-host-entry /etc/contrail/contrail_database_exec.out'],
-        provider  => 'shell',
-        require   => Package['contrail-openstack-database'],
-        logoutput => $contrail_logoutput
-    }
+    #->
+    #exec { 'exec-config-host-entry' :
+        #command   => "echo \"${config_ip}   ${::system_name}\" >> /etc/hosts && echo exec-config-host-entry >> /etc/contrail/contrail_database_exec.out",
+        #unless    => ["grep -q ${config_ip} /etc/hosts",
+                      #'grep -qx exec-config-host-entry /etc/contrail/contrail_database_exec.out'],
+        #provider  => 'shell',
+        #require   => Package['contrail-openstack-database'],
+        #logoutput => $contrail_logoutput
+    #}
     ->
     # database venv installation
     exec { 'database-venv' :
