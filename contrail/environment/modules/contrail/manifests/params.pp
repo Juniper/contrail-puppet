@@ -665,6 +665,7 @@ class contrail::params (
     $enable_storage_compute = true,
     $enable_storage_master = true,
     $enable_ceilometer = false,
+    $tor_ha_config = ""
 ) {
     # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
     # that varible here.
