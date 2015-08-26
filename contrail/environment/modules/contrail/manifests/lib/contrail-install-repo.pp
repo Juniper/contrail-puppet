@@ -19,7 +19,14 @@ define contrail::lib::contrail-install-repo(
             ensure => latest
         } ->
 
-        package {Fabric: ensure => present, provider => pip, install_options => ['--find-links=file://opt/contrail/python_packages']}
+        exec { "exec-pip-install-fabric" :
+            command => "pip install /opt/contrail/python_packages/Fabric-1.7.5.tar.gz && echo exec-pip-install-fabric >> /etc/contrail/contrail_common_exec.out",
+            provider => shell,
+            unless => "grep -qx exec-pip-install-fabric /etc/contrail/contrail_common_exec.out",
+            logoutput => $contrail_logoutput
+        }
+        #Untill we upgrade to latest puppet , commenting this out
+        #package {Fabric: ensure => present, provider => pip, install_options => ['--find-links=file://opt/contrail/python_packages']}
         # May need to install fabric-utils here. below commented out code is kept for reference, in case needed.
         # pip install --upgrade --no-deps --index-url='' /opt/contrail/python_packages/Fabric-*.tar.gz
 
