@@ -29,7 +29,10 @@ class contrail::keepalived(
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
     $external_vip = $::contrail::params::external_vip,
     $contrail_external_vip = $::contrail::params::contrail_external_vip,
-    $keepalived_vrid = $::contrail::params::keepalived_vrid,
+    $internal_virtual_router_id = $::contrail::params::internal_virtual_router_id,
+    $contrail_internal_virtual_router_id = $::contrail::params::contrail_internal_virtual_router_id,
+    $external_virtual_router_id = $::contrail::params::external_virtual_router_id,
+    $contrail_external_virtual_router_id = $::contrail::params::contrail_external_virtual_router_id,
     $openstack_ip_list = $::contrail::params::openstack_ip_list
 )  {
     include ::contrail::params
@@ -40,7 +43,10 @@ class contrail::keepalived(
     notify { "Keepalived - config_ip_list = ${config_ip_list}":; }
     notify { "Keepalived - internal_vip = ${internal_vip}":; }
     notify { "Keepalived - contrail_internal_vip = ${contrail_internal_vip}":; }
-    notify { "Keepalived - keepalived_vrid = ${keepalived_vrid}":; }
+    notify { "Keepalived - internal_virtual_router_id = ${internal_virtual_router_id}":; }
+    notify { "Keepalived - contrail_internal_virtual_router_id = ${contrail_internal_virtual_router_id}":; }
+    notify { "Keepalived - external_virtual_router_id = ${external_virtual_router_id}":; }
+    notify { "Keepalived - contrail_external_virtual_router_id = ${contrail_external_virtual_router_id}":; }
     notify { "Keepalived - openstack_ip_list = ${openstack_ip_list}":; }
 
     $control_data_intf = get_device_name($host_control_ip)
@@ -80,8 +86,7 @@ class contrail::keepalived(
         $e_netmask = inline_template("<%= scope.lookupvar('netmask_' + @e_interface) %>")
         $e_cidr = convert_netmask_to_cidr($e_netmask)
 
-        $e_contrail_keepalived_vrid = $keepalived_vrid + 1
-        $e_keepalived_priority = $e_contrail_keepalived_vrid - $e_config_index
+        $e_keepalived_priority = $external_virtual_router_id - $e_config_index
 
         keepalived::vrrp::script { 'check_haproxy_external_vip':
             script   => '/usr/bin/killall -0 haproxy',
@@ -99,10 +104,10 @@ class contrail::keepalived(
             fall     => '1',
 
         }
-        keepalived::vrrp::instance { "VI_${e_contrail_keepalived_vrid}":
+        keepalived::vrrp::instance { "VI_${external_virtual_router_id}":
             interface           => $e_interface,
             state               => $e_keepalived_state,
-            virtual_router_id   => $e_contrail_keepalived_vrid,
+            virtual_router_id   => $external_virtual_router_id,
             priority            => $e_keepalived_priority,
             auth_type           => 'PASS',
             auth_pass           => 'secret',
@@ -126,7 +131,6 @@ class contrail::keepalived(
         $i_netmask = inline_template("<%= scope.lookupvar('netmask_' + @i_interface) %>")
         $i_cidr = convert_netmask_to_cidr($i_netmask)
 
-        $i_contrail_keepalived_vrid = $keepalived_vrid + 2
         notify { 'Keepalived - Setting up internal_vip':; }
         $i_num_nodes = inline_template('<%= @openstack_ip_list.length %>')
         $i_tmp_index = inline_template('<%= @openstack_ip_list.index(@host_control_ip) %>')
@@ -153,7 +157,7 @@ class contrail::keepalived(
             $i_contrail_preempt_delay = 1
         }
 
-        $i_keepalived_priority = $i_contrail_keepalived_vrid - $i_config_index
+        $i_keepalived_priority = $internal_virtual_router_id - $i_config_index
         keepalived::vrrp::script { 'check_haproxy_internal_vip':
             script   => '/usr/bin/killall -0 haproxy',
             timeout  => '3',
@@ -170,10 +174,10 @@ class contrail::keepalived(
             fall     => '1',
         }
 
-        keepalived::vrrp::instance { "VI_${i_contrail_keepalived_vrid}":
+        keepalived::vrrp::instance { "VI_${internal_virtual_router_id}":
             interface           => $i_interface,
             state               => $i_keepalived_state,
-            virtual_router_id   => $i_contrail_keepalived_vrid,
+            virtual_router_id   => $internal_virtual_router_id,
             priority            => $i_keepalived_priority,
             auth_type           => 'PASS',
             auth_pass           => 'secret',
@@ -221,9 +225,8 @@ class contrail::keepalived(
         }
 
 
-        $ci_contrail_keepalived_vrid = $keepalived_vrid + 3
 
-        $ci_keepalived_priority = $ci_contrail_keepalived_vrid - $ci_config_index
+        $ci_keepalived_priority = $contrail_internal_virtual_router_id - $ci_config_index
 
         $ci_interface = find_matching_interface($contrail_internal_vip)
         $ci_netmask = inline_template("<%= scope.lookupvar('netmask_' + @ci_interface) %>")
@@ -245,10 +248,10 @@ class contrail::keepalived(
             fall     => '1',
         }
 
-        keepalived::vrrp::instance { "VI_${ci_contrail_keepalived_vrid}":
+        keepalived::vrrp::instance { "VI_${contrail_internal_virtual_router_id}":
             interface           => $ci_interface,
             state               => $::contrail::params::keepalived_state,
-            virtual_router_id   => $ci_contrail_keepalived_vrid,
+            virtual_router_id   => $contrail_internal_virtual_router_id,
             priority            => $ci_keepalived_priority,
             auth_type           => 'PASS',
             auth_pass           => 'secret',
@@ -293,8 +296,7 @@ class contrail::keepalived(
             $ce_contrail_preempt_delay = 1
         }
 
-        $ce_contrail_keepalived_vrid = $keepalived_vrid + 4
-        $ce_keepalived_priority = $ce_contrail_keepalived_vrid - $ce_config_index
+        $ce_keepalived_priority = $contrail_external_virtual_router_id - $ce_config_index
 
         $ce_interface = find_matching_interface($contrail_external_vip)
         $ce_netmask = inline_template("<%= scope.lookupvar('netmask_' + @ce_interface) %>")
@@ -316,10 +318,10 @@ class contrail::keepalived(
             fall     => '1',
         }
 
-        keepalived::vrrp::instance { "VI_${ce_contrail_keepalived_vrid}":
+        keepalived::vrrp::instance { "VI_${contrail_external_virtual_router_id}":
             interface           => $ce_interface,
             state               => $::contrail::params::keepalived_state,
-            virtual_router_id   => $ce_contrail_keepalived_vrid,
+            virtual_router_id   => $contrail_external_virtual_router_id,
             priority            => $ce_keepalived_priority,
             auth_type           => 'PASS',
             auth_pass           => 'secret',
