@@ -26,7 +26,7 @@ class contrail::toragent(
         'contrail_openstack_ip'   => $contrail_openstack_ip,
         'host_control_ip'         => $host_control_ip,
         'product_name'            => "",
-        'keepalive_time'          => '10000'
+        'keepalive_time'          => '10000',
         'host_control_ip'         => $host_control_ip
     }
     contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
