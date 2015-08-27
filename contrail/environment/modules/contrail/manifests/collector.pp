@@ -43,7 +43,7 @@
 #
 # [*analytics_statistics_ttl*]
 #     TTL for statistics data in hours.
-#     (optional) - Defaults to 24 hours.
+#     (optional) - Defaults to 168 hours.
 #
 # [*analytics_flow_ttl*]
 #     TTL for flow data in hours.
