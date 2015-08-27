@@ -85,22 +85,22 @@
 # [*internal_virtual_router_id*]
 #     Virtual router ID for the Openstack HA nodes in control/data (internal)
 #     network.  UI parameter.
-#     (optional) - Defaults to 100(No openstack HA configured).
+#     (optional) - Defaults to 102(No openstack HA configured).
 #
 # [*external_virtual_router_id*]
 #     Virtual router ID for the Openstack HA nodes in management(external)
 #     network.  UI parameter.
-#     (optional) - Defaults to 100(No openstack HA configured).
+#     (optional) - Defaults to 101(No openstack HA configured).
 #
 # [*contrail_internal_virtual_router_id*]
 #     Virtual router ID for the Contrail HA nodes in control/data (internal)
 #     network.  UI parameter.
-#     (optional) - Defaults to 100(No contrail mgmt HA configured).
+#     (optional) - Defaults to 103(No contrail mgmt HA configured).
 #
 # [*contrail_external_virtual_router_id*]
 #     Virtual router ID for the Contrail HA nodes in managment(external)
 #     network.  UI parameter.
-#     (optional) - Defaults to 100(No contrail mgmt HA configured).
+#     (optional) - Defaults to 104(No contrail mgmt HA configured).
 #
 # [*database_ip_port*]
 #     IP port number used by database service.
@@ -553,10 +553,10 @@ class contrail::params (
     $external_vip = "",
     $contrail_internal_vip = "",
     $contrail_external_vip = "",
-    $internal_virtual_router_id = 100,
-    $external_virtual_router_id = 100,
-    $contrail_internal_virtual_router_id = 100,
-    $contrail_external_virtual_router_id = 100,
+    $internal_virtual_router_id = 102,
+    $external_virtual_router_id = 101,
+    $contrail_internal_virtual_router_id = 103,
+    $contrail_external_virtual_router_id = 104,
     $database_ip_port = "9160",
     $analytics_data_ttl = 48,
     $analytics_config_audit_ttl = 2160,
