@@ -82,6 +82,26 @@
 #     management interface.  UI parameter.
 #     (optional) - Defaults to "" (No contrail mgmt HA configured).
 #
+# [*internal_virtual_router_id*]
+#     Virtual router ID for the Openstack HA nodes in control/data (internal)
+#     network.  UI parameter.
+#     (optional) - Defaults to 100(No openstack HA configured).
+#
+# [*external_virtual_router_id*]
+#     Virtual router ID for the Openstack HA nodes in management(external)
+#     network.  UI parameter.
+#     (optional) - Defaults to 100(No openstack HA configured).
+#
+# [*contrail_internal_virtual_router_id*]
+#     Virtual router ID for the Contrail HA nodes in control/data (internal)
+#     network.  UI parameter.
+#     (optional) - Defaults to 100(No contrail mgmt HA configured).
+#
+# [*contrail_external_virtual_router_id*]
+#     Virtual router ID for the Contrail HA nodes in managment(external)
+#     network.  UI parameter.
+#     (optional) - Defaults to 100(No contrail mgmt HA configured).
+#
 # [*database_ip_port*]
 #     IP port number used by database service.
 #     Not exposed to SM for modification.
@@ -279,11 +299,6 @@
 #     vmware vswitch for cluster with ESXi server.
 #     Not exposed to SM for modification.
 #     (optional) - Defaults to "" (No ESXi or vmware configuration).
-#
-# [*keepalived_vrid*]
-#     Virtual router id value used by keepalived (VRRP)
-#     Not exposed to SM for modification.
-#     (optional) - Defaults to 100.
 #
 # [*mysql_root_password*]
 #     Root password for mysql access.
@@ -538,6 +553,10 @@ class contrail::params (
     $external_vip = '',
     $contrail_internal_vip = '',
     $contrail_external_vip = '',
+    $internal_virtual_router_id = 100,
+    $external_virtual_router_id = 100,
+    $contrail_internal_virtual_router_id = 100,
+    $contrail_external_virtual_router_id = 100,
     $database_ip_port = '9160',
     $analytics_data_ttl = 48,
     $analytics_config_audit_ttl = 2160,
@@ -580,7 +599,6 @@ class contrail::params (
     $vmware_username = '',
     $vmware_password = '',
     $vmware_vswitch = '',
-    $keepalived_vrid = 100,
     $mysql_root_password = 'c0ntrail123',
     $openstack_mgmt_ip_list = undef,
     $encap_priority = 'VXLAN,MPLSoUDP,MPLSoGRE',
