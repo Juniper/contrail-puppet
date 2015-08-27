@@ -653,7 +653,7 @@ class contrail::compute (
     ->
     reboot { 'compute':
       apply => "immediately",
-      subscribe       => Exec["fix-keystone-admin-password"] ,
+      subscribe       => Exec ["setup-compute-server-setup"],
       timeout => 0,
     }
     ->

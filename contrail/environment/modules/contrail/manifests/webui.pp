@@ -53,6 +53,7 @@ class contrail::webui (
     $keystone_ip = $::contrail::params::keystone_ip,
     $internal_vip = $::contrail::params::internal_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+    $redis_password = $::contrail::params::redis_password,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
     include ::contrail::params
