@@ -147,6 +147,7 @@ class contrail::collector (
     $keystone_admin_token = $::contrail::params::keystone_admin_token,
     $keystone_service_token = $::contrail::params::keystone_service_token,
     $keystone_insecure_flag = $::contrail::params::keystone_insecure_flag,
+    $redis_password = $::contrail::params::redis_password,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 )  {
     include ::contrail::params
