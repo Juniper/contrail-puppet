@@ -486,7 +486,7 @@ def tor_agent_ha_config(tor_details_str):
          if tor_details[host][i]['protocol'] != 'pssl':
              #print tor_details[host][i]
              continue
-         print tor_details[host][i]
+         #print tor_details[host][i]
          tor_name= tor_details[host][i]['tor_name']
          tsn1 = tor_details[host][i]['tsn_ip']
          port1 = tor_details[host][i]['ovs_port']
@@ -498,10 +498,11 @@ def tor_agent_ha_config(tor_details_str):
                  key = tsn1 + "-" + tsn2
              else:
                  key = tsn2 + "-" + tsn1 
-             if not key in master_ha_proxy:
-                 master_ha_proxy[key] = []
-             if not port1 in master_ha_proxy[key]:
-                 master_ha_proxy[key].append(port1)
+
+         if not key in master_ha_proxy:
+             master_ha_proxy[key] = []
+         if not port1 in master_ha_proxy[key]:
+             master_ha_proxy[key].append(port1)
 
     i = 1
     cfg_str = ""
