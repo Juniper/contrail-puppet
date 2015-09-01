@@ -14,6 +14,7 @@ define contrail::lib::contrail-setup-repo(
 	$pattern2 = "deb http://$contrail_repo_ip/contrail/repo/$contrail_repo_name contrail main"
 	$repo_cfg_file = "/etc/apt/sources.list"
 	file { "/etc/apt/preferences.d/contrail_repo_preferences":
+	    path => "/etc/apt/preferences.d/${contrail_repo_name}_repo_preferences",
 	    ensure  => present,
 	    mode => 0755,
 	    owner => root,
