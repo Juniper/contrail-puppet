@@ -43,10 +43,6 @@
 #     Keystone admin tenant name.
 #     (optional) - Defaults to "admin".
 #
-# [*keystone_service_token*]
-#     openstack service token value.
-#     (optional) - Defaults to "contrail123"
-#
 # [*keystone_auth_protocol*]
 #     Keystone authentication protocol.
 #     (optional) - Defaults to "http".
@@ -69,7 +65,6 @@ class contrail::contrail_openstack (
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
-    $keystone_service_token = $::contrail::params::keystone_service_token,
     $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_control_ip = $::contrail::params::host_ip,

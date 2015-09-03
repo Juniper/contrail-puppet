@@ -33,10 +33,6 @@
 #     keystone is running on a server other than openstack server.
 #     (optional) - Defaults to "", meaning use openstack_ip.
 #
-# [*keystone_service_token*]
-#     openstack service token value.
-#     (optional) - Defaults to "c0ntrail123"
-#
 # [*keystone_auth_protocol*]
 #     Keystone authentication protocol.
 #     (optional) - Defaults to "http".
@@ -171,7 +167,6 @@ class contrail::compute (
     $control_ip_list = $::contrail::params::control_ip_list,
     $compute_ip_list = $::contrail::params::compute_ip_list,
     $keystone_ip = $::contrail::params::keystone_ip,
-    $keystone_service_token = $::contrail::params::keystone_service_token,
     $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
     $keystone_auth_port = $::contrail::params::keystone_auth_port,
     $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
@@ -285,7 +280,6 @@ class contrail::compute (
     notify {"openstack_ip = ${openstack_ip}":; } ->
     notify {"control_ip_list = ${control_ip_list}":; } ->
     notify {"compute_ip_list = ${compute_ip_list}":; } ->
-    notify {"keystone_service_token = ${keystone_service_token}":; } ->
     notify {"keystone_ip = ${keystone_ip}":; } ->
     notify {"keystone_auth_protocol = ${keystone_auth_protocol}":; } ->
     notify {"keystone_auth_port = ${keystone_auth_port}":; } ->
