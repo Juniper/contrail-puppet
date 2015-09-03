@@ -102,15 +102,6 @@
 #     Keystone admin tenant name.
 #     (optional) - Defaults to "admin".
 #
-# [*keystone_admin_token*]
-#     Keystone admin token. Admin token value from /etc/keystone/keystone.conf file of
-#     keystone/openstack node.
-#     (optional) - Defaults to "c0ntrail123"
-#
-# [*keystone_service_token*]
-#     Keystone service token.
-#     (optional) - Defaults to "c0ntrail123".
-#
 # [*keystone_insecure_flag*]
 #     Flag for Keystone secure/insecure
 #     (Optional) - Defaults to false
@@ -144,8 +135,6 @@ class contrail::collector (
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
-    $keystone_admin_token = $::contrail::params::keystone_admin_token,
-    $keystone_service_token = $::contrail::params::keystone_service_token,
     $keystone_insecure_flag = $::contrail::params::keystone_insecure_flag,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 )  {

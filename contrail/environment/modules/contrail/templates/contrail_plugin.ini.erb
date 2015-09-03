@@ -6,7 +6,6 @@ contrail_extensions = ipam:neutron_plugin_contrail.plugins.opencontrail.contrail
 
 [KEYSTONE]
 auth_url = <%= @keystone_auth_protocol %>://<%= @keystone_ip_to_use %>:<%= @keystone_auth_port %>/v2.0
-admin_token = <%= @keystone_service_token %>
 admin_user=<%= @keystone_admin_user %>
 admin_password=<%= @keystone_admin_password %>
 admin_tenant_name=<%= @keystone_admin_tenant %>

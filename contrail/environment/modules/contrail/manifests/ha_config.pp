@@ -27,10 +27,6 @@
 #     Virtual IP of this server used for providing HA functinality.
 #     (optional) - Defaults to "".
 #
-# [*keystone_admin_token*]
-#     Keystone admin token.
-#     (optional) - Defaults to "c0ntrail123".
-#
 # [*keystone_ip*]
 #     Key stone IP address, if keystone service is running on a node other
 #     than openstack controller.
@@ -67,7 +63,6 @@ class contrail::ha_config (
     $openstack_mgmt_ip_list = $::contrail::params::openstack_mgmt_ip_list_to_use,
     $mysql_root_password = $::contrail::params::mysql_root_password,
     $internal_vip = $::contrail::params::internal_vip,
-    $keystone_admin_token = $::contrail::params::keystone_admin_token,
     $openstack_passwd_list = $::contrail::params::openstack_passwd_list,
     $config_passwd_list = $::contrail::params::config_passwd_list,
     $compute_passwd_list = $::contrail::params::compute_passwd_list,
@@ -129,7 +124,7 @@ class contrail::ha_config (
 
         $openstack_ip_list_wsrep = inline_template('<%= @openstack_mgmt_ip_list.map{ |ip| "#{ip}:4567" }.join(",") %>')
 
-        $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=${mysql_root_password} ADMIN_TOKEN=${keystone_admin_token} setup-vnc-galera --self_ip ${host_control_ip} --keystone_ip ${keystone_ip_to_use} --galera_ip_list ${openstack_ip_list_shell} --internal_vip ${internal_vip} --external_vip ${::contrail::params::external_vip} --openstack_index ${openstack_index} --zoo_ip_list $zk_ip_list_for_shell && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
+        $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=${mysql_root_password} setup-vnc-galera --self_ip ${host_control_ip} --keystone_ip ${keystone_ip_to_use} --galera_ip_list ${openstack_ip_list_shell} --internal_vip ${internal_vip} --external_vip ${::contrail::params::external_vip} --openstack_index ${openstack_index} --zoo_ip_list $zk_ip_list_for_shell && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_check_wsrep = "python check-wsrep-status.py ${openstack_mgmt_ip_list_shell}  && echo check-wsrep >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py ${os_master} ${host_control_ip} ${internal_vip} ${openstack_mgmt_ip_list_shell} && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"
 

@@ -182,12 +182,6 @@
 #     Admin password for keystone service.
 #     (optional) - Defaults to "contrail123". UI parameter.
 #
-# [*keystone_service_token*]
-#     Service token to access keystone service (MD5 hash generated). If not specified
-#     simple value of "contrail123" used. Manifests also use
-#     keystone_admin_token to refer to this and hence is set to same value in this class.
-#     (optional) - Defaults to "contrail123".
-#
 # [*keystone_admin_user*]
 #     User Name for admin user of keystone service.
 #     (optional) - Defaults to "admin". UI parameter.
@@ -575,7 +569,6 @@ class contrail::params (
     $database_minimum_diskGB = 256,
     $keystone_ip = '',
     $keystone_admin_password = 'contrail123',
-    $keystone_service_token = 'contrail123',
     $keystone_admin_user = 'admin',
     $keystone_admin_tenant = 'admin',
     $keystone_service_tenant = 'services',
@@ -667,10 +660,6 @@ class contrail::params (
     $enable_ceilometer = false,
     $tor_ha_config = ""
 ) {
-    # Manifests use keystone_admin_token to refer to keystone_service_token too. Hence set
-    # that varible here.
-    $keystone_admin_token = $keystone_service_token
-
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
         ($haproxy_flag != 'enable')) {
