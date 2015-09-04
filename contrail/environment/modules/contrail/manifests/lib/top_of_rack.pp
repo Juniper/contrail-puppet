@@ -13,7 +13,6 @@ define contrail::lib::top_of_rack(
     $contrail_tsn_hostname,
     $contrail_openstack_ip,
     $contrail_config_ip,
-    $contrail_host_ip,
     $keystone_admin_user,
     $keystone_admin_password,
     $keystone_admin_tenant,
@@ -45,7 +44,7 @@ define contrail::lib::top_of_rack(
     ->
     exec { "register-vrouter-tor-$id" :
        command => "python /opt/contrail/utils/provision_vrouter.py \
-                   --host_name $hostname-$id --host_ip ${contrail_host_ip} \
+                   --host_name $hostname-$id --host_ip ${host_control_ip} \
                    --api_server_ip $contrail_config_ip  --openstack_ip $contrail_openstack_ip  \
                    --oper add  --admin_user $keystone_admin_user \
                    --admin_password $keystone_admin_password \
