@@ -32,7 +32,7 @@ define contrail::lib::upgrade_kernel(
               apply => "immediately",
               timeout => 0,
               message => "Rebooting for kernel upgrade",
-              subscribe       => Package[$image_extra],
+              subscribe       => [Package[$image_extra], Package[$headers], Package[$headers_generic], Package[$image]],
             }
         } else {
             if ($contrail_kernel_version == "" ) {
@@ -55,7 +55,7 @@ define contrail::lib::upgrade_kernel(
             package { $image : ensure => present, notify => Reboot["after"], }
             ->
             reboot { 'after':
-              subscribe       => Package[$image],
+              subscribe       => [Package[$image_extra], Package[$headers], Package[$headers_generic], Package[$image]],
               apply => "immediately",
               message => "Rebooting for kernel upgrade",
               timeout => 0,
