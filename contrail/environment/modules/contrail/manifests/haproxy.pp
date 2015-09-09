@@ -62,7 +62,7 @@ class contrail::haproxy (
     $config_name_list_shell = inline_template('<%= @config_name_list.map{ |name2| "#{name2}" }.join(",") %>')
     $collector_name_list_shell = inline_template('<%= @collector_name_list.map{ |name2| "#{name2}" }.join(",") %>')
 
-    $contrail_exec_haproxy_gen = "python /opt/contrail/bin/generate_haproxy.py $host_ip $ha_internal_vip $ha_contrail_internal_vip $config_name_list_shell $config_ip_list_shell $openstack_name_list_shell $openstack_ip_list_shell $collector_name_list_shell $collector_ip_list_shell && service haproxy restart && echo generate_ha_config >> /etc/contrail/contrail_openstack_exec.out"
+    $contrail_exec_haproxy_gen = "python /opt/contrail/bin/generate_haproxy.py $host_ip $ha_internal_vip $ha_contrail_internal_vip $config_name_list_shell $config_ip_list_shell $openstack_name_list_shell $openstack_ip_list_shell $collector_name_list_shell $collector_ip_list_shell && /etc/init.d/haproxy stop && service haproxy restart && echo generate_ha_config >> /etc/contrail/contrail_openstack_exec.out"
 
 
     package { 'haproxy' : ensure => present,}
