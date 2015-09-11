@@ -2,7 +2,7 @@
 #
 class keepalived::params {
 
-  $pkg_ensure         = 'present'
+  $pkg_ensure         = '1.2.13-0~276~ubuntu14.04.1'
   $service_enable     = true
   $service_ensure     = 'running'
   $service_manage     = true
