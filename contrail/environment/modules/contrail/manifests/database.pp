@@ -179,6 +179,16 @@ class contrail::database (
         require => [ Package['contrail-openstack-database'] ],
         content => template("${module_name}/cassandra-env.sh.erb"),
     }
+    file { '/usr/share/kafka/config/server.properties':
+        ensure  => present,
+        require => [ Package['kafka'] ],
+        content => template("${module_name}/kafka.server.properties.erb"),
+    }
+    file { '/usr/share/kafka/config/log4j.properties':
+        ensure  => present,
+        require => [ Package['kafka'] ],
+        content => template("${module_name}/kafka.log4j.properties.erb"),
+    }
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
     if ($::operatingsystem == 'Ubuntu') {
