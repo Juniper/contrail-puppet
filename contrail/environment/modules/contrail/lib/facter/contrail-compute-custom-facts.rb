@@ -22,3 +22,14 @@ Facter.add(:contrail_interface_rename_done) do
         Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'is_intf_renamed.sh'))
     end
 end
+
+Facter.add(:openstack_release) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'openstack_release.sh'))
+    end
+end
+Facter.add(:openstack_version) do
+    setcode do
+        Facter::Util::Resolution.exec('/usr/bin/nova-manage version')
+    end
+end
