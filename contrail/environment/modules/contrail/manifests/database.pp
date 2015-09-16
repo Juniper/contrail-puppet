@@ -128,7 +128,9 @@ class contrail::database (
             ensure  => link,
             target  => "${analytics_data_dir}/ContrailAnalytics",
             require => File[$database_dir],
-            notify  => Service['supervisor-database']
+            notify  => Service['supervisor-database'],
+            owner   => cassandra,
+            group   => cassandra,
         }
     }
     contrail::lib::report_status { 'database_started':
@@ -165,7 +167,9 @@ class contrail::database (
     ->
     file { $database_dir :
         ensure  => directory,
-        require => Package['contrail-openstack-database']
+        require => Package['contrail-openstack-database'],
+        owner   => cassandra,
+        group   => cassandra,
     }
     ->
     file { "${contrail_cassandra_dir}/cassandra.yaml" :
