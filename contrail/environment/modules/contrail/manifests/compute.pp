@@ -558,11 +558,6 @@ class contrail::compute (
         #*/
     }
 
-    file { '/etc/contrail/default_pmac' :
-        ensure  => present,
-        require => Package['contrail-openstack-vrouter'],
-        content => template("${module_name}/default_pmac.erb"),
-    } ->
     file { '/etc/contrail/agent_param' :
         ensure  => present,
         require => Package['contrail-openstack-vrouter'],
@@ -663,9 +658,7 @@ class contrail::compute (
      }
     ->
     service { 'nova-compute' :
-        ensure  => running,
         enable => $nova_compute_status,
-        enable  => true,
         require => [ Package['contrail-openstack-vrouter'] ],
         ensure => $nova_compute_status,
     }
