@@ -41,22 +41,40 @@ class contrail::common(
     notify { "**** ${module_name} - contrail_repo_ip = ${contrail_repo_ip}": ; }
     notify { "**** ${module_name} - contrail_repo_type = ${contrail_repo_type}": ; }
 
-    $contrail_users_details = {
-      'nova'            => { user_uid => '499', user_group_name => 'nova', group_gid => '499', user_home_dir => '/var/lib/nova' },
-      'libvirt-qemu'    => { user_uid => '498', user_group_name => 'kvm' , group_gid => '498', user_home_dir => '/var/lib/libvirt'},
-      'libvirt-dnsmasq' => { user_uid => '497', user_group_name => 'libvirtd' , group_gid => '497',  user_home_dir => '/var/lib/libvirt/dnsmasq'},
+    $contrail_group_details = {
+      'nova'     => { gid => '499'},
+      'kvm'      => { gid => '498'},
+      'libvirtd' => { gid => '497'}
     }
 
-    create_resources(contrail::lib::setup_uid, $contrail_users_details,
-                        {
-                            contrail_logoutput => $contrail_logoutput
-                        }
-                    )
+    $contrail_users_details = {
+      'nova'            => { ensure => present, uid => '499', gid => '499', home => '/var/lib/nova' , managehome => true},
+      'libvirt-qemu'    => { ensure => present, uid => '498', gid => '498', home => '/var/lib/libvirt',  managehome => true},
+      'libvirt-dnsmasq' => { ensure => present, uid => '497', gid => '497', home => '/var/lib/libvirt/dnsmasq',  managehome => true},
+    }
+
+    create_resources(group, $contrail_group_details)
+    create_resources(user, $contrail_users_details)
+    #Group <| |> -> User<| |>
+    #$contrail_users_details = {
+      #'nova'            => { user_uid => '499', user_group_name => 'nova', group_gid => '499', user_home_dir => '/var/lib/nova' },
+      #'libvirt-qemu'    => { user_uid => '498', user_group_name => 'kvm' , group_gid => '498', user_home_dir => '/var/lib/libvirt'},
+      #'libvirt-dnsmasq' => { user_uid => '497', user_group_name => 'libvirtd' , group_gid => '497',  user_home_dir => '/var/lib/libvirt/dnsmasq'},
+    #}
+    #create_resources(contrail::lib::setup_uid, $contrail_users_details,
+                        #{
+                            #contrail_logoutput => $contrail_logoutput
+                        #}
+                    #)
+    #->
     contrail::lib::contrail_upgrade{ 'contrail_upgrade':
         contrail_upgrade   => $contrail_upgrade,
         contrail_logoutput => $contrail_logoutput
-    }
-    ->
+    } ->
+    apt::pin { 'debian_repo_preferences':
+      priority => '-10',
+      originator => 'Debian'
+    } ->
 
     # Resource declarations for class contrail::common
     # macro to perform common functions
@@ -80,14 +98,6 @@ class contrail::common(
     host { $::hostname :
         ensure => present,
         ip     => $host_mgmt_ip
-    }
-    ->
-    exec { 'setmysql' :
-        #command => 'python /etc/contrail/contrail_setup_utils/enable_kernel_core.py && echo enable-kernel-core >> /etc/contrail/contrail_common_exec.out',
-        command   => 'mkdir -p /var/log/mysql && echo setmysql >> /etc/contrail/contrail_common_exec.out',
-        unless    => 'grep -qx setmysql /etc/contrail/contrail_common_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
     }
     ->
     package { 'libssl0.9.8' : ensure => present,}
@@ -164,12 +174,8 @@ class contrail::common(
       value => "35357,35358,33306,${::ipv4_reserved_ports}"
     }
 
-    file { '/var/crashes':
-        ensure => 'directory',
-    }
-
     # Make sure our scripts directory is present
-    file { ['/etc/contrail', '/etc/contrail/contrail_setup_utils'] :
+    file { ['/var/log/mysql', '/var/crashes', '/etc/contrail', '/etc/contrail/contrail_setup_utils'] :
         ensure => 'directory',
     }
 
