@@ -73,6 +73,26 @@ class GaleraSetup(ContrailSetup):
         self._args = parser.parse_args(self.remaining_argv)
 
     def fixup_config_files(self):
+        # fix cmon_param
+
+        zk_servers_ports = ','.join(['%s:2181' %(s) for s in self._args.zoo_ip_list])
+        template_vals = {'__internal_vip__' : self._args.internal_vip,
+                         '__haproxy_dips__' :
+                         '"' + '" "'.join(self._args.galera_ip_list) + '"',
+                         '__external_vip__' : self._args.external_vip,
+                         '__zooipports__' : zk_servers_ports,
+                         '__keystoneuser__': self._args.keystone_user,
+                         '__keystonepass__': self._args.keystone_pass,
+                         '__cmonuser__': self._args.cmon_user,
+                         '__cmonpass__': self._args.cmon_pass,
+                         '__monitorgalera__': self._args.monitor_galera
+                        }
+
+        self._template_substitute_write(cmon_param_template.template,
+                                        template_vals,
+                                        self._temp_dir_name + '/cmon_param')
+        local("sudo mv %s/cmon_param /etc/contrail/ha/" % (self._temp_dir_name))
+
         if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
             return
         with settings(warn_only=True):
@@ -91,25 +111,7 @@ class GaleraSetup(ContrailSetup):
                                         template_vals,
                                         self._temp_dir_name + '/galera_param')
         local("sudo mv %s/galera_param /etc/contrail/ha/" % (self._temp_dir_name))
-        zk_servers_ports = ','.join(['%s:2181' %(s) for s in self._args.zoo_ip_list])
 
-        # fix cmon_param
-        template_vals = {'__internal_vip__' : self._args.internal_vip,
-                         '__haproxy_dips__' :
-                         '"' + '" "'.join(self._args.galera_ip_list) + '"',
-                         '__external_vip__' : self._args.external_vip,
-                         '__zooipports__' : zk_servers_ports,
-                         '__keystoneuser__': self._args.keystone_user,
-                         '__keystonepass__': self._args.keystone_pass,
-                         '__cmonuser__': self._args.cmon_user,
-                         '__cmonpass__': self._args.cmon_pass,
-                         '__monitorgalera__': self._args.monitor_galera
-                        }
-
-        self._template_substitute_write(cmon_param_template.template,
-                                        template_vals,
-                                        self._temp_dir_name + '/cmon_param')
-        local("sudo mv %s/cmon_param /etc/contrail/ha/" % (self._temp_dir_name))
 
         local("echo %s > /etc/contrail/galeraid" % self._args.openstack_index)
         if self.pdist in ['Ubuntu']:
