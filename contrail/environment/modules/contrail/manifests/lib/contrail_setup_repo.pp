@@ -11,8 +11,8 @@ define contrail::lib::contrail_setup_repo(
 	}
     }
     if ($operatingsystem == "Ubuntu") {
-	$pattern1 = "deb http:\/\/$contrail_repo_ip:9003\/contrail\/repo\/$contrail_repo_name contrail main"
-	$pattern2 = "deb http://$contrail_repo_ip:9003/contrail/repo/$contrail_repo_name contrail main"
+	$pattern1 = "deb http:\/\/$contrail_repo_ip\/contrail\/repo\/$contrail_repo_name contrail main"
+	$pattern2 = "deb http://$contrail_repo_ip/contrail/repo/$contrail_repo_name contrail main"
 	$repo_cfg_file = "/etc/apt/sources.list"
 	file { "/etc/apt/preferences.d/contrail_repo_preferences":
 	    ensure  => present,

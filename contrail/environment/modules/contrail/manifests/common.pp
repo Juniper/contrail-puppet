@@ -29,7 +29,7 @@
 class contrail::common(
     $host_mgmt_ip = $::contrail::params::host_ip,
     $contrail_repo_name = $::contrail::params::contrail_repo_name,
-    $contrail_repo_ip = $::contrail::params::contrail_repo_ip,
+    $contrail_repo_ip = "puppet",
     $contrail_repo_type = $::contrail::params::contrail_repo_type,
     $contrail_upgrade = $::contrail::params::contrail_upgrade,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
