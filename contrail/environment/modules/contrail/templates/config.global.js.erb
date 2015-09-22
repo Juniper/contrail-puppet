@@ -221,7 +221,7 @@ config.featurePkg.webController = {};
 config.featurePkg.webController.path = '/usr/src/contrail/contrail-web-controller';
 config.featurePkg.webController.enable = true;
 
-<% if @is_storage_master -%>
+<% if @is_storage_master != "" -%>
 config.featurePkg.webStorage = {};
 config.featurePkg.webStorage.path = '/usr/src/contrail/contrail-web-storage';
 config.featurePkg.webStorage.enable = true;
