@@ -17,7 +17,7 @@
 ############################# Server Basics #############################
 
 # The id of the broker. This must be set to a unique integer for each broker.
-broker.id=<%= @kafka_broker_id %>
+broker.id=<%= @database_ip_list.index(@host_control_ip) %>
 
 ############################# Socket Server Settings #############################
 
