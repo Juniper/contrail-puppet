@@ -225,6 +225,7 @@ class contrail::config (
     $vip = $::contrail::params::vip_to_use,
     $contrail_rabbit_port= $::contrail::params::contrail_rabbit_port,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $contrail_host_roles = $::contrail::params::host_roles,
 ) inherits ::contrail::params {
 
     # Main code for class starts here
@@ -246,6 +247,25 @@ class contrail::config (
     }
     else {
         $keystone_ip_to_use = $openstack_ip
+    }
+
+
+    # Install a specific version of keepalived in non-ha
+    # case also, to support upgrade of contrail software.
+    # Below code is not required when keepalive dependency is fixed.
+    #
+    if ($contrail_internal_vip == "" and ($internal_vip == "" or !('openstack' in $contrail_host_roles))) {
+        package { 'keepalived' :
+            ensure => '1.2.13-0~276~ubuntu14.04.1',
+            before => Package['contrail-openstack-config'],
+        }
+        ->
+        service { "keepalived" :
+            enable => false,
+            require => [ Package['keepalived']],
+            ensure => stopped,
+            before => Package['contrail-openstack-config'],
+        }
     }
 
     if $multi_tenancy == true {
