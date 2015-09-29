@@ -73,16 +73,6 @@ class GaleraSetup(ContrailSetup):
         self._args = parser.parse_args(self.remaining_argv)
 
     def fixup_config_files(self):
-        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
-            return
-        with settings(warn_only=True):
-            local("service contrail-hamon stop")
-            local("service cmon stop")
-            local("service mysql stop")
-            local("rm -rf /var/lib/mysql/grastate.dat")
-            local("rm -rf /var/lib/mysql/galera.cache")
-            self.cleanup_redo_log()
-
         # fix galera_param
         template_vals = {'__mysql_host__' : self._args.self_ip,
                          '__mysql_wsrep_nodes__' :
@@ -110,6 +100,16 @@ class GaleraSetup(ContrailSetup):
                                         template_vals,
                                         self._temp_dir_name + '/cmon_param')
         local("sudo mv %s/cmon_param /etc/contrail/ha/" % (self._temp_dir_name))
+
+        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
+            return
+        with settings(warn_only=True):
+            local("service contrail-hamon stop")
+            local("service cmon stop")
+            local("service mysql stop")
+            local("rm -rf /var/lib/mysql/grastate.dat")
+            local("rm -rf /var/lib/mysql/galera.cache")
+            self.cleanup_redo_log()
 
         local("echo %s > /etc/contrail/galeraid" % self._args.openstack_index)
         if self.pdist in ['Ubuntu']:
