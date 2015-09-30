@@ -73,17 +73,9 @@ class GaleraSetup(ContrailSetup):
         self._args = parser.parse_args(self.remaining_argv)
 
     def fixup_config_files(self):
-        # fix galera_param
-        template_vals = {'__mysql_host__' : self._args.self_ip,
-                         '__mysql_wsrep_nodes__' :
-                         '"' + '" "'.join(self._args.galera_ip_list) + '"'}
-        self._template_substitute_write(galera_param_template.template,
-                                        template_vals,
-                                        self._temp_dir_name + '/galera_param')
-        local("sudo mv %s/galera_param /etc/contrail/ha/" % (self._temp_dir_name))
-        zk_servers_ports = ','.join(['%s:2181' %(s) for s in self._args.zoo_ip_list])
-
         # fix cmon_param
+
+        zk_servers_ports = ','.join(['%s:2181' %(s) for s in self._args.zoo_ip_list])
         template_vals = {'__internal_vip__' : self._args.internal_vip,
                          '__haproxy_dips__' :
                          '"' + '" "'.join(self._args.galera_ip_list) + '"',
@@ -100,6 +92,26 @@ class GaleraSetup(ContrailSetup):
                                         template_vals,
                                         self._temp_dir_name + '/cmon_param')
         local("sudo mv %s/cmon_param /etc/contrail/ha/" % (self._temp_dir_name))
+
+        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
+            return
+        with settings(warn_only=True):
+            local("service contrail-hamon stop")
+            local("service cmon stop")
+            local("service mysql stop")
+            local("rm -rf /var/lib/mysql/grastate.dat")
+            local("rm -rf /var/lib/mysql/galera.cache")
+            self.cleanup_redo_log()
+
+        # fix galera_param
+        template_vals = {'__mysql_host__' : self._args.self_ip,
+                         '__mysql_wsrep_nodes__' :
+                         '"' + '" "'.join(self._args.galera_ip_list) + '"'}
+        self._template_substitute_write(galera_param_template.template,
+                                        template_vals,
+                                        self._temp_dir_name + '/galera_param')
+        local("sudo mv %s/galera_param /etc/contrail/ha/" % (self._temp_dir_name))
+
 
         if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
             return

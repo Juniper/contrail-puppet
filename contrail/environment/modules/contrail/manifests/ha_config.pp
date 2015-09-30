@@ -189,7 +189,6 @@ class contrail::ha_config (
             exec { 'exec_password_less_ssh' :
                 command   => $contrail_exec_password_less_ssh,
                 cwd       => '/opt/contrail/bin/',
-                unless    => 'grep -qx exec-setup-password-less-ssh /etc/contrail/contrail_openstack_exec.out',
                 provider  => shell,
                 require   => [ File['/opt/contrail/bin/setup_passwordless_ssh.py'] ],
                 logoutput => $contrail_logoutput
@@ -213,7 +212,6 @@ class contrail::ha_config (
             exec { 'exec_vnc_galera' :
                 command   => $contrail_exec_vnc_galera,
                 cwd       => '/opt/contrail/bin/',
-                unless    => 'grep -qx exec_vnc_galera /etc/contrail/contrail_openstack_exec.out',
                 provider  => shell,
                 require   => [ File['/opt/contrail/bin/setup-vnc-galera'] ],
                 logoutput => $contrail_logoutput,
@@ -239,7 +237,6 @@ class contrail::ha_config (
             exec { 'exec_check_galera' :
                 command   => "python /opt/contrail/bin/check_galera.py ${openstack_mgmt_ip_list_shell} ${openstack_user_list_shell} ${openstack_passwd_list_shell} && echo check_galera >> /etc/contrail/contrail_openstack_exec.out",
                 cwd       => '/opt/contrail/bin/',
-                unless    => 'grep -qx check_galera /etc/contrail/contrail_openstack_exec.out',
                 provider  => shell,
                 require   => [ File['/opt/contrail/bin/check_galera.py'] ],
                 logoutput => $contrail_logoutput,
@@ -255,7 +252,6 @@ class contrail::ha_config (
             exec { 'exec_check_wsrep' :
                 command   => $contrail_exec_check_wsrep,
                 cwd       => '/opt/contrail/bin/',
-                unless    => 'grep -qx exec_check_wsrep /etc/contrail/contrail_openstack_exec.out',
                 provider  => shell,
                 require   => [ File['/opt/contrail/bin/check-wsrep-status.py'] ],
                 logoutput => $contrail_logoutput,
@@ -299,7 +295,6 @@ class contrail::ha_config (
         exec { 'exec_setup_cmon_schema' :
             command   => $contrail_exec_setup_cmon_schema,
             cwd       => '/opt/contrail/bin/',
-            unless    => 'grep -qx exec_setup_cmon_schema /etc/contrail/contrail_openstack_exec.out',
             provider  => shell,
             require   => [ File['/opt/contrail/bin/setup-cmon-schema.py'] ],
             logoutput => $contrail_logoutput,
@@ -346,7 +341,6 @@ class contrail::ha_config (
         exec { 'fix-cmon-params-and-add-ssh-keys' :
             command   => "python fix-cmon-params-and-add-ssh-keys.py ${compute_name_list_shell} ${config_name_list_shell} && echo fix-cmon-params-and-add-ssh-keys >> /etc/contrail/contrail_openstack_exec.out",
             cwd       => '/opt/contrail/bin/',
-            unless    => 'grep -qx fix-cmon-params-and-add-ssh-keys /etc/contrail/contrail_openstack_exec.out',
             provider  => shell,
             require   => [ File['/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py'] ],
             logoutput => $contrail_logoutput,
