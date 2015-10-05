@@ -201,7 +201,8 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
         commands.getstatusoutput("sudo sed -i 's/%s/vhost0/g' %s" %(dev, ifup_parts_file))
         commands.getstatusoutput("sudo sed -i 's/%s/vhost0/g' %s" %(dev, ifdown_parts_file))
 
-    temp_intf_file = '%s/interfaces' %(temp_dir_name)
+#    temp_intf_file = '%s/interfaces' %(temp_dir_name)
+    temp_intf_file = '/etc/network/interfaces.bak'
     commands.getstatusoutput("cp /etc/network/interfaces %s" %(temp_intf_file))
     with open('/etc/network/interfaces', 'r') as fd:
         cfg_file = fd.read()
@@ -265,6 +266,7 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
     commands.getstatusoutput("echo '\n' >> %s" %(temp_intf_file))
 
     # move it to right place
+    commands.getstatusoutput("sudo cp /etc/network/interfaces /etc/network/interfaces.orig")
     commands.getstatusoutput("sudo mv -f %s /etc/network/interfaces" %(temp_intf_file))
 
     #end _rewrite_net_interfaces_file
