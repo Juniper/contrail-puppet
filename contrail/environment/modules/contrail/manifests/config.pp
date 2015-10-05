@@ -29,11 +29,6 @@
 #     (optional) - Default "", meaning use internal_vip if defined, else use
 #     same address as first openstack controller.
 #
-# [*keystone_admin_token*]
-#     Keystone admin token. Admin token value from /etc/keystone/keystone.conf file of
-#     keystone/openstack node.
-#     (optional) - Defaults to "c0ntrail123"
-#
 # [*keystone_admin_user*]
 #     Keystone admin user name.
 #     (optional) - Defaults to "admin".
@@ -45,10 +40,6 @@
 # [*keystone_admin_tenant*]
 #     Keystone admin tenant name.
 #     (optional) - Defaults to "admin".
-#
-# [*keystone_service_token*]
-#     Keystone service token.
-#     (optional) - Defaults to "c0ntrail123".
 #
 # [*use_certs*]
 #     Flag to indicate if certificates to be used for authentication.
@@ -186,11 +177,9 @@ class contrail::config (
     $openstack_ip = $::contrail::params::openstack_ip_list[0],
     $uuid = $::contrail::params::uuid,
     $keystone_ip = $::contrail::params::keystone_ip,
-    $keystone_admin_token = $::contrail::params::keystone_admin_token,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
-    $keystone_service_token = $::contrail::params::keystone_service_token,
     $use_certs = $::contrail::params::use_certs,
     $multi_tenancy = $::contrail::params::multi_tenancy,
     $zookeeper_ip_list = $::contrail::params::zk_ip_list_to_use,
@@ -360,12 +349,6 @@ $ifmap_server_port = '8443'
         }
     }
 
-    # Ensure service.token file is present with right content.
-    if ! defined(File['/etc/contrail/service.token']) {
-        file { '/etc/contrail/service.token' :
-            content => template("${module_name}/service.token.erb"),
-        }
-    }
     exec { 'neutron-conf-exec':
         command   => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
         onlyif    => 'test -f /etc/neutron/neutron.conf',
