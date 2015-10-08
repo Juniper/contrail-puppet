@@ -92,7 +92,6 @@ notify { "haproxy cmd  $contrail_exec_haproxy_gen":;}
     exec { 'generate_ha_config' :
         command   => $contrail_exec_haproxy_gen,
         cwd       => '/opt/contrail/bin/',
-        unless    => 'grep -qx generate_ha_config /etc/contrail/contrail_openstack_exec.out',
         provider  => shell,
         require   => [ File['/opt/contrail/bin/generate_haproxy.py'] ],
         logoutput => $contrail_logoutput
