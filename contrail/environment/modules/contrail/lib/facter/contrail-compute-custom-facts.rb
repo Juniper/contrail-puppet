@@ -32,4 +32,10 @@ Facter.add(:openstack_version) do
     setcode do
         Facter::Util::Resolution.exec('/usr/bin/nova-manage version')
     end
+Facter.add(:contrail_version) do
+    setcode do
+        Facter::Util::Resolution.exec('dpkg -l contrail-install-packages | grep contrail-install-packages | awk \'{ printf $3}\'')
+    end
+end
+
 end
