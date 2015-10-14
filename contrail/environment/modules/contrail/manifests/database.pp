@@ -143,38 +143,15 @@ class contrail::database (
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - cassandra (>= 1.1.12) , contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-database, contrail-setup, openstack-quantum-contrail, supervisor
-    #->
-    #exec { 'exec-config-host-entry' :
-        #command   => "echo \"${config_ip}   ${::system_name}\" >> /etc/hosts && echo exec-config-host-entry >> /etc/contrail/contrail_database_exec.out",
-        #unless    => ["grep -q ${config_ip} /etc/hosts",
-                      #'grep -qx exec-config-host-entry /etc/contrail/contrail_database_exec.out'],
-        #provider  => 'shell',
-        #require   => Package['contrail-openstack-database'],
-        #logoutput => $contrail_logoutput
-    #}
-    ->
-    # database venv installation
-    exec { 'database-venv' :
-        command   => '/bin/bash -c "source ../bin/activate && pip install * && echo database-venv >> /etc/contrail/contrail_database_exec.out"',
-        cwd       => '/opt/contrail/database-venv/archive',
-        unless    => [ '[ ! -d /opt/contrail/database-venv/archive ]',
-                        '[ ! -f /opt/contrail/database-venv/bin/activate ]',
-                        'grep -qx database-venv /etc/contrail/contrail_database_exec.out'],
-        require   => Package['contrail-openstack-database'],
-        provider  => 'shell',
-        logoutput => $contrail_logoutput
-    }
     ->
     file { $database_dir :
         ensure  => directory,
-        require => Package['contrail-openstack-database'],
         owner   => cassandra,
         group   => cassandra,
     }
     ->
     file { "${contrail_cassandra_dir}/cassandra.yaml" :
         ensure  => present,
-        require => [ Package['contrail-openstack-database'] ],
         content => template("${module_name}/cassandra.yaml.erb"),
     }
     ->
@@ -186,24 +163,24 @@ class contrail::database (
     ->
     file { '/usr/share/kafka/config/server.properties':
         ensure  => present,
-        require => [ Package['contrail-openstack-database'] ],
         content => template("${module_name}/kafka.server.properties.erb"),
     }
     ->
     file { '/usr/share/kafka/config/log4j.properties':
         ensure  => present,
-        require => [ Package['contrail-openstack-database'] ],
         content => template("${module_name}/kafka.log4j.properties.erb"),
     }
+    File['/usr/share/kafka/config/log4j.properties'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
     if ($::operatingsystem == 'Ubuntu') {
         file { '/etc/init.d/supervisord-contrail-database':
             ensure  => link,
             target  => '/lib/init/upstart-job',
-            require => File["${contrail_cassandra_dir}/cassandra-env.sh"],
+            #require => File["${contrail_cassandra_dir}/cassandra-env.sh"],
             before  => Service['supervisor-database']
         }
+        File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
     }
     # set high session timeout to survive glance led disk activity
     file { '/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh':
@@ -211,7 +188,6 @@ class contrail::database (
         mode    => '0755',
         owner   => root,
         group   => root,
-        require => Package['contrail-openstack-database'],
         source  => "puppet:///modules/${module_name}/config-zk-files-setup.sh"
     }
     ->
@@ -219,7 +195,6 @@ class contrail::database (
     ->
     exec { 'setup-config-zk-files-setup' :
         command   => $contrail_zk_exec_cmd,
-        require   => File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh'],
         unless    => 'grep -qx setup-config-zk-files-setup /etc/contrail/contrail-config-exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput
@@ -227,38 +202,27 @@ class contrail::database (
     ->
     file { '/etc/contrail/contrail-database-nodemgr.conf' :
         ensure  => present,
-        before  => Service['supervisor-database'],
         content => template("${module_name}/contrail-database-nodemgr.conf.erb"),
     }
     ->
     file { '/etc/contrail/database_nodemgr_param' :
         ensure  => present,
-        before  => Service['supervisor-database'],
         content => template("${module_name}/database_nodemgr_param.erb"),
     }
     ->
-    file { '/opt/contrail/bin/database-server-setup.sh':
-        ensure => present,
-        mode   => '0755',
-        owner  => root,
-        group  => root,
-    }
     exec { 'setup-database-server-setup' :
         command   => '/opt/contrail/bin/database-server-setup.sh; echo setup-database-server-setup >> /etc/contrail/contrail-compute-exec.out',
-        require   => File['/opt/contrail/bin/database-server-setup.sh'],
         unless    => 'grep -qx setup-database-server-setup /etc/contrail/contrail-compute-exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput
     }
     ->
     # Ensure the services needed are running.
-    service { 'supervisor-database' :
+    service { [ 'zookeeper', 'supervisor-database', 'contrail-database'] :
         ensure    => running,
         enable    => true,
-        require   => [ Package['contrail-openstack-database'],
-                        Exec['database-venv'] ],
         subscribe => [ File["${contrail_cassandra_dir}/cassandra.yaml"],
-                        File["${contrail_cassandra_dir}/cassandra-env.sh"] ],
+                        File["${contrail_cassandra_dir}/cassandra-env.sh"] ]
     }
     ->
     contrail::lib::report_status { 'database_completed':
