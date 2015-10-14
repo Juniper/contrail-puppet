@@ -5,12 +5,6 @@
 # This follows the suggest deployment from the neutron Administrator Guide.
 class openstack::common::contrail::neutron {
   $controller_management_address = $::openstack::config::controller_address_management
-  $enable_ceilometer = $::contrail::params::enable_ceilometer
-  if ($enable_ceilometer) {
-       $notification_driver = 'neutron.openstack.common.notifier.rpc_notifier'
-  } else {
-       $notification_driver = ''
-  }
 
   $data_network = $::openstack::config::network_data
   $data_address = ip_for_network($data_network)
@@ -33,7 +27,6 @@ class openstack::common::contrail::neutron {
     debug                 => $::openstack::config::debug,
     verbose               => $::openstack::config::verbose,
     service_plugins       => ['neutron_plugin_contrail.plugins.opencontrail.loadbalancer.plugin.LoadBalancerPlugin'],
-    notification_driver   => $notification_driver,
   }
 
   class { '::neutron::server':

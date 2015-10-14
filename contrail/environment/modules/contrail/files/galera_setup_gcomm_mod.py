@@ -102,6 +102,7 @@ class GaleraSetup(ContrailSetup):
                                         template_vals,
                                         self._temp_dir_name + '/galera_param')
         local("sudo mv %s/galera_param /etc/contrail/ha/" % (self._temp_dir_name))
+        zk_servers_ports = ','.join(['%s:2181' %(s) for s in self._args.zoo_ip_list])
 
 
         if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
