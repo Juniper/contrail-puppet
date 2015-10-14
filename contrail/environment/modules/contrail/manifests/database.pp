@@ -133,10 +133,7 @@ class contrail::database (
             group   => cassandra,
         }
     }
-    contrail::lib::report_status { 'database_started':
-        state              => 'database_started',
-        contrail_logoutput => $contrail_logoutput
-    }
+    contrail::lib::report_status { 'database_started': }
     ->
     # Ensure all needed packages are present
     package { 'contrail-openstack-database' : ensure => latest, notify => 'Service[supervisor-database]'}
@@ -225,8 +222,5 @@ class contrail::database (
                         File["${contrail_cassandra_dir}/cassandra-env.sh"] ]
     }
     ->
-    contrail::lib::report_status { 'database_completed':
-        state              => 'database_completed',
-        contrail_logoutput => $contrail_logoutput
-    }
+    contrail::lib::report_status { 'database_completed': }
 }
