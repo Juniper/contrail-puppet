@@ -6,9 +6,19 @@ define contrail::lib::contrail_upgrade(
     $contrail_logoutput = false,
     ) {
 
-    notify { "**** ${module_name} - contrail_upgrade= ${contrail_upgrade}": ; }
+    $needed_version = $::contrail::params::contrail_version
+    # needed_version is not available om old SMs
+    notify {"*** installed_version => $::contrail_version ***":;}
+    if $needed_version and (versioncmp($needed_version, $::contrail_version) > 0) {
+      notify {"*** need => $::needed_version ***":;}
+      $upgrade_needed = 1
+    } else {
+      $upgrade_needed = 0
+    }
 
-    if ($contrail_upgrade == true) {
+    notify { "*** $::contrail_version => ${needed_version} or ${contrail_upgrade} or ${upgrade_needed}":;}
+    if (($contrail_upgrade == true) or ($upgrade_needed == 1)) {
+        notify {"*** UPGRADING ***":;} ->
         exec { 'update_interface_file1':
             command   => "sed -i 's/^\"//g' /etc/network/interfaces",
             provider  => shell,

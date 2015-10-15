@@ -658,7 +658,8 @@ class contrail::params (
     $enable_storage_compute = true,
     $enable_storage_master = true,
     $enable_ceilometer = false,
-    $tor_ha_config = ""
+    $tor_ha_config = "",
+    $contrail_version = ''
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
