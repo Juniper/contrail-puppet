@@ -197,6 +197,11 @@ class contrail::collector (
         notify => 'Service[supervisor-analytics]'
     }
     ->
+    package { 'contrail-docs' :
+        ensure => latest,
+        notify => 'Service[supervisor-analytics]'
+    }
+    ->
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, python-contrail, contrail-analytics, contrail-setup, contrail-nodemgr
     # For Centos/Fedora - contrail-api-pib, contrail-analytics, contrail-setup, contrail-nodemgr
