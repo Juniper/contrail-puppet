@@ -3,16 +3,16 @@ class contrail::collector::service(
 ) {
     # Ensure the services needed are running.
     exec { 'redis-del-db-dir':
-        command   => 'rm -f /var/lib/redis/dump.rb && service redis-server restart && echo redis-del-db-dir /etc/contrail/contrail-collector-exec.out',
-        unless    => 'grep -qx redis-del-db-dir /etc/contrail/contrail-collector-exec.out',
+        command   => 'rm -f /var/lib/redis/dump.rb',
         provider  => shell,
         logoutput => $contrail_logoutput
+    } ->
+    service { 'redis-server' :
+        ensure    => running,
+        enable    => true,
     } ->
     service { 'supervisor-analytics' :
         ensure    => running,
         enable    => true,
-        subscribe => [ File['/etc/contrail/contrail-collector.conf'],
-                        File['/etc/contrail/contrail-query-engine.conf'],
-                        File['/etc/contrail/contrail-analytics-api.conf'] ],
     }
 }
