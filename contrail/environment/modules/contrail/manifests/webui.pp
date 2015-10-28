@@ -44,117 +44,14 @@
 #     Values are true, false or on_failure
 #     (optional) - Defaults to false
 #
-class contrail::webui (
-    $config_ip = $::contrail::params::config_ip_list[0],
-    $collector_ip = $::contrail::params::collector_ip_list[0],
-    $openstack_ip = $::contrail::params::openstack_ip_list[0],
-    $database_ip_list =  $::contrail::params::database_ip_list,
-    $is_storage_master = $::contrail::params::storage_enabled,
-    $keystone_ip = $::contrail::params::keystone_ip,
-    $internal_vip = $::contrail::params::internal_vip,
-    $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
-    $redis_password = $::contrail::params::redis_password,
-    $contrail_logoutput = $::contrail::params::contrail_logoutput,
-) {
+class contrail::webui () {
     include ::contrail::params
-    case $::operatingsystem {
-        Ubuntu: {
-            file {'/etc/init/supervisor-webui.override':
-                ensure  => absent,
-                require => Package['contrail-openstack-webui']
-            }
-            # Below is temporary to work-around in Ubuntu as Service resource fails
-            # as upstart is not correctly linked to /etc/init.d/service-name
-            file { '/etc/init.d/supervisor-webui':
-                ensure => link,
-                target => '/lib/init/upstart-job',
-                before => Service['supervisor-webui']
-            }
-        }
-        default: {
-        }
-    }
 
-    # Set all variables as needed for config file using the class parameters.
-    # if contrail_internal_vip is "", but internal_vip is not "", set contrail_internal_vip
-    # to internal_vip.
-    $config_ip_to_use = $::contrail::params::config_ip_to_use
-    $collector_ip_to_use = $::contrail::params::collector_ip_to_use
-    $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
-    $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use
-
-
-    # Print all the variables
-    notify { "webui - config_ip = ${config_ip}":;}
-    notify { "webui - config_ip_to_use = ${config_ip_to_use}":;}
-    notify { "webui - collector_ip = ${collector_ip}":;}
-    notify { "webui - collector_ip_to_use = ${collector_ip_to_use}":;}
-    notify { "webui - openstack_ip = ${openstack_ip}":;}
-    notify { "webui - openstack_ip_to_use = ${openstack_ip_to_use}":;}
-    notify { "webui - database_ip_list = ${database_ip_list}":;}
-    notify { "webui - is_storage_master = ${is_storage_master}":;}
-    notify { "webui - keystone_ip = ${keystone_ip}":;}
-    notify { "webui - keystone_ip_to_use = ${keystone_ip_to_use}":;}
-    notify { "webui - internal_vip = ${internal_vip}":;}
-    notify { "webui - contrail_internal_vip = ${contrail_internal_vip}":;}
-    notify { "webui - contrail_internal_vip_to_use = ${contrail_internal_vip_to_use}":;}
-
-    contrail::lib::report_status { 'webui_started':
-        state              => 'webui_started',
-        contrail_logoutput => $contrail_logoutput }
-    ->
-    # Ensure all needed packages are present
-    package { 'contrail-openstack-webui' :
-        ensure => latest,
-        notify => 'Service[supervisor-webui]'
-    }
-
-    if ($is_storage_master) {
-        package { 'contrail-web-storage' :
-            ensure => latest,
-        }
-        ->
-        file { 'storage.config.global.js':
-            ensure  => present,
-            path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
-            content => template("${module_name}/storage.config.global.js.erb"),
-        }
-        -> Service['supervisor-webui']
-    } else {
-        package { 'contrail-web-storage' :
-            ensure => absent,
-        }
-        ->
-        file { 'storage.config.global.js':
-            ensure  => absent,
-            path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
-            content => template("${module_name}/storage.config.global.js.erb"),
-        }
-        -> Service['supervisor-webui']
-    }
-    # The above wrapper package should be broken down to the below packages
-    # For Debian/Ubuntu - contrail-nodemgr, contrail-webui, contrail-setup, supervisor
-    # For Centos/Fedora - contrail-api-lib, contrail-webui, contrail-setup, supervisor
-    # Ensure global config js file is present.
-    file { '/etc/contrail/config.global.js' :
-        ensure  => present,
-        require => Package['contrail-openstack-webui'],
-        content => template("${module_name}/config.global.js.erb"),
-    }
-    ->
-    # Ensure the services needed are running. The individual services are left
-    # under control of supervisor. Hence puppet only checks for continued operation
-    # of supervisor-webui service, which in turn monitors status of individual
-    # services needed for webui role.
-    service { 'supervisor-webui' :
-        ensure    => running,
-        enable    => true,
-        subscribe => File['/etc/contrail/config.global.js'],
-    }
-    ->
-    contrail::lib::report_status { 'webui_completed':
-        state              => 'webui_completed',
-        contrail_logoutput => $contrail_logoutput
-    }
-
+    anchor {'contrail::webui::start':} ->
+    contrail::lib::report_status { 'webui_started': } ->
+    class { 'contrail::webui::install' : } ->
+    class { 'contrail::webui::config' : } ~>
+    class { 'contrail::webui::service' : } ->
+    contrail::lib::report_status { 'webui_completed': }
+    anchor {'contrail::webui::end':}
 }
