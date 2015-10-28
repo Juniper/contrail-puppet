@@ -12,6 +12,7 @@ class contrail::database::config (
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $database_minimum_diskGB = $::contrail::params::database_minimum_diskGB,
 ) {
+
     # Main Class code
     case $::operatingsystem {
         Ubuntu: {

@@ -599,27 +599,6 @@ class contrail::compute (
         logoutput => $contrail_logoutput
     }
     ->
-    #exec { 'fix-neutron-tenant-name' :
-        #command   => 'openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name services && echo fix-neutron-tenant-name >> /etc/contrail/contrail_compute_exec.out',
-        #unless    => 'grep -qx fix-neutron-tenant-name /etc/contrail/contrail_compute_exec.out',
-        #provider  => shell,
-        #logoutput => $contrail_logoutput
-    #}
-    #->
-    #exec { 'fix-neutron-admin-password' :
-        #command   => "openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password ${keystone_admin_password} && echo fix-neutron-admin-password >> /etc/contrail/contrail_compute_exec.out",
-        #unless    => 'grep -qx fix-neutron-admin-password /etc/contrail/contrail_compute_exec.out',
-        #provider  => shell,
-        #logoutput => $contrail_logoutput
-    #}
-    #->
-    #exec { 'fix-keystone-admin-password' :
-        #command   => "openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password ${keystone_admin_password} && echo fix-keystone-admin-password >> /etc/contrail/contrail_compute_exec.out",
-        #unless    => 'grep -qx fix-keystone-admin-password /etc/contrail/contrail_compute_exec.out',
-        #provider  => shell,
-        #logoutput => $contrail_logoutput
-#
-    #}
     nova_config { 'DEFAULT/neutron_admin_tenant_name':
         value => 'services'
     }
