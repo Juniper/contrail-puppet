@@ -132,7 +132,6 @@ class contrail::provision_contrail (
         cwd       => '/etc/contrail/contrail_setup_utils/',
         unless    => 'grep -qx exec-provision-control /etc/contrail/contrail_config_exec.out',
         provider  => shell,
-        require   => [ File['/etc/contrail/contrail_setup_utils/exec_provision_control.py'] ],
         logoutput => $contrail_logoutput
     }
     ->
@@ -145,7 +144,6 @@ class contrail::provision_contrail (
     ->
     exec { 'provision-external-bgp' :
         command   => "python /etc/contrail/contrail_setup_utils/setup_external_bgp.py --bgp_params \"${external_bgp}\" --api_server_ip \"${config_ip_to_use}\" --api_server_port 8081 --router_asn \"${router_asn}\" --mt_options \"${mt_options}\" && echo provision-external-bgp >> /etc/contrail/contrail_config_exec.out",
-        require   => [ File['/etc/contrail/contrail_setup_utils/setup_external_bgp.py'] ],
         unless    => 'grep -qx provision-external-bgp /etc/contrail/contrail_config_exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput
@@ -178,21 +176,18 @@ class contrail::provision_contrail (
     ->
     exec { 'provision-role-config' :
         command   => "python /opt/contrail/provision_role.py ${config_ip_list_for_shell} ${config_name_list_for_shell} ${config_ip} ${keystone_admin_user} ${keystone_admin_password} ${keystone_admin_tenant} 'config' && echo provision-role-config >> /etc/contrail/contrail_config_exec.out",
-        require   => [ File['/opt/contrail/provision_role.py'] ],
         provider  => shell,
         logoutput => $contrail_logoutput
     }
     ->
     exec { 'provision-role-database' :
         command   => "python /opt/contrail/provision_role.py ${database_ip_list_for_shell} ${database_name_list_for_shell} ${config_ip} ${keystone_admin_user} ${keystone_admin_password} ${keystone_admin_tenant} 'database' && echo provision-role-database- >> /etc/contrail/contrail_config_exec.out",
-        require   => [ File['/opt/contrail/provision_role.py'] ],
         provider  => shell,
         logoutput => $contrail_logoutput
     }
     ->
     exec { 'provision-role-collector' :
         command   => "python /opt/contrail/provision_role.py ${collector_ip_list_for_shell} ${collector_name_list_for_shell} ${config_ip} ${keystone_admin_user} ${keystone_admin_password} ${keystone_admin_tenant} 'collector' && echo provision-role-collector >> /etc/contrail/contrail_config_exec.out",
-        require   => [ File['/opt/contrail/provision_role.py'] ],
         provider  => shell,
         logoutput => $contrail_logoutput
     }

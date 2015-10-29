@@ -16,10 +16,7 @@ class contrail::provision_complete(
             contrail_logoutput => $contrail_logoutput
         }
         ->
-        contrail::lib::report_status { $state:
-            state              => $state,
-            contrail_logoutput => $contrail_logoutput
-        }
+        contrail::lib::report_status { $state: }
         ->
         exec { 'do-reboot-server' :
             command   => '/sbin/reboot && echo do-reboot-server >> /etc/contrail/contrail_common_exec.out',

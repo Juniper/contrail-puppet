@@ -14,10 +14,7 @@ class contrail::provision_start(
 ) {
     include ::contrail::params
     if ($enable_module) {
-        contrail::lib::report_status { $state:
-            state              => $state,
-            contrail_logoutput => $contrail_logoutput
-        }
+        contrail::lib::report_status { $state: }
     }
 }
 
