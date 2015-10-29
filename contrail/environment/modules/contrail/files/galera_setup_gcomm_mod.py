@@ -118,6 +118,7 @@ class GaleraSetup(ContrailSetup):
             wsrep_conf_file = 'my.cnf'
             wsrep_template = wsrep_conf_centos_template.template
 
+        self.install_mysql_db()
         self.mysql_token_file = '/etc/contrail/mysql.token'
         # fixup mysql/wsrep config
         if self._args.openstack_index == 1:
@@ -126,7 +127,6 @@ class GaleraSetup(ContrailSetup):
             self.get_mysql_token_file()
 
         wsrep_cluster_address =  (':4567,'.join(self._args.galera_ip_list) + ':4567')
-            
         template_vals = {'__wsrep_nodes__' : wsrep_cluster_address,
                          '__wsrep_node_address__' : self._args.self_ip,
                          '__mysql_token__' : self.mysql_token,
@@ -163,7 +163,6 @@ class GaleraSetup(ContrailSetup):
 
 
 
-        self.install_mysql_db()
         self.set_mysql_root_password()
         self.setup_grants()
         self.setup_cron()
