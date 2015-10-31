@@ -366,6 +366,12 @@ $ifmap_server_port = '8443'
             content => template("${module_name}/service.token.erb"),
         }
     }
+    if !defined(File['/etc/contrail/openstackrc']) {
+        file { '/etc/contrail/openstackrc' :
+            content => template("${module_name}/openstackrc.erb"),
+            before => Exec['neutron-conf-exec']
+        }
+    }
     exec { 'neutron-conf-exec':
         command   => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
         onlyif    => 'test -f /etc/neutron/neutron.conf',
@@ -581,15 +587,16 @@ $ifmap_server_port = '8443'
         provider => shell
     }
     ->
-    file { '/opt/contrail/bin/quantum-server-setup.sh':
+    file { '/etc/contrail/quantum-server-setup.sh':
         mode    => '0755',
         owner   => root,
         group   => root,
-        require => File['/etc/contrail/ctrl-details', '/etc/contrail/contrail-schema.conf', '/etc/contrail/contrail-svc-monitor.conf']
+        require => File['/etc/contrail/ctrl-details', '/etc/contrail/contrail-schema.conf', '/etc/contrail/contrail-svc-monitor.conf'],
+        source => "puppet:///modules/${module_name}/quantum-server-setup.sh"
     }
     ->
     exec { 'setup-quantum-server-setup' :
-        command  => "/bin/bash /opt/contrail/bin/quantum-server-setup.sh ${::operatingsystem} && echo setup-quantum-server-setup >> /etc/contrail/contrail_config_exec.out",
+        command  => "/bin/bash /etc/contrail/quantum-server-setup.sh ${::operatingsystem} && echo setup-quantum-server-setup >> /etc/contrail/contrail_config_exec.out",
         require  => File['/opt/contrail/bin/quantum-server-setup.sh'],
         unless   => 'grep -qx setup-quantum-server-setup /etc/contrail/contrail_config_exec.out',
         provider => shell
