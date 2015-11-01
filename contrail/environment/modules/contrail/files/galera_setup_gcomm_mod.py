@@ -74,6 +74,7 @@ class GaleraSetup(ContrailSetup):
 
     def fixup_config_files(self):
         # fix cmon_param
+
         zk_servers_ports = ','.join(['%s:2181' %(s) for s in self._args.zoo_ip_list])
         template_vals = {'__internal_vip__' : self._args.internal_vip,
                          '__haproxy_dips__' :
@@ -92,6 +93,16 @@ class GaleraSetup(ContrailSetup):
                                         self._temp_dir_name + '/cmon_param')
         local("sudo mv %s/cmon_param /etc/contrail/ha/" % (self._temp_dir_name))
 
+        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
+            return
+        with settings(warn_only=True):
+            local("service contrail-hamon stop")
+            local("service cmon stop")
+            local("service mysql stop")
+            local("rm -rf /var/lib/mysql/grastate.dat")
+            local("rm -rf /var/lib/mysql/galera.cache")
+            self.cleanup_redo_log()
+
         # fix galera_param
         template_vals = {'__mysql_host__' : self._args.self_ip,
                          '__mysql_wsrep_nodes__' :
@@ -101,9 +112,7 @@ class GaleraSetup(ContrailSetup):
                                         self._temp_dir_name + '/galera_param')
         local("sudo mv %s/galera_param /etc/contrail/ha/" % (self._temp_dir_name))
 
-
         local("echo %s > /etc/contrail/galeraid" % self._args.openstack_index)
-
         if self.pdist in ['Ubuntu']:
             local("ln -sf /bin/true /sbin/chkconfig")
             self.mysql_svc = 'mysql'
@@ -117,56 +126,17 @@ class GaleraSetup(ContrailSetup):
             wsrep_conf = self.mysql_conf
             wsrep_conf_file = 'my.cnf'
             wsrep_template = wsrep_conf_centos_template.template
-
         self.mysql_token_file = '/etc/contrail/mysql.token'
-        # fixup mysql/wsrep config
+
+        self.install_mysql_db()
         if self._args.openstack_index == 1:
             self.create_mysql_token_file()
         else:
             self.get_mysql_token_file()
-
-        wsrep_cluster_address =  (':4567,'.join(self._args.galera_ip_list) + ':4567')
-            
-        template_vals = {'__wsrep_nodes__' : wsrep_cluster_address,
-                         '__wsrep_node_address__' : self._args.self_ip,
-                         '__mysql_token__' : self.mysql_token,
-                         '__wsrep_cluster_size__': len(self._args.galera_ip_list),
-                         '__wsrep_inc_offset__': self._args.openstack_index*100,
-                        }
-        self._template_substitute_write(wsrep_template, template_vals,
-                                self._temp_dir_name + '/%s' % wsrep_conf_file)
-        local("sudo mv %s/%s %s" % (self._temp_dir_name, wsrep_conf_file,
-                                    wsrep_conf))
-#        if self._args.openstack_index == 1:
-#            local('sed -ibak "s#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://#g" %s' % (wsrep_conf))
-
-        # fixup cmon config
-        template_vals = {'__mysql_nodes__' : ','.join(self._args.galera_ip_list),
-                         '__mysql_node_address__' : self._args.internal_vip,
-                        }
-        self._template_substitute_write(cmon_conf_template.template, template_vals,
-                                        self._temp_dir_name + '/cmon.cnf')
-        local("sudo mv %s/cmon.cnf /etc/cmon.cnf" % (self._temp_dir_name))
-
-
-
-        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
-            return
-        with settings(warn_only=True):
-            local("service contrail-hamon stop")
-            local("service cmon stop")
-            local("service mysql stop")
-            local("rm -rf /var/lib/mysql/grastate.dat")
-            local("rm -rf /var/lib/mysql/galera.cache")
-            self.cleanup_redo_log()
-
-
-
-
-        self.install_mysql_db()
         self.set_mysql_root_password()
         self.setup_grants()
         self.setup_cron()
+        # fixup mysql/wsrep config
         """
         local('sed -i -e "s/bind-address/#bind-address/" %s' % self.mysql_conf)
         local('sed -ibak "s/max_connections.*/max_connections=10000/" %s' % self.mysql_conf)
@@ -189,6 +159,28 @@ class GaleraSetup(ContrailSetup):
  #       if self._args.openstack_index == 1:
  #           wsrep_cluster_address= ''
  #       else:
+        wsrep_cluster_address =  (':4567,'.join(self._args.galera_ip_list) + ':4567')
+
+        template_vals = {'__wsrep_nodes__' : wsrep_cluster_address,
+                         '__wsrep_node_address__' : self._args.self_ip,
+                         '__mysql_token__' : self.mysql_token,
+                         '__wsrep_cluster_size__': len(self._args.galera_ip_list),
+                         '__wsrep_inc_offset__': self._args.openstack_index*100,
+                        }
+        self._template_substitute_write(wsrep_template, template_vals,
+                                self._temp_dir_name + '/%s' % wsrep_conf_file)
+        local("sudo mv %s/%s %s" % (self._temp_dir_name, wsrep_conf_file,
+                                    wsrep_conf))
+#        if self._args.openstack_index == 1:
+#            local('sed -ibak "s#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://#g" %s' % (wsrep_conf))
+
+        # fixup cmon config
+        template_vals = {'__mysql_nodes__' : ','.join(self._args.galera_ip_list),
+                         '__mysql_node_address__' : self._args.internal_vip,
+                        }
+        self._template_substitute_write(cmon_conf_template.template, template_vals,
+                                        self._temp_dir_name + '/cmon.cnf')
+        local("sudo mv %s/cmon.cnf /etc/cmon.cnf" % (self._temp_dir_name))
 
     def install_mysql_db(self):
         local('chkconfig %s on' % self.mysql_svc)
