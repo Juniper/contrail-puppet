@@ -22,10 +22,12 @@ Puppet::Type.type(:reboot).provide :linux do
 
   def cancel_transaction
     Puppet::Application.stop!
+    Puppet.warning("###DEBUG in cancel_transaction")
   end
 
   def reboot
     if @resource[:apply] != :finished
+      Puppet.warning("###DEBUG Cancelling Transaction")
       cancel_transaction
     end
 
@@ -45,6 +47,7 @@ Puppet::Type.type(:reboot).provide :linux do
   end
 
   def async_shutdown(shutdown_cmd)
+    Puppet.warning("###DEBUG async_shutdown")
     Puppet.debug("Adding #{shutdown_cmd} to ruby's at_exit handler")
     pid = Process.pid
     at_exit { system shutdown_cmd if Process.pid == pid }
