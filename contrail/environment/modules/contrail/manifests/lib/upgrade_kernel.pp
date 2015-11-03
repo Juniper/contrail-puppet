@@ -23,7 +23,7 @@ define contrail::lib::upgrade_kernel(
        $image = "linux-image-${contrail_dist_kernel_version}-generic"
        $image_extra = "linux-image-extra-${contrail_dist_kernel_version}-generic"
 
-       package { [$headers, $headers_generic, $image,  $image_extra] : ensure => present, notify => Reboot["after"],  }
+       package { [$headers, $headers_generic, $image,  $image_extra] : ensure => present }
        #->
        #package { $headers_generic : ensure => present, notify => Reboot["after"],  }
        #->
