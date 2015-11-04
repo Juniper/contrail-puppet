@@ -169,7 +169,8 @@ class contrail::ha_config (
         $contrail_exec_password_less_ssh = "python /opt/contrail/bin/setup_passwordless_ssh.py ${openstack_mgmt_ip_list_shell} ${openstack_user_list_shell} ${openstack_passwd_list_shell} && echo exec-setup-password-less-ssh >> /etc/contrail/contrail_openstack_exec.out"
         if ($enable_pre_exec_vnc_galera) {
             # GALERA
-            contrail::lib::report_status { 'pre_exec_vnc_galera_started': state => 'pre_exec_vnc_galera_started' } ->
+            contrail::lib::report_status { 'pre_exec_vnc_galera_started': }
+            ->
             package { 'contrail-openstack-ha':
                 ensure  => latest,
             }
@@ -185,7 +186,6 @@ class contrail::ha_config (
                 command   => $contrail_exec_password_less_ssh,
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
-                require   => [ File['/opt/contrail/bin/setup_passwordless_ssh.py'] ],
                 logoutput => $contrail_logoutput
             }
             ->
@@ -208,16 +208,15 @@ class contrail::ha_config (
                 command   => $contrail_exec_vnc_galera,
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
-                require   => [ File['/opt/contrail/bin/setup-vnc-galera'] ],
                 logoutput => $contrail_logoutput,
                 tries     => 3,
                 try_sleep => 15,
             }
             ->
-            contrail::lib::report_status { 'pre_exec_vnc_galera_completed': state => 'pre_exec_vnc_galera_completed' }
+            contrail::lib::report_status { 'pre_exec_vnc_galera_completed': }
         }
         if ($enable_post_exec_vnc_galera) {
-        contrail::lib::report_status { 'post_exec_vnc_galera_started': state => 'post_exec_vnc_galera_started' }
+        contrail::lib::report_status { 'post_exec_vnc_galera_started': }
         if ($openstack_index == '1' ) {
             # Fix WSREP cluster address
             # Need check this from provisioned ha box
@@ -233,7 +232,6 @@ class contrail::ha_config (
                 command   => "python /opt/contrail/bin/check_galera.py ${openstack_mgmt_ip_list_shell} ${openstack_user_list_shell} ${openstack_passwd_list_shell} && echo check_galera >> /etc/contrail/contrail_openstack_exec.out",
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
-                require   => [ File['/opt/contrail/bin/check_galera.py'] ],
                 logoutput => $contrail_logoutput,
             }
             ->
@@ -248,7 +246,6 @@ class contrail::ha_config (
                 command   => $contrail_exec_check_wsrep,
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
-                require   => [ File['/opt/contrail/bin/check-wsrep-status.py'] ],
                 logoutput => $contrail_logoutput,
             }
         }
@@ -291,7 +288,6 @@ class contrail::ha_config (
             command   => $contrail_exec_setup_cmon_schema,
             cwd       => '/opt/contrail/bin/',
             provider  => shell,
-            require   => [ File['/opt/contrail/bin/setup-cmon-schema.py'] ],
             logoutput => $contrail_logoutput,
         }
         ->
@@ -302,22 +298,6 @@ class contrail::ha_config (
             logoutput => $contrail_logoutput,
         }
         ->
-        # fix- mem-cache conf
-        #file { '/opt/contrail/bin/fix-mem-cache.py' :
-            #ensure => present,
-            #mode   => '0755',
-            #group  => root,
-            #source => "puppet:///modules/${module_name}/fix-mem-cache.py"
-        #}
-        #->
-        #exec { 'fix-mem-cache' :
-            #command   => "python fix-mem-cache.py ${host_control_ip} && echo fix-mem-cache >> /etc/contrail/contrail_openstack_exec.out",
-            #cwd       => '/opt/contrail/bin/',
-            #unless    => 'grep -qx fix-mem-cache /etc/contrail/contrail_openstack_exec.out',
-            #provider  => shell,
-            #require   => [ File['/opt/contrail/bin/fix-mem-cache.py'] ],
-            #logoutput => $contrail_logoutput,
-        #}
         class { 'memcached':
             max_memory => 2048,
             listen_ip  => $host_control_ip
@@ -337,7 +317,6 @@ class contrail::ha_config (
             command   => "python fix-cmon-params-and-add-ssh-keys.py ${compute_name_list_shell} ${config_name_list_shell} && echo fix-cmon-params-and-add-ssh-keys >> /etc/contrail/contrail_openstack_exec.out",
             cwd       => '/opt/contrail/bin/',
             provider  => shell,
-            require   => [ File['/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py'] ],
             logoutput => $contrail_logoutput,
         }
         ->
@@ -354,16 +333,15 @@ class contrail::ha_config (
             provider  => shell,
             logoutput => $contrail_logoutput,
             unless    => 'grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out',
-            require   => File['/opt/contrail/bin/transfer_keys.py']
         }
 
         if (enable_sequence_provisioning == false) {
             Exec['exec-transfer-keys']
-            -> Contrail::Lib::Check-transfer-keys[$openstack_mgmt_ip_list]
+            -> Contrail::Lib::Check_transfer_keys[$openstack_mgmt_ip_list]
             -> Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
-            contrail::lib::check-transfer-keys{ $openstack_mgmt_ip_list :;}
+            contrail::lib::check_transfer_keys{ $openstack_mgmt_ip_list :;}
         }
-        contrail::lib::report_status { 'post_exec_vnc_galera_completed': state => 'post_exec_vnc_galera_completed' }
+        contrail::lib::report_status { 'post_exec_vnc_galera_completed':}
         #This wil be executed for all openstacks ,if there is an external nfs server
         if ($contrail_nfs_server != $host_control_ip ) {
             package { 'nfs-common':
@@ -375,7 +353,7 @@ class contrail::ha_config (
                 unless    => 'grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out',
                 provider  => shell,
                 logoutput => $contrail_logoutput
-            }
+            } ->
             exec { 'add-fstab' :
                 command   => "echo \"${contrail_nfs_server}:${contrail_nfs_glance_path} /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
                 unless    => 'grep -qx add-fstab  /etc/contrail/contrail_openstack_exec.out',

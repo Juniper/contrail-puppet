@@ -2,7 +2,7 @@ require 'facter'
 
 Facter.add(:ipv4_reserved_ports) do
     setcode do
-        Facter::Util::Resolution.exec('sysctl -a | grep net.ipv4.ip_local_reserved_ports | awk -F= \'{print $2}\'')
+        Facter::Util::Resolution.exec('sysctl -a | grep net.ipv4.ip_local_reserved_ports | awk -F= \'{print $2}\' | tr -d \' \'')
     end
 end
 Facter.add(:contrail_gateway) do
