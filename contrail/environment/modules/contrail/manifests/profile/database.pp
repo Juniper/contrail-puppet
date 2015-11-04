@@ -13,12 +13,20 @@
 #
 class contrail::profile::database (
     $enable_module = $::contrail::params::enable_database,
+    $host_roles = $::contrail::params::host_roles,
     $enable_ceilometer = $::contrail::params::enable_ceilometer
 ) {
-    if ($enable_module) {
+    if ($enable_module and "database" in $host_roles) {
         contain ::contrail::database
         if ($enable_ceilometer) {
             include ::contrail::profile::mongodb
         }
+    } elsif ((!("database" in $host_roles)) and ($contrail_roles["database"] == true)) {
+
+        notify { "uninstalling database":; }
+        contain ::contrail::uninstall_database
+
     }
+
+
 }
