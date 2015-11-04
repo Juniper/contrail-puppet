@@ -14,6 +14,7 @@ class contrail::profile::config (
 
     if ($enable_module and 'config' in $host_roles) {
         contain ::contrail::config
+        contain ::contrail::provision_contrail
         #contrail expects neutron server to run on configs
         include ::contrail::profile::neutron_server
     } elsif ((!('config' in $host_roles)) and ($contrail_roles['config'] == true)) {

@@ -37,12 +37,40 @@ class GaleraSetup(ContrailSetup):
         self.parse_args(args_str)
         self.mysql_redo_log_sz = '5242880'
 
-    def check_cluster(self, galera_ip_list, self_ip):
+    def is_clustered(self, galera_ip_list, self_ip):
         status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
         mysql_token = output
         status,output = commands.getstatusoutput('mysql -uroot -p%s -e "show status like \'wsrep_incoming_addresses\'"' %  mysql_token )
         print "wsrep_incoming_addresses: %s" % output
+
+        wsrep_nodes =  (':3306,'.join(self._args.galera_ip_list) + ':3306')
+        output_list = output.split("\t")
         if output.find(self_ip) >= 0:
+            return True
+        else:
+            return False
+
+    def is_cluster_synced(self):
+        status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
+        mysql_token = output
+        status,output = commands.getstatusoutput('mysql -uroot -p%s -e "show status like \'wsrep_local_state\'"' %  mysql_token )
+        output_list = []
+        output_list = output.split('\t')
+        if ('4'  in output_list):
+            return True
+        else:
+            return False
+
+
+    def is_cluster_updated(self, galera_ip_list):
+        status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
+        mysql_token = output
+        status,output = commands.getstatusoutput('mysql -uroot -p%s -e "show status like \'wsrep_incoming_addresses\'"' %  mysql_token )
+        print "wsrep_incoming_addresses: %s" % output
+        output_list = []
+        wsrep_nodes =  (':3306,'.join(self._args.galera_ip_list) + ':3306')
+        output_list = output.split("\t")
+        if (wsrep_nodes  in output_list):
             return True
         else:
             return False
@@ -93,15 +121,6 @@ class GaleraSetup(ContrailSetup):
                                         self._temp_dir_name + '/cmon_param')
         local("sudo mv %s/cmon_param /etc/contrail/ha/" % (self._temp_dir_name))
 
-        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
-            return
-        with settings(warn_only=True):
-            local("service contrail-hamon stop")
-            local("service cmon stop")
-            local("service mysql stop")
-            local("rm -rf /var/lib/mysql/grastate.dat")
-            local("rm -rf /var/lib/mysql/galera.cache")
-            self.cleanup_redo_log()
 
         # fix galera_param
         template_vals = {'__mysql_host__' : self._args.self_ip,
@@ -111,6 +130,8 @@ class GaleraSetup(ContrailSetup):
                                         template_vals,
                                         self._temp_dir_name + '/galera_param')
         local("sudo mv %s/galera_param /etc/contrail/ha/" % (self._temp_dir_name))
+
+
 
         local("echo %s > /etc/contrail/galeraid" % self._args.openstack_index)
         if self.pdist in ['Ubuntu']:
@@ -181,6 +202,16 @@ class GaleraSetup(ContrailSetup):
         self._template_substitute_write(cmon_conf_template.template, template_vals,
                                         self._temp_dir_name + '/cmon.cnf')
         local("sudo mv %s/cmon.cnf /etc/cmon.cnf" % (self._temp_dir_name))
+        if self.is_clustered(self._args.galera_ip_list, self._args.self_ip):
+            return
+        with settings(warn_only=True):
+            local("service contrail-hamon stop")
+            local("service cmon stop")
+            local("service mysql stop")
+#            if not self.is_cluster_updated():
+            local("rm -rf /var/lib/mysql/grastate.dat")
+            local("rm -rf /var/lib/mysql/galera.cache")
+            self.cleanup_redo_log()
 
     def install_mysql_db(self):
         local('chkconfig %s on' % self.mysql_svc)
@@ -250,7 +281,9 @@ class GaleraSetup(ContrailSetup):
         local('rm %s/galera_cron' % self._temp_dir_name)
 
     def run_services(self):
-        if self.check_cluster(self._args.galera_ip_list, self._args.self_ip):
+        if self.is_cluster_synced( ):
+            local("service %s restart" % self.mysql_svc)
+        if self.is_clustered(self._args.galera_ip_list, self._args.self_ip):
             return
         self.cleanup_redo_log()
         if self._args.openstack_index == 1:
@@ -286,4 +319,4 @@ def main(args_str = None):
     galera.setup()
 
 if __name__ == "__main__":
-    main() 
+    main()

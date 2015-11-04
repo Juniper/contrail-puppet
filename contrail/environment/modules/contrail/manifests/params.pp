@@ -730,4 +730,12 @@ class contrail::params (
     } else {
         $amqp_server_ip_to_use = $config_ip_to_use
     }
+
+    if ($multi_tenancy == true) {
+        $multi_tenancy_options = "--admin_user admin --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant"
+    } else {
+        $multi_tenancy_options = ""
+    }
+
+
 }
