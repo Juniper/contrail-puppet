@@ -2,7 +2,7 @@ class contrail::config::service(
     $vip = $::contrail::params::vip_to_use,
 ) {
 
-    service { ['rabbitmq-server', 'memcached', 'apache2', 'supervisor-config']:
+    service { ['rabbitmq-server']:
         ensure  => running,
         enable  => true,
     }

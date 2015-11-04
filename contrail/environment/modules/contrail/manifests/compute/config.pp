@@ -178,10 +178,8 @@ class contrail::compute::config(
     $nova_params = {
      'DEFAULT/neutron_admin_auth_url'=> {   value => "http://${keystone_ip_to_use}:5000/v2.0", },
      'DEFAULT/neutron_admin_tenant_name'=>{ value => 'services', },
-     'DEFAULT/neutron_admin_password'=>  {  value => "${keystone_admin_password}" },
-     'keystone_authtoken/admin_password'=>{ value => "${keystone_admin_password}" }
     }
-    
+
     create_resources(nova_config,$nova_params, {} )
 
     # set rpc backend in nova.conf
