@@ -37,5 +37,23 @@ Facter.add(:contrail_version) do
         Facter::Util::Resolution.exec('dpkg -l contrail-install-packages | grep contrail-install-packages | awk \'{ printf $3}\'')
     end
 end
-
+Facter.add(:conductor_idx) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'nova_idx.sh nova-conductor'))
+    end
+end
+Facter.add(:console_idx) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'nova_idx.sh nova-console'))
+    end
+end
+Facter.add(:consoleauth_idx) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'nova_idx.sh nova-consoleauth'))
+    end
+end
+Facter.add(:scheduler_idx) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'nova_idx.sh nova-scheduler'))
+    end
 end

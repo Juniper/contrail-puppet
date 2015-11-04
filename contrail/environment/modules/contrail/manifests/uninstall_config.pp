@@ -48,16 +48,8 @@ class contrail::uninstall_config (
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $config_ip = $::contrail::params::config_ip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $multi_tenancy_options = $::contrail::params::multi_tenancy_options,
 ) inherits ::contrail::params {
-
-    if ($multi_tenancy == true) {
-	$multi_options = "--admin_user admin --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant"
-    } else {
-	$multi_options = ""
-    }
-
-
-
 
     # Supervisor contrail-api.ini
     $api_port_base = '910'
@@ -118,7 +110,7 @@ class contrail::uninstall_config (
         contrail_logoutput => $contrail_logoutput }
     ->
     exec { "provision-role-config" :
-	command => "python /usr/share/contrail-utils/provision_config_node.py --api_server_ip $config_ip_to_use --host_name $hostname --host_ip $host_control_ip  --oper delete $multi_options && echo provision-role-config-del >> /etc/contrail/contrail_config_exec.out",
+	command => "python /usr/share/contrail-utils/provision_config_node.py --api_server_ip $config_ip_to_use --host_name $hostname --host_ip $host_control_ip  --oper del $multi_tenancy_options && echo provision-role-config-del >> /etc/contrail/contrail_config_exec.out",
 #	require => [ ],
 	provider => shell,
 	logoutput => $contrail_logoutput
@@ -130,7 +122,7 @@ class contrail::uninstall_config (
     }
     ->
     # Ensure all needed packages are absent
-    package { 'contrail-openstack-config' : ensure => purged, install_options => [], uninstall_options => ["--auto-remove"] , notify => ["Exec[apt_auto_remove]"]}
+    package { 'contrail-openstack-config' : ensure => purged, install_options => [], uninstall_options => ["--auto-remove"] , notify => ["Exec[apt_auto_remove_config]"]}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, contrail-nodemgr, contrail-lib, contrail-config, neutron-plugin-contrail, neutron-server, python-novaclient,
     #                     python-keystoneclient, contrail-setup, haproxy, euca2ools, rabbitmq-server, python-qpid, python-iniparse, python-bottle,
@@ -139,7 +131,8 @@ class contrail::uninstall_config (
     #                     python-psutil, mysql-server, contrail-setup, python-zope-interface, python-importlib, euca2ools, m2crypto, openstack-nova,
     #                     java-1.7.0-openjdk, haproxy, rabbitmq-server, python-bottle, contrail-nodemgr
     # Ensure ctrl-details file is absent with right content.
-    exec { "apt_auto_remove":
+    #TODO Convert this into a resource
+    exec { "apt_auto_remove_config":
 	command => "apt-get autoremove -y --purge",
 	provider => shell,
 	logoutput => $contrail_logoutput

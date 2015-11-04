@@ -12,7 +12,6 @@ define contrail::lib::post_openstack(
   ->
   exec { 'exec_start_supervisor_openstack' :
     command   => 'service supervisor-openstack restart && echo start_supervisor_openstack >> /etc/contrail/contrail_openstack_exec.out',
-    unless    => 'grep -qx start_supervisor_openstack /etc/contrail/contrail_openstack_exec.out',
     provider  => shell,
     require   => [ Package['contrail-openstack']  ],
     logoutput => $contrail_logoutput
@@ -30,7 +29,6 @@ define contrail::lib::post_openstack(
             provider  => shell,
             before    => Exec['exec_start_supervisor_openstack'],
             logoutput => $contrail_logoutput,
-            unless    => 'grep -qx contrail-ha-mon  /etc/contrail/contrail_openstack_exec.out',
         }
       # Set mysql cpnnection string at the end
       # as setting before will result in provision failure.
