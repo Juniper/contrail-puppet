@@ -207,13 +207,13 @@ class nova::api(
   if ($neutron_metadata_proxy_shared_secret){
     nova_config {
       'DEFAULT/service_neutron_metadata_proxy': value => true;
-      'DEFAULT/neutron_metadata_proxy_shared_secret':
-        value => $neutron_metadata_proxy_shared_secret;
+      #'DEFAULT/neutron_metadata_proxy_shared_secret':
+        #value => $neutron_metadata_proxy_shared_secret;
     }
   } else {
     nova_config {
       'DEFAULT/service_neutron_metadata_proxy':       value  => false;
-      'DEFAULT/neutron_metadata_proxy_shared_secret': ensure => absent;
+      #'DEFAULT/neutron_metadata_proxy_shared_secret': ensure => absent;
     }
   }
 
