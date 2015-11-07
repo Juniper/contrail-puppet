@@ -255,8 +255,15 @@ class contrail::config (
     # Below code is not required when keepalive dependency is fixed.
     #
     if ($contrail_internal_vip == "" and ($internal_vip == "" or !('openstack' in $contrail_host_roles))) {
+
+        if ($lsbdistrelease == "14.04") {
+            $keepalived_pkg         = '1.2.13-0~276~ubuntu14.04.1'
+        } else {
+            $keepalived_pkg         = '1:1.2.13-1~bpo70+1'
+        }
+
         package { 'keepalived' :
-            ensure => '1.2.13-0~276~ubuntu14.04.1',
+            ensure => $keepalived_pkg,
             before => Package['contrail-openstack-config'],
         }
         ->
