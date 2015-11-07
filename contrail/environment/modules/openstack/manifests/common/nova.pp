@@ -123,6 +123,7 @@ class openstack::common::nova ($is_compute    = false) {
     class { '::nova::vncproxy':
       host    => $::openstack::config::controller_address_api,
       enabled => $is_controller,
+      port => '5999',
     }
 
 
