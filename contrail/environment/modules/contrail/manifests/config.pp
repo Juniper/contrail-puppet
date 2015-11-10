@@ -597,7 +597,7 @@ $ifmap_server_port = '8443'
     ->
     exec { 'setup-quantum-server-setup' :
         command  => "/bin/bash /etc/contrail/quantum-server-setup.sh ${::operatingsystem} && echo setup-quantum-server-setup >> /etc/contrail/contrail_config_exec.out",
-        require  => File['/opt/contrail/bin/quantum-server-setup.sh'],
+        require  => File['/etc/contrail/quantum-server-setup.sh'],
         unless   => 'grep -qx setup-quantum-server-setup /etc/contrail/contrail_config_exec.out',
         provider => shell
     }
