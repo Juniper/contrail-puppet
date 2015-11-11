@@ -19,9 +19,15 @@ define contrail::lib::contrail_install_repo(
                    'python-software-properties', 'contrail-fabric-utils', 'contrail-setup' ] :
             ensure => latest
         } ->
-
-        package {Fabric: ensure => present, provider => pip, install_options => ['--find-links=file://opt/contrail/python_packages']}
-        # May need to install fabric-utils here. below commented out code is kept for reference, in case needed.
+        #once the dependancies for Fab is removed the below code snippet is
+        #no longer needed.
+        exec { "exec-pip-install-fabric" :
+            command => "pip install /opt/contrail/python_packages/Fabric-1.7.5.tar.gz && echo exec-pip-install-fabric >> /etc/contrail/contrail_common_exec.out",
+            provider => shell,
+            unless => "grep -qx exec-pip-install-fabric /etc/contrail/contrail_common_exec.out",
+            logoutput => $contrail_logoutput
+        }
+         May need to install fabric-utils here. below commented out code is kept for reference, in case needed.
         # pip install --upgrade --no-deps --index-url='' /opt/contrail/python_packages/Fabric-*.tar.gz
 
         # disabled sun-java-jre and sun-java-bin prompt during installation, add oracle license acceptance in debconf
