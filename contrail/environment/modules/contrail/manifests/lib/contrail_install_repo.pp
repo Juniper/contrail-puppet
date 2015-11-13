@@ -27,7 +27,7 @@ define contrail::lib::contrail_install_repo(
             unless => "grep -qx exec-pip-install-fabric /etc/contrail/contrail_common_exec.out",
             logoutput => $contrail_logoutput
         }
-         May need to install fabric-utils here. below commented out code is kept for reference, in case needed.
+        # May need to install fabric-utils here. below commented out code is kept for reference, in case needed.
         # pip install --upgrade --no-deps --index-url='' /opt/contrail/python_packages/Fabric-*.tar.gz
 
         # disabled sun-java-jre and sun-java-bin prompt during installation, add oracle license acceptance in debconf
