@@ -177,6 +177,7 @@ class contrail::config (
     contrail::lib::report_status { 'config_started': } ->
     class { 'contrail::config::install':} ->
     class { 'contrail::config::config':} ~>
+    class { 'contrail::config::rabbitmq':} ~>
     class { 'contrail::config::service':} ->
     contrail::lib::report_status { 'config_completed': }
     anchor {'contrail::config::end': }

@@ -591,7 +591,7 @@ class nova(
     }
 
     if $rabbit_hosts {
-      nova_config { 'DEFAULT/rabbit_hosts':     value => join($rabbit_hosts, ',') }
+      nova_config { 'DEFAULT/rabbit_hosts':     value => $rabbit_hosts }
     } else {
       nova_config { 'DEFAULT/rabbit_host':      value => $rabbit_host }
       nova_config { 'DEFAULT/rabbit_port':      value => $rabbit_port }
