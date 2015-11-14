@@ -7,7 +7,7 @@ class openstack::profile::contrail::glance::api {
   $sync_db = $::contrail::params::sync_db
   $management_network = $::openstack::config::network_management
   $management_address = ip_for_network($management_network)
-
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
   $explicit_management_address = $::openstack::config::storage_address_management
   $explicit_api_address = $::openstack::config::storage_address_api
 
@@ -35,6 +35,6 @@ class openstack::profile::contrail::glance::api {
   class { '::glance::notify::rabbitmq':
     rabbit_password => $::openstack::config::rabbitmq_password,
     rabbit_userid   => $::openstack::config::rabbitmq_user,
-    rabbit_host     => $::openstack::config::controller_address_management,
+    rabbit_hosts     => $contrail_rabbit_servers,
   }
 }

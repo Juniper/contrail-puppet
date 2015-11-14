@@ -41,6 +41,7 @@ class contrail::config::config (
     $config_ip = $::contrail::params::config_ip_to_use,
     $collector_ip = $::contrail::params::collector_ip_to_use,
     $vip = $::contrail::params::vip_to_use,
+    $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
     $contrail_rabbit_port= $::contrail::params::contrail_rabbit_port,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
