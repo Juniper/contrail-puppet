@@ -167,10 +167,8 @@ class ceilometer(
   if $rpc_backend == 'ceilometer.openstack.common.rpc.impl_kombu' {
 
     if $rabbit_hosts {
-      ceilometer_config { 'DEFAULT/rabbit_host': ensure => absent }
-      ceilometer_config { 'DEFAULT/rabbit_port': ensure => absent }
       ceilometer_config { 'DEFAULT/rabbit_hosts':
-        value => join($rabbit_hosts, ',')
+        value => $rabbit_hosts
       }
       } else {
       ceilometer_config { 'DEFAULT/rabbit_host': value => $rabbit_host }

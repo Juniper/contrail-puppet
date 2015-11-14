@@ -697,18 +697,16 @@ class contrail::params (
         $vip_to_use = $contrail_internal_vip
         $config_ip_to_use = $contrail_internal_vip
         $collector_ip_to_use = $contrail_internal_vip
-        $contrail_rabbit_port = '5673'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-        $contrail_rabbit_port = '5673'
     } else {
         $vip_to_use = ''
         $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
-        $contrail_rabbit_port = '5672'
     }
+    $contrail_rabbit_port = '5672'
 
     # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
     if ($internal_vip != '') {
@@ -721,6 +719,9 @@ class contrail::params (
 
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
+    # Rabbit servers is a list of rabbitip1:rabbit_port,rabbitip2:rabbit_port,…..,rabbitipN:rabbit_port
+    # rabbitip1,rabbitip2…..,rabbitipN will be cfgm1ip, cfgm2ip,….cfgmNip
+    $contrail_rabbit_servers = inline_template('<%= @config_ip_list.map{ |rabbitip| "#{rabbit_ip}:#{contrail_rabbit_port}" }.join(",") %>')
 
     # Set amqp_server_ip
     if ($::contrail::params::amqp_sever_ip != '') {

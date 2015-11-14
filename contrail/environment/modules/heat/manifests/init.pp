@@ -199,7 +199,7 @@ class heat(
       heat_config { 'DEFAULT/rabbit_host': ensure => absent }
       heat_config { 'DEFAULT/rabbit_port': ensure => absent }
       heat_config { 'DEFAULT/rabbit_hosts':
-        value => join($rabbit_hosts, ',')
+        value => $rabbit_hosts
       }
     } else {
       heat_config { 'DEFAULT/rabbit_host': value => $rabbit_host }

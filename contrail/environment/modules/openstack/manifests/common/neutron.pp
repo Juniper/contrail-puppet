@@ -8,7 +8,7 @@ class openstack::common::neutron {
   $sync_db = $::contrail::params::sync_db
   $data_network = $::openstack::config::network_data
   $data_address = ip_for_network($data_network)
-
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
   # neutron auth depends upon a keystone configuration
   include ::openstack::common::keystone
 
@@ -21,7 +21,7 @@ class openstack::common::neutron {
   }
 
   class { '::neutron':
-    rabbit_host           => $controller_management_address,
+    rabbit_hosts           => $contrail_rabbit_servers,
     core_plugin           => 'neutron.plugins.ml2.plugin.Ml2Plugin',
     allow_overlapping_ips => true,
     rabbit_user           => $::openstack::config::rabbitmq_user,
