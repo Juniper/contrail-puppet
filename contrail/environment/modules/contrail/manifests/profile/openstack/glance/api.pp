@@ -14,6 +14,7 @@ class contrail::profile::openstack::glance::api {
   $explicit_api_address = $::openstack::config::storage_address_api
 
   $controller_address = $::openstack::config::controller_address_management
+  $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
 
   openstack::resources::firewall { 'Glance API': port      => '9292', }
   openstack::resources::firewall { 'Glance Registry': port => '9191', }
@@ -55,6 +56,6 @@ class contrail::profile::openstack::glance::api {
   class { '::glance::notify::rabbitmq':
     rabbit_password => $::openstack::config::rabbitmq_password,
     rabbit_userid   => $::openstack::config::rabbitmq_user,
-    rabbit_host     => $::openstack::config::controller_address_management,
+    rabbit_hosts     => $openstack_rabbit_servers,
   }
 }

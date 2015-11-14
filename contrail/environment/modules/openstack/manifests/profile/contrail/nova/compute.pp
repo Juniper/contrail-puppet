@@ -7,15 +7,12 @@ class openstack::profile::contrail::nova::compute {
 
     $internal_vip = $::contrail::params::internal_vip
     if ($internal_vip != "" and $internal_vip != undef) {
-      $contrail_rabbit_port = "5673"
-      $contrail_rabbit_host = $controller_management_address
       $contrail_controller_mgmt_addr = $controller_management_address
 
     } else {
-      $contrail_rabbit_port = "5672"
-      $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
       $contrail_controller_mgmt_addr = $::contrail::params::config_ip_list[0]
     }
+    $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
 
     include contrail::compute
     ->
@@ -27,12 +24,8 @@ class openstack::profile::contrail::nova::compute {
       vif_plugging_is_fatal  => false,
       vif_plugging_timeout   => '0',
     } ->
-    nova_config { 'DEFAULT/rabbit_port':
-        value => $contrail_rabbit_port,
-        notify => Service['nova-compute']
-    }
-    nova_config { 'DEFAULT/rabbit_host':
-        value => $contrail_rabbit_host,
+    nova_config { 'DEFAULT/rabbit_hosts':
+        value => $contrail_rabbit_servers,
         notify => Service['nova-compute']
     }
 

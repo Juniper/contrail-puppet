@@ -2,7 +2,7 @@ class openstack::common::keystone {
   $internal_vip = $::contrail::params::internal_vip
   $sync_db = $::contrail::params::sync_db
   $contrail_rabbit_host = $::contrail::params::config_ip_to_use
-  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+  $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
 
   notify { "SYNC_DB = $sync_db":; }
 
@@ -20,8 +20,7 @@ class openstack::common::keystone {
       public_port     => '6000',
       admin_port      => '35358',
       database_idle_timeout => '180',
-      rabbit_port     => $contrail_rabbit_port,
-      rabbit_host     => $contrail_rabbit_host,
+      rabbit_hosts     => $openstack_rabbit_servers,
     }
     keystone_config {
 #      'database/idle_timeout': value => "180";
@@ -49,8 +48,7 @@ class openstack::common::keystone {
       admin_bind_host => $admin_bind_host,
       mysql_module    => '2.2',
       sync_db         => $sync_db,
-      rabbit_port     => $contrail_rabbit_port,
-      rabbit_host     => $contrail_rabbit_host,
+      rabbit_hosts     => $openstack_rabbit_servers,
     }
     keystone_config {
       'identity/driver':   value => "keystone.identity.backends.sql.Identity";
