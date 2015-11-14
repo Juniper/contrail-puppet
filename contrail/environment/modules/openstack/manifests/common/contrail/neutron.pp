@@ -12,14 +12,13 @@ class openstack::common::contrail::neutron {
 
   $contrail_rabbit_host = $::contrail::params::contrail_rabbit_host
   $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
-
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
 
   # neutron auth depends upon a keystone configuration
   include ::openstack::common::keystone
 
   class { '::neutron':
-    rabbit_host           => $contrail_rabbit_host,
-    rabbit_port           => $contrail_rabbit_port,
+    rabbit_hosts           => $contrail_rabbit_servers,
     core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',
     allow_overlapping_ips => true,
     rabbit_user           => $::openstack::config::rabbitmq_user,

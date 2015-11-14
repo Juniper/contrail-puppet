@@ -14,8 +14,8 @@ log_level=SYS_NOTICE
 disc_server_ip=<%= @config_ip %>
 disc_server_port=5998
 zk_server_ip=<%= @zookeeper_ip_list.map{ |ip| "#{ip}:#{@zk_ip_port}" }.join(',') %>
-rabbit_server=<%= @config_ip %>
-rabbit_port=<%= @contrail_rabbit_port %>
+rabbit_server=<%= @contrail_rabbit_servers %>
+#rabbit_port=<%= @contrail_rabbit_port %>
 
 [SECURITY]
 use_certs=<%= @use_certs %>
