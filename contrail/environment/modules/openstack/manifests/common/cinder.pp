@@ -6,8 +6,7 @@ class openstack::common::cinder {
   $controller_management_address = $::openstack::config::controller_address_management
   $sync_db = $::contrail::params::sync_db
 
-  $contrail_rabbit_host = $::contrail::params::config_ip_to_use
-  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers 
 
   if ($internal_vip != "" and $internal_vip != undef) {
     cinder_config {
@@ -16,14 +15,13 @@ class openstack::common::cinder {
 
     class { '::cinder':
       sql_connection  => $::openstack::resources::connectors::cinder,
-      rabbit_host     => $contrail_rabbit_host,
+      rabbit_hosts     => $contrail_rabbit_servers,
       rabbit_userid   => $::openstack::config::rabbitmq_user,
       rabbit_password => $::openstack::config::rabbitmq_password,
       debug           => $::openstack::config::debug,
       verbose         => $::openstack::config::verbose,
       mysql_module    => '2.2',
       database_idle_timeout => '180',
-      rabbit_port     => $contrail_rabbit_port,
     }
 
     cinder_config {
@@ -43,13 +41,12 @@ class openstack::common::cinder {
   } else {
     class { '::cinder':
       sql_connection  => $::openstack::resources::connectors::cinder,
-      rabbit_host     => $contrail_rabbit_host,
+      rabbit_hosts     => $contrail_rabbit_servers,
       rabbit_userid   => $::openstack::config::rabbitmq_user,
       rabbit_password => $::openstack::config::rabbitmq_password,
       debug           => $::openstack::config::debug,
       verbose         => $::openstack::config::verbose,
       mysql_module    => '2.2',
-      rabbit_port     => $contrail_rabbit_port,
     }
 
 

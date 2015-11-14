@@ -527,7 +527,7 @@ class keystone(
   }
 
   if $rabbit_hosts {
-    keystone_config { 'DEFAULT/rabbit_hosts':     value => join($rabbit_hosts, ',') }
+    keystone_config { 'DEFAULT/rabbit_hosts':     value => $rabbit_hosts }
     keystone_config { 'DEFAULT/rabbit_ha_queues': value => true }
   } else {
     keystone_config { 'DEFAULT/rabbit_host':      value => $rabbit_host }

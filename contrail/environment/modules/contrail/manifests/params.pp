@@ -525,6 +525,14 @@
 #     Flag to include or exclude ceilometer service as part of openstack module dynamically.
 #     (optional) - Defaults to false.
 #
+# [*amqp_ip_list*]
+#     User provided list of amqp server ips which have already been provisioned with rabbit
+#     (optional) - Defaults to false.
+#
+# [*amqp_port*]
+#     User provided port for amqp service 
+#     (optional) - Defaults to false.
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -659,7 +667,9 @@ class contrail::params (
     $enable_storage_master = true,
     $enable_ceilometer = false,
     $tor_ha_config = "",
-    $contrail_version = ''
+    $contrail_version = '',
+    $amqp_ip_list = false,
+    $amqp_port = false,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -697,17 +707,14 @@ class contrail::params (
         $vip_to_use = $contrail_internal_vip
         $config_ip_to_use = $contrail_internal_vip
         $collector_ip_to_use = $contrail_internal_vip
-        $contrail_rabbit_port = '5673'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-        $contrail_rabbit_port = '5673'
     } else {
         $vip_to_use = ''
         $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
-        $contrail_rabbit_port = '5672'
     }
 
     # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
@@ -721,6 +728,22 @@ class contrail::params (
 
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
+    # Rabbit servers is a list of rabbitip1:rabbit_port,rabbitip2:rabbit_port,…..,rabbitipN:rabbit_port
+    # rabbitip1,rabbitip2…..,rabbitipN will be cfgm1ip, cfgm2ip,….cfgmNip
+    # If user supplies amqp_ip_list, use that instead of config_ip_list
+    # If user supplies amqp_port, use that instead of contrail_rabbit_port
+    if ($amqp_ip_list) {
+        $contrail_rabbit_ip_list = $amqp_ip_list
+    } else {
+        $contrail_rabbit_ip_list = $config_ip_list
+    }
+    if ($amqp_port) {
+        $contrail_rabbit_port = $amqp_port
+    } else {
+        $contrail_rabbit_port = '5672'
+    }
+    
+    $contrail_rabbit_servers = inline_template('<%= @contrail_rabbit_ip_list.map{ |rabbitip| "#{rabbit_ip}:#{contrail_rabbit_port}" }.join(",") %>')
 
     # Set amqp_server_ip
     if ($::contrail::params::amqp_sever_ip != '') {
