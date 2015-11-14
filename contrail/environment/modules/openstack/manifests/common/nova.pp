@@ -17,15 +17,12 @@ class openstack::common::nova ($is_compute    = false) {
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
   $contrail_rabbit_host = $::contrail::params::config_ip_to_use
-  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
   $contrail_neutron_server = $::contrail::params::config_ip_to_use
 
   $openstack_ip_list = $::contrail::params::openstack_ip_list
   $contrail_memcache_servers = inline_template('<%= @openstack_ip_list.map{ |ip| "#{ip}:11211" }.join(",") %>')
 
-  nova_config { 'DEFAULT/rabbit_port':
-     value => $contrail_rabbit_port,
-  } ->
   nova_config { 'DEFAULT/default_floating_pool': value => 'public' }
   ->
   nova_config { 'conductor/workers':
@@ -44,13 +41,12 @@ class openstack::common::nova ($is_compute    = false) {
       sql_connection     => $::openstack::resources::connectors::nova,
       glance_api_servers => "http://${storage_management_address}:9292",
       memcached_servers  => ["$contrail_memcache_servers"],
-      rabbit_hosts       => [$contrail_rabbit_host],
+      rabbit_hosts       => $contrail_rabbit_servers,
       rabbit_userid      => $::openstack::config::rabbitmq_user,
       rabbit_password    => $::openstack::config::rabbitmq_password,
       debug              => $::openstack::config::debug,
       verbose            => $::openstack::config::verbose,
       mysql_module       => '2.2',
-      rabbit_port        => $contrail_rabbit_port,
       database_idle_timeout => '180',
       notification_driver => "nova.openstack.common.notifier.rpc_notifier",
     }
@@ -101,13 +97,12 @@ class openstack::common::nova ($is_compute    = false) {
       sql_connection     => $::openstack::resources::connectors::nova,
       glance_api_servers => "http://${storage_management_address}:9292",
       memcached_servers  => ["$contrail_memcache_servers"],
-      rabbit_hosts       => [$contrail_rabbit_host],
+      rabbit_hosts       => $contrail_rabbit_servers,
       rabbit_userid      => $::openstack::config::rabbitmq_user,
       rabbit_password    => $::openstack::config::rabbitmq_password,
       debug              => $::openstack::config::debug,
       verbose            => $::openstack::config::verbose,
       mysql_module       => '2.2',
-      rabbit_port        => $contrail_rabbit_port,
       notification_driver => "nova.openstack.common.notifier.rpc_notifier",
       notify_on_state_change => $notify_on_state_change,
     }

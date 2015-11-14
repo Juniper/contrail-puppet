@@ -11,8 +11,7 @@ class contrail::profile::openstack::heat (
     openstack::resources::firewall { 'Heat CFN API': port => '8000', }
 
     $controller_management_address = $::openstack::config::controller_address_management
-    $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
-    $contrail_rabbit_host = $::contrail::params::contrail_rabbit_host
+    $contrail_rabbit_host = $::contrail::params::contrail_rabbit_servers
     $internal_vip = $::contrail::params::internal_vip
     if ($internal_vip != '' and $internal_vip != undef) {
       $heat_api_bind_host = '0.0.0.0'
@@ -46,7 +45,6 @@ class contrail::profile::openstack::heat (
     class { '::heat':
       sql_connection    => $::openstack::resources::connectors::heat,
       rabbit_host       => $contrail_rabbit_host,
-      rabbit_port       => $contrail_rabbit_port,
       rabbit_userid     => $::openstack::config::rabbitmq_user,
       rabbit_password   => $::openstack::config::rabbitmq_password,
       debug             => $::openstack::config::debug,

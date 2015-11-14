@@ -15,14 +15,7 @@ class openstack::profile::glance::api {
 
   $controller_address = $::openstack::config::controller_address_management
 
-  if ($internal_vip != "" and $internal_vip != undef) {
-    $contrail_rabbit_port = "5673"
-    $contrail_rabbit_host = $controller_address
-  } else {
-    $contrail_rabbit_port = "5672"
-    $contrail_rabbit_host = $::contrail::params::config_ip_list[0]
-  }
-
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
 
   if $management_address != $explicit_management_address {
     fail("Glance Auth setup failed. The inferred location of Glance from
@@ -62,8 +55,7 @@ class openstack::profile::glance::api {
   class { '::glance::notify::rabbitmq':
     rabbit_password => $::openstack::config::rabbitmq_password,
     rabbit_userid   => $::openstack::config::rabbitmq_user,
-    rabbit_host     => $contrail_rabbit_host,
-    rabbit_port     => $contrail_rabbit_port,
+    rabbit_host     => $contrail_rabbit_servers,
 
   }
 }

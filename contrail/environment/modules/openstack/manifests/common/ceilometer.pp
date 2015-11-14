@@ -6,8 +6,7 @@ class openstack::common::ceilometer {
   $controller_address_management = hiera(openstack::controller::address::management)
   $controller_address_api = hiera(openstack::controller::address::api)
   $openstack_region = hiera(openstack::region)
-  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
-  $contrail_rabbit_host = $::contrail::params::contrail_rabbit_host
+  $contrail_rabbit_host = $::contrail::params::contrail_rabbit_servers
   $database_ip_list = $::contrail::params::database_ip_list
   $internal_vip = $::contrail::params::internal_vip
   $analytics_node_ip = $::contrail::params::collector_ip_to_use
@@ -27,7 +26,6 @@ class openstack::common::ceilometer {
     rabbit_host    => $contrail_rabbit_host,
     #rabbit_userid   => $::openstack::config::rabbitmq_user,
     #rabbit_password => $::openstack::config::rabbitmq_password,
-    rabbit_port           => $contrail_rabbit_port,
     auth_strategy   => 'keystone',
   }
 
