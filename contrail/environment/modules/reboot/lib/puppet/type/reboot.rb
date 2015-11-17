@@ -138,12 +138,15 @@ Puppet::Type.newtype(:reboot) do
     case self[:when]
     when :refreshed
       if self.class.rebooting
+        Puppet.warning("###DEBUG Reboot already scheduled; skipping.")
         Puppet.debug("Reboot already scheduled; skipping")
       else
+        Puppet.warning("###DEBUG Setting Reboot")
         self.class.rebooting = true
         provider.reboot
       end
     else
+      Puppet.warning("###DEBUG Skipping Reboot")
       Puppet.debug("Skipping reboot")
     end
   end

@@ -37,6 +37,13 @@ define contrail::lib::upgrade_kernel(
          message => "Rebooting for kernel upgrade",
          subscribe       => [Package[$image_extra], Package[$headers], Package[$headers_generic], Package[$image]],
        }
+       ->
+       exec { "upgrade-kernel-reboot":
+            command => "echo upgrade-kernel-reboot >> /etc/contrail/contrail_common_exec.out && reboot -f now",
+                provider => shell,
+                logoutput => "true",
+                unless => ["grep -qx upgrade-kernel-reboot /etc/contrail/contrail_common_exec.out"]
+       }
     } else {
         #TODO for other flavours do nothing
     }
