@@ -171,7 +171,7 @@ class contrail::common(
       value => '1'
     }
     sysctl::value { 'net.ipv4.ip_local_reserved_ports':
-      value => "35357,35358,33306,${::ipv4_reserved_ports}"
+      value => "33306,35357-35358,${::ipv4_reserved_ports}"
     }
 
     # Make sure our scripts directory is present

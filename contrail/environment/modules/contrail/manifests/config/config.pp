@@ -42,6 +42,7 @@ class contrail::config::config (
     $collector_ip = $::contrail::params::collector_ip_to_use,
     $vip = $::contrail::params::vip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $contrail_keystone_auth_conf = $contrail::params::contrail_keystone_auth_conf
 ) {
     # Main code for class starts here
     if $use_certs == true {
@@ -149,6 +150,9 @@ class contrail::config::config (
             before => Exec['neutron-conf-exec']
         }
     }
+
+    include ::contrail::keystone
+
     exec { 'neutron-conf-exec':
         command   => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
         onlyif    => 'test -f /etc/neutron/neutron.conf',

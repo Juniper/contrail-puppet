@@ -26,6 +26,15 @@ class contrail::collector::config (
     $redis_password = $::contrail::params::redis_password,
     $config_ip_to_use = $::contrail::params::config_ip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $contrail_topology_conf = $contrail::params::contrail_topology_conf,
+    $contrail_alarm_gen_conf = $contrail::params::contrail_alarm_gen_conf,
+    $contrail_snmp_collector_conf = $contrail::params::contrail_snmp_collector_conf,
+    $contrail_analytics_nodemgr_conf = $contrail::params::contrail_analytics_nodemgr_conf,
+    $contrail_analytics_api_conf = $contrail::params::contrail_analytics_api_conf,
+    $contrail_keystone_auth_conf = $contrail::params::contrail_keystone_auth_conf,
+    $contrail_collector_conf = $contrail::params::contrail_collector_conf,
+    $contrail_query_engine_conf = $contrail::params::contrail_query_engine_conf,
+    $contrail_snmp_collector_ini = $contrail::params::contrail_snmp_collector_ini,
 ) {
 
     # Main code for class
@@ -43,60 +52,35 @@ class contrail::collector::config (
         }
     }
 
-    if $::multi_tenancy == true {
-        $memcached_opt = 'memcache_servers=127.0.0.1:11211'
-    } else {
-        $memcached_opt = ''
-    }
+    include ::contrail::keystone
 
-    if ! defined(File['/etc/contrail/contrail-keystone-auth.conf']) {
-        file { '/etc/contrail/contrail-keystone-auth.conf' :
-            content => template("${module_name}/contrail-keystone-auth.conf.erb"),
-        }
-    }
-
-    # Ensure all config files with correct content are present.
-    file { '/etc/contrail/contrail-analytics-api.conf' :
-        content => template("${module_name}/contrail-analytics-api.conf.erb"),
-    }
-    ->
-    file { '/etc/contrail/contrail-collector.conf' :
-        content => template("${module_name}/contrail-collector.conf.erb"),
-    }
-    ->
-    file { '/etc/contrail/contrail-query-engine.conf' :
-        content => template("${module_name}/contrail-query-engine.conf.erb"),
-    }
-    ->
-    file { '/etc/contrail/contrail-snmp-collector.conf' :
-        content => template("${module_name}/contrail-snmp-collector.conf.erb")
-    }
-    ->
-    file { '/etc/contrail/supervisord_analytics_files/contrail-snmp-collector.ini' :
-        content => template("${module_name}/contrail-snmp-collector.ini.erb"),
-    }
-    ->
-  file { '/etc/snmp':
-     ensure  => directory,
-  } ->
-  file { '/etc/snmp/snmp.conf':
-    content => 'mibs +ALL'
-  }
-    ->
-    file { '/etc/contrail/contrail-analytics-nodemgr.conf' :
-        content => template("${module_name}/contrail-analytics-nodemgr.conf.erb"),
-    }
-    ->
-    file { "/etc/contrail/contrail-alarm-gen.conf" :
-        ensure  => present,
-        content => template("$module_name/contrail-alarm-gen.conf.erb"),
-    }
-    ->
-    file { '/etc/contrail/contrail-topology.conf' :
-        content => template("${module_name}/contrail-topology.conf.erb"),
+    file { '/etc/snmp':
+       ensure  => directory,
+    } ->
+    file { '/etc/snmp/snmp.conf':
+      content => 'mibs +ALL'
     }
     ->
     file { '/etc/redis/redis.conf' :
         content => template("${module_name}/redis.conf.erb"),
     }
+
+
+    validate_hash($contrail_topology_conf)
+    validate_hash($contrail_alarm_gen_conf)
+    validate_hash($contrail_snmp_collector_conf)
+    validate_hash($contrail_analytics_nodemgr_conf)
+    validate_hash($contrail_analytics_api_conf)
+    validate_hash($contrail_collector_conf)
+    validate_hash($contrail_query_engine_conf)
+    validate_hash($contrail_snmp_collector_ini)
+
+    create_resources(contrail_collector_config, $contrail_collector_conf)
+    create_resources(contrail_query_engine_config, $contrail_query_engine_conf)
+    create_resources(contrail_snmp_collector_ini_config, $contrail_snmp_collector_ini)
+    create_resources(contrail_topology_config, $contrail_topology_conf)
+    create_resources(contrail_alarm_gen_config, $contrail_alarm_gen_conf)
+    create_resources(contrail_snmp_collector_config, $contrail_snmp_collector_conf)
+    create_resources(contrail_analytics_nodemgr_config, $contrail_analytics_nodemgr_conf)
+    create_resources(contrail_analytics_api_config, $contrail_analytics_api_conf)
 }

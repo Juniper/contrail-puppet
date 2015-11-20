@@ -680,6 +680,17 @@ class contrail::params (
     $contrail_amqp_port = false,
     $openstack_amqp_ip_list = false,
     $openstack_amqp_port = false,
+    $alarm_gen_config = '',
+    $use_hiera = true,
+    $smgr_controller_contrail_analytics_nodemgr_conf = {},
+    $smgr_controller_contrail_alarm_gen_conf = {},
+    $smgr_controller_contrail_analytics_api_conf = {},
+    $smgr_controller_contrail_query_engine_conf = {},
+    $smgr_controller_contrail_keystone_auth_conf = {},
+    $smgr_controller_contrail_snmp_collector_ini = {},
+    $smgr_controller_contrail_snmp_collector_conf = {},
+    $smgr_controller_contrail_collector_conf = {},
+    $smgr_controller_contrail_topology_conf = {}
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -775,5 +786,26 @@ class contrail::params (
         $amqp_server_ip_to_use = $openstack_ip_to_use
     } else {
         $amqp_server_ip_to_use = $config_ip_to_use
+    }
+    if ($use_hiera) {
+        $contrail_topology_conf = hiera('contrail::params::smgr_controller_contrail_topology_conf', {})
+        $contrail_alarm_gen_conf = hiera('contrail::params::smgr_controller_contrail_alarm_gen_conf', {})
+        $contrail_analytics_nodemgr_conf = hiera('contrail::params::smgr_controller_contrail_analytics_nodemgr_conf', {})
+        $contrail_snmp_collector_conf = hiera('contrail::params::smgr_controller_contrail_snmp_collector_conf', {})
+        $contrail_analytics_api_conf = hiera('contrail::params::smgr_controller_contrail_analytics_api_conf', {})
+        $contrail_keystone_auth_conf = hiera('contrail::params::smgr_controller_contrail_keystone_auth_conf', {})
+        $contrail_collector_conf = hiera('contrail::params::smgr_controller_contrail_collector_conf', {})
+        $contrail_query_engine_conf = hiera('contrail::params::smgr_controller_contrail_query_engine_conf', {})
+        $contrail_snmp_collector_ini = hiera('contrail::params::smgr_controller_contrail_snmp_collector_ini', {})
+    } else {
+        $contrail_topology_conf = $smgr_controller_contrail_topology_conf
+        $contrail_alarm_gen_conf = $smgr_controller_contrail_alarm_gen_conf
+        $contrail_analytics_nodemgr_conf = $smgr_controller_contrail_analytics_nodemgr_conf
+        $contrail_snmp_collector_conf = $smgr_controller_contrail_snmp_collector_conf
+        $contrail_analytics_api_conf = $smgr_controller_contrail_analytics_api_conf
+        $contrail_keystone_auth_conf = $smgr_controller_contrail_keystone_auth_conf
+        $contrail_collector_conf = $smgr_controller_contrail_collector_conf
+        $contrail_query_engine_conf = $smgr_controller_contrail_query_engine_conf
+        $contrail_snmp_collector_ini = $smgr_controller_contrail_snmp_collector_ini
     }
 }
