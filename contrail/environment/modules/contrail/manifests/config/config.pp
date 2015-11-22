@@ -197,10 +197,6 @@ class contrail::config::config (
         content => template("${module_name}/contrail-config-nodemgr.conf.erb"),
     }
     ->
-    file { '/etc/contrail/contrail-keystone-auth.conf' :
-        content => template("${module_name}/contrail-keystone-auth.conf.erb"),
-    }
-    ->
     file { '/etc/contrail/contrail-schema.conf' :
         content => template("${module_name}/contrail-schema.conf.erb"),
     }
