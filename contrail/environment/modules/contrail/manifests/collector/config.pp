@@ -15,13 +15,13 @@ class contrail::collector::config (
     # Main code for class
     case $::operatingsystem {
         Ubuntu: {
-            file {'/etc/init/supervisor-analytics.override':
-                ensure => absent
-            } ->
-            file { '/etc/init.d/supervisor-analytics':
-                ensure => link,
-                target => '/lib/init/upstart-job',
-            }
+            #file {'/etc/init/supervisor-analytics.override':
+                #ensure => absent
+            #} ->
+            #file { '/etc/init.d/supervisor-analytics':
+                #ensure => link,
+                #target => '/lib/init/upstart-job',
+            #}
         }
         default: { ## TODO 
         }

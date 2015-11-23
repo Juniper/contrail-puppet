@@ -89,9 +89,9 @@ class contrail::config::config (
 
     case $::operatingsystem {
         Ubuntu: {
-            file {['/etc/init/supervisor-config.override',
-                   '/etc/init/neutron-server.override']: ensure => absent}
-            ->
+            #file {['/etc/init/supervisor-config.override',
+                   #'/etc/init/neutron-server.override']: ensure => absent}
+            #->
             file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
                 content => template("${module_name}/contrail-api.ini.erb"),
             }
@@ -99,25 +99,16 @@ class contrail::config::config (
             file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
                 content => template("${module_name}/contrail-discovery.ini.erb"),
             }
-            ->
+            #->
             # Below is temporary to work-around in Ubuntu as Service resource fails
             # as upstart is not correctly linked to /etc/init.d/service-name
-            file { '/etc/init.d/supervisor-config':
-                ensure => link,
-                target => '/lib/init/upstart-job',
-            }
+            #file { '/etc/init.d/supervisor-config':
+                #ensure => link,
+                #target => '/lib/init/upstart-job',
+            #}
         }
-        Centos: {
+        'Centos', 'Fedora' : {
             # notify { "OS is Ubuntu":; }
-            file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
-                content => template("${module_name}/contrail-api-centos.ini.erb"),
-            }
-            ->
-            file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
-                content => template("${module_name}/contrail-discovery-centos.ini.erb"),
-            }
-        }
-        Fedora: {
             file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
                 content => template("${module_name}/contrail-api-centos.ini.erb"),
             }
