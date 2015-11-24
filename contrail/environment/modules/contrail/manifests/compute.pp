@@ -165,7 +165,7 @@ class contrail::compute (
     include ::contrail::params
 
     anchor {'contrail::compute::start': } ->
-    contrail::lib::report_status { 'compute_started': }
+    contrail::lib::report_status { 'compute_started': } ->
     class { '::contrail::compute::install': } ->
     class { '::contrail::compute::config': } ~>
     class { '::contrail::compute::service': } ->

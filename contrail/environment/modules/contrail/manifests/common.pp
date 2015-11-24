@@ -90,7 +90,6 @@ class contrail::common(
     ->
     contrail::lib::upgrade_kernel{ 'kernel_upgrade':
         contrail_kernel_upgrade => $::contrail::params::kernel_upgrade,
-        contrail_kernel_version => $::contrail::params::kernel_version,
         contrail_logoutput      => $contrail_logoutput
     }
     ->

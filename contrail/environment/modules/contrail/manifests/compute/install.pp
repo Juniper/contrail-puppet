@@ -2,6 +2,27 @@ class contrail::compute::install(
   $opencontrail_only = false,
   $enable_lbass =  $::contrail::params::enable_lbass,
 ) {
+    $cur_kernel_version = $::kernelrelease
+    $dist_kernel_version = "${::contrail::params::contrail_dist_kernel_version}-generic"
+    
+    notify{"###DEBUG dist_kernel_version_test  $dist_kernel_version_test ":;}
+    notify{"###DEBUG contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version":;}
+    
+    #Temporary work around untill we find out the root cause for inconsistent reboot resource behavior.
+    if ($::contrail::params::kernel_upgrade == 'yes' and $cur_kernel_version != $dist_kernel_version ) {
+      notify{"###DEBUG inside if contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version":;}
+      notify{"Missed reboot for kernel Upgrade, Initiating a reboot":;}
+      ->
+      reboot { 'after_notify':
+         apply => "immediately",
+	 timeout => 0,
+	 message => "Rebooting for kernel upgrade",
+	 subscribe       => Notify["Missed reboot for kernel Upgrade, Initiating a reboot"],
+      }
+    } else {
+      notify{"Kernel Update Successful!":;}
+    }
+
     if ( $opencontrail_only == true) {
         package{ 'contrail-openstack-vrouter' :
             ensure => present
