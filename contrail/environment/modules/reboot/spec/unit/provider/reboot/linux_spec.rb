@@ -2,13 +2,26 @@
 require 'spec_helper'
 require 'puppet/type'
 require 'puppet/provider/reboot/linux'
+require 'puppet/provider/reboot/posix'
 
 describe Puppet::Type.type(:reboot).provider(:linux) do
   let(:resource) { Puppet::Type.type(:reboot).new(:provider => :linux, :name => "linux_reboot") }
-  let(:provider) { resource.provider}
+  let(:provider) { resource.provider }
 
   it "should be an instance of Puppet::Type::Reboot::ProviderLinux" do
     provider.must be_an_instance_of Puppet::Type::Reboot::ProviderLinux
+  end
+
+  it "should be a kind of Puppet::Type::Reboot::ProviderPosix" do
+    provider.must be_a_kind_of Puppet::Type::Reboot::ProviderPosix
+  end
+
+  context '#initialize' do
+    it 'should issue a deprecation warning' do
+      Puppet.expects(:deprecation_warning).with("The 'linux' reboot provider is deprecated and will be removed; use 'posix' instead.")
+
+      Puppet::Type.type(:reboot).new(:provider => :linux, :name => "linux_reboot")
+    end
   end
 
   context "self.instances" do
@@ -49,6 +62,10 @@ describe Puppet::Type.type(:reboot).provider(:linux) do
       resource[:apply] = :finished
       Puppet::Application.expects(:stop!).never
       provider.reboot
+    end
+
+    before :each do
+      Facter.stubs(:value).with(:kernel).returns('Linux')
     end
 
     it "includes the restart flag" do
