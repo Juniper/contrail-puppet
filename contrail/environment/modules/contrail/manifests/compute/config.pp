@@ -155,9 +155,9 @@ class contrail::compute::config(
                 content => "manual",
             }
         }
-        file {'/etc/init/supervisor-vrouter.override':
-            ensure  => absent,
-        }
+        #file {'/etc/init/supervisor-vrouter.override':
+            #ensure  => absent,
+        #}
     }
 
     # Install interface rename package for centos.
