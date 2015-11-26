@@ -17,9 +17,9 @@ class contrail::database::config (
     case $::operatingsystem {
         Ubuntu: {
             $contrail_cassandra_dir = '/etc/cassandra'
-            file {'/etc/init/supervisord-contrail-database.override':
-              ensure  => absent,
-            }
+            #file {'/etc/init/supervisord-contrail-database.override':
+              #ensure  => absent,
+            #}
         }
         Centos: {
             $contrail_cassandra_dir = '/etc/cassandra/conf'

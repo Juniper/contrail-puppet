@@ -7,11 +7,7 @@ class contrail::collector::service(
         provider  => shell,
         logoutput => $contrail_logoutput
     } ->
-    service { 'redis-server' :
-        ensure    => running,
-        enable    => true,
-    } ->
-    service { 'supervisor-analytics' :
+    service { ['redis-server', 'supervisor-analytics'] :
         ensure    => running,
         enable    => true,
     }

@@ -17,15 +17,15 @@ class contrail::webui::config(
 
     case $::operatingsystem {
         Ubuntu: {
-            file {'/etc/init/supervisor-webui.override':
-                ensure  => absent,
-            } ->
+            #file {'/etc/init/supervisor-webui.override':
+                #ensure  => absent,
+            #} ->
             # Below is temporary to work-around in Ubuntu as Service resource fails
             # as upstart is not correctly linked to /etc/init.d/service-name
-            file { '/etc/init.d/supervisor-webui':
-                ensure => link,
-                target => '/lib/init/upstart-job',
-            }
+            #file { '/etc/init.d/supervisor-webui':
+                #ensure => link,
+                #target => '/lib/init/upstart-job',
+            #}
         }
         default: {
         }
