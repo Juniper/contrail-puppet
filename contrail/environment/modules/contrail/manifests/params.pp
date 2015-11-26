@@ -698,16 +698,19 @@ class contrail::params (
         $config_ip_to_use = $contrail_internal_vip
         $collector_ip_to_use = $contrail_internal_vip
         $contrail_rabbit_port = '5673'
+        $rest_api_port_to_use = '9081'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
         $contrail_rabbit_port = '5673'
+        $rest_api_port_to_use = '9081'
     } else {
         $vip_to_use = ''
         $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
         $contrail_rabbit_port = '5672'
+        $rest_api_port_to_use = '8081'
     }
 
     # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
