@@ -29,22 +29,43 @@ class contrail::control::config (
         default: {
         }
     }
-    # Ensure all config files with correct content are present.
-    file { '/etc/contrail/contrail-dns.conf' :
-        ensure  => present,
-        content => template("${module_name}/contrail-dns.conf.erb"),
+    if $use_certs == true {
+      if $puppet_server == "" {
+        $certs_store = '/etc/contrail/ssl'
+      } else {
+        $certs_store = '/var/lib/puppet/ssl'
+      }
+    } else {
+      $certs_store = ''
     }
-    ->
-    file { '/etc/contrail/contrail-control.conf' :
-        ensure  => present,
-        content => template("${module_name}/contrail-control.conf.erb"),
+
+    contrail_dns_config {
+      'DEFAULT/hostip'    : value => $host_control_ip;
+      'DEFAULT/log_file'  : value => '/var/log/contrail/dns.log';
+      'DEFAULT/log_level' : value => 'SYS_NOTICE';
+      'DEFAULT/log_local' : value => '1';
+      'DISCOVERY/server'  : value => $config_ip_to_use;
+      'IFMAP/user'        : value => "$host_control_ip.dns";
+      'IFMAP/password'    : value => "$host_control_ip.dns";
+      'IFMAP/certs_store' : value => "$certs_store";
     }
-    ->
-    file { '/etc/contrail/contrail-control-nodemgr.conf' :
-        ensure  => present,
-        content => template("${module_name}/contrail-control-nodemgr.conf.erb"),
+
+    contrail_control_config {
+      'DEFAULT/hostip'    : value => $host_control_ip;
+      'DEFAULT/log_file'  : value => '/var/log/contrail/contrail-control.log';
+      'DEFAULT/log_level' : value => 'SYS_NOTICE';
+      'DEFAULT/log_local' : value => '1';
+      'DISCOVERY/server'  : value => $config_ip_to_use;
+      'IFMAP/user'        : value => "$host_control_ip";
+      'IFMAP/password'    : value => "$host_control_ip";
+      'IFMAP/certs_store' : value => "$certs_store";
     }
-    ->
+
+    contrail_control_nodemgr_config {
+      'DISCOVERY/server'  : value => $config_ip_to_use;
+      'DISCOVERY/port'    : value => '5998';
+    }
+
     # update rndc conf
     exec { 'update-rndc-conf-file' :
         command   => "sudo sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
