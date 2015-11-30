@@ -17,14 +17,8 @@ class contrail::database::config (
     case $::operatingsystem {
         Ubuntu: {
             $contrail_cassandra_dir = '/etc/cassandra'
-            #file {'/etc/init/supervisord-contrail-database.override':
-              #ensure  => absent,
-            #}
         }
-        Centos: {
-            $contrail_cassandra_dir = '/etc/cassandra/conf'
-        }
-        Fedora: {
+        'Centos', 'Fedora': {
             $contrail_cassandra_dir = '/etc/cassandra/conf'
         }
         default: {
@@ -84,7 +78,6 @@ class contrail::database::config (
     ->
     file { "${contrail_cassandra_dir}/cassandra-env.sh" :
         ensure  => present,
-        require => [ Package['contrail-openstack-database'] ],
         content => template("${module_name}/cassandra-env.sh.erb"),
     }
     ->
@@ -104,8 +97,7 @@ class contrail::database::config (
         file { '/etc/init.d/supervisord-contrail-database':
             ensure  => link,
             target  => '/lib/init/upstart-job',
-            #require => File["${contrail_cassandra_dir}/cassandra-env.sh"],
-            before  => Service['supervisor-database']
+            require => File["${contrail_cassandra_dir}/cassandra-env.sh"],
         }
         File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
     }
