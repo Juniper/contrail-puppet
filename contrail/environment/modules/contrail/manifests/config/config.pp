@@ -68,11 +68,38 @@ class contrail::config::config (
         $mt_options = 'None'
     }
 
+    # Set params based on internval VIP being set
+
+    if ($internal_vip != '') {
+        $rabbit_server_to_use = $internal_vip
+        $rabbit_port_to_use = 5673
+    } else {
+        $rabbit_server_to_use = $host_control_ip
+        $rabbit_port_to_use = 5672
+    }
     # Supervisor contrail-api.ini
     $api_port_base = '910'
     # Supervisor contrail-discovery.ini
     $disc_port_base = '911'
+
+    $contrail_api_ubuntu_command = join(["/usr/bin/contrail-api --conf_file /etc/contrail/contrail-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf --listen_port ",$api_port_base,"%(process_num)01d --worker_id %(process_num)s"],'')
+    $contrail_discovery_ubuntu_command = join(["/usr/bin/contrail-discovery --conf_file /etc/contrail/contrail-discovery.conf --listen_port ",$disc_port_base,"%(process_num)01d --worker_id %(process_num)s"],'')
+    $contrail_api_centos_command = join(['/bin/bash -c "source /opt/contrail/api-venv/bin/activate && exec python /opt/contrail/api-venv/lib/python2.7/site-packages/vnc_cfg_api_server/vnc_cfg_api_server.py --conf_file /etc/contrail/contrail-api.conf --listen_port ',$api_port_base,'%(process_num)01d --worker_id %(process_num)s"'],'')
+    $contrail_discovery_centos_command = join(['/bin/bash -c "source /opt/contrail/api-venv/bin/activate && exec python /opt/contrail/api-venv/lib/python2.7/site-packages/discovery/disc_server_zk.py --conf_file /etc/contrail/contrail-discovery.conf --listen_port ',$disc_port_base,'%(process_num)01d --worker_id %(process_num)s"'],'')
+
+
+    $keystone_auth_server = $keystone_ip_to_use
     $disc_nworkers = $api_nworkers
+    $discovery_ip_to_use =  $::contrail::params::discovery_ip_to_use
+
+    $database_ip_port_list = suffix($database_ip_list, ":$database_ip_port")
+    $cassandra_server_list = join($database_ip_port_list, ' ' )
+
+    $zk_ip_port_to_use = suffix($zookeeper_ip_list, ":$zk_ip_port")
+    $zk_ip_port_list = join($zk_ip_port_to_use, ',')
+    $zk_ip_list = join($zookeeper_ip_list, ',')
+
+    $keystone_auth_url = join([$keystone_auth_protocol,"://",$keystone_ip_to_use,":",$keystone_auth_port,"/v2.0"],'')
 
     # Set number of config nodes
     $cfgm_number = size($config_ip_list)
@@ -98,37 +125,42 @@ class contrail::config::config (
 
     case $::operatingsystem {
         Ubuntu: {
-            #file {['/etc/init/supervisor-config.override',
-                   #'/etc/init/neutron-server.override']: ensure => absent}
-            #->
-            file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
-                content => template("${module_name}/contrail-api.ini.erb"),
-            }
-            ->
-            file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
-                content => template("${module_name}/contrail-discovery.ini.erb"),
-            }
-            #->
-            # Below is temporary to work-around in Ubuntu as Service resource fails
-            # as upstart is not correctly linked to /etc/init.d/service-name
-            #file { '/etc/init.d/supervisor-config':
-                #ensure => link,
-                #target => '/lib/init/upstart-job',
-            #}
+            $api_command_to_use = $contrail_api_ubuntu_command
+            $discovery_command_to_use = $contrail_discovery_ubuntu_command
         }
         'Centos', 'Fedora' : {
             # notify { "OS is Ubuntu":; }
-            file { '/etc/contrail/supervisord_config_files/contrail-api.ini' :
-                content => template("${module_name}/contrail-api-centos.ini.erb"),
-            }
-            ->
-            file { '/etc/contrail/supervisord_config_files/contrail-discovery.ini' :
-                content => template("${module_name}/contrail-discovery-centos.ini.erb"),
-            }
+            $api_command_to_use = $contrail_api_centos_command
+            $discovery_command_to_use = $contrail_discovery_centos_command
         }
         default: {
-    # notify { "OS is $operatingsystem":; }
+        # notify { "OS is $operatingsystem":; }
         }
+    }
+    contrail_api_ini {
+            'program:contrail-api/command'      : value => "$api_command_to_use";
+            'program:contrail-api/numprocs'     : value => "$api_nworkers";
+            'program:contrail-api/process_name' : value => '%(process_num)s';
+            'program:contrail-api/redirect_stderr' : value => 'true';
+            'program:contrail-api/stdout_logfile' : value => '/var/log/contrail/contrail-api-%(process_num)s.log';
+            'program:contrail-api/stderr_logfile' : value => '/dev/null';
+            'program:contrail-api/priority' : value => '440';
+            'program:contrail-api/autostart' : value => 'true';
+            'program:contrail-api/killasgroup' : value => 'true';
+            'program:contrail-api/stopsignal' : value => 'KILL';
+    }
+
+    contrail_discovery_ini {
+             'program:contrail-discovery/command'      : value => "$discovery_command_to_use";
+             'program:contrail-discovery/numprocs'     : value => "$disc_nworkers";
+             'program:contrail-discovery/process_name' : value => '%(process_num)s';
+             'program:contrail-discovery/redirect_stderr' : value => 'true';
+             'program:contrail-discovery/stdout_logfile' : value => '/var/log/contrail/contrail-discovery-%(process_num)s.log';
+             'program:contrail-discovery/stderr_logfile' : value => '/dev/null';
+             'program:contrail-discovery/priority' : value => '430';
+             'program:contrail-discovery/autostart' : value => 'true';
+             'program:contrail-discovery/killasgroup' : value => 'true';
+             'program:contrail-discovery/stopsignal' : value => 'KILL';
     }
 
     # Ensure ctrl-details file is present with right content.
@@ -187,50 +219,155 @@ class contrail::config::config (
     file { '/etc/ifmap-server/publisher.properties' :
         content => template("${module_name}/publisher.properties.erb"),
     }
-    ->
     # Ensure all config files with correct content are present.
-    file { '/etc/contrail/contrail-api.conf' :
-        content => template("${module_name}/contrail-api.conf.erb"),
+
+    contrail_api_config {
+        'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
+        'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
+        'DEFAULTS/ifmap_username'       : value => 'api-server';
+        'DEFAULTS/ifmap_password'       : value => 'api-server';
+        'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
+        'DEFAULTS/listen_ip_addr'       : value => '0.0.0.0';
+        'DEFAULTS/listen_port'          : value => '8082';
+        'DEFAULTS/auth'                 : value => 'keystone';
+        'DEFAULTS/multi_tenancy'        : value => "$multi_tenancy";
+        'DEFAULTS/log_file'             : value => '/var/log/contrail/api.log';
+        'DEFAULTS/log_local'            : value => '1';
+        'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
+        'DEFAULTS/disc_server_ip'       : value => "$config_ip";
+        'DEFAULTS/disc_server_port'     : value => '5998';
+        'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
+        'DEFAULTS/rabbit_server'        : value => "$config_ip";
+        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
+        'SECURITY/use_certs'            : value => "$use_certs";
+        'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/apiserver_key.pem';
+        'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/apiserver.pem';
+        'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
+
+
     }
-    ->
-    file { '/etc/contrail/contrail-config-nodemgr.conf' :
-        content => template("${module_name}/contrail-config-nodemgr.conf.erb"),
+
+    contrail_config_nodemgr_config {
+        'DISCOVERY/server'     : value => "$config_ip";
+        'DISCOVERY/port'     : value => '5998';
     }
-    ->
-    file { '/etc/contrail/contrail-schema.conf' :
-        content => template("${module_name}/contrail-schema.conf.erb"),
+
+    contrail_schema_config {
+        'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
+        'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
+        'DEFAULTS/ifmap_username'       : value => 'schema-transformer';
+        'DEFAULTS/ifmap_password'       : value => 'schema-transformer';
+        'DEFAULTS/api_server_ip'        : value => "$config_ip";
+        'DEFAULTS/api_server_port'      : value => '8082';
+        'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
+        'DEFAULTS/log_file'             : value => '/var/log/contrail/schema.log';
+        'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
+        'DEFAULTS/disc_server_ip'       : value => "$config_ip";
+        'DEFAULTS/disc_server_port'     : value => '5998';
+        'DEFAULTS/log_local'            : value => '1';
+        'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
+        'DEFAULTS/rabbit_server'        : value => "$config_ip";
+        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
+        'SECURITY/use_certs'            : value => "$use_certs";
+        'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/schema_xfer_key.pem';
+        'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/schema_xfer.pem';
+        'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
     }
-    ->
-    file { '/etc/contrail/contrail-svc-monitor.conf' :
-        content => template("${module_name}/contrail-svc-monitor.conf.erb"),
+
+    contrail_svc_monitor_config {
+         'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
+         'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
+         'DEFAULTS/ifmap_username'       : value => 'svc-monitor';
+         'DEFAULTS/ifmap_password'       : value => 'svc-monitor';
+         'DEFAULTS/api_server_ip'        : value => "$config_ip";
+         'DEFAULTS/api_server_port'      : value => '8082';
+         'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
+         'DEFAULTS/log_file'             : value => '/var/log/contrail/svc-monitor.log';
+         'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
+         'DEFAULTS/disc_server_ip'       : value => "$config_ip";
+         'DEFAULTS/disc_server_port'     : value => '5998';
+         'DEFAULTS/region_name'          : value => "$keystone_region_name";
+         'DEFAULTS/log_local'            : value => '1';
+         'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
+         'DEFAULTS/rabbit_server'        : value => "$rabbit_server_to_use";
+         'DEFAULTS/rabbit_port'          : value => "$rabbit_port_to_use";
+         'SECURITY/use_certs'            : value => "$use_certs";
+         'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/svc_monitor_key.pem';
+         'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/svc_monitor.pem';
+         'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
+         'SCHEDULER/analytics_server_ip' : value => "$collector_ip";
+         'SCHEDULER/analytics_server_port': value => '8081';
     }
-    ->
-    file { '/etc/contrail/contrail-device-manager.conf' :
-        content => template("${module_name}/contrail-device-manager.conf.erb"),
+
+    contrail_device_manager_config {
+        'DEFAULTS/rabbit_server'        : value => "$config_ip";
+        'DEFAULTS/api_server_ip'        : value => "$config_ip";
+        'DEFAULTS/disc_server_ip'       : value => "$config_ip";
+        'DEFAULTS/api_server_port'      : value => '8082';
+        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
+        'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
+        'DEFAULTS/log_file'             : value => '/var/log/contrail/contrail-device-manager.log';
+        'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
+        'DEFAULTS/disc_server_port'     : value => '5998';
+        'DEFAULTS/log_local'            : value => '1';
+        'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
     }
-    ->
-    file { '/etc/contrail/contrail-discovery.conf' :
-        content => template("${module_name}/contrail-discovery.conf.erb"),
+
+    contrail_discovery_config {
+        'DEFAULTS/zk_server_ip'         : value => "$zk_ip_list";
+        'DEFAULTS/zk_server_port'       : value => '2181';
+        'DEFAULTS/listen_ip_addr'       : value => '0.0.0.0';
+        'DEFAULTS/listen_port'          : value => '5998';
+        'DEFAULTS/log_local'            : value => 'True';
+        'DEFAULTS/log_file'             : value => '/var/log/contrail/discovery.log';
+        'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
+        'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
+        'DEFAULTS/ttl_min'              : value => '300';
+        'DEFAULTS/ttl_max'              : value => '1800';
+        'DEFAULTS/hc_interval'          : value => "$hc_interval";
+        'DEFAULTS/hc_max_miss'          : value => '3';
+        'DEFAULTS/ttl_short'            : value => '1';
+        'DNS-SERVER/policy'             : value => 'fixed';
     }
-    ->
-    file { '/etc/contrail/vnc_api_lib.ini' :
-        content => template("${module_name}/vnc_api_lib.ini.erb"),
+
+    contrail_vnc_api_config {
+        'global/WEB_SERVER'             : value => '127.0.0.1';
+        'global/WEB_PORT'               : value => '8082';
+        'global/BASE_URL'               : value => '/';
+        'auth/AUTHN_TYPE'               : value => 'keystone';
+        'auth/AUTHN_PROTOCOL'           : value => "$keystone_auth_protocol";
+        'auth/AUTHN_SERVER'             : value => "$keystone_auth_server";
+        'auth/AUTHN_PORT'               : value => '35357';
+        'auth/AUTHN_URL'                : value => '/v2.0/tokens';
     }
-    ->
-    file { '/etc/contrail/contrail_plugin.ini' :
-        content => template("${module_name}/contrail_plugin.ini.erb"),
+
+    contrail_plugin_ini {
+        'APISERVER/api_server_ip'   : value => "$config_ip";
+        'APISERVER/api_server_port' : value => '8082';
+        'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
+        'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc';
+        'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
+        'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
+        'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
     }
-    ->
     # initd script wrapper for contrail-api
     file { '/etc/init.d/contrail-api' :
         mode    => '0777',
         content => template("${module_name}/contrail-api.svc.erb"),
     }
-    ->
-    file { '/etc/neutron/plugins/opencontrail/ContrailPlugin.ini' :
-        content => template("${module_name}/contrail_plugin.ini.erb"),
+
+    # contrail plugin for opencontrail
+    opencontrail_plugin_ini {
+        'APISERVER/api_server_ip'   : value => "$config_ip";
+        'APISERVER/api_server_port' : value => '8082';
+        'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
+        'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc';
+        'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
+        'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
+        'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
     }
-    -> exec { 'contrail-plugin-set-lbass-params':
+
+    exec { 'contrail-plugin-set-lbass-params':
         command   => "openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_ip ${collector_ip} &&
                            openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_port ${analytics_api_port} &&
                            echo exec_contrail_plugin_set_lbass_params >> /etc/contrail/contrail_config_exec.out",
@@ -317,7 +454,7 @@ class contrail::config::config (
         mode    => '0755',
         owner   => root,
         group   => root,
-        require => File['/etc/contrail/ctrl-details', '/etc/contrail/contrail-schema.conf', '/etc/contrail/contrail-svc-monitor.conf'],
+        require => File['/etc/contrail/ctrl-details'],
         source => "puppet:///modules/${module_name}/quantum-server-setup.sh"
     }
     ->
