@@ -155,9 +155,6 @@ class contrail::compute::config(
                 content => "manual",
             }
         }
-        #file {'/etc/init/supervisor-vrouter.override':
-            #ensure  => absent,
-        #}
     }
 
     # Install interface rename package for centos.
@@ -297,16 +294,32 @@ class contrail::compute::config(
             content => template("${module_name}/vnc_api_lib.ini.erb"),
         }
     }
-    file { '/etc/contrail/contrail-vrouter-agent.conf' :
-        ensure  => present,
-        content => template("${module_name}/contrail-vrouter-agent.conf.erb"),
+
+    contrail_vrouter_agent_config {
+      'DISCOVERY/server' : value => "$discovery_ip";
+      'DISCOVERY/max_control_nodes' : value => "$number_control_nodes";
+      'HYPERVISOR/type' : value => "$hypervisor_type";
+      'HYPERVISOR/vmware_physical_interface' : value => "$vmware_physical_intf";
+      'NETWORKS/control_network_ip' : value => "$host_control_ip";
+      'VIRTUAL-HOST-INTERFACE/name' : value => "vhost0";
+      'VIRTUAL-HOST-INTERFACE/ip' : value => "$host_control_ip/$contrail_cidr";
+      'VIRTUAL-HOST-INTERFACE/gateway' : value => "$contrail_gway";
+      'VIRTUAL-HOST-INTERFACE/physical_interface' : value => "$contrail_dev";
+      'SERVICE-INSTANCE/netns_command' : value => "/usr/local/bin/opencontrail-vrouter-netns";
     }
-    ->
-    file { '/etc/contrail/contrail-vrouter-nodemgr.conf' :
-        ensure  => present,
-        content => template("${module_name}/contrail-vrouter-nodemgr.conf.erb"),
+    contrail_vrouter_agent_config {
+      'VIRTUAL-HOST-INTERFACE/compute_node_address' : ensure => 'absent';
     }
-    ->
+
+    if $contrail_agent_mode == 'tsn' {
+      contrail_vrouter_agent_config { 'DEFAULT/agent_mode' : value => "tsn"; }
+    }
+
+    contrail_vrouter_nodemgr_config {
+      'DISCOVERY/server' : value => "$discovery_ip";
+      'DISCOVERY/port' : value => '5998';
+    }
+
     file { '/opt/contrail/utils/provision_vrouter.py':
         ensure => present,
         mode   => '0755',
