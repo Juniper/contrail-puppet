@@ -59,7 +59,6 @@ class contrail::database::config (
             ensure  => link,
             target  => "${analytics_data_dir}/ContrailAnalytics",
             require => File[$database_dir],
-            notify  => Service['supervisor-database'],
             owner   => cassandra,
             group   => cassandra,
         }
@@ -118,12 +117,14 @@ class contrail::database::config (
         provider  => shell,
         logoutput => $contrail_logoutput
     }
-    ->
-    file { '/etc/contrail/contrail-database-nodemgr.conf' :
-        ensure  => present,
-        content => template("${module_name}/contrail-database-nodemgr.conf.erb"),
+
+    contrail_database_nodemgr_config {
+      'DEFAULT/hostip': value => $host_control_ip;
+      'DEFAULT/minimum_diskGB' : value => $database_minimum_diskGB;
+      'DISCOVERY/server' : value => $config_ip;
+      'DISCOVERY/port' : value => '5998';
     }
-    ->
+
     file { '/etc/contrail/database_nodemgr_param' :
         ensure  => present,
         content => template("${module_name}/database_nodemgr_param.erb"),
