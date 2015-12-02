@@ -409,10 +409,6 @@ class contrail::compute (
         #provider  => shell,
         #logoutput => $contrail_logoutput
     #}
-    nova_config { 'DEFAULT/neutron_admin_auth_url':
-        value => "http://${keystone_ip_to_use}:5000/v2.0"
-    }
-    ->
     # set rpc backend in nova.conf
     exec { 'exec-compute-update-nova-conf' :
         command   => "sed -i \"s/^rpc_backend = nova.openstack.common.rpc.impl_qpid/#rpc_backend = nova.openstack.common.rpc.impl_qpid/g\" /etc/nova/nova.conf && echo exec-update-nova-conf >> /etc/contrail/contrail_common_exec.out",
@@ -629,16 +625,12 @@ class contrail::compute (
         #logoutput => $contrail_logoutput
 #
     #}
-    nova_config { 'DEFAULT/neutron_admin_tenant_name':
-        value => 'services'
-    }
-    ->
-    nova_config { 'DEFAULT/neutron_admin_password':
-        value => "${keystone_admin_password}"
-    }
-    ->
-    nova_config { 'keystone_authtoken/admin_password':
-        value => "${keystone_admin_password}"
+    #Package['contrail-openstack-vrouter'] ->
+    nova_config {
+      'DEFAULT/neutron_admin_tenant_name': value => 'services';
+      'DEFAULT/neutron_admin_password': value => "${keystone_admin_password}";
+      'keystone_authtoken/admin_password': value => "${keystone_admin_password}";
+      'DEFAULT/neutron_admin_auth_url': value => "http://${keystone_ip_to_use}:5000/v2.0";
     }
     ->
     reboot { 'compute':
