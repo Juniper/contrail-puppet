@@ -30,6 +30,7 @@ define contrail::lib::upgrade_kernel(
        $headers_generic = "linux-headers-${contrail_kernel_version_to_upgrade}-generic"
        $image = "linux-image-${contrail_kernel_version_to_upgrade}-generic"
        $image_extra = "linux-image-extra-${contrail_kernel_version_to_upgrade}-generic"
+       $grub_default = $::contrail::params::contrail_grub_string
 
        package { [$headers, $headers_generic, $image,  $image_extra] : ensure => present }
        #->
@@ -40,6 +41,19 @@ define contrail::lib::upgrade_kernel(
        #package { $image_extra : ensure => present, notify => Reboot["after"],  }
        ->
        notify { "Before reboot":; }
+       ->
+       file_line { "set_grub_default":
+           path  => '/etc/default/grub',
+           line  => $grub_default,
+           match => '^GRUB_DEFAULT=.*',
+       }
+       ->
+       exec { 'update_grub' :
+            command   => 'update-grub && echo update-grub >> /etc/contrail/contrail_common_exec.out',
+            unless    => 'grep -qx update-grub /etc/contrail/contrail_common_exec.out',
+            provider  => 'shell',
+            logoutput => $contrail_logoutput
+       }
        ->
        reboot { 'after':
          apply => "immediately",
