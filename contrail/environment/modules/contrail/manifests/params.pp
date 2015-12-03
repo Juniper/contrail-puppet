@@ -729,8 +729,10 @@ class contrail::params (
     } else {
        if ($lsbdistrelease == "14.04") {
 	   $contrail_dist_kernel_version = "3.13.0-40"
+           $contrail_grub_string = 'GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux 3.13.0-40-generic\''
        } else {
 	   $contrail_dist_kernel_version = "3.13.0-34"
+           $contrail_grub_string = 'GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux 3.13.0-34-generic\''
        }
     }
 
