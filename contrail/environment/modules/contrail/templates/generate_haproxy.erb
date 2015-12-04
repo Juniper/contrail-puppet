@@ -506,8 +506,6 @@ def tor_agent_ha_config(tor_details_str):
 
     i = 1
     cfg_str = ""
-    #print "\n\n"
-    #print master_ha_proxy
     for key in master_ha_proxy.keys():
         proxy_name = "contrail-tor-agent-" + str(i)
         i = i +  1
@@ -519,14 +517,10 @@ def generate_collector_ha_config(collector_ip_list, mgmt_host_ip):
     space = ' ' * 3
 
     for server_index, host_ip in enumerate(collector_ip_list):
-#        server_index = env.roledefs['collector'].index(host_string) + 1
-#        mgmt_host_ip = hstr_to_ip(host_string)
-#        host_ip = hstr_to_ip(get_control_host_string(host_string))
         contrail_analytics_api_server_lines +=\
             '%s server %s %s:9081 check inter 2000 rise 2 fall 3\n'\
              % (space, host_ip, host_ip)
 
-#    for host_string in env.roledefs['collector']:
     haproxy_config = collector_ha_template.safe_substitute({
 	'__contrail_analytics_api_backend_servers__' : contrail_analytics_api_server_lines,
 	'__contrail_hap_user__': 'haproxy',
@@ -553,8 +547,6 @@ listen  rabbitmq 0.0.0.0:5673
     timeout server 48h\n"""
     space = ' ' * 3
     for server_index, host_ip in enumerate(config_ip_list):
-#        server_index = env.roledefs['cfgm'].index(host_string) + 1
-#        host_ip = hstr_to_ip(get_control_host_string(host_string))
         q_server_lines = q_server_lines + \
         '    server %s %s:%s check inter 2000 rise 2 fall 3\n' \
                     %(host_ip, host_ip, str(q_listen_port))
@@ -604,9 +596,6 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
     space = ' ' * 3
 
     for server_index, host_ip in enumerate(openstack_ip_list):
-#        server_index = env.roledefs['openstack'].index(host_string) + 1
-#        mgmt_host_ip = hstr_to_ip(host_string)
-#        host_ip = hstr_to_ip(get_control_host_string(host_string))
         keystone_server_lines +=\
             '%s server %s %s:6000 check inter 2000 rise 2 fall 1\n'\
              % (space, host_ip, host_ip)
