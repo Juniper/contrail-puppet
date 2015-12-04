@@ -22,7 +22,7 @@ Puppet::Type.type(:contrail_dns_config).provide(
   end
 
   def self.file_path
-    '/etc/contrail/dns/contrail-dns.conf'
+    '/etc/contrail/contrail-dns.conf'
   end
 
   # added for backwards compatibility with older versions
