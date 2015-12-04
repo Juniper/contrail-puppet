@@ -252,7 +252,7 @@ class contrail::compute (
         $contrail_gway = $host_non_mgmt_gateway
     }
     else {
-        $contrail_gway = $::contrail::params::contrail_gateway
+        $contrail_gway = $contrail_gateway
     }
     if ($haproxy == true) {
         $quantum_ip = '127.0.0.1'
@@ -321,7 +321,7 @@ class contrail::compute (
     notify {"contrail_netmask = ${contrail_netmask}":; } ->
     notify {"contrail_cidr = ${contrail_cidr}":; } ->
     notify {"contrail_gway = ${contrail_gway}":; } ->
-    notify {"contrail_gateway = ${::contrail::params::contrail_gateway}":; } ->
+    notify {"contrail_gateway = ${contrail_gateway}":; } ->
     notify {"quantum_port = ${quantum_port}":; } ->
     notify {"quantum_ip = ${quantum_ip}":; } ->
     notify {"quantum_service_protocol = ${quantum_service_protocol}":; } ->
