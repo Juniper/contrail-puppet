@@ -53,7 +53,7 @@ class contrail::compute::config(
         $multinet_opt = ''
         $vhost_ip = $host_control_ip
         $contrail_compute_dev = ''
-        $contrail_gway = $::contrail::params::contrail_gateway
+        $contrail_gway = $contrail_gateway
     }
     $physical_dev = get_device_name($vhost_ip)
     if ($physical_dev != 'vhost0') {
@@ -140,7 +140,7 @@ class contrail::compute::config(
     notify {"contrail_netmask = ${contrail_netmask}":; } ->
     notify {"contrail_cidr = ${contrail_cidr}":; } ->
     notify {"contrail_gway = ${contrail_gway}":; } ->
-    notify {"contrail_gateway = ${::contrail::params::contrail_gateway}":; } ->
+    notify {"contrail_gateway = ${contrail_gateway}":; } ->
     notify {"quantum_port = ${quantum_port}":; } ->
     notify {"quantum_ip = ${quantum_ip}":; } ->
     notify {"quantum_service_protocol = ${quantum_service_protocol}":; } ->
