@@ -572,6 +572,7 @@ class contrail::params (
     $keystone_admin_user = 'admin',
     $keystone_admin_tenant = 'admin',
     $keystone_service_tenant = 'services',
+    $keystone_service_token = 'contrail123',
     $keystone_region_name = 'RegionOne',
     $multi_tenancy = true,
     $zookeeper_ip_list = undef,

@@ -73,9 +73,11 @@ class contrail::config::config (
     if ($internal_vip != '') {
         $rabbit_server_to_use = $internal_vip
         $rabbit_port_to_use = 5673
+        $controller_ip = $internal_vip
     } else {
         $rabbit_server_to_use = $host_control_ip
         $rabbit_port_to_use = 5672
+        $controller_ip = $keystone_ip_to_use
     }
     # Supervisor contrail-api.ini
     $api_port_base = '910'
@@ -365,16 +367,11 @@ class contrail::config::config (
         'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
         'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
+        'COLLECTOR/analytics_api_ip': value => "$collector_ip";
+        'COLLECTOR/analytics_api_port': value => "$analytics_api_port";
     }
 
-    exec { 'contrail-plugin-set-lbass-params':
-        command   => "openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_ip ${collector_ip} &&
-                           openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_port ${analytics_api_port} &&
-                           echo exec_contrail_plugin_set_lbass_params >> /etc/contrail/contrail_config_exec.out",
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
-    ->
+
     exec { 'config-neutron-server' :
         command   => "sudo sed -i '/NEUTRON_PLUGIN_CONFIG.*/d' /etc/default/neutron-server && echo \"${contrail_plugin_location}\" >> /etc/default/neutron-server && service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
         onlyif    => 'test -f /etc/default/neutron-server',
@@ -446,6 +443,54 @@ class contrail::config::config (
             logoutput => $contrail_logoutput
         }
     }
+
+    # Refactored script quantum-server-setup.sh
+    $neutron_password = hiera(openstack::neutron::password)
+    $service_token = $::contrail::params::keystone_service_token
+    $contrail_host_roles = $::contrail::params::host_roles
+    $neutron_non_openstack_params = {
+        'keystone_authtoken/identity_uri' => {value => "${keystone_auth_protocol}://${controller_ip}:5000"},
+        'quotas/quota_driver' => {value => 'neutron_plugin_contrail.plugins.opencontrail.quota.driver.QuotaDriver'},
+        'QUOTAS/quota_network' => {value => '-1'},
+        'QUOTAS/quota_subnet' => {value => '-1'},
+        'QUOTAS/quota_port' => {value => '-1'},
+        'service_providers/service_provider' => {value => 'LOADBALANCER:Opencontrail:neutron_plugin_contrail.plugins.opencontrail.loadbalancer.driver.OpencontrailLoadbalancerDriver:default'},
+        'DEFAULT/log_format' => {value => '%(asctime)s.%(msecs)d %(levelname)8s [%(name)s] %(message)s'}
+    }
+    create_resources(neutron_config, $neutron_non_openstack_params, {} )
+    if (!("openstack" in $contrail_host_roles)) {
+        $neutron_openstack_params = {
+            'keystone_authtoken/auth_uri' => {value => "${keystone_auth_protocol}://${controller_ip}:35357/v2.0/"},
+            'keystone_authtoken/admin_tenant_name' => {value => $keystone_admin_tenant},
+            'keystone_authtoken/admin_user' => {value => 'neutron'},
+            'keystone_authtoken/admin_password' => {value => $neutron_password},
+            'keystone_authtoken/auth_protocol' => {value => $keystone_auth_protocol},
+            'keystone_authtoken/auth_host' => {value => $controller_ip},
+            'DEFAULT/bind_port' => {value => $quantum_port },
+            'DEFAULT/auth_strategy' => {value => 'keystone'},
+            'DEFAULT/allow_overlapping_ips' => {value => 'True'},
+            'DEFAULT/core_plugin' => {value => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2'},
+            'DEFAULT/rabbit_host' => {value => $amqp_server_ip_to_use},
+            'DEFAULT/service_plugins' => {value => 'neutron_plugin_contrail.plugins.opencontrail.loadbalancer.plugin.LoadBalancerPlugin'}
+        }
+        create_resources(neutron_config, $neutron_openstack_params, {} )
+    }
+    # Openstack HA specific config
+    if (($internal_vip != '') and (!("openstack" in $contrail_host_roles))) {
+        $neutron_ha_params = {
+            'DEFAULT/rabbit_port' => {value => '5673'},
+            'DEFAULT/rabbit_retry_interval' => { value => '1'},
+            'DEFAULT/rabbit_retry_backoff' => {value => '2'},
+            'DEFAULT/rabbit_max_retries' => { value => '0'},
+            'DEFAULT/rabbit_ha_queues' => { value => 'True'},
+            'DEFAULT/rpc_cast_timeout' => {value => '30'},
+            'DEFAULT/rpc_conn_pool_size' => {value => '40'},
+            'DEFAULT/rpc_response_timeout' => { value => '60'},
+            'DEFAULT/rpc_thread_pool_size' => {value => '70'}
+        }
+        create_resources(neutron_config, $neutron_ha_params, {} )
+    }
+
     file { '/usr/bin/nodejs':
         ensure => link,
         target => '/usr/bin/node',

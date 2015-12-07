@@ -140,6 +140,30 @@ define contrail::lib::storage_common(
 
     if 'openstack' in $contrail_host_roles {
         Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['setup-config-storage-openstack']
+
+        cinder_config {
+            'DEFAULT/sql_connection'            : value => 'mysql://cinder:cinder@127.0.0.1/cinder';
+            'DEFAULT/enabled_backends'          : value =>  'rbd-disk';
+            'DEFAULT/rabbit_host'               : value =>  $contrail_openstack_ip;
+            'rbd-disk/rbd_pool'                 : value =>  'volumes';
+            'rbd-disk/rbd_user'                 : value =>  'volumes';
+            'rbd-disk/rbd_secret_uuid'          : value =>  $contrail_storage_virsh_uuid;
+            'rbd-disk/glance_api_version'       : value =>  '2';
+            'rbd-disk/volume_backend_name'      : value =>  'RBD';
+            'rbd-disk/volume_driver'            : value =>  'cinder.volume.drivers.rbd.RBDDriver';
+        }
+
+        glance_api_config {
+            'DEFAULT default_store'             : value => 'rbd';
+            'DEFAULT show_image_direct_url'     : value => 'True';
+            'DEFAULT rbd_store_user'            : value => 'images';
+            'DEFAULT workers'                   : value => '120';
+            'DEFAULT rbd_store_chunk_size'      : value => '8';
+            'DEFAULT rbd_store_pool'            : value => 'images';
+            'DEFAULT rbd_store_ceph_conf'       : value => '/etc/ceph/ceph.conf';
+            'DEFAULT known_stores'              : value =>  'glance.store.rbd.Store,glance.store.http.Store,glance.store.filesystem.Store';
+        }
+
         file { 'config-storage-openstack.sh':
             ensure => present,
             path   => '/etc/contrail/contrail_setup_utils/config-storage-openstack.sh',

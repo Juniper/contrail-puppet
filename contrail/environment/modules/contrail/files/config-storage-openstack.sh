@@ -11,23 +11,6 @@ openstack_ip=$2
 ## completely online
 NUM_TARGET_OSD=$3
 #sed -i "s/^bind-address/#bind-address/" /etc/mysql/my.cnf
-openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
-openstack-config --set /etc/cinder/cinder.conf DEFAULT enabled_backends rbd-disk
-openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${openstack_ip}
-openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_pool volumes
-openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_user volumes
-openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_secret_uuid $virsh_secret
-openstack-config --set /etc/cinder/cinder.conf rbd-disk glance_api_version 2
-openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_backend_name RBD
-openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_driver cinder.volume.drivers.rbd.RBDDriver
-openstack-config --set /etc/glance/glance-api.conf DEFAULT default_store rbd
-openstack-config --set /etc/glance/glance-api.conf DEFAULT show_image_direct_url True
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_user images
-openstack-config --set /etc/glance/glance-api.conf DEFAULT workers 120
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_chunk_size 8
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_pool images
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_ceph_conf /etc/ceph/ceph.conf
-openstack-config --set /etc/glance/glance-api.conf DEFAULT known_stores glance.store.rbd.Store,glance.store.http.Store,glance.store.filesystem.Store
 
 ## configure ceph-rest-api 
 sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5005)/" /usr/bin/ceph-rest-api

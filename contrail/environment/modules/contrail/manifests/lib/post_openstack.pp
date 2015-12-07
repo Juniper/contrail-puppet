@@ -41,19 +41,29 @@ define contrail::lib::post_openstack(
       # If mysql connection string is setup to local_ip while provisoning openstack.
       # openstack 2,3 provision will fail as db-sync is done only on 1,
       # and they dont find the tables.
-      exec { 'exec_set_mysql':
-        command   => "openstack-config --set /etc/keystone/keystone.conf database connection mysql://keystone:${password}@${host_control_ip}/keystone  && 
-                 openstack-config --set /etc/keystone/keystone.conf sql connection mysql://keystone:${password}@${host_control_ip}/keystone && 
-                 openstack-config --set /etc/cinder/cinder.conf database connection mysql://cinder:${password}@${host_control_ip}/cinder && 
-                 openstack-config --set /etc/glance/glance-registry.conf database connection mysql://glance:${password}@${host_control_ip}/glance && 
-                 openstack-config --set /etc/glance/glance-api.conf database connection mysql://glance:${password}@${host_control_ip}/glance && 
-                 openstack-config --set /etc/neutron/neutron.conf database connection mysql://neutron:${password}@${host_control_ip}/neutron && 
-                 echo exec_set_mysql >> /etc/contrail/contrail_openstack_exec.out",
-        provider  => shell,
-        before    => Exec['exec_start_supervisor_openstack'],
-        logoutput => $contrail_logoutput
+      $database_credentials = join([$password, "@", $host_control_ip],'')
+      $keystone_db_conn = join(["mysql://keystone:",$database_credentials,"/keystone"],'')
+      $cinder_db_conn = join(["mysql://cinder:",$database_credentials,"/cinder"],'')
+      $glance_db_conn = join(["mysql://glance:",$database_credentials,"/glance"],'')
+      $neutron_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
+
+      keystone_config {
+        'DATABASE/connection'   : value => $keystone_db_conn;
+        'SQL/connection'        : value => $keystone_db_conn;
+      }
+      cinder_config {
+        'DATABASE/connection'   : value => $cinder_db_conn;
+      }
+      glance_registry_config {
+        'DATABASE/connection'   : value => $glance_db_conn;
+      }
+      glance_api_config {
+        'DATABASE/connection'   : value => $glance_db_conn;
+      }
+      neutron_config {
+        'DATABASE/connection'   : value => $neutron_db_conn;
       }
     }
   }
 }
-#end of upgrade-kernel
+#end of post-openstack
