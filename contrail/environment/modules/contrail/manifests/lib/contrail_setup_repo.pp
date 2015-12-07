@@ -16,10 +16,6 @@ define contrail::lib::contrail_setup_repo(
           repos    => 'main',
           release  => 'contrail',
        }
-       apt::pin { 'contrail_repo_preferences':
-         priority => '999',
-         codename => 'contrail'
-       }
           
 	#$pattern1 = "deb http:\/\/$contrail_repo_ip:9003\/contrail\/repo\/$contrail_repo_name contrail main"
 	#$pattern2 = "deb http://$contrail_repo_ip:9003/contrail/repo/$contrail_repo_name contrail main"
