@@ -63,6 +63,10 @@ class contrail::common(
       priority => '-10',
       originator => 'Debian'
     } ->
+    apt::pin { 'contrail_repo_preferences':
+      priority => '999',
+      codename => 'contrail'
+    } ->
 
     # Resource declarations for class contrail::common
     # macro to perform common functions

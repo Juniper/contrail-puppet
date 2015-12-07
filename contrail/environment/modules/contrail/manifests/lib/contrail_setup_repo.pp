@@ -16,9 +16,5 @@ define contrail::lib::contrail_setup_repo(
           repos    => 'main',
           release  => 'contrail',
        }
-       apt::pin { 'contrail_repo_preferences':
-         priority => '999',
-         codename => 'contrail'
-       }
     }
 }
