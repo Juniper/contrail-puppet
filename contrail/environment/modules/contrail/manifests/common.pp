@@ -55,18 +55,6 @@ class contrail::common(
 
     create_resources(group, $contrail_group_details)
     create_resources(user, $contrail_users_details)
-    #Group <| |> -> User<| |>
-    #$contrail_users_details = {
-      #'nova'            => { user_uid => '499', user_group_name => 'nova', group_gid => '499', user_home_dir => '/var/lib/nova' },
-      #'libvirt-qemu'    => { user_uid => '498', user_group_name => 'kvm' , group_gid => '498', user_home_dir => '/var/lib/libvirt'},
-      #'libvirt-dnsmasq' => { user_uid => '497', user_group_name => 'libvirtd' , group_gid => '497',  user_home_dir => '/var/lib/libvirt/dnsmasq'},
-    #}
-    #create_resources(contrail::lib::setup_uid, $contrail_users_details,
-                        #{
-                            #contrail_logoutput => $contrail_logoutput
-                        #}
-                    #)
-    #->
     contrail::lib::contrail_upgrade{ 'contrail_upgrade':
         contrail_upgrade   => $contrail_upgrade,
         contrail_logoutput => $contrail_logoutput

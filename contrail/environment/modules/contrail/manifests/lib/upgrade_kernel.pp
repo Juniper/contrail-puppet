@@ -13,31 +13,12 @@ define contrail::lib::upgrade_kernel(
            package { 'apparmor' : ensure => '2.7.102-0ubuntu3.10', notify => Reboot["after"], }
        }
 
-/*
-       if ($contrail_kernel_version != "" ) {
-           $contrail_dist_kernel_version = $contrail_kernel_version
-       } else {
-           if ($lsbdistrelease == "14.04") {
-               $contrail_dist_kernel_version = "3.13.0-40"
-           } else {
-               $contrail_dist_kernel_version = "3.13.0-34"
-               package { 'apparmor' : ensure => '2.7.102-0ubuntu3.10', notify => Reboot["after"], }
-           }
-       }
-
-*/
        $headers = "linux-headers-${contrail_kernel_version_to_upgrade}"
        $headers_generic = "linux-headers-${contrail_kernel_version_to_upgrade}-generic"
        $image = "linux-image-${contrail_kernel_version_to_upgrade}-generic"
        $image_extra = "linux-image-extra-${contrail_kernel_version_to_upgrade}-generic"
 
        package { [$headers, $headers_generic, $image,  $image_extra] : ensure => present }
-       #->
-       #package { $headers_generic : ensure => present, notify => Reboot["after"],  }
-       #->
-       #package { $image : ensure => present, notify => Reboot["after"],  }
-       #->
-       #package { $image_extra : ensure => present, notify => Reboot["after"],  }
        ->
        notify { "Before reboot":; }
        ->

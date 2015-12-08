@@ -29,7 +29,6 @@ class openstack::common::glance {
     }
 
     glance_api_config {
-#      'database/idle_timeout':             value => "180";
       'database/min_pool_size':            value => "100";
       'database/max_pool_size':            value => "700";
       'database/max_overflow':             value => "1080";
@@ -42,7 +41,6 @@ class openstack::common::glance {
     }
 
     glance_registry_config {
-#      'database/idle_timeout':             value => "180";
       'database/min_pool_size':            value => "100";
       'database/max_pool_size':            value => "700";
       'database/max_overflow':             value => "1080";
