@@ -2,11 +2,7 @@ AUTH_PROTOCOL=<%= @keystone_auth_protocol %>
 QUANTUM_PROTOCOL=<%= @quantum_service_protocol %>
 CONTROLLER=<%= @keystone_ip_to_use %>
 AMQP_SERVER=<%= @amqp_server_ip_to_use %>
-<% if @haproxy -%>
-QUANTUM=127.0.0.1
-<% else -%>
 QUANTUM=<%= @quantum_ip %>
-<% end -%>
 QUANTUM_PORT=<%= @quantum_port %>
 COMPUTE=<%= @host_control_ip %>
 CONTROLLER_MGMT=<%= @openstack_mgmt_ip %>

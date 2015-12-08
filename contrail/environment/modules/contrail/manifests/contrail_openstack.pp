@@ -95,6 +95,7 @@ class contrail::contrail_openstack (
         $vnc_base_url_ip = $openstack_mgmt_ip
     }
 
+    include ::contrail::openstackrc
     # Create mysql token file.
     file { '/etc/contrail/mysql.token' :
         ensure  => present,
@@ -102,12 +103,7 @@ class contrail::contrail_openstack (
         group   => root,
         content => $::contrail::params::mysql_root_password
     } ->
-    # Create openstackrc file.
-    file { '/etc/contrail/openstackrc' :
-        ensure  => present,
-        content => template("${module_name}/openstackrc.erb"),
-    } ->
-    # Create openstackrc file.
+    # Create keystonerc file.
     file { '/etc/contrail/keystonerc' :
         ensure  => present,
         content => template("${module_name}/keystonerc.erb"),

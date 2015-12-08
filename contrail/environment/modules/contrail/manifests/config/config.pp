@@ -119,8 +119,9 @@ class contrail::config::config (
       ensure => 'present'
     }
 
-    $cfgm_ip_list_shell = inline_template('<%= @config_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
-    $cfgm_name_list_shell = inline_template('<%= @config_name_list.map{ |ip| "#{ip}" }.join(",") %>')
+    $cfgm_ip_list_shell = join($config_ip_list,",")
+    $cfgm_name_list_shell = join($config_name_list, ",")
+
     $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctl\n"
 
     case $::operatingsystem {
@@ -163,36 +164,11 @@ class contrail::config::config (
              'program:contrail-discovery/stopsignal' : value => 'KILL';
     }
 
-    # Ensure ctrl-details file is present with right content.
-    if ! defined(File['/etc/contrail/ctrl-details']) {
-        if $haproxy == true {
-            $quantum_ip = '127.0.0.1'
-        } else {
-            $quantum_ip = $host_control_ip
-        }
-
-        file { '/etc/contrail/ctrl-details' :
-            content => template("${module_name}/ctrl-details.erb"),
-        }
-    }
-
-    if !defined(File['/etc/contrail/openstackrc']) {
-        file { '/etc/contrail/openstackrc' :
-            content => template("${module_name}/openstackrc.erb"),
-            before => Exec['neutron-conf-exec']
-        }
-    }
-
+    include ::contrail::openstackrc
+    include ::contrail::ctrl_details
     include ::contrail::keystone
+    include ::contrail::neutron_rpc_backend
 
-    exec { 'neutron-conf-exec':
-        command   => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
-        onlyif    => 'test -f /etc/neutron/neutron.conf',
-        unless    => 'grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
-    ->
     #form the sudoers
     file { '/etc/sudoers.d/contrail_sudoers' :
         mode   => '0440',

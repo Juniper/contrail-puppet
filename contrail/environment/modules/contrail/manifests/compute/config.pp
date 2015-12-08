@@ -163,9 +163,14 @@ class contrail::compute::config(
         }
     }
     # for storage
+    ## Same condition as compute/service.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
+        file { ['/var/tmp', '/var/tmp/glance-images']:
+           ensure => directory,
+           mode   => '0777'
+        } ->
         exec { 'create-nfs' :
-            command   => 'mkdir -p /var/tmp/glance-images/ && chmod 777 /var/tmp/glance-images/ && echo \"/var/tmp/glance-images *(rw,sync,no_subtree_check)\" >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ',
+            command   => 'echo \"/var/tmp/glance-images *(rw,sync,no_subtree_check)\" >> /etc/exports && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ',
             unless    => 'grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out',
             provider  => shell,
             logoutput => $contrail_logoutput
@@ -190,25 +195,7 @@ class contrail::compute::config(
         logoutput => $contrail_logoutput
     }
 
-    if ! defined(Exec['neutron-conf-exec']) {
-        exec { 'neutron-conf-exec':
-            command   => "sudo sed -i 's/rpc_backend\s*=\s*neutron.openstack.common.rpc.impl_qpid/#rpc_backend = neutron.openstack.common.rpc.impl_qpid/g' /etc/neutron/neutron.conf && echo neutron-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
-            onlyif    => 'test -f /etc/neutron/neutron.conf',
-            unless    => 'grep -qx neutron-conf-exec /etc/contrail/contrail_openstack_exec.out',
-            provider  => shell,
-            logoutput => $contrail_logoutput
-        }
-    }
-
-    if ! defined(Exec['quantum-conf-exec']) {
-        exec { 'quantum-conf-exec':
-            command   => "sudo sed -i 's/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g' /etc/quantum/quantum.conf && echo quantum-conf-exec >> /etc/contrail/contrail_openstack_exec.out",
-            onlyif    => 'test -f /etc/quantum/quantum.conf',
-            unless    => 'grep -qx quantum-conf-exec /etc/contrail/contrail_openstack_exec.out',
-            provider  => shell,
-            logoutput => $contrail_logoutput
-        }
-    }
+    include ::contrail::neutron_rpc_backend
 
     # Update modprobe.conf
     if inline_template('<%= @operatingsystem.downcase %>') == 'centos' {
@@ -240,12 +227,7 @@ class contrail::compute::config(
     }
 
     # Ensure ctrl-details file is present with right content.
-    if ! defined(File['/etc/contrail/ctrl-details']) {
-        file { '/etc/contrail/ctrl-details' :
-            ensure  => present,
-            content => template("${module_name}/ctrl-details.erb"),
-        }
-    }
+    include ::contrail::ctrl_details
 
     if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
         # check_wsrep

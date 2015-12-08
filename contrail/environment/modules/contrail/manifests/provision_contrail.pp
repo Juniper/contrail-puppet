@@ -87,14 +87,7 @@ class contrail::provision_contrail (
         $mt_options = 'None'
     }
 
-    # calculate config ip to use.
-    if ($contrail_internal_vip) {
-        $config_ip_to_use = $contrail_internal_vip
-    } elsif ($internal_vip) {
-        $config_ip_to_use = $internal_vip
-    } else {
-        $config_ip_to_use = $config_ip
-    }
+    $config_ip_to_use = $::contrail::params::config_ip_to_use
 
     # calculate openstack ip to use.
     if ($internal_vip) {
@@ -103,19 +96,18 @@ class contrail::provision_contrail (
         $openstack_ip_to_use = $openstack_ip
     }
 
-    $database_ip_list_for_shell = inline_template('<%= database_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
-    $database_name_list_for_shell = inline_template('<%= database_name_list.map{ |name| "#{name}" }.join(",") %>')
+    $database_ip_list_for_shell   = join($database_ip_list, ",")
+    $database_name_list_for_shell = join($database_name_list, ",")
 
-    $config_ip_list_for_shell = inline_template('<%= config_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
-    $config_name_list_for_shell = inline_template('<%= config_name_list.map{ |name| "#{name}" }.join(",") %>')
+    $config_ip_list_for_shell   = join($config_ip_list, ",")
+    $config_name_list_for_shell = join($config_name_list, ",")
 
+    $collector_ip_list_for_shell   = join($collector_ip_list , ",")
+    $collector_name_list_for_shell = join($collector_name_list, ",")
 
-    $collector_ip_list_for_shell = inline_template('<%= collector_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
-    $collector_name_list_for_shell = inline_template('<%= collector_name_list.map{ |name| "#{name}" }.join(",") %>')
+    $host_ip_list_for_shell   =  join($control_ip_list, ",")
+    $host_name_list_for_shell = join($control_name_list, ",")
 
-
-    $host_ip_list_for_shell = inline_template('<%= control_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
-    $host_name_list_for_shell = inline_template('<%= control_name_list.map{ |name| "#{name}" }.join(",") %>')
     $contrail_exec_provision_control = "python  exec_provision_control.py --api_server_ip \"${config_ip_to_use}\" --api_server_port 8082 --host_name_list \"${host_name_list_for_shell}\" --host_ip_list \"${host_ip_list_for_shell}\" --router_asn \"${router_asn}\" --mt_options \"${mt_options}\" && echo exec-provision-control >> /etc/contrail/contrail_config_exec.out"
 
     file { '/etc/contrail/contrail_setup_utils/exec_provision_control.py' :
