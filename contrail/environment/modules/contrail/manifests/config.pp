@@ -526,7 +526,7 @@ $ifmap_server_port = '8443'
     file { '/etc/rabbitmq/rabbitmq-env.conf' :
         mode    => '0755',
         group   => root,
-        content => '$rabbit_env',
+        content => $rabbit_env,
     }
     ->
     file { '/etc/contrail/add_etc_host.py' :
