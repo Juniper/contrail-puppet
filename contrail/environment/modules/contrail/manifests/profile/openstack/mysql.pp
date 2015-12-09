@@ -37,13 +37,6 @@ class contrail::profile::openstack::mysql {
     ruby_enable   => true,
   }
 
-  # This class requires Service['mysqld']
-  #include contrail::ha_config
-#  class {'::contrail::ha_config':
-#    require => Service['mysqld']
-#  }
-
   Service['mysqld'] -> Anchor['database-service']
 
-# class { 'mysql::server::account_security': }
 }

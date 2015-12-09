@@ -52,11 +52,6 @@ class openstack::profile::provision {
       internal_address => $contrail_controller_address_management,
       region           => $::openstack::config::region,
     }
-#    class { '::ceilometer::agent::auth':
-#      auth_url      => "http://${controller_management_address}:5000/v2.0",
-#      auth_password => $::openstack::config::ceilometer_password,
-#      auth_region   => $::openstack::config::region,
-#    }
     create_resources('openstack::resources::tenant', $tenants)
     create_resources('openstack::resources::user', $users)
 }

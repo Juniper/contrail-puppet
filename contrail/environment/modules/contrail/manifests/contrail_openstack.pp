@@ -122,15 +122,10 @@ class contrail::contrail_openstack (
         logoutput => $contrail_logoutput
     }
     $nova_params =  {
-      #'DEFAULT/novncproxy_port' => { value => $novncproxy_port },
       'DEFAULT/novncproxy_base_url' => { value => "http://${vnc_base_url_ip}:${novncproxy_port}/vnc_auto.html"},
-      #'DEFAULT/novncproxy_host' => { value => $vnc_proxy_host },
-      #'DEFAULT/service_neutron_metadata_proxy' => { value => 'True' },
       'DEFAULT/ec2_private_dns_show_ip' => { value => 'False' },
     }
     create_resources(nova_config,$nova_params, {} )
-
-    #glance_api_config { 'DEFAULT/registry_host': value => '0.0.0.0' }
 
     # Disable mpm_event apache module
     exec { "exec_disable_mpm_event":

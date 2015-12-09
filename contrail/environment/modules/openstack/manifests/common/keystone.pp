@@ -24,7 +24,6 @@ class openstack::common::keystone {
       rabbit_host     => $contrail_rabbit_host,
     }
     keystone_config {
-#      'database/idle_timeout': value => "180";
       'database/min_pool_size':   value => "100";
       'database/max_pool_size':   value => "700";
       'database/max_overflow':   value => "100";
@@ -34,9 +33,6 @@ class openstack::common::keystone {
       'database/db_retry_interval':   value => "1";
       'database/connection_debug':   value => "10";
       'database/pool_timeout':   value => "120";
-  #    'sql/connection':   value => $database_connection_real, secret => true;
-  #    'database/idle_timeout': value => $database_idle_timeout_real;
-  #    'sql/idle_timeout': value => $database_idle_timeout_real;
     }
 
   } else {
