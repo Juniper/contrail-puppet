@@ -10,11 +10,10 @@ define contrail::lib::haproxy_cfg(
     group  => root,
     source => "puppet:///modules/${module_name}/${server_id}.cfg"
   }
-  exec { 'haproxy-exec':
-    command   => "sudo sed -i 's/ENABLED=.*/ENABLED=1/g' /etc/default/haproxy",
-    provider  => shell,
-    logoutput => $contrail_logoutput,
-    require   => File['/etc/haproxy/haproxy.cfg']
+  contrail::lib::augeas_conf_set { 'ENABLED':
+      config_file => '/etc/default/haproxy',
+      settings_hash => { 'ENABLED' => '1',},
+      lens_to_use => 'properties.lns',
   }
   service { 'haproxy' :
     ensure  => running,

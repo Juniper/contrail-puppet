@@ -32,6 +32,7 @@ Facter.add(:openstack_version) do
     setcode do
         Facter::Util::Resolution.exec('/usr/bin/nova-manage version')
     end
+end
 Facter.add(:contrail_version) do
     setcode do
         Facter::Util::Resolution.exec('dpkg -l contrail-install-packages | grep contrail-install-packages | awk \'{ printf $3}\'')
@@ -57,4 +58,8 @@ Facter.add(:scheduler_idx) do
         Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'nova_idx.sh nova-scheduler'))
     end
 end
+Facter.add(:python_dist) do
+    setcode do
+        Facter::Util::Resolution.exec('python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"')
+    end
 end

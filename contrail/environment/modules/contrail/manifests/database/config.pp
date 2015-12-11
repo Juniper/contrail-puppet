@@ -41,7 +41,15 @@ class contrail::database::config (
         $cassandra_seeds = $database_ip_list
     }
 
-    $zk_ip_list_for_shell = inline_template('<%= @zookeeper_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
+    $zk_ip_list_for_shell = join($zookeeper_ip_list, ' ')
+    $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
+    $zk_ip_port_list_str = join($zookeeper_ip_port_list, ',')
+    $zk_ip_list_len = size($zookeeper_ip_list)
+    if ($zk_ip_list_len > 1) {
+      $replication_factor = 2
+    } else {
+      $replication_factor = 1
+    }
     $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh ${::operatingsystem} ${database_index} ${zk_ip_list_for_shell} && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
 
     # Debug - Print all variables
@@ -79,23 +87,71 @@ class contrail::database::config (
         ensure  => present,
         content => template("${module_name}/cassandra-env.sh.erb"),
     }
-    ->
-    file { '/usr/share/kafka/config/server.properties':
-        ensure  => present,
-        content => template("${module_name}/kafka.server.properties.erb"),
+
+    # Ensure kafka/config/server.properties file is present with right content.
+    $kafka_server_properties_file = '/usr/share/kafka/config/server.properties'
+    $kafka_server_properties_config = { 'kafka_server_properties' => {
+            'broker.id' => $tmp_index,
+            'advertised.host.name' => $host_control_ip,
+            'zookeeper.connect' => $zk_ip_port_list_str,
+            'default.replication.factor' => $replication_factor,
+            'port' => '9092',
+            'log.cleaner.enable' => 'true',
+            'log.cleanup.policy' => 'compact',
+            'delete.topic.enable' => 'true',
+        },
     }
-    ->
-    file { '/usr/share/kafka/config/log4j.properties':
-        ensure  => present,
-        content => template("${module_name}/kafka.log4j.properties.erb"),
+
+    $kafka_server_properties_keys = keys($kafka_server_properties_config['kafka_server_properties'])
+    $kafka_server_augeas_lens_to_use = 'properties.lns'
+    contrail::lib::augeas_conf_set { $kafka_server_properties_keys:
+            config_file => $kafka_server_properties_file,
+            settings_hash => $kafka_server_properties_config['kafka_server_properties'],
+            lens_to_use => $kafka_server_augeas_lens_to_use,
     }
+    contrail::lib::augeas_conf_rm {"remove_key_listeners":
+            key => 'listeners',
+            config_file => $kafka_server_properties_file,
+            lens_to_use => $kafka_server_augeas_lens_to_use,
+    }
+
+    # Ensure kafka/config/log4j.properties file is present with right content.
+    $kafka_log4j_properties_file = '/usr/share/kafka/config/log4j.properties'
+    $kafka_log4j_properties_config = { 'kafka_log4j_properties' => {
+            'log4j.rootLogger' => 'INFO, stdout',
+            'log4j.appender.kafkaAppender' => 'org.apache.log4j.RollingFileAppender',
+            'log4j.appender.kafkaAppender.MaxBackupIndex' => '10',
+            'log4j.appender.stateChangeAppender' => 'org.apache.log4j.RollingFileAppender',
+            'log4j.appender.stateChangeAppender.MaxBackupIndex' => '10',
+            'log4j.appender.requestAppender' => 'org.apache.log4j.RollingFileAppender',
+            'log4j.appender.requestAppender.MaxBackupIndex' => '10',
+            'log4j.appender.cleanerAppender' => 'org.apache.log4j.RollingFileAppender',
+            'log4j.appender.cleanerAppender.MaxBackupIndex' => '10',
+            'log4j.appender.controllerAppender' => 'org.apache.log4j.RollingFileAppender',
+            'log4j.appender.controllerAppender.MaxBackupIndex' => '10',
+        },
+    }
+    $kafka_log4j_properties_keys = keys($kafka_log4j_properties_config['kafka_log4j_properties'])
+    $kafka_log4j_augeas_lens_to_use = 'properties.lns'
+    contrail::lib::augeas_conf_ins { ['kafka.logs.dir']:
+            config_file => $kafka_log4j_properties_file,
+            settings_hash => {'kafka.logs.dir' => 'logs',},
+            lens_to_use => $kafka_log4j_augeas_lens_to_use,
+
+    }
+    contrail::lib::augeas_conf_set { $kafka_log4j_properties_keys:
+            config_file => $kafka_log4j_properties_file,
+            settings_hash => $kafka_log4j_properties_config['kafka_log4j_properties'],
+            lens_to_use => $kafka_log4j_augeas_lens_to_use,
+    }
+
     ->
     file { '/etc/zookeeper/conf/zoo.cfg':
         ensure  => present,
         content => template("${module_name}/zoo.cfg.erb"),
     }
 
-    File['/usr/share/kafka/config/log4j.properties'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
+    #File['/usr/share/kafka/config/log4j.properties'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
     if ($::operatingsystem == 'Ubuntu') {
