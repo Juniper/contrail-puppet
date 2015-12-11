@@ -144,7 +144,7 @@ class contrail::provision_contrail (
     }
     ->
     exec { 'provision-external-bgp' :
-        command   => "python /etc/contrail/contrail_setup_utils/setup_external_bgp.py --bgp_params \"${external_bgp}\" --api_server_ip \"${config_ip_to_use}\" --api_server_port 8081 --router_asn \"${router_asn}\" --mt_options \"${mt_options}\" && echo provision-external-bgp >> /etc/contrail/contrail_config_exec.out",
+        command   => "python /etc/contrail/contrail_setup_utils/setup_external_bgp.py --bgp_params \"${external_bgp}\" --api_server_ip \"${config_ip_to_use}\" --api_server_port 8082 --router_asn \"${router_asn}\" --mt_options \"${mt_options}\" && echo provision-external-bgp >> /etc/contrail/contrail_config_exec.out",
         require   => [ File['/etc/contrail/contrail_setup_utils/setup_external_bgp.py'] ],
         unless    => 'grep -qx provision-external-bgp /etc/contrail/contrail_config_exec.out',
         provider  => shell,
