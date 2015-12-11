@@ -95,13 +95,11 @@ class contrail::common(
 
     # Disable SELINUX on boot, if not already disabled.
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        exec { 'selinux-dis-1' :
-            command   => "sed -i \'s/SELINUX=.*/SELINUX=disabled/g\' config",
-            cwd       => '/etc/selinux',
-            onlyif    => '[ -d /etc/selinux ]',
-            unless    => "grep -qFx 'SELINUX=disabled' '/etc/selinux/config'",
-            provider  => shell,
-            logoutput => $contrail_logoutput
+        # Set SELINUX as disabled in selinux config
+        contrail::lib::augeas_conf_set { 'SELINUX':
+             config_file => '/etc/selinux/config',
+             settings_hash => { 'SELINUX' => 'disabled',},
+             lens_to_use => 'properties.lns',
         }
 
         # disable selinux runtime
@@ -139,11 +137,10 @@ class contrail::common(
 
     # Remove any core limit configured
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        exec { 'daemon-core-file-unlimited':
-            command   => "sed -i \'/DAEMON_COREFILE_LIMIT=.*/d\' /etc/sysconfig/init; echo DAEMON_COREFILE_LIMIT=\"\'unlimited\'\" >> /etc/sysconfig/init",
-            unless    => "grep -qx \"DAEMON_COREFILE_LIMIT='unlimited'\" /etc/sysconfig/init",
-            provider  => shell,
-            logoutput => $contrail_logoutput
+        contrail::lib::augeas_conf_set { 'DAEMON_COREFILE_LIMIT':
+            config_file => '/etc/sysconfig/init',
+            settings_hash => { 'DAEMON_COREFILE_LIMIT' => 'unlimited',},
+            lens_to_use => 'properties.lns',
         }
     }
     if ($::operatingsystem == 'Ubuntu') {

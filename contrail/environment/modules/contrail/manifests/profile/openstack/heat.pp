@@ -5,10 +5,7 @@
 class contrail::profile::openstack::heat (
   $heat_auth_encryption_key = $::openstack::config::heat_encryption_key
 ) {
-    openstack::resources::controller { 'heat': }
     openstack::resources::database { 'heat': }
-    openstack::resources::firewall { 'Heat API': port     => '8004', }
-    openstack::resources::firewall { 'Heat CFN API': port => '8000', }
 
     $controller_management_address = $::openstack::config::controller_address_management
     $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
