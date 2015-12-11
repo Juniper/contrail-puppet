@@ -77,6 +77,7 @@ class contrail::config::config (
         $rabbit_server_to_use = $host_control_ip
         $rabbit_port_to_use = 5672
     }
+    $controller_ip = $keystone_ip_to_use
     # Supervisor contrail-api.ini
     $api_port_base = '910'
     # Supervisor contrail-discovery.ini
@@ -165,9 +166,15 @@ class contrail::config::config (
     }
 
     include ::contrail::openstackrc
-    include ::contrail::ctrl_details
     include ::contrail::keystone
-    include ::contrail::neutron_rpc_backend
+
+    #set rpc backend in neutron.conf
+    contrail::lib::augeas_conf_rm { "config_neutron_rpc_backend":
+        key => 'rpc_backend',
+        config_file => '/etc/neutron/neutron.conf',
+        lens_to_use => 'properties.lns',
+        match_value => 'neutron.openstack.common.rpc.impl_qpid',
+    }
 
     #form the sudoers
     file { '/etc/sudoers.d/contrail_sudoers' :
@@ -175,26 +182,89 @@ class contrail::config::config (
         group  => root,
         source => "puppet:///modules/${module_name}/contrail_sudoers"
     }
-    ->
+
     # Ensure log4j.properties file is present with right content.
-    file { '/etc/ifmap-server/log4j.properties' :
-        content => template("${module_name}/log4j.properties.erb"),
+    $log4j_properties_file = '/etc/ifmap-server/log4j.properties'
+    $log4j_properties_config = { 'log4j_properties' => {
+         'log4j.rootLogger' => "TRACE, CONSOLE",
+         'log4j.logger.de.fhhannover.inform.irond.proc' => "TRACE, A1, A2",
+         'log4j.additivity.de.fhhannover.inform.irond.proc' => 'false',
+         'log4j.appender.A1' => 'org.apache.log4j.ConsoleAppender',
+         'log4j.appender.A1.layout' => 'org.apache.log4j.PatternLayout',
+         'log4j.appender.A1.layout.ConversionPattern' => "%d [%t] %-5p %x - %m%n",
+         'log4j.appender.A2' => 'org.apache.log4j.FileAppender',
+         'log4j.appender.A2.File' => '/var/log/contrail/ifmap-server.log',
+         'log4j.appender.A2.layout' => 'org.apache.log4j.PatternLayout',
+         'log4j.appender.A2.layout.ConversionPattern' => "%d [%t] %-5p %x - %m%n",
+         'log4j.logger.de.fhhannover.inform.irond.rawrequests' => "TRACE, A3",
+         'log4j.additivity.de.fhhannover.inform.irond.rawrequests' => 'false',
+         'log4j.appender.A3' => 'org.apache.log4j.FileAppender',
+         'log4j.appender.A3.file' => 'irond_raw.log',
+         'log4j.appender.A3.layout' => 'org.apache.log4j.PatternLayout',
+         'log4j.appender.A3.layout.ConversionPattern' => "%d %-5p %x - %m%n",
+         'log4j.appender.CONSOLE' => 'org.apache.log4j.ConsoleAppender',
+         'log4j.appender.CONSOLE.layout' => 'org.apache.log4j.PatternLayout',
+         'log4j.appender.CONSOLE.layout.ConversionPattern' => "%-8r [%t] %-5p %C{1} %x - %m%n",
+        },
     }
-    ->
+
+    $log4j_properties_keys = keys($log4j_properties_config['log4j_properties'])
+    $log4j_augeas_lens_to_use = 'properties.lns'
+    contrail::lib::augeas_conf_set { $log4j_properties_keys:
+            config_file => $log4j_properties_file,
+            settings_hash => $log4j_properties_config['log4j_properties'],
+            lens_to_use => $log4j_augeas_lens_to_use,
+    }
+    contrail::lib::augeas_conf_rm { 'remove_key_log4j.appender.A1.File':
+            key => 'log4j.appender.A1.File',
+            config_file => $log4j_properties_file,
+            lens_to_use => $log4j_augeas_lens_to_use,
+    }
+
     # Ensure authorization.properties file is present with right content.
-    file { '/etc/ifmap-server/authorization.properties' :
-        content => template("${module_name}/authorization.properties.erb"),
+    $authorizaion_properties_file = '/etc/ifmap-server/authorization.properties'
+    $authorizaion_properties_config = { 'authorizaion_properties' => {'reader' => 'ro',},}
+    $authorizaion_properties_keys = keys($authorizaion_properties_config['authorizaion_properties'])
+    $authorizaion_augeas_lens_to_use = 'properties.lns'
+    contrail::lib::augeas_conf_set { $authorizaion_properties_keys:
+            config_file => $authorizaion_properties_file,
+            settings_hash => $authorizaion_properties_config['authorizaion_properties'],
+            lens_to_use => $authorizaion_augeas_lens_to_use,
     }
-    ->
+
     # Ensure basicauthusers.proprties file is present with right content.
     file { '/etc/ifmap-server/basicauthusers.properties' :
         content => template("${module_name}/basicauthusers.properties.erb"),
     }
-    ->
+
     # Ensure publisher.properties file is present with right content.
-    file { '/etc/ifmap-server/publisher.properties' :
-        content => template("${module_name}/publisher.properties.erb"),
+    $publisher_properties_file = '/etc/ifmap-server/publisher.properties'
+    $publisher_properties_config = { 'publisher_properties' => {
+         'visual' => 'visual--1877135140-1',
+         'test' => 'test--1870931913-1',
+         'test2' => 'test2--1870931914-1',
+         'test3' => 'test3--1870931915-1',
+         'api-server' => 'api-server-1--0000000001-1',
+         'control-node-1' => 'control-node-1--1870931921-1',
+         'control-node-2' => 'control-node-1--1870931922-1',
+         'control-node-3' => 'control-node-1--1870931923-1',
+         'control-node-4' => 'control-node-1--1870931924-1',
+         'control-node-5' => 'control-node-1--1870931925-1',
+         'control-node-6' => 'control-node-1--1870931926-1',
+         'control-node-7' => 'control-node-1--1870931927-1',
+         'control-node-8' => 'control-node-1--1870931928-1',
+         'control-node-9' => 'control-node-1--1870931929-1',
+         'control-node-10' => 'control-node-10--1870931930-1',
+        },
     }
+    $publisher_properties_keys = keys($publisher_properties_config['publisher_properties'])
+    $publisher_augeas_lens_to_use = 'properties.lns'
+    contrail::lib::augeas_conf_set { $publisher_properties_keys:
+            config_file => $publisher_properties_file,
+            settings_hash => $publisher_properties_config['publisher_properties'],
+            lens_to_use => $publisher_augeas_lens_to_use,
+    }
+
     # Ensure all config files with correct content are present.
 
     contrail_api_config {
@@ -341,18 +411,18 @@ class contrail::config::config (
         'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
         'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
+        'COLLECTOR/analytics_api_ip': value => "$collector_ip";
+        'COLLECTOR/analytics_api_port': value => "$analytics_api_port";
     }
 
-    exec { 'contrail-plugin-set-lbass-params':
-        command   => "openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_ip ${collector_ip} &&
-                           openstack-config --set ${contrail_plugin_file} COLLECTOR analytics_api_port ${analytics_api_port} &&
-                           echo exec_contrail_plugin_set_lbass_params >> /etc/contrail/contrail_config_exec.out",
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    contrail::lib::augeas_conf_set { 'NEUTRON_PLUGIN_CONFIG':
+        config_file => '/etc/default/neutron-server',
+        settings_hash => { 'NEUTRON_PLUGIN_CONFIG' => $contrail_plugin_location, },
+        lens_to_use => 'properties.lns',
     }
     ->
     exec { 'config-neutron-server' :
-        command   => "sudo sed -i '/NEUTRON_PLUGIN_CONFIG.*/d' /etc/default/neutron-server && echo \"${contrail_plugin_location}\" >> /etc/default/neutron-server && service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
+        command   => "service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
         onlyif    => 'test -f /etc/default/neutron-server',
         unless    => 'grep -qx config-neutron-server /etc/contrail/contrail_config_exec.out',
         provider  => shell,
@@ -430,7 +500,6 @@ class contrail::config::config (
         mode    => '0755',
         owner   => root,
         group   => root,
-        require => File['/etc/contrail/ctrl-details'],
         source => "puppet:///modules/${module_name}/quantum-server-setup.sh"
     }
     ->

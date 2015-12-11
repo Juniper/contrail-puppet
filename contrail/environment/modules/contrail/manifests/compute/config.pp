@@ -191,22 +191,29 @@ class contrail::compute::config(
 
     create_resources(nova_config,$nova_params, {} )
 
-    # set rpc backend in nova.conf
-    exec { 'exec-compute-update-nova-conf' :
-        command   => "sed -i \"s/^rpc_backend = nova.openstack.common.rpc.impl_qpid/#rpc_backend = nova.openstack.common.rpc.impl_qpid/g\" /etc/nova/nova.conf && echo exec-update-nova-conf >> /etc/contrail/contrail_common_exec.out",
-        unless    => ['[ ! -f /etc/nova/nova.conf ]',
-                    'grep -qx exec-update-nova-conf /etc/contrail/contrail_common_exec.out'],
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    # set rpc backend in neutron.conf
+    contrail::lib::augeas_conf_rm { "compute_neutron_rpc_backend":
+        key => 'rpc_backend',
+        config_file => '/etc/neutron/neutron.conf',
+        lens_to_use => 'properties.lns',
+        match_value => 'neutron.openstack.common.rpc.impl_qpid',
     }
-
-    include ::contrail::neutron_rpc_backend
+    #set rpc backend in nova.conf
+    contrail::lib::augeas_conf_rm { "compute_nova_rpc_backend":
+        key => 'rpc_backend',
+        config_file => '/etc/nova/nova.conf',
+        lens_to_use => 'properties.lns',
+        match_value => 'nova.openstack.common.rpc.impl_qpid',
+    }
 
     # Update modprobe.conf
     if inline_template('<%= @operatingsystem.downcase %>') == 'centos' {
-        file { '/etc/modprobe.conf' :
-            ensure  => present,
-            content => template("${module_name}/modprobe.conf.erb")
+        # Ensure modprobe.conf file is present with right content.
+        $modprobe_conf_file = '/etc/modprobe.conf'
+        contrail::lib::augeas_conf_set { ['alias']:
+                config_file => $modprobe_conf_file,
+                settings_hash => {'alias' => 'bridge off',},
+                lens_to_use => 'spacevars.lns',
         }
     }
 

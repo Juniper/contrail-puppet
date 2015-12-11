@@ -1,9 +1,7 @@
-# The profile to set up the neutron server
-class openstack::profile::contrail::neutron::server {
+# The profile to set up the neutron server on Config node
+class contrail::profile::neutron::server {
 
-  openstack::resources::controller { 'neutron': }
   openstack::resources::database { 'neutron': }
-  openstack::resources::firewall { 'Neutron API': port => '9696', }
 
-  include ::openstack::common::contrail::neutron
+  include ::contrail::config::neutron
 }
