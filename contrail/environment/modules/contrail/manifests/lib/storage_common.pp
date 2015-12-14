@@ -27,7 +27,12 @@ define contrail::lib::storage_common(
     ->
     package { 'contrail-storage-packages' : ensure => present, }
     ->
-    package { 'contrail-storage' : ensure => present, }
+    exec {'contrail_storage_force':
+        command => '/usr/bin/apt-get -q -y -o DPkg::Options::=--force-confold -o Dpkg::Options::=--force-overwrite install contrail-storage',
+        provider => shell,
+    }
+    ->
+    package { 'contrail-storage' : ensure => present }
     ->
     file { 'contrail-storage-rest-api.conf':
         ensure => present,
