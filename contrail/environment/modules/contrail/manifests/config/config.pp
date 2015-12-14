@@ -404,7 +404,7 @@ class contrail::config::config (
         command   => "/etc/contrail/form_rmq_cluster.sh ${master} ${host_control_ip} ${config_ip_list} & echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
         unless    => 'grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out',
         provider  => shell,
-        logoutput => $contrail_logoutput
+        logoutput => true,
     }
 
     # run setup-pki.sh script

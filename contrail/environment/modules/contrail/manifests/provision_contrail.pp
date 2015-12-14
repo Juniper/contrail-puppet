@@ -151,7 +151,7 @@ class contrail::provision_contrail (
     }
     ->
     exec { 'provision-encap-type' :
-        command   => "python /opt/contrail/utils/provision_encap.py --admin_user \"${keystone_admin_user}\" --admin_password \"${keystone_admin_password}\" --encap_priority \"${encap_priority}\" --oper add && echo provision-encap-type >> /etc/contrail/contrail_config_exec.out",
+        command   => "python /opt/contrail/utils/provision_encap.py --admin_user \"${keystone_admin_user}\" --admin_password \"${keystone_admin_password}\" --encap_priority ${encap_priority} --oper add && echo provision-encap-type >> /etc/contrail/contrail_config_exec.out",
         unless    => 'grep -qx provision-encap-type /etc/contrail/contrail_config_exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput,

@@ -4,6 +4,11 @@ master=$1;shift
 this_host=$1;shift
 rabbit_list=$1;shift
 
+service rabbitmq-server stop
+epmd -kill
+pkill -9 beam
+pkill -9 epmd
+
 rm -rf /var/lib/rabbitmq/mnesia
 service supervisor-support-service restart
 #service rabbitmq-server restart
