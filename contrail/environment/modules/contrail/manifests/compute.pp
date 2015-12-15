@@ -162,7 +162,6 @@
 #
 class contrail::compute (
 ) {
-    include ::contrail::params
 
     anchor {'contrail::compute::start': } ->
     contrail::lib::report_status { 'compute_started': } ->

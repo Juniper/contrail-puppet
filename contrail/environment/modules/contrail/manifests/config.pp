@@ -171,7 +171,6 @@
 #
 class contrail::config (
 )  {
-    include ::contrail::params
 
     anchor {'contrail::config::start': } ->
     contrail::lib::report_status { 'config_started': } ->

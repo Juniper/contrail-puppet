@@ -112,7 +112,6 @@
 #     (optional) - Defaults to false
 #
 class contrail::collector ()  {
-    include ::contrail::params
 
     anchor {'contrail::collector::start': } ->
     contrail::lib::report_status { 'collector_started': } ->

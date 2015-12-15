@@ -34,7 +34,7 @@ class contrail::common(
     $contrail_upgrade = $::contrail::params::contrail_upgrade,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
-    include ::contrail::params
+    include ::contrail
 
     notify { "**** ${module_name} - host_mgmt_ip = ${host_mgmt_ip}": ; }
     notify { "**** ${module_name} - contrail_repo_name = ${contrail_repo_name}": ; }

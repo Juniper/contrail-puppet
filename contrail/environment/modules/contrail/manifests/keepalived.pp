@@ -35,7 +35,6 @@ class contrail::keepalived(
     $contrail_external_virtual_router_id = $::contrail::params::contrail_external_virtual_router_id,
     $openstack_ip_list = $::contrail::params::openstack_ip_list
 )  {
-    include ::contrail::params
 
     notify { "Keepalived - host_control_ip = ${host_control_ip}":; }
     notify { "Keepalived - config_ip_list = ${config_ip_list}":; }

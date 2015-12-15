@@ -63,7 +63,6 @@
 #
 class contrail::database (
 ) {
-    include ::contrail::params
     anchor {'contrail::database::start': } ->
     contrail::lib::report_status { 'database_started': } ->
     class { '::contrail::database::install': } ->
