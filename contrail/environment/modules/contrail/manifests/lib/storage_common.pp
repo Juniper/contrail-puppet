@@ -105,7 +105,7 @@ define contrail::lib::storage_common(
             cap_mon        => 'allow *',
             cap_osd        => 'allow *',
             inject_as_id   => 'mon.',
-            inject_keyring => "/var/lib/ceph/mon/ceph-\$hostname/keyring",
+            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
             inject         => true,
         }
         ->
@@ -114,7 +114,7 @@ define contrail::lib::storage_common(
             keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
             cap_mon        => 'allow profile bootstrap-osd',
             inject_as_id   => 'mon.',
-            inject_keyring => "/var/lib/ceph/mon/ceph-\$hostname/keyring",
+            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
             inject         => true,
         }
     } else {
