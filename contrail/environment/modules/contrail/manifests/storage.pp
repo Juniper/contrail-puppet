@@ -22,7 +22,6 @@ class contrail::storage (
     $contrail_host_ip = $::contrail::params::host_ip,
     $contrail_logoutput = $::contrail::params::contrail_logoutput
 )  {
-    include ::contrail::params
 
     #$contrail_openstack_ip_use = $::contrail::params::contrail_openstack_ip_use
     if ($::contrail::params::internal_vip != '') {

@@ -38,8 +38,6 @@
 #
 class contrail::control (
 ) {
-    include ::contrail::params
-
 
     anchor {'contrail::control::start': } ->
     contrail::lib::report_status { 'control_started': } ->

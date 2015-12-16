@@ -17,7 +17,6 @@
 #
 # The puppet module to set up a haproxy server
 class contrail::haproxy () {
-    include ::contrail::params
 
     anchor { 'contrail::haproxy::start': } ->
     contrail::lib::report_status { 'haproxy_started': } ->

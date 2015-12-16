@@ -45,7 +45,6 @@
 #     (optional) - Defaults to false
 #
 class contrail::webui () {
-    include ::contrail::params
 
     anchor {'contrail::webui::start':} ->
     contrail::lib::report_status { 'webui_started': } ->

@@ -75,7 +75,6 @@ class contrail::ha_config (
     $enable_post_exec_vnc_galera = $::contrail::params::enable_post_exec_vnc_galera,
     $enable_sequence_provisioning = $::contrail::params::enable_sequence_provisioning,
 )  {
-    include ::contrail::params
     # Main code for class
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
 
