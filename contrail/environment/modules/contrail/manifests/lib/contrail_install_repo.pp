@@ -14,8 +14,7 @@ define contrail::lib::contrail_install_repo(
 
     if ( $package_name != '' ) {
         package {$package_name: ensure => latest, install_options => '--force-yes'} ->
-        package { ['binutils', 'make', 'libdpkg-perl', 'patch', 'dpkg-dev',
-                   'python-software-properties', 'contrail-fabric-utils', 'contrail-setup' ] :
+        package { ['contrail-fabric-utils', 'contrail-setup' ] :
             ensure => latest
         } ->
 
