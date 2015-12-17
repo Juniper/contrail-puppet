@@ -6,7 +6,8 @@ class contrail::control::config (
     $use_certs = $::contrail::params::use_certs,
     $puppet_server = $::contrail::params::puppet_server,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-    $config_ip_to_use = $::contrail::params::config_ip_to_use
+    $config_ip_to_use = $::contrail::params::config_ip_to_use,
+    $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
 ) {
     # Main class code begins here
     case $::operatingsystem {
@@ -43,6 +44,10 @@ class contrail::control::config (
     }
 
     contrail_control_config {
+      'DEFAULT/xmpp_auth_enable' : value => "$xmpp_auth_enable";
+      'DEFAULT/xmpp_server_cert' : value => "/etc/contrail/ssl/certs/server.pem";
+      'DEFAULT/xmpp_server_key' : value => "/etc/contrail/ssl/private/server-privkey.pem";
+      'DEFAULT/xmpp_ca_cert' : value => "/etc/contrail/ssl/certs/ca-cert.pem";
       'DEFAULT/hostip'    : value => $host_control_ip;
       'DEFAULT/log_file'  : value => '/var/log/contrail/contrail-control.log';
       'DEFAULT/log_level' : value => 'SYS_NOTICE';
@@ -56,5 +61,9 @@ class contrail::control::config (
     contrail_control_nodemgr_config {
       'DISCOVERY/server'  : value => $config_ip_to_use;
       'DISCOVERY/port'    : value => '5998';
+    }
+
+    if ($xmpp_auth_enable == true) {
+        include ::contrail::xmpp_cert_files
     }
 }

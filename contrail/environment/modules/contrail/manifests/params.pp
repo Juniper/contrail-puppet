@@ -525,6 +525,10 @@
 #     Flag to include or exclude ceilometer service as part of openstack module dynamically.
 #     (optional) - Defaults to false.
 #
+# [*xmpp_auth_enable*]
+#     Flag for enabling xmpp autherization via cert exchange between agent and control.
+#     (optional) - Defaults to false.
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -659,7 +663,8 @@ class contrail::params (
     $enable_storage_master,
     $enable_ceilometer,
     $tor_ha_config,
-    $contrail_version
+    $contrail_version,
+    $xmpp_auth_enable,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or

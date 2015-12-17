@@ -36,6 +36,7 @@ class contrail::compute::config(
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_host_roles = $::contrail::params::host_roles,
     $enable_lbass =  $::contrail::params::enable_lbass,
+    $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -229,6 +230,10 @@ class contrail::compute::config(
     # Ensure ctrl-details file is present with right content.
     include ::contrail::ctrl_details
 
+    if ($xmpp_auth_enable == true) {
+        include ::contrail::xmpp_cert_files
+    }
+
     if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
         # check_wsrep
         file { '/opt/contrail/bin/set_rabbit_tcp_params.py' :
@@ -278,6 +283,10 @@ class contrail::compute::config(
     }
 
     contrail_vrouter_agent_config {
+      'DEFAULT/xmpp_auth_enable' : value => "$xmpp_auth_enable";
+      'DEFAULT/xmpp_server_cert' : value => "/etc/contrail/ssl/certs/server.pem";
+      'DEFAULT/xmpp_server_key' : value => "/etc/contrail/ssl/private/server-privkey.pem";
+      'DEFAULT/xmpp_ca_cert' : value => "/etc/contrail/ssl/certs/ca-cert.pem";
       'DISCOVERY/server' : value => "$discovery_ip";
       'DISCOVERY/max_control_nodes' : value => "$number_control_nodes";
       'HYPERVISOR/type' : value => "$hypervisor_type";

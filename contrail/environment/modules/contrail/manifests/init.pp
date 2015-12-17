@@ -526,6 +526,10 @@
 #     Flag to include or exclude ceilometer service as part of openstack module dynamically.
 #     (optional) - Defaults to false.
 #
+# [*xmpp_auth_enable*]
+#     Flag for enabling xmpp autherization via cert exchange between agent and control.
+#     (optional) - Defaults to false.
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -660,7 +664,8 @@ class contrail (
     $enable_storage_master = true,
     $enable_ceilometer = false,
     $tor_ha_config = "",
-    $contrail_version = ''
+    $contrail_version = '',
+    $xmpp_auth_enable = false,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -697,6 +702,7 @@ class contrail (
 	contrail_upgrade =>			hiera(contrail::contrail_upgrade, hiera(contrail::params::contrail_upgrade, $contrail_upgrade)),
 	contrail_version =>			hiera(contrail::contrail_version, hiera(contrail::params::contrail_version, $contrail_version)),
 	enable_lbass =>				hiera(contrail::enable_lbass, hiera(contrail::params::enable_lbass, $enable_lbass)),
+	xmpp_auth_enable =>			hiera(contrail::xmpp_auth_enable, hiera(contrail::params::xmpp_auth_enable, $xmpp_auth_enable)),
         # HA Parameters
 	haproxy_flag =>				hiera(contrail::ha::haproxy_flag, hiera(contrail::params::haproxy_flag, $haproxy_flag)),
 	internal_vip =>				hiera(contrail::ha::internal_vip, hiera(contrail::params::internal_vip, $internal_vip)),
