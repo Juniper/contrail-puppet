@@ -353,7 +353,7 @@ class neutron::server (
           'keystone_authtoken/auth_uri': value => "${auth_protocol}://${auth_host}:5000/";
         }
         neutron_api_config {
-          'filter:authtoken/auth_uri': value => "${auth_protocol}://${auth_host}:5000/";
+          'filter:authtoken/auth_uri': value => "${auth_protocol}://${auth_host}:5000/v2.0/";
         }
       }
 

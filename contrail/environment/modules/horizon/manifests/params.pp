@@ -6,6 +6,14 @@ class horizon::params {
   $django_wsgi = '/usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi'
   $manage_py   = '/usr/share/openstack-dashboard/manage.py'
 
+  case $::openstack_release {
+    'kilo': {
+      $contrail_package = 'openstack-dashboard'
+    }
+    default: {
+      $contrail_package = 'contrail-openstack-dashboard'
+    }
+  }
   case $::osfamily {
     'RedHat': {
       $http_service                = 'httpd'
@@ -35,7 +43,7 @@ class horizon::params {
             $package_name          = 'openstack-dashboard-apache'
         }
         default: {
-            $package_name          = 'openstack-dashboard'
+            $package_name          = $contrail_package
         }
       }
     }

@@ -102,16 +102,16 @@ class nova::network::neutron (
 ) {
 
   nova_config {
-    'DEFAULT/neutron_auth_strategy':           value => $neutron_auth_strategy;
+    'neutron/auth_strategy':           value => $neutron_auth_strategy;
+    'neutron/url':                     value => $neutron_url;
+    'neutron/url_timeout':             value => $neutron_url_timeout;
+    'neutron/admin_tenant_name':       value => $neutron_admin_tenant_name;
+    'neutron/default_tenant_id':       value => $neutron_default_tenant_id;
+    'neutron/region_name':             value => $neutron_region_name;
+    'neutron/admin_username':          value => $neutron_admin_username;
+    'neutron/admin_password':          value => $neutron_admin_password, secret => true;
+    'neutron/admin_auth_url':          value => $neutron_admin_auth_url;
     'DEFAULT/network_api_class':               value => 'nova.network.neutronv2.api.API';
-    'DEFAULT/neutron_url':                     value => $neutron_url;
-    'DEFAULT/neutron_url_timeout':             value => $neutron_url_timeout;
-    'DEFAULT/neutron_admin_tenant_name':       value => $neutron_admin_tenant_name;
-    'DEFAULT/neutron_default_tenant_id':       value => $neutron_default_tenant_id;
-    'DEFAULT/neutron_region_name':             value => $neutron_region_name;
-    'DEFAULT/neutron_admin_username':          value => $neutron_admin_username;
-    'DEFAULT/neutron_admin_password':          value => $neutron_admin_password, secret => true;
-    'DEFAULT/neutron_admin_auth_url':          value => $neutron_admin_auth_url;
     'DEFAULT/neutron_ovs_bridge':              value => $neutron_ovs_bridge;
     'DEFAULT/neutron_extension_sync_interval': value => $neutron_extension_sync_interval;
     'DEFAULT/security_group_api':              value => $security_group_api;
