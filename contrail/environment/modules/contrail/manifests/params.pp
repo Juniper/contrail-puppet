@@ -722,4 +722,18 @@ class contrail::params (
     } else {
         $amqp_server_ip_to_use = $config_ip_to_use
     }
+
+    # Set the contrail_dist_kernel_version
+    if ($contrail_kernel_version != "" ) {
+       $contrail_dist_kernel_version = $contrail_kernel_version
+    } else {
+       if ($lsbdistrelease == "14.04") {
+	   $contrail_dist_kernel_version = "3.13.0-40"
+           $contrail_grub_string = 'GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux 3.13.0-40-generic\''
+       } else {
+	   $contrail_dist_kernel_version = "3.13.0-34"
+           $contrail_grub_string = 'GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux 3.13.0-34-generic\''
+       }
+    }
+
 }

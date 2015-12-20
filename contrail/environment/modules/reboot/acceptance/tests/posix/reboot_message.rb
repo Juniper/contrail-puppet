@@ -1,4 +1,4 @@
-test_name "Reboot Module - Windows Provider - Custom Message"
+test_name "Reboot Module - POSIX Provider - Custom Message"
 extend Puppet::Acceptance::Reboot
 
 reboot_manifest = <<-MANIFEST
@@ -11,14 +11,20 @@ reboot { 'now':
 }
 MANIFEST
 
-confine :to, :platform => 'windows'
+confine :except, :platform => 'windows'
 
-windows_agents.each do |agent|
+posix_agents.each do |agent|
   step "Reboot Immediately with a Custom Message"
 
   #Apply the manifest.
   apply_manifest_on agent, reboot_manifest, {:debug => true} do |result|
-    assert_match /shutdown\.exe \/r \/t 60 \/d p:4:1 \/c \"A different message\"/,
+    if fact_on(agent, 'kernel') == 'SunOS'
+      expected_command = /shutdown -y -i 6 -g 60 \"A different message\"/
+    else
+      expected_command = /shutdown -r \+1 \"A different message\"/
+    end
+
+    assert_match expected_command,
                  result.stdout, 'Expected reboot message is incorrect'
     assert_match /Scheduling system reboot with message: \"A different message\"/,
                  result.stdout, 'Reboot message was not logged'
