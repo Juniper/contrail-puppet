@@ -752,4 +752,10 @@ class contrail::params (
        }
     }
 
+    if ($multi_tenancy == true) {
+        $multi_tenancy_options = "--admin_user admin --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant"
+    } else {
+        $multi_tenancy_options = ""
+    }
+
 }

@@ -20,9 +20,4 @@ if [ $ostype == "Ubuntu" ]; then
 fi
 
 zk_index=1
-for zk_ip in "${zk_ip_list[@]}"
-do
-    echo "server.$zk_index=$zk_ip:2888:3888" >> $zk_cfg
-    zk_index=`expr $zk_index + 1`
-done
 echo "$cfgm_index" > $myid

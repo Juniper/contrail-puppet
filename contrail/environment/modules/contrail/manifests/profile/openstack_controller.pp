@@ -13,9 +13,10 @@
 #
 class contrail::profile::openstack_controller (
   $enable_module = $::contrail::params::enable_openstack,
-  $enable_ceilometer = $::contrail::params::enable_ceilometer
+  $enable_ceilometer = $::contrail::params::enable_ceilometer,
+  $host_roles = $::contrail::params::host_roles
 ) {
-    if ($enable_module) {
+    if ($enable_module and 'openstack' in $host_roles) {
         contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
         class {'::openstack::profile::base' : } ->
         class {'::nova::quota' :
@@ -36,25 +37,34 @@ class contrail::profile::openstack_controller (
         #Contrail expects neutron to run on config nodes only
         class {'::contrail::profile::openstack::neutron::server' : } ->
 
-    #package { 'openstack-dashboard':
-      #ensure  => latest,
-    #} ->
+        #package { 'openstack-dashboard':
+          #ensure  => latest,
+        #} ->
+#        package { 'contrail-openstack-dashboard':
+#                ensure  => latest,
+#        } ->
 
-    # Though neutron runs on config, setup the db in openstack node
-    exec { 'neutron-db-sync':
-        command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
-        path        => '/usr/bin',
-        before      => Service['neutron-server'],
-        require     => Neutron_config['database/connection'],
-        refreshonly => true
-    } ->
-    contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
+        # Though neutron runs on config, setup the db in openstack node
+        exec { 'neutron-db-sync':
+                command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+                            path        => '/usr/bin',
+                            before      => Service['neutron-server'],
+                            require     => Neutron_config['database/connection'],
+                            refreshonly => true
+        } ->
+        contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
 
-    Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
-    Class['::openstack::profile::provision']->Service['glance-api']
-    if ($enable_ceilometer) {
-        include ::contrail::profile::openstack::ceilometer
+        Class['::neutron::db::mysql'] -> Exec['neutron-db-sync']
+                Class['::openstack::profile::provision']->Service['glance-api']
+                if ($enable_ceilometer) {
+                        include ::contrail::profile::openstack::ceilometer
+                }
+        notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; }
+    } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
+
+        notify { 'uninstalling openstack':; }
+        contain ::contrail::uninstall_openstack
+
     }
-    notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; }
-  }
+
 }

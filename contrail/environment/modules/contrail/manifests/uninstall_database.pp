@@ -61,7 +61,7 @@
 #     Minimum disk space needed in GB for database.
 #     (optional) - Defaults to 256
 #
-class contrail::database (
+class contrail::uninstall_database (
     $host_control_ip = $::contrail::params::host_ip,
     $config_ip = $::contrail::params::config_ip_to_use,
     $database_ip_list = $::contrail::params::database_ip_list,
@@ -70,6 +70,7 @@ class contrail::database (
     $database_initial_token = $::contrail::params::database_initial_token,
     $database_dir = $::contrail::params::database_dir,
     $analytics_data_dir = $::contrail::params::analytics_data_dir,
+    $multi_tenancy_options =  $::contrail::params::multi_tenancy_options,
     $ssd_data_dir = $::contrail::params::ssd_data_dir,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $database_minimum_diskGB = $::contrail::params::database_minimum_diskGB,
@@ -93,29 +94,6 @@ class contrail::database (
         }
     }
 
-    # set database_index
-    $tmp_index = inline_template('<%= @database_ip_list.index(@host_control_ip) %>')
-    if ($tmp_index == nil) {
-        fail("Host $host_control_ip not found in servers of database roles")
-    }
-    $database_index = $tmp_index + 1
-
-    # set cassandra_seeds list
-    if (size($data_base_ip_list) > 1) {
-        $cassandra_seeds = difference($database_ip_list, [$host_control_ip])
-    }
-    else {
-        $cassandra_seeds = $database_ip_list
-    }
-    if ($multi_tenancy == true) {
-	$multi_options = "--admin_user admin --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant"
-    } else {
-	$multi_options = ""
-    }
-
-    $provision_opp = "del"
-    $zk_ip_list_for_shell = inline_template('<%= @zookeeper_ip_list.map{ |ip| "#{ip}" }.join(" ") %>')
-    $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh $operatingsystem $database_index $zk_ip_list_for_shell && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
 
     # Debug - Print all variables
     notify { "Database - contrail cassandra dir is $contrail_cassandra_dir":; }
@@ -141,7 +119,7 @@ class contrail::database (
     ->
 
     exec { "un-provision-role-database" :
-	command => "python /usr/share/contrail-utils/provision_database_node.py --api_server_ip $config_ip_to_use --host_name $hostname --host_ip $host_control_ip  --oper $provision_opp $multi_options && echo un-provision-role-config-$provision_opp >> /etc/contrail/contrail_config_exec.out",
+	command => "python /usr/share/contrail-utils/provision_database_node.py --api_server_ip $config_ip_to_use --host_name $hostname --host_ip $host_control_ip  --oper del $multi_tenancy_options && echo un-provision-role-config-del >> /etc/contrail/contrail_config_exec.out",
 #	require => [ ],
 	provider => shell,
 	logoutput => $contrail_logoutput
@@ -155,96 +133,30 @@ class contrail::database (
 
     ->
     # Ensure all needed packages are absent
-    package { 'contrail-openstack-database' : ensure => latest, notify => "Service[supervisor-database]"}
+    package { 'contrail-openstack-database' : ensure => purged, notify =>  ["Exec[apt_auto_remove_database]"]}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - cassandra (>= 1.1.12) , contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-database, contrail-setup, openstack-quantum-contrail, supervisor
-/*
     ->
-    exec { "exec-config-host-entry" :
-        command   => 'echo \"$config_ip   $system_name\" >> /etc/hosts && echo exec-config-host-entry >> /etc/contrail/contrail_database_exec.out',
-        unless    => ["grep -q $config_ip /etc/hosts",
-                      "grep -qx exec-config-host-entry /etc/contrail/contrail_database_exec.out"],
-        provider => "shell",
-        require => Package['contrail-openstack-database'],
-        logoutput => $contrail_logoutput
-    }
-    ->
-    # database venv installation
-    exec { "database-venv" :
-        command   => '/bin/bash -c "source ../bin/activate && pip install * && echo database-venv >> /etc/contrail/contrail_database_exec.out"',
-        cwd       => '/opt/contrail/database-venv/archive',
-        unless    => [ "[ ! -d /opt/contrail/database-venv/archive ]",
-                       "[ ! -f /opt/contrail/database-venv/bin/activate ]",
-                       "grep -qx database-venv /etc/contrail/contrail_database_exec.out"],
-        require   => Package['contrail-openstack-database'],
-        provider => "shell",
-        logoutput => $contrail_logoutput
-    }
-*/
-    ->
-    file { "$database_dir" :
-        ensure  => directory,
-        require => Package['contrail-openstack-database']
-    }
-    ->
-    file { "$contrail_cassandra_dir/cassandra.yaml" :
-        ensure  => absent,
-    }
-    ->
-    file { "$contrail_cassandra_dir/cassandra-env.sh" :
-        ensure  => absent,
-    }
-    # Below is temporary to work-around in Ubuntu as Service resource fails
-    ->  
-/*
- # as upstart is not correctly linked to /etc/init.d/service-name
-    if ($operatingsystem == "Ubuntu") {
-	file { '/etc/init.d/supervisord-contrail-database':
-	    ensure => link,
-	    target => '/lib/init/upstart-job',
-            require => File["$contrail_cassandra_dir/cassandra-env.sh"],
-	    before => Service["supervisor-database"]
-	}
-    }
-*/
-    # set high session timeout to survive glance led disk activity
-    file { "/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh":
-        ensure  => absent,
-    }
-/*
-    ->
-    notify { "contrail contrail_zk_exec_cmd is $contrail_zk_exec_cmd":; }
-    ->
-    exec { "setup-config-zk-files-setup" :
-        command => $contrail_zk_exec_cmd,
-        require => File["/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh"],
-        unless  => "grep -qx setup-config-zk-files-setup /etc/contrail/contrail-config-exec.out",
+    exec { "apt_auto_remove_database":
+        command => "apt-get autoremove -y --purge",
         provider => shell,
         logoutput => $contrail_logoutput
     }
-*/
+
+            #'$database_dir',
     ->
-    file { "/etc/contrail/contrail-database-nodemgr.conf" :
-        ensure  => absent,
+    file { [
+            "${contrail_cassandra_dir}/cassandra.yaml",
+            "$contrail_cassandra_dir/cassandra-env.sh",
+            "/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh",
+            "/etc/contrail/contrail-database-nodemgr.conf",
+            "/etc/contrail/database_nodemgr_param",
+            "/opt/contrail/bin/database-server-setup.sh",
+           ]:
+         ensure => absent,
     }
-    ->
-    file { "/etc/contrail/database_nodemgr_param" :
-	ensure  => absent,
-    }
-    ->
-    file { "/opt/contrail/bin/database-server-setup.sh":
-	ensure  => absent,
-    }
-/*
-    exec { "setup-database-server-setup" :
-	command => "/opt/contrail/bin/database-server-setup.sh; echo setup-database-server-setup >> /etc/contrail/contrail-compute-exec.out",
-	require => File["/opt/contrail/bin/database-server-setup.sh"],
-	unless  => "grep -qx setup-database-server-setup /etc/contrail/contrail-compute-exec.out",
-	provider => shell,
-	logoutput => $contrail_logoutput
-    }
-*/
+
     ->
     contrail::lib::report_status { "uninstall_database_completed":
         state => "database_completed", 
