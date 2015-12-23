@@ -57,7 +57,7 @@ class contrail::database::config (
         # Make dir ContrailAnalytics in cassandra database folder
         file { "${database_dir}/ContrailAnalytics":
             ensure  => link,
-            target  => "${analytics_data_dir}/ContrailAnalytics",
+            target  => "${analytics_data_dir}/ContrailAnalyticsCql",
             require => File[$database_dir],
             owner   => cassandra,
             group   => cassandra,
