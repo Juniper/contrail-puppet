@@ -76,7 +76,7 @@ class contrail::common(
         contrail_logoutput => $contrail_logoutput
     }
     ->
-    contrail::lib::contrail_install_repo{ $contrail_repo_type:
+    contrail::lib::contrail_install_repo{ "contrail_install_repo":
         contrail_logoutput => $contrail_logoutput
     }
     ->
