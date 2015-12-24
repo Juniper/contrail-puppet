@@ -181,7 +181,7 @@ class contrail::compute::config(
     $nova_params = {
       'neutron/admin_auth_url'=> {   value => "http://${keystone_ip_to_use}:35357/v2.0/" },
       'neutron/admin_tenant_name'=>{ value => 'services', },
-      'neuton/admin_password'=>  {  value => "${keystone_admin_password}" },
+      'neutron/admin_password'=>  {  value => "${keystone_admin_password}" },
       'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" }
     }
