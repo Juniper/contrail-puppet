@@ -20,7 +20,8 @@ class contrail::collector::config (
     $rest_api_port_to_use = $::contrail::params::rest_api_port_to_use
     $discovery_ip_to_use =  $::contrail::params::discovery_ip_to_use
 
-    $database_ip_port_list = suffix($database_ip_list, ":$database_ip_port")
+     ## Cassandra Port for Cql has been changed to 9042.
+    $database_ip_port_list = suffix($database_ip_list, ":9042")
     $cassandra_server_list = join($database_ip_port_list, ' ' )
 
     $kafka_broker_port_list = suffix($database_ip_list, ':9092')

@@ -146,8 +146,6 @@ class contrail::provision_contrail (
         unless    => 'grep -qx provision-metadata-services /etc/contrail/contrail_config_exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput,
-        tries     => 100,
-        try_sleep => 15,
     }
     ->
     exec { 'provision-encap-type' :
@@ -155,8 +153,6 @@ class contrail::provision_contrail (
         unless    => 'grep -qx provision-encap-type /etc/contrail/contrail_config_exec.out',
         provider  => shell,
         logoutput => $contrail_logoutput,
-        tries     => 100,
-        try_sleep => 15,
     }
     ->
     file { '/opt/contrail/provision_role.py' :
