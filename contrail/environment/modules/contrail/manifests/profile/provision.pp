@@ -8,9 +8,11 @@
 #     (optional) - Defaults to true.
 #
 class contrail::profile::provision (
-    $enable_module = $::contrail::params::enable_config
+    $enable_module = $::contrail::params::enable_config,
+    $host_roles = $::contrail::params::host_roles
 ) {
-    if ($enable_module) {
+
+    if ($enable_module and 'config' in $host_roles) {
         contain ::contrail::provision_contrail
     }
 }

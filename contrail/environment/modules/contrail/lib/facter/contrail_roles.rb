@@ -15,6 +15,14 @@ Facter.add(:contrail_roles) do
                 contrail_roles[role] = false
             end
         end
+        openstack_status_str = "openstack-status | grep -e glance"
+        is_openstack_enabled = system(openstack_status_str)
+        if (is_openstack_enabled)
+            contrail_roles["openstack"] = true
+        else
+            contrail_roles["openstack"] = false
+        end
+
         contrail_roles 
     end
 end

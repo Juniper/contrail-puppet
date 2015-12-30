@@ -31,7 +31,11 @@ class ExecControlProvisioner(object):
             mt_options = ""
       
         for control_ip,hostname in itertools.izip(host_ip_list, host_name_list):
-            output= commands.getstatusoutput('python /opt/contrail/utils/provision_control.py --api_server_ip %s --api_server_port %s --host_name %s  --host_ip %s --router_asn %s %s --oper add' %(contrail_config_ip, api_server_port, hostname, control_ip, self._args.router_asn, mt_options))
+            status, output= commands.getstatusoutput('python /opt/contrail/utils/provision_control.py --api_server_ip %s --api_server_port %s --host_name %s  --host_ip %s --router_asn %s %s --oper add' %(contrail_config_ip, api_server_port, hostname, control_ip, self._args.router_asn, mt_options))
+            if status != 0:
+                print "the output :" + output 
+                sys.exit(1);
+
     # end __init__
 
     def _parse_args(self, args_str):

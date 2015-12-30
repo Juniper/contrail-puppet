@@ -89,6 +89,12 @@ class contrail::database::config (
         ensure  => present,
         content => template("${module_name}/kafka.log4j.properties.erb"),
     }
+    ->
+    file { '/etc/zookeeper/conf/zoo.cfg':
+        ensure  => present,
+        content => template("${module_name}/zoo.cfg.erb"),
+    }
+
     File['/usr/share/kafka/config/log4j.properties'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
