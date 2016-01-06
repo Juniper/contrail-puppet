@@ -102,6 +102,7 @@ class contrail::collector::config (
     }
 
     contrail_alarm_gen_config {
+      'DEFAULTS/host_ip'            : value => $host_control_ip;
       'DEFAULTS/zk_list'            : value => "$zk_ip_list";
       'DEFAULTS/kafka_broker_list'  : value => "$kafka_broker_list";
       'DEFAULTS/http_server_port'   : value => '5995';
