@@ -229,7 +229,7 @@ class keystone(
   $catalog_template_file = '/etc/keystone/default_catalog.templates',
   $token_format          = false,
   $token_provider        = 'keystone.token.providers.pki.Provider',
-  $token_driver          = 'keystone.token.persistence.backends.memcache.Token',
+  $token_driver          = 'keystone.token.persistence.backends.sql.Token',
   $token_expiration      = 3600,
   $public_endpoint       = false,
   $admin_endpoint        = false,
