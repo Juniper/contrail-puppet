@@ -8,8 +8,9 @@ class openstack::profile::nova::api {
   openstack::resources::firewall { 'Nova S3': port => '3333', }
   openstack::resources::firewall { 'Nova novnc': port => '6080', }
 
-  $host_ip = hiera(contrail::params::host_ip)
-  $compute_ip_list = hiera(contrail::params::compute_ip_list)
+  include ::contrail
+  $host_ip = $::contrail::params::host_ip
+  $compute_ip_list = $::contrail::params::compute_ip_list
 
   $tmp_index = inline_template('<%= @compute_ip_list.index(@host_ip) %>')
   notify { "openstack::common::nova - compute_ip_list = $compute_ip_list":;}
