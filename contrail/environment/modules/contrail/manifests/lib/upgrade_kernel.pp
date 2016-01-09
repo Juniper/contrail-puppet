@@ -6,7 +6,9 @@ define contrail::lib::upgrade_kernel(
     $contrail_logoutput = false,
 ) {
 
-    if ($operatingsystem == "Ubuntu" and $contrail_kernel_upgrade == "yes") {
+    if ($operatingsystem == "Ubuntu" and 
+        (($contrail_kernel_upgrade == "yes") or
+         ($contrail_kernel_upgrade == true))) {
 
 
        if ($lsbdistrelease == "12.04") {
