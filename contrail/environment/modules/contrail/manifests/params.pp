@@ -354,9 +354,9 @@
 #     (optional) - Defaults to $serverip
 #
 # [*kernel_upgrade*]
-#     Flag to indicate where to update kernel (yes/no).
+#     Flag to indicate where to update kernel (true/false).
 #     Not exposed to SM for modification.
-#     (optional) - Defaults to "yes".
+#     (optional) - Defaults to true.
 #
 # [*kernel_version*]
 #     kernel version to upgrade to.
@@ -668,7 +668,8 @@ class contrail::params (
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
-        ($haproxy_flag != 'enable')) {
+        (($haproxy_flag != 'enable') and
+         ($haproxy_flag != true))) {
         $haproxy = false
     }
     else {
