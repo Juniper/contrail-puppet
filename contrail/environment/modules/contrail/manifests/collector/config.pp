@@ -121,9 +121,9 @@ class contrail::collector::config (
       'DEFAULTS/scan_frequency'     : value => $topology_scan_frequency;
     }
 
+    $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     contrail_snmp_collector_ini_config {
-      'program:contrail-snmp-collector/command' :
-         value => '/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf';
+      'program:contrail-snmp-collector/command' : value => $contrail_snmp_collector_ini_command;
       'program:contrail-snmp-collector/priority' : value => '340';
       'program:contrail-snmp-collector/autostart' : value => 'true';
       'program:contrail-snmp-collector/killasgroup' : value => 'true';
@@ -136,14 +136,42 @@ class contrail::collector::config (
       'program:contrail-snmp-collector/exitcodes' : value => '0';
       'program:contrail-snmp-collector/user' : value => 'contrail';
     }
+
+    $redis_config_file = '/etc/redis/redis.conf'
+    $redis_augeas_lens_to_use = 'spacevars.lns'
+
     if ($redis_password != "" ) {
       contrail_analytics_api_config { 'REDIS/redis_password' : value => $redis_password; }
       contrail_collector_config { 'REDIS/password': value => $redis_password; }
       contrail_query_engine_config { 'REDIS/password': value => $redis_password; }
+      $redis_config = { 'redis_conf' => { 'requirepass' => $redis_password,},}
+      $redis_conf_keys = keys($redis_config['redis_conf'])
+      contrail::lib::augeas_conf_set { $redis_conf_keys:
+             config_file => $redis_config_file,
+             settings_hash => $redis_config['redis_conf'],
+             lens_to_use => $redis_augeas_lens_to_use,
+      }
+
     } else {
       contrail_analytics_api_config { 'REDIS/redis_password' : ensure => absent; }
       contrail_collector_config { 'REDIS/password': ensure => absent; }
       contrail_query_engine_config { 'REDIS/password': ensure => absent; }
+    }
+
+    contrail::lib::augeas_conf_rm { "remove_bind":
+                key => 'bind',
+                config_file => $redis_config_file,
+                lens_to_use => $redis_augeas_lens_to_use,
+    }
+    contrail::lib::augeas_conf_rm { "remove_save":
+                key => 'save',
+                config_file => $redis_config_file,
+                lens_to_use => $redis_augeas_lens_to_use,
+    }
+    contrail::lib::augeas_conf_rm { "remove_dbfilename":
+                key => 'dbfilename',
+                config_file => $redis_config_file,
+                lens_to_use => $redis_augeas_lens_to_use,
     }
 
     file { '/etc/snmp':
@@ -152,8 +180,5 @@ class contrail::collector::config (
     file { '/etc/snmp/snmp.conf':
       content => 'mibs +ALL'
     }
-    ->
-    file { '/etc/redis/redis.conf' :
-        content => template("${module_name}/redis.conf.erb"),
-    }
+
 }

@@ -457,7 +457,7 @@
 # [*contrail_plugin_location*]
 #     path to contrail neutron plugin. Use default value.
 #     Not exposed to SM for modification.
-#     (optional) - Defaults to "NEUTRON_PLUGIN_CONFIG=\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'".
+#     (optional) - Defaults to "\'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini\'".
 #
 # [*contrail_logoutput*]
 #     Variable to specify if output of exec commands is to be logged or not.

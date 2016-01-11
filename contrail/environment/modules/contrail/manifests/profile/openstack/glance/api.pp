@@ -15,9 +15,6 @@ class contrail::profile::openstack::glance::api {
 
   $controller_address = $::openstack::config::controller_address_management
 
-  openstack::resources::firewall { 'Glance API': port      => '9292', }
-  openstack::resources::firewall { 'Glance Registry': port => '9191', }
-
   include ::openstack::common::glance
 
   class { '::glance::backend::file': }
