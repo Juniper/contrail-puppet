@@ -9,7 +9,8 @@ class contrail::compute::install(
     notify{"###DEBUG contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version":;}
     
     #Temporary work around untill we find out the root cause for inconsistent reboot resource behavior.
-    if ($::contrail::params::kernel_upgrade == 'yes' and $cur_kernel_version != $dist_kernel_version ) {
+    if ((($::contrail::params::kernel_upgrade == 'yes') or
+         ($::contrail::params::kernel_upgrade == true)) and $cur_kernel_version != $dist_kernel_version ) {
       notify{"###DEBUG inside if contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version":;}
       notify{"Missed reboot for kernel Upgrade, Initiating a reboot":;}
       ->
