@@ -109,11 +109,11 @@ class contrail::uninstall_config (
         state => "uninstall_config_started", 
         contrail_logoutput => $contrail_logoutput }
     ->
-    exec { "provision-role-config" :
-	command => "python /usr/share/contrail-utils/provision_config_node.py --api_server_ip $config_ip_to_use --host_name $hostname --host_ip $host_control_ip  --oper del $multi_tenancy_options && echo provision-role-config-del >> /etc/contrail/contrail_config_exec.out",
-#	require => [ ],
-	provider => shell,
-	logoutput => $contrail_logoutput
+    class {'::contrail::delete_role_config':
+        config_ip_to_use => $config_ip_to_use,
+        hostname => $hostname,
+        host_control_ip => $host_control_ip,
+        multi_tenancy_options => $multi_tenancy_options
     }
     ->
     service { "supervisor-config" :
@@ -131,11 +131,10 @@ class contrail::uninstall_config (
     #                     python-psutil, mysql-server, contrail-setup, python-zope-interface, python-importlib, euca2ools, m2crypto, openstack-nova,
     #                     java-1.7.0-openjdk, haproxy, rabbitmq-server, python-bottle, contrail-nodemgr
     # Ensure ctrl-details file is absent with right content.
-    #TODO Convert this into a resource
     exec { "apt_auto_remove_config":
-	command => "apt-get autoremove -y --purge",
-	provider => shell,
-	logoutput => $contrail_logoutput
+    command => "apt-get autoremove -y --purge",
+    provider => shell,
+    logoutput => $contrail_logoutput
     }
     ->
     file { [           

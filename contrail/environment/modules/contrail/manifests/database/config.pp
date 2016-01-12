@@ -163,21 +163,8 @@ class contrail::database::config (
         File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
     }
     # set high session timeout to survive glance led disk activity
-    file { '/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh':
-        ensure  => present,
-        mode    => '0755',
-        owner   => root,
-        group   => root,
-        source  => "puppet:///modules/${module_name}/config-zk-files-setup.sh"
-    }
-    ->
-    notify { "contrail contrail_zk_exec_cmd is ${contrail_zk_exec_cmd}":; }
-    ->
-    exec { 'setup-config-zk-files-setup' :
-        command   => $contrail_zk_exec_cmd,
-        unless    => 'grep -qx setup-config-zk-files-setup /etc/contrail/contrail-config-exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
+    class {'::contrail::database::config_zk_files_setup':
+        contrail_zk_exec_cmd => $contrail_zk_exec_cmd
     }
 
     contrail_database_nodemgr_config {

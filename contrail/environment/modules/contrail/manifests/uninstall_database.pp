@@ -117,12 +117,11 @@ class contrail::uninstall_database (
         state => "uninstall_database_started", 
         contrail_logoutput => $contrail_logoutput }
     ->
-
-    exec { "un-provision-role-database" :
-	command => "python /usr/share/contrail-utils/provision_database_node.py --api_server_ip $config_ip_to_use --host_name $hostname --host_ip $host_control_ip  --oper del $multi_tenancy_options && echo un-provision-role-config-del >> /etc/contrail/contrail_config_exec.out",
-#	require => [ ],
-	provider => shell,
-	logoutput => $contrail_logoutput
+    class { '::contrail::delete_role_database':
+            config_ip_to_use => $config_ip_to_use,
+            hostname => $hostname,
+            host_control_ip => $host_control_ip,
+            multi_tenancy_options => $multi_tenancy_options
     }
     ->
     # Ensure the services needed are running.
@@ -143,8 +142,6 @@ class contrail::uninstall_database (
         provider => shell,
         logoutput => $contrail_logoutput
     }
-
-            #'$database_dir',
     ->
     file { [
             "${contrail_cassandra_dir}/cassandra.yaml",
