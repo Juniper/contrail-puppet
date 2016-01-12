@@ -14,7 +14,8 @@
 class contrail::profile::openstack_controller (
   $enable_module = $::contrail::params::enable_openstack,
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
-  $host_roles = $::contrail::params::host_roles
+  $host_roles = $::contrail::params::host_roles,
+  $package_sku = $::contrail::params::package_sku
 ) {
     if ($enable_module and 'openstack' in $host_roles) {
         contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
@@ -38,9 +39,12 @@ class contrail::profile::openstack_controller (
 
         openstack::resources::database { 'neutron': } ->
         package { 'neutron-server': ensure => present }
-        #package { 'openstack-dashboard':
-          #ensure  => latest,
-        #} ->
+        if ($package_sku != 'kilo') {
+          package { 'contrail-openstack-dashboard':
+            ensure  => latest,
+          }
+          Package['contrail-openstack-dashboard'] -> Exec['neutron-db-sync']
+        }
 
         # Though neutron runs on config, setup the db in openstack node
         $neutron_db_connection = $::openstack::resources::connectors::neutron

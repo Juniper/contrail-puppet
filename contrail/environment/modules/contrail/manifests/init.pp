@@ -666,6 +666,7 @@ class contrail (
     $tor_ha_config = "",
     $contrail_version = '',
     $xmpp_auth_enable = false,
+    $package_sku = "juno",
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -686,6 +687,7 @@ class contrail (
 	enable_lbass =>				hiera(contrail::enable_lbass, hiera(contrail::params::enable_lbass, $enable_lbass)),
 	xmpp_auth_enable =>			hiera(contrail::xmpp_auth_enable, hiera(contrail::params::xmpp_auth_enable, $xmpp_auth_enable)),
 	sync_db =>				hiera(contrail::sync_db, hiera(contrail::params::sync_db, $sync_db)),
+        package_sku =>        hiera(contrail::package_sku, $package_sku),
         # HA Parameters
 	haproxy_flag =>				hiera(contrail::ha::haproxy_flag, hiera(contrail::params::haproxy_flag, $haproxy_flag)),
 	contrail_internal_vip =>		hiera(contrail::ha::contrail_internal_vip, hiera(contrail::params::contrail_internal_vip, $contrail_internal_vip)),

@@ -573,4 +573,7 @@ except ImportError:
     pass
 
 ALLOWED_HOSTS = '*'
+
+<%- if @package_sku != 'kilo' -%>
 HORIZON_CONFIG['customization_module'] = 'contrail_openstack_dashboard.overrides'
+<%- end -%>

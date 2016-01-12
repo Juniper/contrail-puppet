@@ -305,6 +305,7 @@ class horizon(
 #  }
 
   if $compress_offline {
+    $package_sku = $::contrail::params::package_sku
     file { $::horizon::params::config_file:
       content => template($local_settings_template),
       mode    => '0644',
