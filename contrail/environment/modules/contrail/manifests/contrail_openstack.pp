@@ -107,31 +107,15 @@ class contrail::contrail_openstack (
         ensure  => present,
         content => template("${module_name}/keystonerc.erb"),
     } ->
-    # Create ec2rc file
-    file { '/opt/contrail/bin/contrail-create-ec2rc.sh' :
-        ensure => present,
-        mode   => '0755',
-        group  => root,
-        source => "puppet:///modules/${module_name}/contrail-create-ec2rc.sh"
-    } ->
-    exec { 'exec_create_ec2rc_file':
-        command   => './contrail-create-ec2rc.sh',
-        cwd       => '/opt/contrail/bin/',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
+    class {'::contrail::exec_create_ec2rc_file':}
+
     $nova_params =  {
       'DEFAULT/novncproxy_base_url' => { value => "http://${vnc_base_url_ip}:${novncproxy_port}/vnc_auto.html"},
       'DEFAULT/ec2_private_dns_show_ip' => { value => 'False' },
     }
     create_resources(nova_config,$nova_params, {} )
 
-    # Disable mpm_event apache module
-    exec { "exec_disable_mpm_event":
-        command => "a2dismod mpm_event && service apache2 restart && echo exec_disable_mpm_event>> /etc/contrail/contrail_openstack_exec.out",
-        provider => shell,
-        logoutput => $contrail_logoutput
-    }
+    include ::contrail::exec_disable_mpm_event
 
     if ($enable_ceilometer) {
         # Set instance_usage_audit_period to hour

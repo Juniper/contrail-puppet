@@ -65,27 +65,13 @@ class contrail::uninstall_control (
         contrail_logoutput => $contrail_logoutput
     }
     ->
-    exec { 'del-vnc-control' :
-	command => "/bin/bash -c \"python /opt/contrail/utils/provision_control.py --api_server_ip $config_ip --api_server_port 8082 --host_name $::hostname  --host_ip $host_control_ip --router_asn $router_asn $multi_tenancy_options --oper del && echo del-vnc-control >> /etc/contrail/contrail_control_exec.out\"",
-        unless    => 'grep -qx del-vnc-control /etc/contrail/contrail_control_exec.out',
-	provider => shell,
-        require => File['/etc/contrail/vnc_api_lib.ini'],
-	logoutput => $contrail_logoutput
-    } ->
-/*
-    service { 'supervisor-control' :
-        ensure    => false,
+    contrail::delete_vnc_control { 'delete_vnc_control':
+        config_ip => $config_ip,
+        host_control_ip => $host_control_ip,
+        router_asn => $router_asn,
+        multi_tenancy_options => $multi_tenancy_options,
     }
     ->
-
-*/
-/*
-    service { 'contrail-named' :
-        ensure    => false,
-        enable    => stopped,
-    }
-    ->
-*/
     package { 'contrail-openstack-control' : ensure => purged, notify => ['Exec[apt_auto_remove_control]']}
     ->
     exec{ "apt_auto_remove_control":
@@ -109,17 +95,6 @@ class contrail::uninstall_control (
            ] :
 	ensure => absent,
     }
-/*
-   # update rndc conf
-    exec { 'update-rndc-conf-file' :
-        command   => "sudo sed -i 's/secret \"secret123\"/secret \"xvysmOR8lnUQRBcunkC6vg==\"/g' /etc/contrail/dns/rndc.conf && echo update-rndc-conf-file >> /etc/contrail/contrail_control_exec.out",
-        require   => Package['contrail-openstack-control'],
-        onlyif    => 'test -f /etc/contrail/dns/rndc.conf',
-        unless    => 'grep -qx update-rndc-conf-file /etc/contrail/contrail_control_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
-*/
     # Ensure the services needed are running.
     contrail::lib::report_status { 'uninstall_control_completed':
         state              => 'uninstall_control_completed',

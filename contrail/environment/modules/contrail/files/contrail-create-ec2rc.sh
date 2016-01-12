@@ -18,6 +18,7 @@ function get_user() {
 }
 
 source /etc/contrail/keystonerc
+source /etc/contrail/openstackrc
 ADMIN_TENANT=$(get_tenant admin)
 DEMO_TENANT=$(get_tenant demo)
 ADMIN_USER=$(get_user admin)
