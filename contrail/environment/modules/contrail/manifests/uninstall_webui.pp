@@ -51,11 +51,7 @@ class contrail::uninstall_webui (
         notify => ["Exec[apt_auto_remove_webui]"],
     }
     ->
-    exec { "apt_auto_remove_webui":
-        command => "apt-get autoremove -y --purge",
-        provider => shell,
-        logoutput => $contrail_logoutput
-    }
+    include ::contrail::apt_auto_remove_purge
 
     if ($is_storage_master) {
         package { 'contrail-web-storage' :

@@ -175,7 +175,7 @@ class contrail::config (
     anchor {'contrail::config::start': } ->
     contrail::lib::report_status { 'config_started': } ->
     class { 'contrail::config::install':} ->
-    class { 'contrail::config::config':} ~>
+    class { 'contrail::config::config':} ->
     class { 'contrail::config::service':} ->
     class { '::contrail::provision_contrail': }->
     contrail::lib::report_status { 'config_completed': }

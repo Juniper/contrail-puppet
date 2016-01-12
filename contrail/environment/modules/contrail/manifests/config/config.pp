@@ -421,13 +421,7 @@ class contrail::config::config (
         lens_to_use => 'properties.lns',
     }
     ->
-    exec { 'config-neutron-server' :
-        command   => "service neutron-server restart && echo config-neutron-server >> /etc/contrail/contrail_config_exec.out",
-        onlyif    => 'test -f /etc/default/neutron-server',
-        unless    => 'grep -qx config-neutron-server /etc/contrail/contrail_config_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
+    class {'::contrail::config::config_neutron_server':}
     ->
     # initd script wrapper for contrail-discovery
     file { '/etc/init.d/contrail-discovery' :
@@ -452,62 +446,26 @@ class contrail::config::config (
         content => $rabbit_env,
     }
     ->
-    file { '/etc/contrail/add_etc_host.py' :
-        mode   => '0755',
-        group  => root,
-        source => "puppet:///modules/${module_name}/add_etc_host.py"
+    class {'::contrail::config::add_etc_hosts':
+        cfgm_ip_list_shell => $cfgm_ip_list_shell,
+        cfgm_name_list_shell => $cfgm_name_list_shell
     }
     ->
-    exec { 'add-etc-hosts' :
-        command   => "python /etc/contrail/add_etc_host.py ${cfgm_ip_list_shell} ${cfgm_name_list_shell} && echo add-etc-hosts >> /etc/contrail/contrail_config_exec.out",
-        unless    => 'grep -qx add-etc-hosts /etc/contrail/contrail_config_exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
-    ->
-    file { '/etc/contrail/form_rmq_cluster.sh' :
-        mode   => '0755',
-        group  => root,
-        source => "puppet:///modules/${module_name}/form_rmq_cluster.sh"
-    } ->
-    exec { 'verify-rabbitmq' :
-        command   => "/etc/contrail/form_rmq_cluster.sh ${master} ${host_control_ip} ${config_ip_list} & echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
-        unless    => 'grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out',
-        provider  => shell,
-        logoutput => true,
+    class {'::contrail::config::verify_rabbitmq':
+        master => $master,
+        host_control_ip => $host_control_ip,
+        config_ip_list => $config_ip_list
     }
 
     # run setup-pki.sh script
     if $use_certs == true {
-        file { '/etc/contrail_setup_utils/setup-pki.sh' :
-            mode   => '0755',
-            user   => root,
-            group  => root,
-            source => "puppet:///modules/${module_name}/setup-pki.sh"
-        } ->
-        exec { 'setup-pki' :
-            command   => '/etc/contrail_setup_utils/setup-pki.sh /etc/contrail/ssl; echo setup-pki >> /etc/contrail/contrail_config_exec.out',
-            unless    => 'grep -qx setup-pki /etc/contrail/contrail_config_exec.out',
-            provider  => shell,
-            logoutput => $contrail_logoutput
-        }
+         include ::contrail::config::setup_pki
     }
     file { '/usr/bin/nodejs':
         ensure => link,
         target => '/usr/bin/node',
     } ->
-    file { '/etc/contrail/quantum-server-setup.sh':
-        mode    => '0755',
-        owner   => root,
-        group   => root,
-        source => "puppet:///modules/${module_name}/quantum-server-setup.sh"
-    }
-    ->
-    exec { 'setup-quantum-server-setup' :
-        command  => "/bin/bash /etc/contrail/quantum-server-setup.sh ${::operatingsystem} && echo setup-quantum-server-setup >> /etc/contrail/contrail_config_exec.out",
-        unless   => 'grep -qx setup-quantum-server-setup /etc/contrail/contrail_config_exec.out',
-        provider => shell
-    }
+    class {'::contrail::config::setup_quantum_server_setup':}
 
     $config_sysctl_settings = {
       'net.ipv4.tcp_keepalive_time' => { value => 5 },

@@ -61,12 +61,13 @@ class contrail::uninstall_compute (
         state => 'uninstall_compute_started', 
         contrail_logoutput => $contrail_logoutput }
     ->
-    exec { 'del-vnc-config' :
-	command => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name $::hostname --host_ip $host_control_ip --api_server_ip $config_ip_to_use --oper del --admin_user $keystone_admin_user --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant --openstack_ip $openstack_ip ${contrail_router_type} && echo del-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
-	unless  => 'grep -qx del-vnc-config /etc/contrail/contrail_compute_exec.out',
-	provider => shell,
-	logoutput => $contrail_logoutput
-    } ->
+    class {'::contrail::delete_vnc_config':
+           config_ip_to_use => $config_ip_to_use,
+           host_control_ip => $host_control_ip,
+           keystone_admin_user => $keystone_admin_user,
+           keystone_admin_password => $keystone_admin_password
+    }
+    ->
     service { 'supervisor-vrouter' :
 	enable => false,
 	ensure => stopped,
@@ -96,11 +97,7 @@ class contrail::uninstall_compute (
 
 
 
-    exec { 'apt_auto_remove_compute':
-        command => 'apt-get autoremove -y --purge',
-        provider => shell,
-        logoutput => $contrail_logoutput
-    }
+    include ::contrail::apt_auto_remove_purge
     ->
     file { ['/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh',
             '/etc/contrail/vrouter_nodemgr_param',
@@ -115,17 +112,10 @@ class contrail::uninstall_compute (
     contrail::lib::report_status { 'compute_completed':
             state => 'compute_completed', 
             contrail_logoutput => $contrail_logoutput }
-     ->
-    exec { 'clear_compute' :
-	command => 'rm -f /etc/contrail/contrail_compute_exec.out',
-	provider => shell,
-	logoutput => $contrail_logoutput
-
-    } 
     ->
-    exec { 'reboot-server' :
-	command   => 'reboot -f now',
-	provider => 'shell',
-	logoutput => $contrail_logoutput
+    include ::contrail::clear_compute
+    ->
+    class {'::contrail::do_reboot_server':
+        reboot_flag => 'uninstall_compute_reboot',
     }
 }

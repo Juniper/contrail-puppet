@@ -41,11 +41,11 @@ class contrail::uninstall_collector (
         state              => 'uninstall_collector_started',
         contrail_logoutput => $contrail_logoutput }
     ->
-    exec { "provision-role-collector" :
-	command => "python /usr/share/contrail-utils/provision_analytics_node.py --api_server_ip $config_ip --host_name $hostname --host_ip $host_control_ip  --oper del $multi_tenancy_options && echo provision-role-collector-del >> /etc/contrail/contrail_collector_exec.out",
-#	require => [ ],
-	provider => shell,
-	logoutput => $contrail_logoutput
+    contrail::delete_role_collector { 'delete_role_collector':
+            config_ip => $config_ip,
+            hostname => $hostname,
+            host_control_ip => $host_control_ip,
+            multi_tenancy_options => $multi_tenancy_options
     }
     ->
     # Ensure all needed packages are present
@@ -54,11 +54,7 @@ class contrail::uninstall_collector (
         notify => ["Exec[apt_auto_remove_collector]"],
     }
     ->
-    exec { "apt_auto_remove_collector":
-        command => "apt-get autoremove -y --purge",
-        provider => shell,
-        logoutput => $contrail_logoutput
-    }
+    include ::contrail::apt_auto_remove_purge
     ->
 
     # The above wrapper package should be broken down to the below packages
@@ -80,24 +76,6 @@ class contrail::uninstall_collector (
     }
 
     # Ensure all config files with correct content are present.
-/*
-    ->
-    exec { 'setsnmpmib':
-        command   => 'mkdir -p /etc/snmp && echo \'mibs +ALL\' > /etc/snmp/snmp.conf',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-   }
-*/
-/*
-   ->
-    exec { 'redis-del-db-dir':
-        command   => 'rm -f /var/lib/redis/dump.rb && service redis-server restart && echo redis-del-db-dir /etc/contrail/contrail-collector-exec.out',
-        unless    => 'grep -qx redis-del-db-dir /etc/contrail/contrail-collector-exec.out',
-        provider  => shell,
-        logoutput => $contrail_logoutput
-    }
-    ->
-*/
     # Ensure the services needed are running.
     service { 'supervisor-analytics' :
         ensure    => false ,
@@ -109,3 +87,4 @@ class contrail::uninstall_collector (
         contrail_logoutput => $contrail_logoutput }
 
 }
+

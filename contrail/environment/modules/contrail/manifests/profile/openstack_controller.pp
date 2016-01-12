@@ -34,21 +34,18 @@ class contrail::profile::openstack_controller (
         class {'::openstack::profile::auth_file' : } ->
         class {'::openstack::profile::provision' : } ->
         class {'::contrail::contrail_openstack' : } ->
-        #Contrail expects neutron to run on config nodes only
-
-        openstack::resources::database { 'neutron': } ->
-        package { 'neutron-server': ensure => present }
-        #package { 'openstack-dashboard':
-          #ensure  => latest,
-        #} ->
-
+        # Contrail expects neutron to run on config nodes only
         # Though neutron runs on config, setup the db in openstack node
-        $neutron_db_connection = $::openstack::resources::connectors::neutron
-        notify { "contrail::profile::openstack_controller - neutron_db_connection = ${neutron_db_connection}":; }
-        exec { 'neutron-db-sync':
-            command     => "neutron-db-manage --database-connection ${neutron_db_connection} upgrade head",
-            path        => '/usr/bin'
-        } ->
+        openstack::resources::database { 'neutron': }
+        ->
+        package { 'neutron-server': ensure => present }
+        ->
+        notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; }
+        ->
+        class {'::contrail::profile::neutron_db_sync':
+            neutron_db_connection => $::openstack::resources::connectors::neutron
+        }
+        ->
         contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
 
         Class['::openstack::profile::provision']->Service['glance-api']
