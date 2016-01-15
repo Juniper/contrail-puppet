@@ -30,7 +30,8 @@ class contrail::toragent(
         'host_control_ip'         => $host_control_ip
     }
     contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
-    $tor_config = hiera('contrail::params::top_of_rack', {})
+    include ::contrail
+    $tor_config = $::contrail::params::top_of_rack
     create_resources(contrail::lib::top_of_rack, $tor_config, $tor_defaults)
     contrail::lib::report_status { 'toragent_completed': state => 'toragent_completed' }
 
