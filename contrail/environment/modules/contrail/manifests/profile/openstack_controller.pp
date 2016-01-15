@@ -40,7 +40,13 @@ class contrail::profile::openstack_controller (
         openstack::resources::database { 'neutron': }
         ->
         package { 'neutron-server': ensure => present }
-        ->
+
+        if ($package_sku != 'kilo') {
+            package { 'contrail-openstack-dashboard':
+                ensure  => latest,
+            }
+            Package['contrail-openstack-dashboard'] -> Exec['neutron-db-sync']
+        }
         notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; }
         ->
         class {'::contrail::profile::neutron_db_sync':
