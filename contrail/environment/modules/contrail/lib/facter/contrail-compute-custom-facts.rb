@@ -63,3 +63,19 @@ Facter.add(:python_dist) do
         Facter::Util::Resolution.exec('python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"')
     end
 end
+Facter.add(:contrail_mem_sz) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'mem_size.sh'))
+    end
+end
+Facter.add(:contrail_pg_sz) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'pg_sz.sh'))
+    end
+end
+Facter.add(:contrail_reserv_pg) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'reserv_pg.sh'))
+    end
+end
+
