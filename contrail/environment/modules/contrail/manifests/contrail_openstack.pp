@@ -115,7 +115,7 @@ class contrail::contrail_openstack (
     }
     create_resources(nova_config,$nova_params, {} )
 
-    include ::contrail::exec_disable_mpm_event
+    #include ::contrail::exec_disable_mpm_event
 
     if ($enable_ceilometer) {
         # Set instance_usage_audit_period to hour

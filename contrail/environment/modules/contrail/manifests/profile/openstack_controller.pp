@@ -31,7 +31,7 @@ class contrail::profile::openstack_controller (
         class {'::openstack::profile::cinder::api' : } ->
         class {'::openstack::profile::nova::api' : } ->
         class {'::contrail::profile::openstack::heat' : } ->
-        class {'::openstack::profile::horizon' : } ->
+        #class {'::openstack::profile::horizon' : } ->
         class {'::openstack::profile::auth_file' : } ->
         class {'::openstack::profile::provision' : } ->
         class {'::contrail::contrail_openstack' : } ->
@@ -40,7 +40,13 @@ class contrail::profile::openstack_controller (
         openstack::resources::database { 'neutron': }
         ->
         package { 'neutron-server': ensure => present }
-
+        -> package { 'openstack-dashboard': ensure => present }
+        -> file {'/etc/openstack-dashboard/local_settings.py':
+            ensure => present,
+            mode   => '0755',
+            group  => root,
+            content => template("${module_name}/local_settings.py.erb")
+        }
         if ($package_sku != 'kilo') {
             package { 'contrail-openstack-dashboard':
                 ensure  => latest,
