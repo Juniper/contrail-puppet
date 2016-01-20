@@ -37,6 +37,7 @@ class contrail::compute::config(
     $contrail_host_roles = $::contrail::params::host_roles,
     $enable_lbass =  $::contrail::params::enable_lbass,
     $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
+    $enable_dpdk=  $::contrail::params::enable_dpdk,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -58,10 +59,51 @@ class contrail::compute::config(
     }
     $physical_dev = get_device_name($vhost_ip)
     if ($physical_dev != 'vhost0') {
+        #when compute provision runs for the first time.
+        #IP address is on the actual phsyical interface
         $contrail_dev = $physical_dev
+
+        #find pci_address
+        $intf_dict = $contrail_interfaces[$physical_dev]
+        notify { "intf_dict = ${intf_dict}":; }
+        if ( 'bond' in $physical_dev) {
+          $pci_address = '0000:00:00.0'
+        } elsif($intf_dict["parent"]) {
+          #vlan interface
+          $parent_intf = $contrail_interfaces[$intf_dict["parent"]]
+          $pci_address = $parent_intf["pci_address"]
+
+          notify { "has a parent":; }
+          notify { "pci_address = ${pci_address}":; }
+        } else {
+
+          notify { "is master":; }
+          $pci_address = $intf_dict["pci_address"]
+          notify { "pci_address = ${pci_address}":; }
+        }
+
     } else {
+        #when compute provision runs the second time
+        #vhost is already setup
+        #in case of non dpdk setup old interface still exists
+        #and details can de derived from that
+        #in case of dpdk,actual physical inerface is taken away from the kernel
+        #so get the details with the help of the facts
+
         $contrail_dev_mac = inline_template("<%= scope.lookupvar('macaddress_' + @physical_dev) %>")
-        $contrail_dev = get_device_name_by_mac($contrail_dev_mac)
+        if ($enable_dpdk == false) {
+            $contrail_dev = get_device_name_by_mac($contrail_dev_mac)
+        } else {
+            if ($contrail_dpdk_bind_if == "" or $contrail_dpdk_bind_if == undef) {
+                fail('dpdk interface is not setup properly')
+            }
+            if ($contrail_dpdk_bind_pci_address == "" or $contrail_dpdk_bind_pci_address == undef) {
+                fail('dpdk interface is not setup properly')
+            }
+
+            $contrail_dev = $contrail_dpdk_bind_if
+            $pci_address = $contrail_dpdk_bind_pci_address
+        }
     }
 
     if ($physical_dev == undef) {
@@ -97,6 +139,16 @@ class contrail::compute::config(
         $contrail_router_type = ''
         $nova_compute_status = 'true'
     }
+
+    #variables used in templates for vrouter_agent.conf
+    if ($enable_dpdk) {
+        $contrail_work_mode = "dpdk"
+    } else {
+        $contrail_work_mode = "default"
+    }
+
+
+
     # Debug Print all variable values
     notify {"host_control_ip = ${host_control_ip}":; } ->
     notify {"config_ip = ${config_ip}":; } ->
@@ -155,6 +207,21 @@ class contrail::compute::config(
                 ensure => present,
                 content => "manual",
             }
+        }
+        if ($enable_dpdk == true) {
+            #Looks like this is still seen as re-declaration by puppet
+            /*
+	    file { 'remove_supervisor_vrouter_override':
+		path => "/etc/init/supervisor-vrouter.override",
+		ensure => absent,
+	    }->
+            */
+            exec { 'remove_supervisor_override':
+                command => "rm -rf /etc/init/supervisor-vrouter.override",
+                provider => shell,
+                logoutput => $contrail_logoutput,
+            }
+
         }
     }
 
@@ -251,6 +318,9 @@ class contrail::compute::config(
       'DEFAULT/xmpp_server_cert' : value => "/etc/contrail/ssl/certs/server.pem";
       'DEFAULT/xmpp_server_key' : value => "/etc/contrail/ssl/private/server-privkey.pem";
       'DEFAULT/xmpp_ca_cert' : value => "/etc/contrail/ssl/certs/ca-cert.pem";
+      'DEFAULT/platform' : value => "$contrail_work_mode";
+      'DEFAULT/physical_interface_address' : value => "$pci_address";
+      'DEFAULT/physical_interface_mac' : value => "$contrail_macaddr";
       'DISCOVERY/server' : value => "$discovery_ip";
       'DISCOVERY/max_control_nodes' : value => "$number_control_nodes";
       'HYPERVISOR/type' : value => "$hypervisor_type";
@@ -282,6 +352,9 @@ class contrail::compute::config(
         keystone_admin_password => $keystone_admin_password,
         keystone_admin_tenant => $keystone_admin_tenant,
         openstack_ip => $openstack_ip
+    }
+    ->
+    contrail::lib::setup_hugepages{ 'huge_pages':
     }
     ->
     class {'::contrail::compute::setup_compute_server_setup':}

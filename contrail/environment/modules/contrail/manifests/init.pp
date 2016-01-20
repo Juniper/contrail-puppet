@@ -667,6 +667,8 @@ class contrail (
     $contrail_version = '',
     $xmpp_auth_enable = false,
     $package_sku = "juno",
+    $core_mask = '',
+    $huge_pages = '',
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -770,6 +772,9 @@ class contrail (
 	compute_ip_list =>			hiera(contrail::compute::compute_ip_list, hiera(contrail::params::compute_ip_list, $compute_ip_list)),
 	compute_name_list =>			hiera(contrail::compute::compute_name_list, hiera(contrail::params::compute_name_list, $compute_name_list)),
 	compute_passwd_list =>			hiera(contrail::compute::compute_passwd_list, hiera(contrail::params::compute_passwd_list, $compute_passwd_list)),
+        huge_pages =>                           hiera(contrail::compute::dpdk::huge_pages, hiera(contrail::params::huge_pages, $huge_pages)),
+        core_mask => 	                        hiera(contrail::compute::dpdk::core_mask, hiera(contrail::params::core_mask, $core_mask)),
+
         # VMWare Parameters
 	vmware_ip =>				hiera(contrail::vmware::vmware_ip, hiera(contrail::params::vmware_ip, $vmware_ip)),
 	vmware_username =>			hiera(contrail::vmware::vmware_username, hiera(contrail::params::vmware_username, $vmware_username)),
