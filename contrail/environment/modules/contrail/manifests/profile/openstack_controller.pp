@@ -34,12 +34,7 @@ class contrail::profile::openstack_controller (
         #class {'::openstack::profile::horizon' : } ->
         class {'::openstack::profile::auth_file' : } ->
         class {'::openstack::profile::provision' : } ->
-        class {'::contrail::contrail_openstack' : } ->
-        # Contrail expects neutron to run on config nodes only
-        # Though neutron runs on config, setup the db in openstack node
-        openstack::resources::database { 'neutron': }
-        ->
-        package { 'neutron-server': ensure => present }
+        class {'::contrail::contrail_openstack' : }
         -> package { 'openstack-dashboard': ensure => present }
         -> file {'/etc/openstack-dashboard/local_settings.py':
             ensure => present,
@@ -47,25 +42,31 @@ class contrail::profile::openstack_controller (
             group  => root,
             content => template("${module_name}/local_settings.py.erb")
         }
-        if ($package_sku !~ /^*2015.1.*/) {
-            package { 'contrail-openstack-dashboard':
-                ensure  => latest,
-            }
-            Package['contrail-openstack-dashboard'] -> Exec['neutron-db-sync']
-        }
-        notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; }
-        ->
-        class {'::contrail::profile::neutron_db_sync':
-            neutron_db_connection => $::openstack::resources::connectors::neutron
-        }
-        ->
-        contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
-
         Class['::openstack::profile::provision']->Service['glance-api']
         if ($enable_ceilometer) {
             include ::contrail::profile::openstack::ceilometer
         }
         notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; }
+
+        if ($package_sku !~ /^*2015.1.*/) {
+            package { 'contrail-openstack-dashboard':
+                ensure  => latest,
+            }
+            Package['contrail-openstack-dashboard'] -> Exec['openstack-neutron-db-sync']
+        }
+
+
+        openstack::resources::database { 'neutron': }
+        ->
+        package { 'neutron-server': ensure => present }
+        ->
+        class {'::contrail::profile::neutron_db_sync':
+            database_connection => $::openstack::resources::connectors::neutron
+        }
+        ->
+        notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; }
+        ->
+        contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
 
     } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
 
