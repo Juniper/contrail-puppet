@@ -529,6 +529,10 @@
 #     Flag for enabling xmpp autherization via cert exchange between agent and control.
 #     (optional) - Defaults to false.
 #
+# [*xmpp_dns_auth_enable*]
+#     Flag for enabling xmpp dns autherization via cert exchange between agent and control.
+#     (optional) - Defaults to false.
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -665,6 +669,7 @@ class contrail::params (
     $tor_ha_config,
     $contrail_version,
     $xmpp_auth_enable,
+    $xmpp_dns_auth_enable,
     $package_sku
 ) {
     if (($contrail_internal_vip != '') or

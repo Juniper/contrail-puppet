@@ -530,6 +530,10 @@
 #     Flag for enabling xmpp autherization via cert exchange between agent and control.
 #     (optional) - Defaults to false.
 #
+# [*xmpp_dns_auth_enable*]
+#     Flag for enabling xmpp dns autherization via cert exchange between agent and control.
+#     (optional) - Defaults to false.
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -666,6 +670,7 @@ class contrail (
     $tor_ha_config = "",
     $contrail_version = '',
     $xmpp_auth_enable = false,
+    $xmpp_dns_auth_enable = false,
     $package_sku = "juno",
 ) {
     class { '::contrail::params':
@@ -686,6 +691,7 @@ class contrail (
 	contrail_version =>			hiera(contrail::contrail_version, hiera(contrail::params::contrail_version, $contrail_version)),
 	enable_lbass =>				hiera(contrail::enable_lbass, hiera(contrail::params::enable_lbass, $enable_lbass)),
 	xmpp_auth_enable =>			hiera(contrail::xmpp_auth_enable, hiera(contrail::params::xmpp_auth_enable, $xmpp_auth_enable)),
+	xmpp_dns_auth_enable =>			hiera(contrail::xmpp_dns_auth_enable, hiera(contrail::params::xmpp_dns_auth_enable, $xmpp_dns_auth_enable)),
 	sync_db =>				hiera(contrail::sync_db, hiera(contrail::params::sync_db, $sync_db)),
         package_sku =>        hiera(contrail::package_sku, $package_sku),
         # HA Parameters
