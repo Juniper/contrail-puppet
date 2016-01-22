@@ -402,7 +402,9 @@ def main(args_str=None):
     collector_host_list_str = "<%=@collector_name_list_shell%>"
     collector_ip_list_str = "<%=@collector_ip_list_shell%>"
 
-    tor_details = "<%=@tor_ha_proxy_config%>"
+    tor_details_str = '<%=@tor_ha_proxy_config%>'
+
+    tor_details = tor_details_str.replace('=>', ':')
 
     config_host_list = config_host_list_str.split(",")
     config_ip_list = config_ip_list_str.split(",")
@@ -436,13 +438,19 @@ def main(args_str=None):
     cfg_file.close()
 
 def get_standby_info(tor_details,skip_host,match_tor_name):
-    for host in tor_details:
-        if host == skip_host:
-            continue
-        for i in range(len(tor_details[host])):
-            tor_name=tor_details[host][i]['tor_name']
-            if tor_name == match_tor_name:
-                return (i, host)
+    for hostname in tor_details.keys():
+      myhost = tor_details[hostname]
+      host_tors = myhost.values()
+      if hostname == skip_host:
+          continue
+      for i in range(len(host_tors)):
+          tor_name=host_tors[i]['switch_name']
+          if tor_name == match_tor_name:
+              return (i, hostname)
+          #end if tor_name ==
+      # end for i in range
+    # end for hostname in tor_details
+
     return (-1, None)
 
 
@@ -474,35 +482,64 @@ def get_tor_agent_haproxy_config(proxy_name, key, ha_dict):
     return tor_agent_ha_config
 #end get_tor_agent_haproxy_config
 
+
 def tor_agent_ha_config(tor_details_str):
     if tor_details_str == "":
       return "#No TOR Details Found"
     tor_details = eval(tor_details_str)
     master_ha_proxy = {}
-    for host in tor_details:
-       #print host
-       for i in range(len(tor_details[host])):
-         ## Only SSL supports haproxy
-         if tor_details[host][i]['protocol'] != 'pssl':
-             #print tor_details[host][i]
-             continue
-         #print tor_details[host][i]
-         tor_name= tor_details[host][i]['tor_name']
-         tsn1 = tor_details[host][i]['tsn_ip']
-         port1 = tor_details[host][i]['ovs_port']
-         standby_tor_idx, standby_host = get_standby_info(tor_details, host, tor_name)
-         key = tsn1
-         if (standby_tor_idx != -1 and standby_host != None):
-             tsn2 =tor_details[standby_host][standby_tor_idx]['tsn_ip']
-             if tsn1 < tsn2:
-                 key = tsn1 + "-" + tsn2
-             else:
-                 key = tsn2 + "-" + tsn1 
 
-         if not key in master_ha_proxy:
-             master_ha_proxy[key] = []
-         if not port1 in master_ha_proxy[key]:
-             master_ha_proxy[key].append(port1)
+    for hostname in tor_details.keys():
+      myhost = tor_details[hostname]
+      host_tors = myhost.values()
+
+      for i in range(len(host_tors)):
+        if host_tors[i]['ovs_protocol'] != 'pssl':
+          continue
+        tor_name= host_tors[i]['switch_name']
+        tsn1 = host_tors[i]['tsn_ip']
+        port1 = host_tors[i]['ovs_port']
+        standby_tor_idx, standby_host = get_standby_info(tor_details, hostname, tor_name)
+        key = tsn1
+        if (standby_tor_idx != -1 and standby_host != None):
+            tor_host = tor_details[standby_host]
+            tor_host_switches = tor_host.values()
+            tsn2 =tor_host_switches[standby_tor_idx]['tsn_ip']
+            if tsn1 < tsn2:
+                key = tsn1 + "-" + tsn2
+            else:
+                key = tsn2 + "-" + tsn1 
+
+        if not key in master_ha_proxy:
+            master_ha_proxy[key] = []
+        if not port1 in master_ha_proxy[key]:
+            master_ha_proxy[key].append(port1)
+
+
+    #for host in tor_details:
+       #print host
+       #for i in range(len(tor_details[host])):
+         ## Only SSL supports haproxy
+         #if tor_details[host][i]['protocol'] != 'pssl':
+             #print tor_details[host][i]
+             #continue
+         #print tor_details[host][i]
+         #tor_name= tor_details[host][i]['tor_name']
+         #tsn1 = tor_details[host][i]['tsn_ip']
+         #port1 = tor_details[host][i]['ovs_port']
+         #standby_tor_idx, standby_host = get_standby_info(tor_details, host, tor_name)
+         #key = tsn1
+         #if (standby_tor_idx != -1 and standby_host != None):
+             #tsn2 =tor_details[standby_host][standby_tor_idx]['tsn_ip']
+             #if tsn1 < tsn2:
+                 #key = tsn1 + "-" + tsn2
+             #else:
+                 #key = tsn2 + "-" + tsn1 
+#
+         #if not key in master_ha_proxy:
+             #master_ha_proxy[key] = []
+         #if not port1 in master_ha_proxy[key]:
+             #master_ha_proxy[key].append(port1)
 
     i = 1
     cfg_str = ""
@@ -511,6 +548,15 @@ def tor_agent_ha_config(tor_details_str):
         i = i +  1
         cfg_str = cfg_str + get_tor_agent_haproxy_config(proxy_name, key, master_ha_proxy)
     return cfg_str
+
+def tor_agent_filter_data(tor_details):
+    #if tor_details_str == "":
+      #return "#No TOR Details Found"
+    #tor_details = eval(tor_details_str)
+    master_ha_proxy = {}
+    for host in tor_details:
+      print host['switch_name']
+
 
 def generate_collector_ha_config(collector_ip_list, mgmt_host_ip):
     contrail_analytics_api_server_lines = ''
