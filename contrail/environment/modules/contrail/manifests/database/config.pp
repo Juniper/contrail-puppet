@@ -160,11 +160,20 @@ class contrail::database::config (
             target  => '/lib/init/upstart-job',
             require => File["${contrail_cassandra_dir}/cassandra-env.sh"],
         }
-        File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
+        # Replaced the below script with augeas
+        # File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
+        File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/zookeeper/conf/zoo.cfg'] ->
+        File ['/etc/zookeeper/conf/log4j.properties'] -> File ['/etc/zookeeper/conf/environment'] ->
+        File ['/var/lib/zookeeper/myid']
     }
     # set high session timeout to survive glance led disk activity
-    class {'::contrail::database::config_zk_files_setup':
-        contrail_zk_exec_cmd => $contrail_zk_exec_cmd
+    # Commented out call to old exec
+    #class {'::contrail::database::config_zk_files_setup':
+    #    contrail_zk_exec_cmd => $contrail_zk_exec_cmd
+    #}
+    # Replaced exec with call to augeas in this class
+    class {'::contrail::database::new_config_zk_files_setup':
+        database_index => $database_index
     }
 
     contrail_database_nodemgr_config {
