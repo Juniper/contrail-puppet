@@ -33,6 +33,7 @@ class contrail::config::neutron {
 
   class { '::neutron':
     rabbit_host           => $::contrail::params::amqp_server_ip_to_use,
+    rabbit_port           => $contrail_rabbit_port,
     bind_port             => $::contrail::params::quantum_port,
     auth_strategy         => 'keystone',
     core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',
@@ -77,13 +78,11 @@ class contrail::config::neutron {
   }
   create_resources(neutron_config, $neutron_contrail_params, {} )
   # Openstack HA specific config
-  if (($internal_vip != '') and (!("openstack" in $contrail_host_roles))) {
+  if (($internal_vip != '')) {
       $neutron_ha_params = {
-          'DEFAULT/rabbit_port' => {value => '5673'},
           'DEFAULT/rabbit_retry_interval' => { value => '1'},
           'DEFAULT/rabbit_retry_backoff' => {value => '2'},
           'DEFAULT/rabbit_max_retries' => { value => '0'},
-          'DEFAULT/rabbit_ha_queues' => { value => 'True'},
           'DEFAULT/rpc_cast_timeout' => {value => '30'},
           'DEFAULT/rpc_conn_pool_size' => {value => '40'},
           'DEFAULT/rpc_response_timeout' => { value => '60'},
