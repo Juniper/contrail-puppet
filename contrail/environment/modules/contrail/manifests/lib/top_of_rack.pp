@@ -19,6 +19,7 @@ define contrail::lib::top_of_rack(
     $keystone_admin_user,
     $keystone_admin_password,
     $keystone_admin_tenant,
+    $tsn_ip,
     $host_control_ip) {
 
     notify { "**** ${module_name} - ${name} =>  ${tunnel_ip_address}, ${ovs_port}, ${http_server_port} , ${ip_address}, ${id}, ${vendor_name}, ${ovs_protocol}, ${ovs_protocol}, ${switch_name}": ; }
@@ -32,7 +33,7 @@ define contrail::lib::top_of_rack(
             mode   => '0755',
             owner  => root,
             group  => root,
-            source => "puppet:///tor_certs/tor.${switch_name}.cert.pem",
+            source => "puppet:///ssl_certs/tor.${switch_name}.cert.pem",
         }
         ->
         file { "tor-agent-ssl-key-${id}" :
@@ -41,7 +42,7 @@ define contrail::lib::top_of_rack(
             mode   => '0755',
             owner  => root,
             group  => root,
-            source => "puppet:///tor_certs/tor.${switch_name}.privkey.pem",
+            source => "puppet:///ssl_certs/tor.${switch_name}.privkey.pem",
         }
         File ["tor-agent-ssl-key-${id}"] ->  File["tor-agent-config-${id}"]
     } else {
