@@ -2,6 +2,7 @@
 define contrail::lib::contrail_setup_repo(
     $contrail_repo_ip,
     $contrail_logoutput = false,
+    $host_roles = $::contrail::params::host_roles,
 ) {
     $contrail_repo_name = $name
     if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
@@ -16,5 +17,8 @@ define contrail::lib::contrail_setup_repo(
           repos    => 'main',
           release  => 'contrail',
        }
+    }
+    if ('compute' in $host_roles) {
+       contrail::lib::setup_dpdk_depends{ 'dpdk_depends':}
     }
 }

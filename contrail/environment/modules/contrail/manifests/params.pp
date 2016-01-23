@@ -753,6 +753,12 @@ class contrail::params (
            $contrail_grub_string = 'GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux 3.13.0-34-generic\''
        }
     }
+    if ($huge_pages == "" and $core_mask == "" ) {
+        $enable_dpdk = false
+    } else {
+        $enable_dpdk = true
+    }
+
 
     if ($multi_tenancy == true) {
         $multi_tenancy_options = "--admin_user admin --admin_password $keystone_admin_password --admin_tenant_name $keystone_admin_tenant"

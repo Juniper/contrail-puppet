@@ -64,7 +64,7 @@ class contrail::common(
       originator => 'Debian'
     } ->
     apt::pin { 'contrail_repo_preferences':
-      priority => '999',
+      priority => '998',
       codename => 'contrail'
     } ->
 

@@ -63,3 +63,29 @@ Facter.add(:python_dist) do
         Facter::Util::Resolution.exec('python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"')
     end
 end
+Facter.add(:contrail_mem_sz) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'mem_size.sh'))
+    end
+end
+Facter.add(:contrail_pg_sz) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'pg_sz.sh'))
+    end
+end
+Facter.add(:contrail_reserv_pg) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'reserv_pg.sh'))
+    end
+end
+Facter.add(:contrail_dpdk_bind_if) do
+    setcode do
+        Facter::Util::Resolution.exec('ifconfig vhost > /dev/null && grep "^physical_interface=" /etc/contrail/contrail-vrouter-agent.conf | awk -F= "{print $2}"')
+    end
+end
+Facter.add(:contrail_dpdk_bind_pci_address) do
+    setcode do
+        Facter::Util::Resolution.exec('ifconfig vhost > /dev/null && grep "^physical_interface_address=" /etc/contrail/contrail-vrouter-agent.conf | awk -F= "{print $2}"')
+    end
+end
+

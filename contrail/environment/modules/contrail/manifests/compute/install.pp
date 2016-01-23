@@ -4,10 +4,10 @@ class contrail::compute::install(
 ) {
     $cur_kernel_version = $::kernelrelease
     $dist_kernel_version = "${::contrail::params::contrail_dist_kernel_version}-generic"
-    
+
     notify{"###DEBUG dist_kernel_version_test  $dist_kernel_version_test ":;}
     notify{"###DEBUG contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version":;}
-    
+
     #Temporary work around untill we find out the root cause for inconsistent reboot resource behavior.
     if ((($::contrail::params::kernel_upgrade == 'yes') or
          ($::contrail::params::kernel_upgrade == true)) and $cur_kernel_version != $dist_kernel_version ) {
@@ -34,7 +34,30 @@ class contrail::compute::install(
 
         if ($::operatingsystem == 'Ubuntu'){
             if ($::lsbdistrelease == '14.04') {
-                if ($::kernelrelease == '3.13.0-40-generic') {
+                notify { "enable_dpdk = ${enable_dpdk}":; }
+                if ($enable_dpdk == true ) {
+                    notify { "settting up DPDK":; }
+                    ->
+                    #Might be temporary
+                    #create the override and remove it
+                    #create an overrride so that supervisor-vrouter doesnt start
+                    #when installing the package
+                    #This is needed only for dpdk
+                    #as the prestart script uses config files
+                    file { 'create_supervisor_vrouter_override':
+                        path => "/etc/init/supervisor-vrouter.override",
+                        ensure => present,
+                        content => "manual",
+                    }
+                    ->
+                    #This package dependancy should
+                    #be ideally resolved libvirt-bin or supervisor-vrouter atleast.
+		    package { 'libcgmanager0':
+			ensure => '0.24-0ubuntu7.5',
+		    }
+
+                    $vrouter_pkg = 'contrail-vrouter-dpdk-init'
+                } elsif ($::kernelrelease == '3.13.0-40-generic') {
                     $vrouter_pkg = 'contrail-vrouter-3.13.0-40-generic'
                 } else {
                     $vrouter_pkg = 'contrail-vrouter-dkms'
