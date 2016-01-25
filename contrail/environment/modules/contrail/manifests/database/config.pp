@@ -164,7 +164,7 @@ class contrail::database::config (
         # File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
         File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/zookeeper/conf/zoo.cfg'] ->
         File ['/etc/zookeeper/conf/log4j.properties'] -> File ['/etc/zookeeper/conf/environment'] ->
-        File ['/var/lib/zookeeper/myid']
+        File ['/etc/zookeeper/conf/myid']
     }
     # set high session timeout to survive glance led disk activity
     # Commented out call to old exec
