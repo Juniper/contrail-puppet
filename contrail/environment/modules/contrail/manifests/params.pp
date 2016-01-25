@@ -665,6 +665,8 @@ class contrail::params (
     $tor_ha_config,
     $contrail_version,
     $xmpp_auth_enable,
+    $huge_pages,
+    $core_mask,
     $package_sku
 ) {
     if (($contrail_internal_vip != '') or

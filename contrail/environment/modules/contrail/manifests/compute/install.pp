@@ -1,6 +1,7 @@
 class contrail::compute::install(
   $opencontrail_only = false,
   $enable_lbass =  $::contrail::params::enable_lbass,
+  $enable_dpdk=  $::contrail::params::enable_dpdk,
 ) {
     $cur_kernel_version = $::kernelrelease
     $dist_kernel_version = "${::contrail::params::contrail_dist_kernel_version}-generic"
