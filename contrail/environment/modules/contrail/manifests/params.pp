@@ -529,6 +529,22 @@
 #     Flag for enabling xmpp autherization via cert exchange between agent and control.
 #     (optional) - Defaults to false.
 #
+# [*contrail_amqp_ip_list*]
+#     User provided list of amqp server ips which have already been provisioned with rabbit instead of config nodes
+#     (optional) - Defaults to false.
+#
+# [*contrail_amqp_port*]
+#     User provided port for amqp service
+#     (optional) - Defaults to false.
+#
+# [*openstack_amqp_ip_list*]
+#     User provided list of amqp server ips for openstack services to use
+#     (optional) - Defaults to false.
+#
+# [*openstack_amqp_port*]
+#     User provided port for amqp service
+#     (optional) - Defaults to false.
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -665,7 +681,11 @@ class contrail::params (
     $tor_ha_config,
     $contrail_version,
     $xmpp_auth_enable,
-    $package_sku
+    $package_sku,
+    $contrail_amqp_ip_list = false,
+    $contrail_amqp_port = false,
+    $openstack_amqp_ip_list = false,
+    $openstack_amqp_port = false,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -704,19 +724,16 @@ class contrail::params (
         $vip_to_use = $contrail_internal_vip
         $config_ip_to_use = $contrail_internal_vip
         $collector_ip_to_use = $contrail_internal_vip
-        $contrail_rabbit_port = '5673'
         $rest_api_port_to_use = '9081'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-        $contrail_rabbit_port = '5673'
         $rest_api_port_to_use = '9081'
     } else {
         $vip_to_use = ''
         $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
-        $contrail_rabbit_port = '5672'
         $rest_api_port_to_use = '8081'
     }
 
@@ -731,6 +748,38 @@ class contrail::params (
 
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
+
+    # Rabbit servers is a list of rabbitip1:rabbit_port,rabbitip2:rabbit_port,…..,rabbitipN:rabbit_port
+    # rabbitip1,rabbitip2…..,rabbitipN will be cfgm1ip, cfgm2ip,….cfgmNip
+    # If user supplies amqp_ip_list, use that instead of config_ip_list
+    # If user supplies amqp_port, use that instead of contrail_rabbit_port
+    if ($contrail_amqp_ip_list) {
+        $contrail_rabbit_ip_list = $contrail_amqp_ip_list
+    } else {
+        $contrail_rabbit_ip_list = $config_ip_list
+    }
+    if ($contrail_amqp_port) {
+        $contrail_rabbit_port = $contrail_amqp_port
+    } else {
+        $contrail_rabbit_port = '5672'
+    }
+    if ($openstack_amqp_ip_list) {
+        $openstack_rabbit_ip_list = $openstack_amqp_ip_list
+    } elsif ($contrail_amqp_ip_list) {
+        $openstack_rabbit_ip_list = $contrail_amqp_ip_list
+    } else {
+        $openstack_rabbit_ip_list = $config_ip_list
+    }
+    if ($openstack_amqp_port) {
+        $openstack_rabbit_port = $openstack_amqp_port
+    } else {
+        $openstack_rabbit_port = '5672'
+    }
+
+    $contrail_rabbit_ip_port_list = suffix($contrail_rabbit_ip_list, ":$contrail_rabbit_port")
+    $openstack_rabbit_ip_port_list = suffix($openstack_rabbit_ip_list, ":$openstack_rabbit_port")
+    $contrail_rabbit_servers = join($contrail_rabbit_ip_port_list,",")
+    $openstack_rabbit_servers = join($openstack_rabbit_ip_port_list,",")
 
     # Set amqp_server_ip
     if ($::contrail::params::amqp_sever_ip != '') {

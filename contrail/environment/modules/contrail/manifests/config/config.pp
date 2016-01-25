@@ -41,7 +41,7 @@ class contrail::config::config (
     $config_ip = $::contrail::params::config_ip_to_use,
     $collector_ip = $::contrail::params::collector_ip_to_use,
     $vip = $::contrail::params::vip_to_use,
-    $contrail_rabbit_port= $::contrail::params::contrail_rabbit_port,
+    $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
     # Main code for class starts here
@@ -68,15 +68,6 @@ class contrail::config::config (
         $mt_options = 'None'
     }
 
-    # Set params based on internval VIP being set
-
-    if ($internal_vip != '') {
-        $rabbit_server_to_use = $internal_vip
-        $rabbit_port_to_use = 5673
-    } else {
-        $rabbit_server_to_use = $host_control_ip
-        $rabbit_port_to_use = 5672
-    }
     $controller_ip = $keystone_ip_to_use
     # Supervisor contrail-api.ini
     $api_port_base = '910'
@@ -104,17 +95,6 @@ class contrail::config::config (
 
     # Set number of config nodes
     $cfgm_number = size($config_ip_list)
-    if ($cfgm_number == 1) {
-        $rabbitmq_conf_template = 'rabbitmq_config_single_node.erb'
-    } else {
-        $rabbitmq_conf_template = 'rabbitmq_config.erb'
-    }
-
-    if ( $host_control_ip == $config_ip_list[0]) {
-        $master = 'yes'
-    } else {
-        $master = 'no'
-    }
 
     File {
       ensure => 'present'
@@ -283,8 +263,7 @@ class contrail::config::config (
         'DEFAULTS/disc_server_ip'       : value => "$config_ip";
         'DEFAULTS/disc_server_port'     : value => '5998';
         'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
-        'DEFAULTS/rabbit_server'        : value => "$config_ip";
-        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
+        'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
         'SECURITY/use_certs'            : value => "$use_certs";
         'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/apiserver_key.pem';
         'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/apiserver.pem';
@@ -312,8 +291,7 @@ class contrail::config::config (
         'DEFAULTS/disc_server_port'     : value => '5998';
         'DEFAULTS/log_local'            : value => '1';
         'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
-        'DEFAULTS/rabbit_server'        : value => "$config_ip";
-        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
+        'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
         'SECURITY/use_certs'            : value => "$use_certs";
         'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/schema_xfer_key.pem';
         'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/schema_xfer.pem';
@@ -335,8 +313,7 @@ class contrail::config::config (
          'DEFAULTS/region_name'          : value => "$keystone_region_name";
          'DEFAULTS/log_local'            : value => '1';
          'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
-         'DEFAULTS/rabbit_server'        : value => "$rabbit_server_to_use";
-         'DEFAULTS/rabbit_port'          : value => "$rabbit_port_to_use";
+         'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
          'SECURITY/use_certs'            : value => "$use_certs";
          'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/svc_monitor_key.pem';
          'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/svc_monitor.pem';
@@ -346,11 +323,10 @@ class contrail::config::config (
     }
 
     contrail_device_manager_config {
-        'DEFAULTS/rabbit_server'        : value => "$config_ip";
+        'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
         'DEFAULTS/api_server_ip'        : value => "$config_ip";
         'DEFAULTS/disc_server_ip'       : value => "$config_ip";
         'DEFAULTS/api_server_port'      : value => '8082';
-        'DEFAULTS/rabbit_port'          : value => "$contrail_rabbit_port";
         'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
         'DEFAULTS/log_file'             : value => '/var/log/contrail/contrail-device-manager.log';
         'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
@@ -429,33 +405,7 @@ class contrail::config::config (
         content => template("${module_name}/contrail-discovery.svc.erb"),
     }
     ->
-    # Handle rabbitmq.config changes
-    file {'/var/lib/rabbitmq/.erlang.cookie':
-        mode    => '0400',
-        owner   => rabbitmq,
-        group   => rabbitmq,
-        content => $uuid
-    }->
-    file { '/etc/rabbitmq/rabbitmq.config' :
-        content => template("${module_name}/${rabbitmq_conf_template}"),
-    }
-    ->
-    file { '/etc/rabbitmq/rabbitmq-env.conf' :
-        mode    => '0755',
-        group   => root,
-        content => $rabbit_env,
-    }
-    ->
-    class {'::contrail::config::add_etc_hosts':
-        cfgm_ip_list_shell => $cfgm_ip_list_shell,
-        cfgm_name_list_shell => $cfgm_name_list_shell
-    }
-    ->
-    class {'::contrail::config::verify_rabbitmq':
-        master => $master,
-        host_control_ip => $host_control_ip,
-        config_ip_list => $config_ip_list
-    }
+    class {'contrail::config::rabbitmq':}
 
     # run setup-pki.sh script
     if $use_certs == true {

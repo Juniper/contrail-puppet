@@ -6,6 +6,7 @@ class openstack::profile::heat::api {
   openstack::resources::firewall { 'Heat CFN API': port => '8000', }
 
   $controller_management_address = $::openstack::config::controller_address_management
+  $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
 
   class { '::heat::keystone::auth':
     password         => $::openstack::config::heat_password,
@@ -25,7 +26,7 @@ class openstack::profile::heat::api {
 
   class { '::heat':
     sql_connection    => $::openstack::resources::connectors::heat,
-    rabbit_host       => $::openstack::config::controller_address_management,
+    rabbit_hosts       => $openstack_rabbit_servers,
     rabbit_userid     => $::openstack::config::rabbitmq_user,
     rabbit_password   => $::openstack::config::rabbitmq_password,
     debug             => $::openstack::config::debug,
