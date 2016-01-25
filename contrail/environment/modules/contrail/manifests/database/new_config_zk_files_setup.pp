@@ -1,4 +1,4 @@
-class contrail::database::config_zk_files_setup (
+class contrail::database::new_config_zk_files_setup (
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $database_index = 1
 ) {
@@ -49,13 +49,9 @@ class contrail::database::config_zk_files_setup (
           }
   }
 
-  file {'/var/lib/zookeeper/myid':
-           ensure => present,
+  file {'/etc/zookeeper/confd/myid':
+      ensure => present,
+      mode    => '0755',
+      content => $database_index,
   }
-  ->
-  file_line { 'Add cfgm_index to Zookeeper ID':
-                  path => '/var/lib/zookeeper/myid',
-                  line => '${database_index}',
-  }
-  notify { "executed contrail contrail_zk_exec_cmd : ${contrail_zk_exec_cmd}":; }
 }
