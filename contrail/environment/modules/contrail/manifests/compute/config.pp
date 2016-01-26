@@ -37,6 +37,7 @@ class contrail::compute::config(
     $contrail_host_roles = $::contrail::params::host_roles,
     $enable_lbass =  $::contrail::params::enable_lbass,
     $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
+    $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
     $enable_dpdk=  $::contrail::params::enable_dpdk,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
@@ -286,9 +287,7 @@ class contrail::compute::config(
     # Ensure ctrl-details file is present with right content.
     include ::contrail::ctrl_details
 
-    if ($xmpp_auth_enable == true) {
-        include ::contrail::xmpp_cert_files
-    }
+    include ::contrail::xmpp_cert_files
 
     if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
         include ::contrail::compute::exec_set_rabbitmq_tcp_params
@@ -321,6 +320,7 @@ class contrail::compute::config(
       'DEFAULT/platform' : value => "$contrail_work_mode";
       'DEFAULT/physical_interface_address' : value => "$pci_address";
       'DEFAULT/physical_interface_mac' : value => "$contrail_macaddr";
+      'DEFAULT/xmpp_dns_auth_enable' : value => "$xmpp_dns_auth_enable";
       'DISCOVERY/server' : value => "$discovery_ip";
       'DISCOVERY/max_control_nodes' : value => "$number_control_nodes";
       'HYPERVISOR/type' : value => "$hypervisor_type";
