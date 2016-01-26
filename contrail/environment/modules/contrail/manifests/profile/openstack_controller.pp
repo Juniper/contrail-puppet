@@ -47,7 +47,7 @@ class contrail::profile::openstack_controller (
             group  => root,
             content => template("${module_name}/local_settings.py.erb")
         }
-        if ($package_sku != 'kilo') {
+        if ($package_sku !~ /^*2015.1.*/) {
             package { 'contrail-openstack-dashboard':
                 ensure  => latest,
             }
