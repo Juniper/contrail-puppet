@@ -670,6 +670,8 @@ class contrail::params (
     $contrail_version,
     $xmpp_auth_enable,
     $xmpp_dns_auth_enable,
+    $huge_pages,
+    $core_mask,
     $package_sku
 ) {
     if (($contrail_internal_vip != '') or
