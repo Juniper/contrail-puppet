@@ -36,7 +36,6 @@ class contrail::collector::config (
 
     contrail_analytics_api_config {
       'DEFAULTS/host_ip'          : value => $host_control_ip;
-      'DEFAULTS/collectors'       : value => "$host_control_ip:8086";
       'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
       'DEFAULTS/rest_api_port'    : value => $rest_api_port_to_use;
       'DEFAULTS/http_server_port' : value => '8090';
@@ -57,12 +56,13 @@ class contrail::collector::config (
     contrail_query_engine_config {
       'DEFAULT/hostip'          : value => $host_control_ip;
       'DEFAULT/cassandra_server_list'       : value => "$cassandra_server_list";
-      'DEFAULT/collectors'       : value => '127.0.0.1:8086';
       'DEFAULT/log_local'        : value => '1';
       'DEFAULT/log_level'        : value => 'SYS_NOTICE';
       'DEFAULT/log_file'         : value => '/var/log/contrail/contrail-query-engine.log';
       'REDIS/port'               : value => '6379';
       'REDIS/server'             : value => '127.0.0.1';
+      'DISCOVERY/server'         : value => $config_ip_to_use;
+      'DISCOVERY/port'           : value => '5998';
     }
 
     contrail_collector_config {
@@ -119,6 +119,8 @@ class contrail::collector::config (
       'DEFAULTS/log_level'          : value => 'SYS_NOTICE';
       'DEFAULTS/log_file'           : value => '/var/log/contrail/contrail-topology.log';
       'DEFAULTS/scan_frequency'     : value => $topology_scan_frequency;
+      'DISCOVERY/disc_server_ip'    : value => $config_ip_to_use;
+      'DISCOVERY/disc_server_port'  : value => '5998';
     }
 
     $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
