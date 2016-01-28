@@ -33,6 +33,7 @@ class contrail::common(
     $contrail_repo_type = $::contrail::params::contrail_repo_type,
     $contrail_upgrade = $::contrail::params::contrail_upgrade,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $host_roles = $::contrail::params::host_roles,
 ) {
     include ::contrail
 
@@ -66,11 +67,14 @@ class contrail::common(
     apt::pin { 'contrail_repo_preferences':
       priority => '998',
       codename => 'contrail'
-    } ->
+    }
 
     # Resource declarations for class contrail::common
     # macro to perform common functions
     # Create repository config on target.
+    if ('compute' in $host_roles) {
+       contrail::lib::setup_dpdk_depends{ 'dpdk_depends':}
+    }
     contrail::lib::contrail_setup_repo{ $contrail_repo_name:
         contrail_repo_ip   => $contrail_repo_ip,
         contrail_logoutput => $contrail_logoutput
