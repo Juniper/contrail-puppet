@@ -12,7 +12,7 @@ define contrail::lib::setup_dpdk_depends(
         notify { "settting up DPDK Repo":; }
         ->
         apt::source { 'contrail-dpdk-depends':
-          location => "http://puppet/contrail/repo/${contrail_repo_name}/dpdk_depends",
+          location => "http://puppet/contrail/repo/${contrail_repo_name[0]}/dpdk_depends"
           repos    => 'main',
           release  => 'contrail-dpdk-depends',
         }
