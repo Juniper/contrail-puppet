@@ -31,9 +31,6 @@ class contrail::toragent(
     }
     contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
     include ::contrail
-    $tor_config = $::contrail::params::top_of_rack
-    create_resources(contrail::lib::top_of_rack, $tor_config, $tor_defaults)
-    contrail::lib::report_status { 'toragent_completed': state => 'toragent_completed' }
 
     file { ["/etc/contrail/ssl",
              "/etc/contrail/ssl/certs",
@@ -46,10 +43,24 @@ class contrail::toragent(
         mode   => '0755',
         owner  => root,
         group  => root,
-        source => "puppet:///tor_certs/cacert.pem",
+        source => "puppet:///ssl_certs/ca-cert.pem",
+    }
+
+    $global_tor_config = $::contrail::params::tor_ha_config
+    # get myhost configuration
+    $tor_config = $global_tor_config["$::hostname"]
+    create_resources(contrail::lib::top_of_rack, $tor_config, $tor_defaults)
+
+    contrail::lib::report_status { 'toragent_completed': state => 'toragent_completed' }
+
+    service { 'supervisor-vrouter':
+        enable => true,
+        ensure => running
     }
 
     Contrail::Lib::Report_status['toragent_started']
+    -> File['tor-agent-ssl-cacert']
     -> Contrail::Lib::Top_of_rack <| |>
+    -> Service['supervisor-vrouter']
     -> Contrail::Lib::Report_status['toragent_completed']
 }
