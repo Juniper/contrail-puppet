@@ -29,7 +29,7 @@ class contrail::uninstall_openstack (
     }
     ->
     class {'::contrail::delete_consoleauth':
-        consoleauth_idx -> $consoleauth_idx
+        consoleauth_idx => $consoleauth_idx
     }
     ->
     class {'::contrail::delete_scheduler':
@@ -50,7 +50,7 @@ class contrail::uninstall_openstack (
         host_control_ip => $host_control_ip
     }
     ->
-    class {'::contrail::remove_mysql_flush_privileges'
+    class {'::contrail::remove_mysql_flush_privileges':
         mysql_root_password => $mysql_root_password
     }
 

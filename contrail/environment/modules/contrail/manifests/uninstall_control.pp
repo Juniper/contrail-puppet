@@ -65,7 +65,7 @@ class contrail::uninstall_control (
         contrail_logoutput => $contrail_logoutput
     }
     ->
-    contrail::delete_vnc_control { 'delete_vnc_control':
+    class {'contrail::delete_vnc_control':
         config_ip => $config_ip,
         host_control_ip => $host_control_ip,
         router_asn => $router_asn,

@@ -41,7 +41,7 @@ class contrail::uninstall_collector (
         state              => 'uninstall_collector_started',
         contrail_logoutput => $contrail_logoutput }
     ->
-    contrail::delete_role_collector { 'delete_role_collector':
+    class {'contrail::delete_role_collector':
             config_ip => $config_ip,
             hostname => $hostname,
             host_control_ip => $host_control_ip,
