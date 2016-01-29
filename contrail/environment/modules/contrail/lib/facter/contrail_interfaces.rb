@@ -14,7 +14,8 @@ Facter.add(:contrail_interfaces) do
                 intf_detail["parent"] = vlan_intf.delete("\n").delete('@')
             else
                 intf_detail["vlan"] = false
-                pci_address = %x[udevadm info -a -p /sys/class/net/#{intf} | awk -F/ '/device.*eth/ {print $4}']
+#                pci_address = %x[udevadm info -a -p /sys/class/net/#{intf} | awk -F/ '/device.*eth/ {print $4}']
+                pci_address = %x[/var/lib/puppet/lib/facter/dpdk_nic_bind.py --status | grep #{intf} | cut -d' ' -f 1]
                 intf_detail["pci_address"] = pci_address.delete("\n")
             end
             contrail_interfaces[intf] = intf_detail
