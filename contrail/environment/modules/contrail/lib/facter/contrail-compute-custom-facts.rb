@@ -80,12 +80,12 @@ Facter.add(:contrail_reserv_pg) do
 end
 Facter.add(:contrail_dpdk_bind_if) do
     setcode do
-        Facter::Util::Resolution.exec('ifconfig vhost > /dev/null && grep "^physical_interface=" /etc/contrail/contrail-vrouter-agent.conf | awk -F= "{print $2}"')
+        Facter::Util::Resolution.exec('ifconfig vhost > /dev/null && grep "^physical_interface=" /etc/contrail/contrail-vrouter-agent.conf | awk -F= \'{print $2}\'')
     end
 end
 Facter.add(:contrail_dpdk_bind_pci_address) do
     setcode do
-        Facter::Util::Resolution.exec('ifconfig vhost > /dev/null && grep "^physical_interface_address=" /etc/contrail/contrail-vrouter-agent.conf | awk -F= "{print $2}"')
+        Facter::Util::Resolution.exec('ifconfig vhost > /dev/null && grep "^physical_interface_address=" /etc/contrail/contrail-vrouter-agent.conf | awk -F= \'{print $2}\'')
     end
 end
 

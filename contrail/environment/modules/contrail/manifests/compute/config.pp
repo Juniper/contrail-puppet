@@ -357,6 +357,10 @@ class contrail::compute::config(
     contrail::lib::setup_hugepages{ 'huge_pages':
     }
     ->
+    contrail::lib::setup_coremask{ 'core_mask':
+    }
+    ->
+
     class {'::contrail::compute::setup_compute_server_setup':}
     ->
     reboot { 'compute':
