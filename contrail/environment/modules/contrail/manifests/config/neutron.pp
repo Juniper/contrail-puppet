@@ -11,8 +11,7 @@ class contrail::config::neutron {
   $internal_vip = $::contrail::params::internal_vip
 
 
-  $contrail_rabbit_host = $::contrail::params::contrail_rabbit_host
-  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
   $contrail_host_roles = $::contrail::params::host_roles
 
   # neutron auth depends upon a keystone configuration
@@ -27,13 +26,9 @@ class contrail::config::neutron {
   $keystone_identity_uri = "${keystone_auth_protocol}://${controller}:5000"
   $keystone_admin_token = hiera(openstack::keystone::admin_token)
 
-  # DEFAULT
-  $rabbit_host = $::contrail::params::amqp_server_ip_to_use
-
 
   class { '::neutron':
-    rabbit_host           => $::contrail::params::amqp_server_ip_to_use,
-    rabbit_port           => $contrail_rabbit_port,
+    rabbit_hosts           => $contrail_rabbit_servers,
     bind_port             => $::contrail::params::quantum_port,
     auth_strategy         => 'keystone',
     core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',

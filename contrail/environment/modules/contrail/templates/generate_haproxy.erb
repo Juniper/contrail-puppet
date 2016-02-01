@@ -378,7 +378,6 @@ $__contrail_disc_backend_servers__
     #server  10.84.14.2 10.84.14.2:9110 check
     #server  10.84.14.2 10.84.14.2:9111 check
 
-$__rabbitmq_config__
 #contrail-config-marker-end
 """)
 
@@ -582,15 +581,6 @@ def generate_config_ha_config(config_ip_list, openstack_ip_list, mgmt_ip, intern
     disc_listen_port = 9110
     disc_server_lines = ''
     nworkers = 1
-    rabbitmq_config = """
-listen  rabbitmq 0.0.0.0:5673
-    mode tcp
-    maxconn 10000
-    balance roundrobin
-    option tcpka
-    option redispatch
-    timeout client 48h
-    timeout server 48h\n"""
     space = ' ' * 3
     for server_index, host_ip in enumerate(config_ip_list):
         q_server_lines = q_server_lines + \
@@ -603,23 +593,14 @@ listen  rabbitmq 0.0.0.0:5673
             disc_server_lines = disc_server_lines + \
             '    server %s %s:%s check inter 2000 rise 2 fall 3\n' \
                         %(host_ip, host_ip, str(disc_listen_port + i))
-        rabbitmq_config +=\
-            '%s server rabbit%s %s:5672 check inter 2000 rise 2 fall 3 weight 1 maxconn 500\n'\
-             % (space, server_index, host_ip)
 
-    if ( mgmt_ip in openstack_ip_list and internal_vip != "none" ) or \
-        contrail_internal_vip == "none" :
-        # Openstack and cfgm are same nodes.
-        # Dont add rabbitmq confing twice in haproxy, as setup_ha has added already.
-        rabbitmq_config = ''
 
     haproxy_config = config_ha_template.safe_substitute({
 	'__contrail_quantum_servers__': q_server_lines,
 	'__contrail_api_backend_servers__': api_server_lines,
 	'__contrail_disc_backend_servers__': disc_server_lines,
 	'__contrail_hap_user__': 'haproxy',
-	'__contrail_hap_passwd__': 'contrail123',
-	'__rabbitmq_config__': rabbitmq_config,
+	'__contrail_hap_passwd__': 'contrail123'
         })
 
     return haproxy_config
@@ -637,7 +618,6 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
     heat_api_server_lines= ''
     heat_cfn_api_server_lines = ''
     memcached_server_lines = ''
-    rabbitmq_server_lines = ''
     mysql_server_lines = ''
     space = ' ' * 3
 
@@ -677,14 +657,6 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
                 '%s server repcache%s %s:11211 check inter 2000 rise 2 fall 3\n'\
                  % (space, server_index, host_ip)
         if server_index == 0:
-            rabbitmq_server_lines +=\
-                '%s server rabbit%s %s:5672 weight 200 check inter 2000 rise 2 fall 3\n'\
-                 % (space, server_index, host_ip)
-        else:
-            rabbitmq_server_lines +=\
-                '%s server rabbit%s %s:5672 weight 100 check inter 2000 rise 2 fall 3 backup\n'\
-                 % (space, server_index, host_ip)
-        if server_index == 0:
              mysql_server_lines +=\
                    '%s server mysql%s %s:3306 weight 200 check inter 2000 rise 2 fall 3\n'\
                    % (space, server_index, host_ip)
@@ -706,7 +678,6 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
 	'__heat_api_backend_servers__': heat_api_server_lines,
 	'__heat_cfn_api_backend_servers__': heat_cfn_api_server_lines,
 	'__memcached_servers__' : memcached_server_lines,
-	'__rabbitmq_servers__' : rabbitmq_server_lines,
 	'__mysql_servers__' : mysql_server_lines,
 	'__contrail_hap_user__': 'haproxy',
 	'__contrail_hap_passwd__': 'contrail123',
