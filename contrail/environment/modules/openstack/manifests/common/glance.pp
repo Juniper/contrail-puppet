@@ -7,8 +7,7 @@ class openstack::common::glance {
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
-  $contrail_rabbit_host = $::contrail::params::config_ip_to_use
-  $contrail_rabbit_port = $::contrail::params::contrail_rabbit_port
+  $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
 
 
 
@@ -71,13 +70,8 @@ class openstack::common::glance {
 
 
   # basic service config
-  glance_api_config {'DEFAULT/rabbit_host': 
-     value => $contrail_rabbit_host,
-     notify => Service['glance-api']
-  }
-  ->
-  glance_api_config {'DEFAULT/rabbit_port': 
-     value => $contrail_rabbit_port,
+  glance_api_config {'DEFAULT/rabbit_hosts':
+     value => $openstack_rabbit_servers,
      notify => Service['glance-api']
   }
 

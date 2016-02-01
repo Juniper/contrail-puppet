@@ -362,7 +362,7 @@ class neutron (
       fail('When rpc_backend is rabbitmq, you must set rabbit password')
     }
     if $rabbit_hosts {
-      neutron_config { 'DEFAULT/rabbit_hosts':     value  => join($rabbit_hosts, ',') }
+      neutron_config { 'DEFAULT/rabbit_hosts':     value  => $rabbit_hosts }
       neutron_config { 'DEFAULT/rabbit_ha_queues': value  => true }
     } else  {
       neutron_config { 'DEFAULT/rabbit_host':      value => $rabbit_host }

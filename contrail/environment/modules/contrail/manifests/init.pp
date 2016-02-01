@@ -534,6 +534,22 @@
 #     Flag for enabling xmpp dns autherization via cert exchange between agent and control.
 #     (optional) - Defaults to false.
 #
+# [*contrail_amqp_ip_list*]
+#     User provided list of amqp server ips which have already been provisioned with rabbit instead of config nodes
+#     (optional) - Defaults to false.
+#
+# [*contrail_amqp_port*]
+#     User provided port for amqp service
+#     (optional) - Defaults to false.
+#
+# [*openstack_amqp_ip_list*]
+#     User provided list of amqp server ips for openstack services to use
+#     (optional) - Defaults to false.
+#
+# [*openstack_amqp_port*]
+#     User provided port for amqp service
+#     (optional) - Defaults to false.
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -674,6 +690,10 @@ class contrail (
     $package_sku = "juno",
     $core_mask = '',
     $huge_pages = '',
+    $contrail_amqp_ip_list = false,
+    $contrail_amqp_port = false,
+    $openstack_amqp_ip_list = false,
+    $openstack_amqp_port = false,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -754,6 +774,10 @@ class contrail (
 	mysql_root_password =>			hiera(openstack::mysql_root_password, hiera(contrail::params::mysql_root_password, $mysql_root_password)),
 	metadata_secret =>			hiera(openstack::metadata_secret, hiera(contrail::params::metadata_secret, $metadata_secret)),
 	enable_ceilometer =>			hiera(openstack::enable_ceilometer, hiera(contrail::params::enable_ceilometer, $enable_ceilometer)),
+	contrail_amqp_ip_list =>                hiera(openstack::contrail_amqp_ip_list, hiera(contrail::params::contrail_amqp_ip_list, $contrail_amqp_ip_list)),
+    contrail_amqp_port =>                   hiera(openstack::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),
+    openstack_amqp_ip_list =>               hiera(openstack::openstack_amqp_ip_list, hiera(contrail::params::openstack_amqp_ip_list, $openstack_amqp_ip_list)),
+    openstack_amqp_port =>                  hiera(openstack::openstack_amqp_port, hiera(contrail::params::openstack_amqp_port, $openstack_amqp_port)),
         # Openstack HA Parameters
 	internal_vip =>				hiera(openstack::ha::internal_vip, hiera(contrail::params::internal_vip, $internal_vip)),
 	external_vip =>				hiera(openstack::ha::external_vip, hiera(contrail::params::external_vip, $external_vip)),
