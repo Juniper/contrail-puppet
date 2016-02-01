@@ -365,7 +365,7 @@ class contrail::config::config (
         'DEFAULTS/listen_ip_addr'       : value => '0.0.0.0';
         'DEFAULTS/listen_port'          : value => '5998';
         'DEFAULTS/log_local'            : value => 'True';
-        'DEFAULTS/log_file'             : value => '/var/log/contrail/discovery.log';
+        'DEFAULTS/log_file'             : value => '/var/log/contrail/contrail-discovery.log';
         'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
         'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
         'DEFAULTS/ttl_min'              : value => '300';
