@@ -14,9 +14,10 @@
 class contrail::profile::database (
     $enable_module = $::contrail::params::enable_database,
     $host_roles = $::contrail::params::host_roles,
+    $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
     $enable_ceilometer = $::contrail::params::enable_ceilometer
 ) {
-    if ($enable_module and "database" in $host_roles) {
+    if ($enable_module and "database" in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::database
         if ($enable_ceilometer) {
             include ::contrail::profile::mongodb

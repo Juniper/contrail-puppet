@@ -65,7 +65,10 @@ class contrail::uninstall_compute (
            config_ip_to_use => $config_ip_to_use,
            host_control_ip => $host_control_ip,
            keystone_admin_user => $keystone_admin_user,
-           keystone_admin_password => $keystone_admin_password
+           keystone_admin_password => $keystone_admin_password,
+           keystone_admin_tenant => $keystone_admin_tenant,
+           openstack_ip => $openstack_ip,
+           contrail_router_type => "", 
     }
     ->
     service { 'supervisor-vrouter' :

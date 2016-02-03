@@ -14,9 +14,10 @@
 class contrail::profile::compute (
     $enable_module = $::contrail::params::enable_compute,
     $enable_ceilometer = $::contrail::params::enable_ceilometer,
+    $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
     $host_roles = $::contrail::params::host_roles
 ) {
-    if ($enable_module and "compute" in $host_roles) {
+    if ($enable_module and "compute" in $host_roles and $is_there_roles_to_delete == false) {
         require ::contrail::common
         require ::openstack::profile::firewall
         require ::contrail::profile::nova::compute
@@ -26,7 +27,7 @@ class contrail::profile::compute (
             include ::contrail::ceilometer::agent::auth
             include ::ceilometer::agent::compute
         }
-    } elsif ((!("compute" in $host_roles)) and ($contrail_roles["vrouter"] == true)) {
+    } elsif ((!("compute" in $host_roles)) and ($contrail_roles["compute"] == true)) {
 
         notify { "uninstalling compute":; }
         contain ::contrail::uninstall_compute

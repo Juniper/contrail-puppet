@@ -9,10 +9,11 @@
 #
 class contrail::profile::config (
     $enable_module = $::contrail::params::enable_config,
+    $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
     $host_roles = $::contrail::params::host_roles
 ) {
 
-    if ($enable_module and 'config' in $host_roles) {
+    if ($enable_module and 'config' in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::config
         #contrail expects neutron server to run on configs
         include ::contrail::profile::neutron_server

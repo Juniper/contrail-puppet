@@ -9,10 +9,11 @@
 #
 class contrail::profile::webui (
     $enable_module = $::contrail::params::enable_webui,
+    $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
     $host_roles = $::contrail::params::host_roles
 ) {
 
-    if ($enable_module and 'webui' in $host_roles) {
+    if ($enable_module and 'webui' in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::webui
     } elsif ((!('webui' in $host_roles)) and ($contrail_roles['webui'] == true)) {
 

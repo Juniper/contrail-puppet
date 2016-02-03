@@ -773,4 +773,21 @@ class contrail::params (
         $multi_tenancy_options = ""
     }
 
+    notify { "host_role = $host_roles and contrail_roles = $contrail_roles":; }
+    $contrail_roles_present_hash = delete_values($contrail_roles, false)
+    $contrail_roles_present_array = keys($contrail_roles_present_hash)
+    notify { "contrail_roles_present_hash = $contrail_roles_present_hash and  contrail_roles_present_array = $contrail_roles_present_array":; }
+    $roles_to_delete = difference($contrail_roles_present_array , $host_roles)
+    notify { "roles_to_delete is $roles_to_delete":; }
+    #copy of roles to delete as all run as a single manifest
+    #TODO verify its a ref or a copy
+    $cpy_roles_to_delete = $roles_to_delete
+
+    $num_roles_to_delete = size($roles_to_delete)
+    if ($num_role_to_delete) {
+       $is_there_roles_to_delete = true
+    } else {
+       $is_there_roles_to_delete = false 
+    }
+
 }

@@ -69,6 +69,11 @@ def main(argv):
     if status != 0:
         sys.exit(1)
 
+    status,output = commands.getstatusoutput("md5sum /etc/keystone/ssl/certs/*")
+    print output
+    if status != 0:
+        sys.exit(1)
+
 
     status,output = commands.getstatusoutput("rm -rf /tmp/keystone-signing-*")
     print output

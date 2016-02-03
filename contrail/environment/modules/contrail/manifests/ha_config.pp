@@ -207,7 +207,7 @@ class contrail::ha_config (
                 command   => $contrail_exec_vnc_galera,
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
-                logoutput => $contrail_logoutput,
+                logoutput => true,
                 tries     => 3,
                 try_sleep => 15,
             }
@@ -245,7 +245,7 @@ class contrail::ha_config (
                 command   => $contrail_exec_check_wsrep,
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
-                logoutput => $contrail_logoutput,
+                logoutput => true,
             }
         }
         #This will be skipped if there is an external nfs server
@@ -330,8 +330,7 @@ class contrail::ha_config (
         exec { 'exec-transfer-keys':
             command   => "python /opt/contrail/bin/transfer_keys.py ${os_master} \"/etc/ssl/\" ${os_username} ${os_passwd} && echo exec-transfer-keys >> /etc/contrail/contrail_openstack_exec.out",
             provider  => shell,
-            logoutput => $contrail_logoutput,
-            unless    => 'grep -qx exec-transfer-keys  /etc/contrail/contrail_openstack_exec.out',
+            logoutput => true,
         }
 
         if (enable_sequence_provisioning == false) {
