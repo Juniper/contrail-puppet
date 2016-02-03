@@ -14,6 +14,15 @@ NUM_TARGET_OSD=$3
 openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enabled_backends rbd-disk
 openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${openstack_ip}
+openstack-config --set /etc/cinder/cinder.conf DEFAULT rpc_backend rabbit
+openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v1_api true
+openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v2_api true
+openstack-config --set /etc/cinder/cinder.conf DEFAULT auth_strategy keystone
+
+openstack-config --set /etc/cinder/cinder.conf keystone_authtoken auth_uri http://${openstack_ip}:5000/v2.0
+openstack-config --set /etc/cinder/cinder.conf keystone_authtoken identity_uri http://${openstack_ip}:35357
+
+
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_pool volumes
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_user volumes
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_secret_uuid $virsh_secret
@@ -29,6 +38,11 @@ openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_pool images
 openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_ceph_conf /etc/ceph/ceph.conf
 openstack-config --set /etc/glance/glance-api.conf DEFAULT known_stores glance.store.rbd.Store,glance.store.http.Store,glance.store.filesystem.Store
 
+openstack-config --set /etc/glance/glance-api.conf glance_store default_store rbd
+openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_chunk_size 8
+openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_pool images
+openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_ceph_conf /etc/ceph/ceph.conf
+openstack-config --set /etc/glance/glance-api.conf glance_store stores glance.store.rbd.Store,glance.store.filesystem.Store,glance.store.http.Store
 ## configure ceph-rest-api 
 sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5005)/" /usr/bin/ceph-rest-api
 
