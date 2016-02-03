@@ -8,8 +8,7 @@ class contrail::database::new_config_zk_files_setup (
                   'autopurge.purgeInterval' => "3",
                 },
   }
-  $zk_cfg_keys = keys($zk_cfg['zk_cfg'])
-  contrail::lib::augeas_conf_set { $zk_cfg_keys:
+  contrail::lib::augeas_conf_set { 'zk_cfg_keys':
            config_file => '/etc/zookeeper/conf/zoo.cfg',
            settings_hash => $zk_cfg['zk_cfg'],
            lens_to_use => 'properties.lns',

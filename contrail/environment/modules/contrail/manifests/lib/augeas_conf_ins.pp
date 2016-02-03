@@ -2,8 +2,8 @@
 ## Example of call:
 ## $redis_config_file = '/etc/redis/redis.conf'
 ## $redis_config = { 'redis_conf' => <key, value hash> }
-## $redis_conf_keys = keys($redis_config['redis_conf'])
-## contrail::lib::augeas_conf_set { $redis_conf_keys:
+## $redis_conf_key = keys($redis_config['redis_conf'])
+## contrail::lib::augeas_conf_ins { $redis_conf_key:
 ##            config_file => $redis_config_file,
 ##            settings_hash => $redis_config['redis_conf'],
 ##            lens_to_use => 'spacevars.lns', ## based on separator, whether conf file has section, etc

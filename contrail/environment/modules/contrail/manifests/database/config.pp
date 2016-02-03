@@ -102,9 +102,8 @@ class contrail::database::config (
         },
     }
 
-    $kafka_server_properties_keys = keys($kafka_server_properties_config['kafka_server_properties'])
     $kafka_server_augeas_lens_to_use = 'properties.lns'
-    contrail::lib::augeas_conf_set { $kafka_server_properties_keys:
+    contrail::lib::augeas_conf_set { 'kafka_server_properties_keys':
             config_file => $kafka_server_properties_file,
             settings_hash => $kafka_server_properties_config['kafka_server_properties'],
             lens_to_use => $kafka_server_augeas_lens_to_use,
@@ -131,7 +130,6 @@ class contrail::database::config (
             'log4j.appender.controllerAppender.MaxBackupIndex' => '10',
         },
     }
-    $kafka_log4j_properties_keys = keys($kafka_log4j_properties_config['kafka_log4j_properties'])
     $kafka_log4j_augeas_lens_to_use = 'properties.lns'
     contrail::lib::augeas_conf_ins { ['kafka.logs.dir']:
             config_file => $kafka_log4j_properties_file,
@@ -139,7 +137,7 @@ class contrail::database::config (
             lens_to_use => $kafka_log4j_augeas_lens_to_use,
 
     }
-    contrail::lib::augeas_conf_set { $kafka_log4j_properties_keys:
+    contrail::lib::augeas_conf_set { 'kafka_log4j_properties_keys':
             config_file => $kafka_log4j_properties_file,
             settings_hash => $kafka_log4j_properties_config['kafka_log4j_properties'],
             lens_to_use => $kafka_log4j_augeas_lens_to_use,

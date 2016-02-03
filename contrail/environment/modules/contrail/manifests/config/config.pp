@@ -208,9 +208,8 @@ class contrail::config::config (
         },
     }
 
-    $log4j_properties_keys = keys($log4j_properties_config['log4j_properties'])
     $log4j_augeas_lens_to_use = 'properties.lns'
-    contrail::lib::augeas_conf_set { $log4j_properties_keys:
+    contrail::lib::augeas_conf_set { 'log4j_properties_keys':
             config_file => $log4j_properties_file,
             settings_hash => $log4j_properties_config['log4j_properties'],
             lens_to_use => $log4j_augeas_lens_to_use,
@@ -224,9 +223,8 @@ class contrail::config::config (
     # Ensure authorization.properties file is present with right content.
     $authorizaion_properties_file = '/etc/ifmap-server/authorization.properties'
     $authorizaion_properties_config = { 'authorizaion_properties' => {'reader' => 'ro',},}
-    $authorizaion_properties_keys = keys($authorizaion_properties_config['authorizaion_properties'])
     $authorizaion_augeas_lens_to_use = 'properties.lns'
-    contrail::lib::augeas_conf_set { $authorizaion_properties_keys:
+    contrail::lib::augeas_conf_set { 'authorizaion_properties_keys':
             config_file => $authorizaion_properties_file,
             settings_hash => $authorizaion_properties_config['authorizaion_properties'],
             lens_to_use => $authorizaion_augeas_lens_to_use,
@@ -257,9 +255,8 @@ class contrail::config::config (
          'control-node-10' => 'control-node-10--1870931930-1',
         },
     }
-    $publisher_properties_keys = keys($publisher_properties_config['publisher_properties'])
     $publisher_augeas_lens_to_use = 'properties.lns'
-    contrail::lib::augeas_conf_set { $publisher_properties_keys:
+    contrail::lib::augeas_conf_set { 'publisher_properties_keys':
             config_file => $publisher_properties_file,
             settings_hash => $publisher_properties_config['publisher_properties'],
             lens_to_use => $publisher_augeas_lens_to_use,

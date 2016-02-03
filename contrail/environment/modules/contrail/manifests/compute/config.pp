@@ -269,7 +269,7 @@ class contrail::compute::config(
     if inline_template('<%= @operatingsystem.downcase %>') == 'centos' {
         # Ensure modprobe.conf file is present with right content.
         $modprobe_conf_file = '/etc/modprobe.conf'
-        contrail::lib::augeas_conf_set { ['alias']:
+        contrail::lib::augeas_conf_set { 'alias':
                 config_file => $modprobe_conf_file,
                 settings_hash => {'alias' => 'bridge off',},
                 lens_to_use => 'spacevars.lns',
