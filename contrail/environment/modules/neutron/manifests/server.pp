@@ -177,7 +177,7 @@ class neutron::server (
   $log_file                = undef,
   $report_interval         = undef,
 ) {
-
+  $host_roles = $::contrail::params::host_roles
   include neutron::params
   require keystone::python
 
@@ -288,13 +288,15 @@ class neutron::server (
   }
 
   if ($::neutron::params::server_package) {
-    Package['neutron-server'] -> Neutron_api_config<||>
-    Package['neutron-server'] -> Neutron_config<||>
-    Package['neutron-server'] -> Service['neutron-server']
-    package { 'neutron-server':
-      ensure => $package_ensure,
-      name   => $::neutron::params::server_package,
-    }
+      if (!("openstack" in $host_roles)) {
+        Package['neutron-server'] -> Neutron_api_config<||>
+        Package['neutron-server'] -> Neutron_config<||>
+        Package['neutron-server'] -> Service['neutron-server']
+        package { 'neutron-server':
+          ensure => $package_ensure,
+          name   => $::neutron::params::server_package,
+        }
+      }
   } else {
     # Some platforms (RedHat) does not provide a neutron-server package.
     # The neutron api config file is provided by the neutron package.

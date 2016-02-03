@@ -145,8 +145,7 @@ class contrail::collector::config (
       contrail_collector_config { 'REDIS/password': value => $redis_password; }
       contrail_query_engine_config { 'REDIS/password': value => $redis_password; }
       $redis_config = { 'redis_conf' => { 'requirepass' => $redis_password,},}
-      $redis_conf_keys = keys($redis_config['redis_conf'])
-      contrail::lib::augeas_conf_set { $redis_conf_keys:
+      contrail::lib::augeas_conf_set { 'redis_conf_keys':
              config_file => $redis_config_file,
              settings_hash => $redis_config['redis_conf'],
              lens_to_use => $redis_augeas_lens_to_use,
