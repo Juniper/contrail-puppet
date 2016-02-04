@@ -85,7 +85,7 @@ class openstack::common::nova ($is_compute    = false) {
     }
 
     class { '::nova::vncproxy':
-      host    => $::openstack::config::controller_address_api,
+      host    => $::contrail::params::host_ip,
       enabled => $is_controller,
       port => '6999',
     }
