@@ -72,7 +72,7 @@ class contrail::keepalived(
     }
 
     if ($host_control_ip in $config_ip_list and $contrail_external_vip != '') {
-        contrail::keepalived::keepalived{'contrail_internal_ip':
+        contrail::keepalived::keepalived{'contrail_external_ip':
             contrail_ip_list  => $config_ip_list,
             virtual_router_id => $contrail_external_virtual_router_id,
             vip               => $contrail_external_vip
