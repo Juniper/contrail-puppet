@@ -39,6 +39,7 @@ class contrail::compute::config(
     $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
     $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
     $enable_dpdk=  $::contrail::params::enable_dpdk,
+    $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -245,7 +246,8 @@ class contrail::compute::config(
       'neutron/url' =>  {  value => "http://${config_ip_to_use}:9696" },
       'neutron/url_timeout' =>  {  value => "300" },
       'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
-      'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" }
+      'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
+      'DEFAULT/rabbit_hosts' => {value => "${contrail_rabbit_servers}"},
     }
 
     create_resources(nova_config,$nova_params, {} )
@@ -263,6 +265,17 @@ class contrail::compute::config(
         config_file => '/etc/nova/nova.conf',
         lens_to_use => 'properties.lns',
         match_value => 'nova.openstack.common.rpc.impl_qpid',
+    }
+    # Remove rabbit host and port from nova.conf
+    contrail::lib::augeas_conf_rm { "compute_rm_rabbit_host":
+        key => 'rabbit_host',
+        config_file => '/etc/nova/nova.conf',
+        lens_to_use => 'properties.lns',
+    }
+    contrail::lib::augeas_conf_rm { "compute_rm_rabbit_port":
+        key => 'rabbit_port',
+        config_file => '/etc/nova/nova.conf',
+        lens_to_use => 'properties.lns',
     }
 
     # Update modprobe.conf
