@@ -137,6 +137,22 @@ class contrail::collector::config (
       'program:contrail-snmp-collector/user' : value => 'contrail';
     }
 
+    $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
+    contrail_topology_ini_config {
+      'program:contrail-topology/command' : value => $contrail_topology_ini_command;
+      'program:contrail-topology/priority' : value => '340';
+      'program:contrail-topology/autostart' : value => 'true';
+      'program:contrail-topology/killasgroup' : value => 'true';
+      'program:contrail-topology/stopsignal' : value => 'KILL';
+      'program:contrail-topology/stdout_capture_maxbytes' : value => '1MB';
+      'program:contrail-topology/redirect_stderr' : value => 'true';
+      'program:contrail-topology/stdout_logfile' : value => '/var/log/contrail/contrail-snmp-collector-stdout.log';
+      'program:contrail-topology/stderr_logfile' : value => '/var/log/contrail/contrail-snmp-collector-stderr.log';
+      'program:contrail-topology/startsecs' : value => '5';
+      'program:contrail-topology/exitcodes' : value => '0';
+      'program:contrail-topology/user' : value => 'contrail';
+    }
+
     $redis_config_file = '/etc/redis/redis.conf'
     $redis_augeas_lens_to_use = 'spacevars.lns'
 
