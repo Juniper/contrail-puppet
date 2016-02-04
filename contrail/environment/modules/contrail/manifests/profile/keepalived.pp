@@ -8,11 +8,22 @@
 #     (optional) - Defaults to true.
 #
 class contrail::profile::keepalived (
-    $enable_module = $::contrail::params::enable_keepalived
+    $enable_module = $::contrail::params::enable_keepalived,
+    $host_roles = $::contrail::params::host_roles
 ) {
-  if ($enable_module) {
+  if ($enable_module and ('config' in $host_roles or 'openstack' in $host_roles)) {
     contrail::lib::report_status { 'keepalived_started': state => 'keepalived_started' }
     -> class {'::contrail::keepalived' : }
     -> contrail::lib::report_status { 'keepalived_completed': state => 'keepalived_completed' }
+
+  } elsif (((!('config' in $host_roles)) and ($contrail_roles['config'] == true)) or
+           ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) 
+          ) {
+        notify { 'uninstalling keepalived':; }
+    contrail::lib::report_status { 'uinstall_keepalived_started': state => 'uninstall_keepalived_started' }
+    -> class {'::contrail::uninstall_keepalived' : }
+    -> contrail::lib::report_status { 'uninstall_keepalived_completed': state => 'uninstall_keepalived_completed' }
+
+
   }
 }

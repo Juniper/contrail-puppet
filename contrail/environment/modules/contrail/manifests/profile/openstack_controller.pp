@@ -14,10 +14,11 @@
 class contrail::profile::openstack_controller (
   $enable_module = $::contrail::params::enable_openstack,
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
+  $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
   $host_roles = $::contrail::params::host_roles,
   $package_sku = $::contrail::params::package_sku
 ) {
-    if ($enable_module and 'openstack' in $host_roles) {
+    if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
         contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
         class {'::openstack::profile::base' : } ->
         class {'::nova::quota' :

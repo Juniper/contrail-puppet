@@ -53,7 +53,7 @@ class contrail::uninstall_openstack (
     class {'::contrail::remove_mysql_flush_privileges':
         mysql_root_password => $mysql_root_password
     }
-
+    ->
     service { ['contrail-hamon','cmon', 'apache2', 'mysql'] :
         ensure    => false ,
         enable    => false,

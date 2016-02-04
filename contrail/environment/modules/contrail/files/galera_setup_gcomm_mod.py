@@ -38,6 +38,7 @@ class GaleraSetup(ContrailSetup):
         self.mysql_redo_log_sz = '5242880'
 
     def is_clustered(self, galera_ip_list, self_ip):
+        print "is_clustered"
         status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
         mysql_token = output
         status,output = commands.getstatusoutput('mysql -uroot -p%s -e "show status like \'wsrep_incoming_addresses\'"' %  mysql_token )
@@ -51,9 +52,11 @@ class GaleraSetup(ContrailSetup):
             return False
 
     def is_cluster_synced(self):
+        print "is_cluster_synced"
         status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
         mysql_token = output
         status,output = commands.getstatusoutput('mysql -uroot -p%s -e "show status like \'wsrep_local_state\'"' %  mysql_token )
+        print "wsrep_local_state: %s" % output
         output_list = []
         output_list = output.split('\t')
         if ('4'  in output_list):
@@ -62,13 +65,19 @@ class GaleraSetup(ContrailSetup):
             return False
 
 
-    def is_cluster_updated(self, galera_ip_list):
+    def is_cluster_running(self, galera_ip_list, host='127.0.0.1'):
+        print "is_cluster_running"
         status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
         mysql_token = output
-        status,output = commands.getstatusoutput('mysql -uroot -p%s -e "show status like \'wsrep_incoming_addresses\'"' %  mysql_token )
+        cmd = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s \"mysql -uroot -p%s -e 'show status'\" | grep wsrep_incoming_addresses" %  (host, mysql_token)
+        print cmd
+#        status,output = commands.getstatusoutput('mysql -uroot -p%s -h %s -e "show status like \'wsrep_incoming_addresses\'"' %  (mysql_token, host) )
+        status,output = commands.getstatusoutput(cmd)
+
+
         print "wsrep_incoming_addresses: %s" % output
         output_list = []
-        wsrep_nodes =  (':3306,'.join(self._args.galera_ip_list) + ':3306')
+        wsrep_nodes =  (':3306,'.join(galera_ip_list) + ':3306')
         output_list = output.split("\t")
         if (wsrep_nodes  in output_list):
             return True
@@ -102,7 +111,7 @@ class GaleraSetup(ContrailSetup):
 
     def fixup_config_files(self):
         # fix cmon_param
-
+        print "fixup_config_files"
         zk_servers_ports = ','.join(['%s:2181' %(s) for s in self._args.zoo_ip_list])
         template_vals = {'__internal_vip__' : self._args.internal_vip,
                          '__haproxy_dips__' :
@@ -281,12 +290,17 @@ class GaleraSetup(ContrailSetup):
         local('rm %s/galera_cron' % self._temp_dir_name)
 
     def run_services(self):
+        print "run_services"
         if self.is_cluster_synced( ):
             local("service %s restart" % self.mysql_svc)
         if self.is_clustered(self._args.galera_ip_list, self._args.self_ip):
             return
         self.cleanup_redo_log()
-        if self._args.openstack_index == 1:
+        
+        if self._args.openstack_index == 1 and self.is_cluster_running(self._args.galera_ip_list[1:], self._args.galera_ip_list[1]):
+            print "Mysql cluster already present for '%s'" % self._args.galera_ip_list[1:]
+            local("service %s restart" % self.mysql_svc)
+        elif self._args.openstack_index == 1:
             local("service %s stop" % self.mysql_svc)
             local("service %s start --wsrep_cluster_address=gcomm://" % self.mysql_svc)
         else:

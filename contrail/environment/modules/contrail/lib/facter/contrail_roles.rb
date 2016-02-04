@@ -9,6 +9,12 @@ Facter.add(:contrail_roles) do
             service_str = "service supervisor-" + role + " status"
             puts(service_str)
             is_service_running = system(service_str)
+            if role == "analytics"
+                role = "collector"
+            elsif role == "vrouter"
+                role = "compute"
+            end
+
             if (is_service_running)
                 contrail_roles[role] = true 
             else
