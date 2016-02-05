@@ -364,7 +364,8 @@ class contrail::compute::config(
         keystone_admin_user => $keystone_admin_user,
         keystone_admin_password => $keystone_admin_password,
         keystone_admin_tenant => $keystone_admin_tenant,
-        openstack_ip => $openstack_ip
+        openstack_ip => $openstack_ip,
+        enable_dpdk => $enable_dpdk
     }
     ->
     contrail::lib::setup_hugepages{ 'huge_pages':

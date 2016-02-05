@@ -50,12 +50,6 @@ class contrail::compute::install(
                         ensure => present,
                         content => "manual",
                     }
-                    ->
-                    #This package dependancy should
-                    #be ideally resolved libvirt-bin or supervisor-vrouter atleast.
-		    package { 'libcgmanager0':
-			ensure => '0.24-0ubuntu7.5',
-		    }
 
                     $vrouter_pkg = 'contrail-vrouter-dpdk-init'
                 } elsif ($::kernelrelease == '3.13.0-40-generic') {
