@@ -78,6 +78,11 @@ Facter.add(:contrail_reserv_pg) do
         Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'reserv_pg.sh'))
     end
 end
+Facter.add(:contrail_vm_nr_hugepages) do
+    setcode do
+        Facter::Util::Resolution.exec('sysctl -n vm.max_map_count')
+    end
+end
 Facter.add(:contrail_dpdk_bind_if) do
     setcode do
         Facter::Util::Resolution.exec('ifconfig vhost > /dev/null && grep "^physical_interface=" /etc/contrail/contrail-vrouter-agent.conf | awk -F= \'{print $2}\'')
