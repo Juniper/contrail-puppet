@@ -36,6 +36,7 @@ class contrail::collector::config (
 
     contrail_analytics_api_config {
       'DEFAULTS/host_ip'          : value => $host_control_ip;
+      'DEFAULTS/collectors'       : ensure => 'absent';
       'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
       'DEFAULTS/rest_api_port'    : value => $rest_api_port_to_use;
       'DEFAULTS/http_server_port' : value => '8090';
@@ -56,6 +57,7 @@ class contrail::collector::config (
     contrail_query_engine_config {
       'DEFAULT/hostip'          : value => $host_control_ip;
       'DEFAULT/cassandra_server_list'       : value => "$cassandra_server_list";
+      'DEFAULT/collectors'       : ensure => 'absent';
       'DEFAULT/log_local'        : value => '1';
       'DEFAULT/log_level'        : value => 'SYS_NOTICE';
       'DEFAULT/log_file'         : value => '/var/log/contrail/contrail-query-engine.log';
