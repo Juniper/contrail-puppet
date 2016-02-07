@@ -69,20 +69,19 @@ class GaleraSetup(ContrailSetup):
         print "is_cluster_running"
         status,output = commands.getstatusoutput("cat /etc/contrail/mysql.token")
         mysql_token = output
-        cmd = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s \"mysql -uroot -p%s -e 'show status'\" | grep wsrep_incoming_addresses" %  (host, mysql_token)
-        print cmd
-#        status,output = commands.getstatusoutput('mysql -uroot -p%s -h %s -e "show status like \'wsrep_incoming_addresses\'"' %  (mysql_token, host) )
-        status,output = commands.getstatusoutput(cmd)
+        for mysql_node in galera_ip_list:
+            cmd = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s \"mysql -uroot -p%s -e 'show status'\" | grep 'wsrep_local_state\t'" % \
+                                                                           (mysql_node, mysql_token)
+            print cmd
+            status,output = commands.getstatusoutput(cmd)
 
 
-        print "wsrep_incoming_addresses: %s" % output
-        output_list = []
-        wsrep_nodes =  (':3306,'.join(galera_ip_list) + ':3306')
-        output_list = output.split("\t")
-        if (wsrep_nodes  in output_list):
-            return True
-        else:
-            return False
+            print "wsrep_local_state: %s" % output
+            output_list = output.split("\t")
+            if ('4'  in output_list):
+                return True
+            else:
+                return False
 
     def parse_args(self, args_str):
         '''

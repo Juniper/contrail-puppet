@@ -4,9 +4,9 @@ class contrail::remove_mysql_root_user (
     $host_control_ip
 ) {
     exec { "remove_mysql_root_user":
-        command => "/usr/bin/mysql -uroot -p${mysql_root_password} -e 'DROP user root@$host_control_ip' && echo remove_mysql_root_user >> /etc/contrail/contrail_openstack_exec.out",
+        command => "/usr/bin/mysql -uroot -p${mysql_root_password} -e 'DROP user root@${host_control_ip}' && echo remove_mysql_root_user >> /etc/contrail/contrail_openstack_exec.out",
         provider => shell,
-        unless => "grep -qx remove_mysql_root_user /etc/contrail/contrail_openstack_exec.out",
+        unless => 'echo \'! mysql -uroot -p${mysql_root_password} -e "SHOW GRANTS FOR root@${host_control_ip}"\' | bash',
         logoutput => $contrail_logoutput
     }
     ->
