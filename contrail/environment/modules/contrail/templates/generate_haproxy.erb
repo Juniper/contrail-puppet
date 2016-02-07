@@ -311,19 +311,6 @@ listen memcached 0.0.0.0:11222
    timeout server 48h 
 $__memcached_servers__
 
-listen  rabbitmq 0.0.0.0:5673
-    mode tcp
-    maxconn 10000
-    balance leastconn
-    option tcpka
-    option nolinger
-    option forceclose
-    timeout client 48h
-    timeout server 48h
-    timeout client-fin 60s
-    timeout server-fin 60s
-$__rabbitmq_servers__
-
 listen  mysql 0.0.0.0:33306
     mode tcp
     balance leastconn
