@@ -161,7 +161,7 @@ define contrail::lib::storage_common(
         }
         Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage-master_completed']
 
-        if $contrail_storage_chassis_config != '' {
+        if size($contrail_storage_chassis_config)  > 0  {
             ##'["cmbu-is1-12:0","cmbu-ixs1-5:1","cmbu-gravity-11:0","cmbu-cl73:0"]'
             $contrail_chassis_map = inline_template('<%= @contrail_storage_chassis_config.map{ |hostname| "\'#{hostname}\'" }.join(", ")  %>')
             file { 'storage_chassis_config' :
