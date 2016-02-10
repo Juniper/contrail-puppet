@@ -14,6 +14,7 @@ class contrail::config::verify_rabbitmq (
             unless    => 'grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out',
             provider  => shell,
             logoutput => true,
+            notify    => Service['supervisor-support-service'],
     }
     ->
     notify { "executed verify-rabbitmq":; }
