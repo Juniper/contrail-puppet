@@ -343,7 +343,7 @@ class contrail::compute::config(
       'VIRTUAL-HOST-INTERFACE/ip' : value => "$host_control_ip/$contrail_cidr";
       'VIRTUAL-HOST-INTERFACE/gateway' : value => "$contrail_gway";
       'VIRTUAL-HOST-INTERFACE/physical_interface' : value => "$contrail_dev";
-      'SERVICE-INSTANCE/netns_command' : value => "/usr/local/bin/opencontrail-vrouter-netns";
+      'SERVICE-INSTANCE/netns_command' : value => "/usr/bin/opencontrail-vrouter-netns";
     }
     contrail_vrouter_agent_config {
       'VIRTUAL-HOST-INTERFACE/compute_node_address' : ensure => 'absent';
