@@ -6,6 +6,10 @@ class contrail::config::service(
         ensure  => running,
         enable  => true,
     }
+    service { 'supervisor-support-service':
+        ensure  => running,
+        enable => true,
+    }
     #Set rabbit params for both internal and contrail_internal_vip
     if($vip != '') {
         exec { 'rabbit_os_fix':
