@@ -14,5 +14,5 @@ class contrail::config::setup_pki (
                 logoutput => $contrail_logoutput
     }
     ->
-    notify { "executed setup-pki:; }
+    notify { "executed setup-pki":; }
 }
