@@ -126,7 +126,6 @@ class contrail::uninstall_database (
     ->
     # Ensure the services needed are running.
     service { "supervisor-database" :
-        enable => false,
         ensure => stopped,
     }
 

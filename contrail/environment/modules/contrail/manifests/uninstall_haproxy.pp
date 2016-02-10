@@ -4,7 +4,6 @@ class contrail::uninstall_haproxy(
 ) inherits ::contrail::params {
 
     service { 'haproxy' :
-	enable => false,
 	ensure => stopped,
     }
     ->

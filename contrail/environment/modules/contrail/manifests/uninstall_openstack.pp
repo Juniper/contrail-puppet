@@ -56,7 +56,6 @@ class contrail::uninstall_openstack (
     ->
     service { ['contrail-hamon','cmon', 'apache2', 'mysql'] :
         ensure    => false ,
-        enable    => false,
     }
     ->
     # Ensure all needed packages are present
