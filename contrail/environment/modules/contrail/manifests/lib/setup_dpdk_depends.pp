@@ -18,7 +18,7 @@ define contrail::lib::setup_dpdk_depends(
         }
         ->
         apt::pin { 'contrail-dpdk-depreds-repo_preferences':
-         priority => '999',
+         priority => '1000',
          codename => 'contrail-dpdk-depends'
         }
 
