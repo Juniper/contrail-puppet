@@ -32,11 +32,8 @@ class contrail::toragent(
     contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
     include ::contrail
 
-    file { ["/etc/contrail/ssl",
-             "/etc/contrail/ssl/certs",
-            "/etc/contrail/ssl/private" ] :
-        ensure => directory
-    } ->
+    # directories are created by xmpp_cert_files
+
     file { "tor-agent-ssl-cacert" :
         ensure => $ssl_enable,
         path   => "/etc/contrail/ssl/certs/cacert.pem",
@@ -51,16 +48,16 @@ class contrail::toragent(
     $tor_config = $global_tor_config["$::hostname"]
     create_resources(contrail::lib::top_of_rack, $tor_config, $tor_defaults)
 
-    contrail::lib::report_status { 'toragent_completed': state => 'toragent_completed' }
-
     service { 'supervisor-vrouter':
         enable => true,
         ensure => running
     }
 
+    contrail::lib::report_status { 'toragent_completed': state => 'toragent_completed' }
+
     Contrail::Lib::Report_status['toragent_started']
     -> File['tor-agent-ssl-cacert']
     -> Contrail::Lib::Top_of_rack <| |>
-    -> Service['supervisor-vrouter']
+    ~> Service['supervisor-vrouter']
     -> Contrail::Lib::Report_status['toragent_completed']
 }
