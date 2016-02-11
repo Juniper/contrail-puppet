@@ -4,7 +4,6 @@ class contrail::uninstall_keepalived (
 ) inherits ::contrail::params {
 
     service { "keepalived" :
-	enable => false,
 	ensure => stopped,
     }
     ->

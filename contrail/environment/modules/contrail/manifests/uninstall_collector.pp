@@ -83,7 +83,6 @@ class contrail::uninstall_collector (
     # Ensure the services needed are running.
     service { 'supervisor-analytics' :
         ensure    => false ,
-        enable    => false,
     }
     ->
     contrail::lib::report_status { 'uninstall_collector_completed':

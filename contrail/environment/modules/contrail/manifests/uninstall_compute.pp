@@ -72,7 +72,6 @@ class contrail::uninstall_compute (
     }
     ->
     service { 'supervisor-vrouter' :
-	enable => false,
 	ensure => stopped,
     }
     ->

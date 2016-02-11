@@ -94,7 +94,6 @@ class contrail::uninstall_webui (
     # services needed for webui role.
     service { 'supervisor-webui' :
         ensure    => false,
-        enable    => false,
     }
     ->
     contrail::lib::report_status { 'uninstall_webui_completed':

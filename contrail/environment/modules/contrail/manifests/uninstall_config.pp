@@ -117,7 +117,6 @@ class contrail::uninstall_config (
     }
     ->
     service { "supervisor-config" :
-	enable => false,
 	ensure => stopped,
     }
     ->
