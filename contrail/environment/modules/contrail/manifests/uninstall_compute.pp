@@ -57,9 +57,7 @@ class contrail::uninstall_compute (
     }
 
 
-    contrail::lib::report_status { 'uninstall_compute_started':
-        state => 'uninstall_compute_started', 
-        contrail_logoutput => $contrail_logoutput }
+    contrail::lib::report_status { 'uninstall_compute_started': }
     ->
     class {'::contrail::delete_vnc_config':
            config_ip_to_use => $config_ip_to_use,
@@ -72,6 +70,7 @@ class contrail::uninstall_compute (
     }
     ->
     service { 'supervisor-vrouter' :
+	enable => false,
 	ensure => stopped,
     }
     ->
@@ -82,13 +81,16 @@ class contrail::uninstall_compute (
     ->
    # Main code for class starts here
     # Ensure all needed packages are latest
-    package { $vrouter_pkg : ensure => purged, notify => ['Exec[apt_auto_remove_compute]']}->
-    package { 'contrail-openstack-vrouter' : ensure => purged, notify => ['Exec[apt_auto_remove_compute]']}
+    package { [$vrouter_pkg, 'contrail-openstack-vrouter'] :
+        ensure => purged,
+        notify => ['Exec[apt_auto_remove_compute]']
+    }
 
     if ($enable_lbass == true) {
-        package{'haproxy': ensure => purged, notify => ['Exec[apt_auto_remove_compute]']} ->
-        package{'iproute': ensure => purged, notify => ['Exec[apt_auto_remove_compute]']}
-
+        package{['haproxy', 'iproute']:
+            ensure => purged,
+            notify => ['Exec[apt_auto_remove_compute]']
+        }
     }
 
     #The below way should be the ideal one,
@@ -107,7 +109,7 @@ class contrail::uninstall_compute (
     ->
     file { ['/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh',
             '/etc/contrail/vrouter_nodemgr_param',
-            '/etc/contrail/default_pmac', 
+            '/etc/contrail/default_pmac',
             '/etc/contrail/agent_param',
             '/etc/contrail/contrail-vrouter-agent.conf',
             '/etc/contrail/contrail-vrouter-nodemgr.conf',
@@ -115,12 +117,16 @@ class contrail::uninstall_compute (
         ensure  => absent,
     } ->
     
-    contrail::lib::report_status { 'compute_completed':
-            state => 'compute_completed', 
-            contrail_logoutput => $contrail_logoutput }
+    contrail::lib::report_status { 'uninstall_compute_completed': }
     ->
     class {'::contrail::clear_compute':}
     ->
+    reboot { 'delete_compute':
+      apply => "immediately",
+      subscribe       => Class['::contrail:clear_compute'],
+      timeout => 0,
+    }
+
     class {'::contrail::do_reboot_server':
         reboot_flag => 'uninstall_compute_reboot',
     }
