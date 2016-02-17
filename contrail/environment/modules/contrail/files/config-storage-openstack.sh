@@ -11,7 +11,8 @@ openstack_ip=$2
 ## completely online
 NUM_TARGET_OSD=$3
 #sed -i "s/^bind-address/#bind-address/" /etc/mysql/my.cnf
-openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
+# configuration for cinder taken care by post_openstack.pp
+#openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enabled_backends rbd-disk
 openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${openstack_ip}
 openstack-config --set /etc/cinder/cinder.conf DEFAULT rpc_backend rabbit
