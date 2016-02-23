@@ -77,15 +77,9 @@ class contrail::database::config (
         group   => cassandra,
     }
     ->
-
-    file { "${contrail_cassandra_dir}/cassandra.yaml" :
-        ensure  => present,
-        content => template("${module_name}/cassandra.yaml.erb"),
-    }
-    ->
-    file { "${contrail_cassandra_dir}/cassandra-env.sh" :
-        ensure  => present,
-        content => template("${module_name}/cassandra-env.sh.erb"),
+    class {'::contrail::database::config_cassandra':
+            cassandra_seeds => $cassandra_seeds,
+            contrail_cassandra_dir => $contrail_cassandra_dir
     }
 
     # Ensure kafka/config/server.properties file is present with right content.
@@ -156,7 +150,6 @@ class contrail::database::config (
         file { '/etc/init.d/supervisord-contrail-database':
             ensure  => link,
             target  => '/lib/init/upstart-job',
-            require => File["${contrail_cassandra_dir}/cassandra-env.sh"],
         }
         # Replaced the below script with augeas
         # File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
