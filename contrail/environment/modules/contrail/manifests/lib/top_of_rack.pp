@@ -79,6 +79,18 @@ define contrail::lib::top_of_rack(
         subscribe => [ File["tor-agent-config-${id}"] ],
     }
     ->
+    exec { "provision-vrouter-${id}":
+      command => "python /opt/contrail/utils/provision_vrouter.py   \
+                --host_name ${::hostname}-${id}   \
+                --host_ip ${host_control_ip}  --oper add   \
+                --api_server_ip ${contrail_config_ip}   \
+                --admin_user ${keystone_admin_user}   \
+                --admin_password ${keystone_admin_password}   \
+                --admin_tenant_name  ${keystone_admin_tenant}   \
+                --openstack_ip ${contrail_openstack_ip}   \
+                --router_type tor-agent",
+      provider => shell
+    } ->
     exec { "register-tor-${id}" :
         command  => "python /opt/contrail/utils/provision_physical_device.py \
                    --device_name ${switch_name} --vendor_name  ${vendor_name}\
