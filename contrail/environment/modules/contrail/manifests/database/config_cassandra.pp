@@ -9,6 +9,7 @@ class contrail::database::config_cassandra (
       # Moved Cassandra config to augeas from templates
       $cassandra_config_file ="${contrail_cassandra_dir}/cassandra.yaml"
       $cassandra_env_file="${contrail_cassandra_dir}/cassandra-env.sh"
+      $cassandra_seeds_join = join($cassandra_seeds, ',')
       #$cassandra_yaml_config = { 'cassandra_config' => {
       #        'listen_address' => $host_control_ip,
       #        'cluster_name' => "\'Contrail\'",
@@ -59,7 +60,7 @@ class contrail::database::config_cassandra (
       } ->
       file_line { 'Config Cassandra Seeds':
         path => $cassandra_config_file,
-        line => "          - seeds: \"${cassandra_seeds}\"",
+        line => "          - seeds: \"${cassandra_seeds_join}\"",
         match   => "          - seeds:.*$",
       } ->
       file_line { 'Config File Directories':
@@ -67,9 +68,64 @@ class contrail::database::config_cassandra (
         line => "    - ${database_dir}/data",
         match   => "    - /var/lib/cassandra/data",
       } ->
+      file_line { 'Config File Remove 1':
+        path => $cassandra_config_file,
+        line => "#multithreaded_compaction",
+        match   => "^multithreaded_compaction.*",
+      } ->
+      file_line { 'Config File Remove 2':
+        path => $cassandra_config_file,
+        line => "#row_cache_provider",
+        match   => "^row_cache_provider.*",
+      } ->
+      file_line { 'Config File Remove 3':
+        path => $cassandra_config_file,
+        line => "#flush_largest_memtables_at",
+        match   => "^flush_largest_memtables_at.*",
+      } ->
+      file_line { 'Config File Remove 4':
+        path => $cassandra_config_file,
+        line => "#reduce_cache_sizes_at",
+        match   => "^reduce_cache_sizes_at.*",
+      } ->
+      file_line { 'Config File Remove 5':
+        path => $cassandra_config_file,
+        line => "#reduce_cache_capacity_to",
+        match   => "^reduce_cache_capacity_to.*",
+      } ->
+      file_line { 'Config File Remove 6':
+        path => $cassandra_config_file,
+        line => "#memtable_flush_queue_size",
+        match   => "^memtable_flush_queue_size.*",
+      } ->
+      file_line { 'Config File Remove 7':
+        path => $cassandra_config_file,
+        line => "#tombstone_debug_threshold",
+        match   => "^tombstone_debug_threshold.*",
+      } ->
+      file_line { 'Config File Remove 8':
+        path => $cassandra_config_file,
+        line => "#in_memory_compaction_limit_in_mb:",
+        match   => "^in_memory_compaction_limit_in_mb:.*",
+      } ->
+      file_line { 'Config File Remove 9':
+        path => $cassandra_config_file,
+        line => "#compaction_preheat_key_cache",
+        match   => "^compaction_preheat_key_cache.*",
+      } ->
+      file_line { 'Config File Remove 10':
+        path => $cassandra_config_file,
+        line => "#preheat_kernel_page_cache",
+        match   => "^preheat_kernel_page_cache.*",
+      } ->
       file_line { 'ENV Cassandra file setting':
         path => $cassandra_env_file,
         line => 'JVM_OPTS="$JVM_OPTS -Xss512k"',
         match   => "JVM_OPTS=\"\$JVM_OPTS -Xss.*\"",
+      }
+      -> file_line { 'ENV Cassandra jmm setting':
+        path => $cassandra_env_file,
+        line => 'JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/jamm-0.3.0.jar"',
+        match   => "JVM_OPTS=\"\$JVM_OPTS -javaagent:.*\"",
       }
 }
