@@ -1,7 +1,8 @@
 #!/bin/bash
 set -x
 this_host=$1; shift
-database_dir=$1
+database_dir=$1; shift
+contrail_package_name=$1
 cassandra_version=`dpkg -s cassandra | grep Version | awk '{print $2}'`
 if [ "$cassandra_version" != "1.2.11" ]; then
   # Don't do upgrade
@@ -9,7 +10,7 @@ if [ "$cassandra_version" != "1.2.11" ]; then
 fi
 nodetool upgradesstables
 service supervisor-database stop
-wget http://puppet/contrail/repo/dgautam_uj_mainline_2713/cassandra_2.0.17_all.deb
+wget http://puppet/contrail/repo/${contrail_package_name}/cassandra_2.0.17_all.deb
 dpkg --force-depends --force-overwrite --force-confnew --install cassandra_2.0.17_all.deb
 service cassandra stop
 chown -R cassandra:cassandra ${database_dir}

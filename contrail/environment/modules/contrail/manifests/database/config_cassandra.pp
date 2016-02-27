@@ -9,6 +9,7 @@ class contrail::database::config_cassandra (
       # Moved Cassandra config to augeas from templates
       $cassandra_config_file ="${contrail_cassandra_dir}/cassandra.yaml"
       $cassandra_env_file="${contrail_cassandra_dir}/cassandra-env.sh"
+      $cassandra_seeds_join = join($cassandra_seeds, ',')
       #$cassandra_yaml_config = { 'cassandra_config' => {
       #        'listen_address' => $host_control_ip,
       #        'cluster_name' => "\'Contrail\'",
@@ -59,7 +60,7 @@ class contrail::database::config_cassandra (
       } ->
       file_line { 'Config Cassandra Seeds':
         path => $cassandra_config_file,
-        line => "          - seeds: \"${cassandra_seeds}\"",
+        line => "          - seeds: \"${cassandra_seeds_join}\"",
         match   => "          - seeds:.*$",
       } ->
       file_line { 'Config File Directories':
