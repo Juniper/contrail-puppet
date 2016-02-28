@@ -2,6 +2,7 @@ class contrail::database::install (
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $host_ip = $::contrail::params::host_ip,
   $database_dir = $::contrail::params::database_dir,
+  $contrail_package_name = $::contrail::params::contrail_repo_name,
 ) {
   if ($lsbdistrelease == "14.04") {
       package { 'default-jre-headless' :
@@ -9,7 +10,7 @@ class contrail::database::install (
       before => Package['contrail-openstack-database']
     }
   }
-  $cassandra_upgrade_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/upgrade_cassandra.sh ${host_ip} ${database_dir}"
+  $cassandra_upgrade_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/upgrade_cassandra.sh ${host_ip} ${database_dir} ${contrail_package_name[0]}"
   file { '/etc/contrail/contrail_setup_utils/upgrade_cassandra.sh':
               ensure  => present,
               mode    => '0755',
