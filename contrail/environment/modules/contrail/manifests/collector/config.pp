@@ -70,6 +70,7 @@ class contrail::collector::config (
     contrail_collector_config {
       'DEFAULT/hostip'          : value => $host_control_ip;
       'DEFAULT/cassandra_server_list'       : value => "$cassandra_server_list";
+      'DEFAULT/zookeeper_server_list'       : value => "$zk_ip_list";
       'DEFAULT/kafka_broker_list': value => "$kafka_broker_list";
       'DEFAULT/syslog_port'      : value => $analytics_syslog_port;
       'DEFAULT/http_server_port' : value => '8089';
