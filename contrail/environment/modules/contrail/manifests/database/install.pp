@@ -26,7 +26,6 @@ class contrail::database::install (
       before => Package['contrail-openstack-database'],
   }
   ->
-  notify { "executed contrail contrail_zk_exec_cmd : ${cassandra_upgrade_cmd}":; }
   package { 'contrail-openstack-database' :
     ensure => latest
   }
