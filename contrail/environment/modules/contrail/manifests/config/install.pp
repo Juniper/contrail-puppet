@@ -26,8 +26,25 @@ class contrail::config::install(
       Package['keepalived'] -> Package['contrail-openstack-config']
   }
 
+  exec { 'Temporarily delete contrail-openstack-config, contrail-config-openstack' :
+          command   => "apt-get -y --force-yes purge contrail-openstack-config contrail-config-openstack",
+          provider  => shell,
+          logoutput => $contrail_logoutput,
+          before => Package['contrail-config'],
+  }
+  package { 'contrail-config':
+    ensure => latest,
+    configfiles => "replace",
+    before => Package['contrail-openstack-config']
+  }
   package { 'contrail-openstack-config' :
-    ensure => latest
+    ensure => latest,
+    configfiles => "replace",
+    before => Package['contrail-config-openstack']
+  }
+  package { 'contrail-config-openstack' :
+    ensure => latest,
+    configfiles => "replace",
   }
 
 }
