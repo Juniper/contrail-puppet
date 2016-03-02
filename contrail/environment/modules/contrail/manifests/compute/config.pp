@@ -235,7 +235,7 @@ class contrail::compute::config(
     # for storage
     ## Same condition as compute/service.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
-        include ::contrail::compute::create_nfs
+        contain '::contrail::compute::create_nfs'
     }
 
     $nova_params = {
@@ -289,7 +289,7 @@ class contrail::compute::config(
         }
     }
 
-    include ::contrail::compute::add_dev_tun_in_cgroup_device_acl
+    contain '::contrail::compute::add_dev_tun_in_cgroup_device_acl'
 
     file { '/etc/contrail/vrouter_nodemgr_param' :
         ensure  => present,
@@ -298,19 +298,28 @@ class contrail::compute::config(
     }
 
     # Ensure ctrl-details file is present with right content.
-    include ::contrail::ctrl_details
+    contain '::contrail::ctrl_details'
 
-    include ::contrail::xmpp_cert_files
+    contain '::contrail::xmpp_cert_files'
 
     if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
-        include ::contrail::compute::exec_set_rabbitmq_tcp_params
+        contain '::contrail::compute::exec_set_rabbitmq_tcp_params'
     }
 
     if ($physical_dev != undef and $physical_dev != 'vhost0') {
         $update_dev_net_cmd = "/bin/bash -c \"python /etc/contrail/contrail_setup_utils/update_dev_net_config_files.py --vhost_ip ${vhost_ip} ${multinet_opt} --dev \'${physical_dev}\' --compute_dev \'${contrail_compute_dev}\' --netmask \'${contrail_netmask}\' --gateway \'${contrail_gway}\' --cidr \'${contrail_cidr}\' --host_non_mgmt_ip \'${host_non_mgmt_ip}\' --mac ${contrail_macaddr} && echo update-dev-net-config >> /etc/contrail/contrail_compute_exec.out\""
-
-        class { '::contrail::compute::update_dev_net_config':
-            update_dev_net_cmd => $update_dev_net_cmd
+        file { '/etc/contrail/contrail_setup_utils/update_dev_net_config_files.py':
+                ensure => present,
+                mode   => '0755',
+                owner  => root,
+                group  => root,
+                source => "puppet:///modules/${module_name}/update_dev_net_config_files.py"
+        } ->
+        exec { 'update-dev-net-config' :
+                command   => $update_dev_net_cmd,
+                unless    => 'grep -qx update-dev-net-config /etc/contrail/contrail_compute_exec.out',
+                provider  => shell,
+                logoutput => $contrail_logoutput
         }
     }
 
@@ -358,14 +367,25 @@ class contrail::compute::config(
       'DISCOVERY/port' : value => '5998';
     }
 
-    class {'::contrail::compute::add_vnc_config':
-        host_control_ip => $host_control_ip,
-        config_ip_to_use => $config_ip_to_use,
-        keystone_admin_user => $keystone_admin_user,
-        keystone_admin_password => $keystone_admin_password,
-        keystone_admin_tenant => $keystone_admin_tenant,
-        openstack_ip => $openstack_ip,
-        enable_dpdk => $enable_dpdk
+
+   if ($enable_dpdk){
+       $enable_dpdk_str = "--dpdk_enabled"
+    } else {
+       $enable_dpdk_str = ""
+    }
+
+    file { '/opt/contrail/utils/provision_vrouter.py':
+            ensure => present,
+            mode   => '0755',
+            owner  => root,
+            group  => root
+    }
+    ->
+    exec { 'add-vnc-config' :
+            command   => "/bin/bash -c \"python /opt/contrail/utils/provision_vrouter.py --host_name ${::hostname} --host_ip ${host_control_ip} --api_server_ip ${config_ip_to_use} --oper add --admin_user ${keystone_admin_user} --admin_password ${keystone_admin_password} --admin_tenant_name ${keystone_admin_tenant} --openstack_ip ${openstack_ip} ${enable_dpdk_str} && echo add-vnc-config >> /etc/contrail/contrail_compute_exec.out\"",
+            unless    => 'grep -qx add-vnc-config /etc/contrail/contrail_compute_exec.out',
+            provider  => shell,
+            logoutput => $contrail_logoutput
     }
     ->
     contrail::lib::setup_hugepages{ 'huge_pages':
@@ -374,8 +394,20 @@ class contrail::compute::config(
     contrail::lib::setup_coremask{ 'core_mask':
     }
     ->
-
-    class {'::contrail::compute::setup_compute_server_setup':}
+    file { '/opt/contrail/bin/compute-server-setup.sh':
+            ensure  => present,
+            mode    => '0755',
+            owner   => root,
+            group   => root,
+            require => File['/etc/contrail/ctrl-details'],
+    }
+    ->
+    exec { 'setup-compute-server-setup' :
+            command   => '/opt/contrail/bin/compute-server-setup.sh; echo setup-compute-server-setup >> /etc/contrail/contrail_compute_exec.out',
+            unless    => 'grep -qx setup-compute-server-setup /etc/contrail/contrail_compute_exec.out',
+            provider  => shell,
+            logoutput => $contrail_logoutput
+    }
     ->
     reboot { 'compute':
       apply => "immediately",
@@ -384,6 +416,6 @@ class contrail::compute::config(
     }
     # Now reboot the system
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        include ::contrail::compute::cp_ifcfg_file
+        contain '::contrail::compute::cp_ifcfg_file'
     }
 }
