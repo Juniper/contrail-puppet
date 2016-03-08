@@ -1,6 +1,6 @@
 class contrail::collector::install {
     exec { 'Temporarily delete contrail-analytics to upgrade python-kafka' :
-          command   => "apt-get -y --force-yes purge contrail-analytics python-kafka-python",
+          command   => "dpkg -P contrail-analytics python-kafka-python",
           provider  => shell,
           logoutput => $contrail_logoutput,
           before => Package['python-kafka'],
