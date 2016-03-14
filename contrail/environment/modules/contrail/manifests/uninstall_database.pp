@@ -131,7 +131,7 @@ class contrail::uninstall_database (
 
     ->
     # Ensure all needed packages are absent
-    package { 'contrail-openstack-database' : ensure => purged, notify =>  ["Exec[apt_auto_remove_database]"]}
+    package { ['contrail-openstack-database', 'cassandra'] : ensure => purged, notify =>  ["Exec[apt_auto_remove_database]"]}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - cassandra (>= 1.1.12) , contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-database, contrail-setup, openstack-quantum-contrail, supervisor
