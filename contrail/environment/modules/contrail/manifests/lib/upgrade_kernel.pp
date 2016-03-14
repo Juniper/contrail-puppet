@@ -41,7 +41,7 @@ define contrail::lib::upgrade_kernel(
          apply => "immediately",
          timeout => 0,
          message => "Rebooting for kernel upgrade",
-         subscribe       => [Package[$image_extra], Package[$headers], Package[$headers_generic], Package[$image]],
+         subscribe       => [Package[$image_extra], Package[$headers], Package[$headers_generic], Package[$image], File_line['set_grub_default']],
        }
        ->
        notify { "After reboot":; }
