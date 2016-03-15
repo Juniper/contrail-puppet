@@ -28,13 +28,13 @@ class contrail::database::config (
 
     # set database_index
     $tmp_index = inline_template('<%= @database_ip_list.index(@host_control_ip) %>')
-    if ($tmp_index == nil) {
+    if ($tmp_index == undef) {
         fail("Host ${host_control_ip} not found in servers of database roles")
     }
     $database_index = $tmp_index + 1
 
     # set cassandra_seeds list
-    if (size($::contrail::params::data_base_ip_list) > 1) {
+    if (size($::contrail::params::database_ip_list) > 1) {
         $cassandra_seeds = difference($database_ip_list, [$host_control_ip])
     }
     else {
