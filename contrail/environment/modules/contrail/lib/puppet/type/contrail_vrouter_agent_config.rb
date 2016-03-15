@@ -11,7 +11,7 @@ Puppet::Type.newtype(:contrail_vrouter_agent_config) do
     desc 'The value of the setting to be defined.'
     munge do |value|
       value = value.to_s.strip
-      value.capitalize! if value =~ /^(true|false)$/i
+      #value.capitalize! if value =~ /^(true|false)$/i
       value
     end
 
