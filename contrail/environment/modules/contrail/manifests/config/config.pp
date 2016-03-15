@@ -373,7 +373,7 @@ class contrail::config::config (
         'APISERVER/api_server_ip'   : value => "$config_ip";
         'APISERVER/api_server_port' : value => '8082';
         'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
-        'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None';
+        'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None,service-interface:None,vf-binding:None';
         'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
         'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
