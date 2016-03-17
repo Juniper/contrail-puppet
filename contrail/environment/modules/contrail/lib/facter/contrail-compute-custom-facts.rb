@@ -35,7 +35,7 @@ Facter.add(:openstack_version) do
 end
 Facter.add(:contrail_version) do
     setcode do
-        Facter::Util::Resolution.exec('dpkg -l contrail-install-packages | grep contrail-install-packages | awk \'{ printf $3}\'')
+        Facter::Util::Resolution.exec('dpkg -l contrail-lib | grep contrail-lib | awk \'{ printf $3}\'')
     end
 end
 Facter.add(:conductor_idx) do
