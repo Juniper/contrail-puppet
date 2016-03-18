@@ -96,6 +96,22 @@ class contrail::common(
     }
     ->
     package { 'libssl0.9.8' : ensure => present,}
+    ->
+    # Make sure our scripts directory is present
+    file { ['/var/log/mysql', '/var/crashes', '/etc/contrail', '/etc/contrail/contrail_setup_utils'] :
+        ensure => 'directory',
+    }
+    ->
+    # Enable kernel core.
+    file { '/etc/contrail/contrail_setup_utils/enable_kernel_core.py':
+        ensure => present,
+        mode   => '0755',
+        owner  => root,
+        group  => root,
+        source => "puppet:///modules/${module_name}/enable_kernel_core.py"
+    }
+    ->
+    class {'::contrail::enable_kernel_core':}
 
     # Disable SELINUX on boot, if not already disabled.
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
@@ -148,19 +164,4 @@ class contrail::common(
       value => "35357,35358,33306,${::ipv4_reserved_ports}"
     }
 
-    # Make sure our scripts directory is present
-    file { ['/var/log/mysql', '/var/crashes', '/etc/contrail', '/etc/contrail/contrail_setup_utils'] :
-        ensure => 'directory',
-    }
-
-    # Enable kernel core.
-    file { '/etc/contrail/contrail_setup_utils/enable_kernel_core.py':
-        ensure => present,
-        mode   => '0755',
-        owner  => root,
-        group  => root,
-        source => "puppet:///modules/${module_name}/enable_kernel_core.py"
-    }
-    ->
-    class {'::contrail::enable_kernel_core':}
 }
