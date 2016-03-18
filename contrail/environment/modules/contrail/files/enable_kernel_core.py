@@ -1,6 +1,8 @@
+import os
 import re
 import tempfile
-
+import platform
+from fabric.api import local
 
 class ExtList (list):
 
@@ -12,6 +14,15 @@ class ExtList (list):
     # end def findex
 # end class ExtList
 
+def setup_crashkernel_params(pdist, pdistversion):
+    if pdistversion == '14.04':
+        if os.path.exists('/etc/default/grub.d/kexec-tools.cfg'):
+            local(r"sed -i 's/crashkernel=.*\([ | \"]\)/crashkernel=384M-2G:64M,2G-16G:128M,16G-:256M\1/g' /etc/default/grub.d/kexec-tools.cfg")
+        if os.path.exists('/etc/default/kdump-tools'):
+            local("sed -i 's/USE_KDUMP=0/USE_KDUMP=1/' /etc/default/kdump-tools")
+    else:
+        local(r"sed -i 's/crashkernel=.*\([ | \"]\)/crashkernel=384M-2G:64M,2G-16G:128M,16G-:256M\1/g' /etc/grub.d/10_linux")
+    local("update-grub")
 
 def enable_kernel_core():
     '''
@@ -51,5 +62,9 @@ def enable_kernel_core():
 if __name__ == "__main__":
     import cgitb
     cgitb.enable(format='text')
-
-    enable_kernel_core()
+    (pdist, pdistversion, pdistrelease) = platform.dist()
+    if pdist in ['fedora', 'centos', 'redhat']:
+        enable_kernel_core()
+    if pdist == 'Ubuntu':
+        setup_crashkernel_params(pdist, pdistversion)
+        
