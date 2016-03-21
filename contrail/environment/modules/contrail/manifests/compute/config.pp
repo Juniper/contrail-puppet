@@ -73,8 +73,11 @@ class contrail::compute::config(
         } elsif($intf_dict["parent"]) {
           #vlan interface
           $parent_intf = $contrail_interfaces[$intf_dict["parent"]]
-          $pci_address = $parent_intf["pci_address"]
-
+          if ('bond' in $intf_dict["parent"]) {
+            $pci_address = '0000:00:00.0'
+          } else {
+            $pci_address = $parent_intf["pci_address"]
+          }
           notify { "has a parent":; }
           notify { "pci_address = ${pci_address}":; }
         } else {
