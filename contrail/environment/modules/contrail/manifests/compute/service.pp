@@ -5,6 +5,10 @@ class contrail::compute::service(
   $nfs_server = $::contrail::params::nfs_server,
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
+    service { 'supervisor-vrouter':
+        ensure  => running,
+        enable  => true,
+    }
     service { 'nova-compute' :
         enable => $nova_compute_status,
         ensure => $nova_compute_status,

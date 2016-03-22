@@ -1,5 +1,6 @@
 class contrail::control::install() {
     package { 'contrail-openstack-control' :
-        ensure => latest
+        ensure => latest,
+        notify => Service['supervisor-control']
     }
 }
