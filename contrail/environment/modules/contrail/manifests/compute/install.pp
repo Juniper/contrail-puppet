@@ -27,7 +27,8 @@ class contrail::compute::install(
 
     if ( $opencontrail_only == true) {
         package{ 'contrail-openstack-vrouter' :
-            ensure => present
+            ensure => present,
+            notify => Service['supervisor-vrouter']
         }
     } else {
         #Determine vrouter package to be installed based on the kernel
@@ -69,7 +70,7 @@ class contrail::compute::install(
         }
         # Main code for class starts here
         # Ensure all needed packages are latest
-        package { [ $vrouter_pkg, 'contrail-openstack-vrouter'] : ensure => latest}
+        package { [ $vrouter_pkg, 'contrail-openstack-vrouter'] : ensure => latest, notify => Service['supervisor-vrouter']}
 
         if ($enable_lbass == true) {
             package{ ['haproxy', 'iproute'] : ensure => present,}

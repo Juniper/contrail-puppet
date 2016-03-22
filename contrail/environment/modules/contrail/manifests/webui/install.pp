@@ -8,7 +8,7 @@ class contrail::webui::install (
         $ensure_storage_package = 'absent'
     }
 
-    package { 'contrail-openstack-webui' : ensure => latest, }
+    package { 'contrail-openstack-webui' : ensure => latest, notify => Service['supervisor-webui']  }
     ->
-    package { 'contrail-web-storage' : ensure => $ensure_storage_package }
+    package { 'contrail-web-storage' : ensure => $ensure_storage_package, notify => Service['supervisor-webui'] }
 }

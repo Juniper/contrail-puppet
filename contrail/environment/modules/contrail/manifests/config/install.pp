@@ -35,16 +35,19 @@ class contrail::config::install(
   package { 'contrail-config':
     ensure => latest,
     configfiles => "replace",
-    before => Package['contrail-openstack-config']
+    before => Package['contrail-openstack-config'],
+    notify => Service['supervisor-config']
   }
   package { 'contrail-openstack-config' :
     ensure => latest,
     configfiles => "replace",
-    before => Package['contrail-config-openstack']
+    before => Package['contrail-config-openstack'],
+    notify => Service['supervisor-config']
   }
   package { 'contrail-config-openstack' :
     ensure => latest,
     configfiles => "replace",
+    notify => Service['supervisor-config']
   }
 
 }
