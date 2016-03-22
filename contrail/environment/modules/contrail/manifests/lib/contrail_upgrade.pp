@@ -9,7 +9,7 @@ define contrail::lib::contrail_upgrade(
     $needed_version = $::contrail::params::contrail_version
     # needed_version is not available om old SMs
     notify {"*** installed_version => $::contrail_version ***":;}
-    if $needed_version and (versioncmp($needed_version, $::contrail_version) > 0) {
+    if $needed_version and $::contrail_version and (versioncmp($needed_version, $::contrail_version) > 0) {
       notify {"*** need => $::needed_version ***":;}
       $upgrade_needed = 1
     } else {
@@ -44,8 +44,8 @@ exit 0
           logoutput => $contrail_logoutput,
         } ->
         exec { 'clear_out_files' :
-            command   => 'rm -f /etc/contrail/contrail*.out && rm -f /opt/contrail/contrail_packages/exec-contrail-setup-sh.out && echo reset_provision >> /etc/contrail/contrail_common_exec.out',
-            unless    => 'grep -qx reset_provision  /etc/contrail/contrail_common_exec.out',
+            command   => 'rm -f /etc/contrail/contrail*.out && rm -f /opt/contrail/contrail_packages/exec-contrail-setup-sh.out && echo reset_provision_3_0 >> /etc/contrail/contrail_common_exec.out',
+            unless    => 'grep -qx reset_provision_3_0  /etc/contrail/contrail_common_exec.out',
             provider  => shell,
             logoutput => $contrail_logoutput
         }
