@@ -14,11 +14,9 @@ class contrail::config::neutron {
   $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers
   $contrail_host_roles = $::contrail::params::host_roles
 
-  # neutron auth depends upon a keystone configuration
-  include ::openstack::common::keystone
-
   # Params from quantum-server-setup.sh are now set here
 
+  # Neutron needs to authenticate with keystone but doesn't need keystone installed
   # keystone_authtoken params
   $controller = $::contrail::params::keystone_ip_to_use
   $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol
