@@ -6,14 +6,15 @@ class contrail::compute::install(
     $cur_kernel_version = $::kernelrelease
     $dist_kernel_version = "${::contrail::params::contrail_dist_kernel_version}-generic"
 
-    notify{"###DEBUG dist_kernel_version_test  $dist_kernel_version_test ":;}
-    notify{"###DEBUG contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version":;}
+    notify{"compute_notify_1": name => "###DEBUG dist_kernel_version_test  $dist_kernel_version_test ";} ->
+    notify{"compute_notify_2": name => "###DEBUG contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version";}
 
     #Temporary work around untill we find out the root cause for inconsistent reboot resource behavior.
     if ((($::contrail::params::kernel_upgrade == 'yes') or
          ($::contrail::params::kernel_upgrade == true)) and $cur_kernel_version != $dist_kernel_version ) {
-      notify{"###DEBUG inside if contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version":;}
-      notify{"Missed reboot for kernel Upgrade, Initiating a reboot":;}
+      Notify["compute_notify_2"]->
+      notify{"compute_notify_3": name => "###DEBUG inside if contrail_dist_kernel_version $dist_kernel_version and system kernel version is $cur_kernel_version";} ->
+      notify{"compute_notify_4": name => "Missed reboot for kernel Upgrade, Initiating a reboot";}
       ->
       reboot { 'after_notify':
          apply => "immediately",
@@ -22,10 +23,12 @@ class contrail::compute::install(
 	 subscribe       => Notify["Missed reboot for kernel Upgrade, Initiating a reboot"],
       }
     } else {
-      notify{"Kernel Update Successful!":;}
+      Notify["compute_notify_2"]->
+      notify{"compute_notify_5": name => "Kernel Update Successful!";}
     }
 
     if ( $opencontrail_only == true) {
+        Notify["compute_notify_2"]->
         package{ 'contrail-openstack-vrouter' :
             ensure => present
         }
@@ -35,10 +38,11 @@ class contrail::compute::install(
 
         if ($::operatingsystem == 'Ubuntu'){
             if ($::lsbdistrelease == '14.04') {
-                notify { "enable_dpdk = ${enable_dpdk}":; }
+                notify {"compute_notify_6": name => "enable_dpdk = ${enable_dpdk}"; }
                 if ($enable_dpdk == true ) {
-                    notify { "settting up DPDK":; }
-                    ->
+                    Notify["compute_notify_2"]->
+                    notify {"compute_notify_7": name => "settting up DPDK"; } -> 
+                    contrail::lib::setup_dpdk_depends{ 'dpdk_depends':} ->
                     #Might be temporary
                     #create the override and remove it
                     #create an overrride so that supervisor-vrouter doesnt start
@@ -49,7 +53,8 @@ class contrail::compute::install(
                         path => "/etc/init/supervisor-vrouter.override",
                         ensure => present,
                         content => "manual",
-                    }
+                    } ->
+                    Package[$vrouter_pkg, 'contrail-openstack-vrouter']
 
                     $vrouter_pkg = 'contrail-vrouter-dpdk-init'
                 } elsif ($::kernelrelease == '3.13.0-40-generic') {
@@ -72,6 +77,7 @@ class contrail::compute::install(
         package { [ $vrouter_pkg, 'contrail-openstack-vrouter'] : ensure => latest}
 
         if ($enable_lbass == true) {
+            Package[$vrouter_pkg, 'contrail-openstack-vrouter'] ->
             package{ ['haproxy', 'iproute'] : ensure => present,}
         }
     }

@@ -13,4 +13,3 @@ class contrail::delete_role_config (
     ->
     notify { "executed delete_role_config" :; }
 }
-

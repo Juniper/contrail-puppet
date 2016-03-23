@@ -16,17 +16,18 @@ class contrail::uninstall_webui (
     include ::contrail::params
     case $::operatingsystem {
         Ubuntu: {
+            Contrail::Lib::Report_status['uninstall_webui_started'] ->
             file {'/etc/init/supervisor-webui.override':
                 ensure  => absent,
                 require => Package['contrail-openstack-webui']
-            }
+            } ->
             # Below is temporary to work-around in Ubuntu as Service resource fails
             # as upstart is not correctly linked to /etc/init.d/service-name
             file { '/etc/init.d/supervisor-webui':
                 ensure => link,
                 target => '/lib/init/upstart-job',
                 before => Service['supervisor-webui']
-            }
+            } -> Package['contrail-openstack-webui']
         }
         default: {
         }
@@ -55,31 +56,7 @@ class contrail::uninstall_webui (
         command => "apt-get autoremove -y --purge",
         provider => shell,
         logoutput => $contrail_logoutput
-    }
-
-    if ($is_storage_master) {
-        package { 'contrail-web-storage' :
-            ensure => latest,
-        }
-        ->
-        file { 'storage.config.global.js':
-            ensure  => present,
-            path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
-            content => template("${module_name}/storage.config.global.js.erb"),
-        }
-        -> Service['supervisor-webui']
-    } else {
-        package { 'contrail-web-storage' :
-            ensure => absent,
-        }
-        ->
-        file { 'storage.config.global.js':
-            ensure  => absent,
-            path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
-            content => template("${module_name}/storage.config.global.js.erb"),
-        }
-        -> Service['supervisor-webui']
-    }
+    } ->
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - contrail-nodemgr, contrail-webui, contrail-setup, supervisor
     # For Centos/Fedora - contrail-api-lib, contrail-webui, contrail-setup, supervisor
@@ -101,4 +78,29 @@ class contrail::uninstall_webui (
         contrail_logoutput => $contrail_logoutput
     }
 
+    if ($is_storage_master) {
+        Exec["apt_auto_remove_webui"] ->
+        package { 'contrail-web-storage' :
+            ensure => latest,
+        }
+        ->
+        file { 'storage.config.global.js':
+            ensure  => present,
+            path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
+            content => template("${module_name}/storage.config.global.js.erb"),
+        }
+        -> Service['supervisor-webui']
+    } else {
+        Exec["apt_auto_remove_webui"] ->
+        package { 'contrail-web-storage' :
+            ensure => absent,
+        }
+        ->
+        file { 'storage.config.global.js':
+            ensure  => absent,
+            path    => '/usr/src/contrail/contrail-web-storage/webroot/common/config/storage.config.global.js',
+            content => template("${module_name}/storage.config.global.js.erb"),
+        }
+        -> Service['supervisor-webui']
+    }
 }

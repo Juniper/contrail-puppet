@@ -35,9 +35,9 @@ class contrail::profile::openstack_controller (
         #class {'::openstack::profile::horizon' : } ->
         class {'::openstack::profile::auth_file' : } ->
         class {'::openstack::profile::provision' : } ->
-        class {'::contrail::contrail_openstack' : }
-        -> package { 'openstack-dashboard': ensure => present }
-        -> file {'/etc/openstack-dashboard/local_settings.py':
+        class {'::contrail::contrail_openstack' : } ->
+        package { 'openstack-dashboard': ensure => present } ->
+        file {'/etc/openstack-dashboard/local_settings.py':
             ensure => present,
             mode   => '0755',
             group  => root,

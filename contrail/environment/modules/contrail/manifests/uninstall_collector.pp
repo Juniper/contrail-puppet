@@ -27,8 +27,6 @@ class contrail::uninstall_collector (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 )  {
     include ::contrail::params
-
-
     case $::operatingsystem {
         Ubuntu: {
         }
@@ -36,12 +34,11 @@ class contrail::uninstall_collector (
         }
     }
 
-
     contrail::lib::report_status { 'uninstall_collector_started':
         state              => 'uninstall_collector_started',
         contrail_logoutput => $contrail_logoutput }
     ->
-    class {'contrail::delete_role_collector':
+    class {'::contrail::delete_role_collector':
             config_ip => $config_ip,
             hostname => $hostname,
             host_control_ip => $host_control_ip,
@@ -77,7 +74,7 @@ class contrail::uninstall_collector (
             '/etc/redis/redis.conf',
            ]:
         ensure  => absent,
-    }
+    } ->
 
     # Ensure all config files with correct content are present.
     # Ensure the services needed are running.
@@ -89,5 +86,6 @@ class contrail::uninstall_collector (
         state              => 'uninstall_collector_completed',
         contrail_logoutput => $contrail_logoutput }
 
+    contain ::contrail::delete_role_collector
 }
 

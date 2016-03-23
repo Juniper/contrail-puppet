@@ -44,10 +44,12 @@ class contrail::uninstall_control (
     # Main class code begins here
     case $::operatingsystem {
         Ubuntu: {
+                Contrail::Lib::Report_status['uninstall_control_started'] ->
                 file { ['/etc/init/supervisor-control.override',
                         '/etc/init/supervisor-dns.override'] :
                     ensure  => absent,
-                }
+                } ->
+                Class['contrail::delete_vnc_control']
             #TODO, Is this really needed?
                 # Below is temporary to work-around in Ubuntu as Service resource fails
                 # as upstart is not correctly linked to /etc/init.d/service-name
@@ -56,9 +58,11 @@ class contrail::uninstall_control (
         }
     }
     if ! defined(File['/etc/contrail/vnc_api_lib.ini']) {
+        Contrail::Lib::Report_status['uninstall_control_started'] ->
         file { '/etc/contrail/vnc_api_lib.ini' :
             content => template("${module_name}/vnc_api_lib.ini.erb"),
-        }
+        } ->
+        Class['contrail::delete_vnc_control']
     }
     contrail::lib::report_status { 'uninstall_control_started':
         state              => 'uninstall_control_started',
@@ -78,7 +82,7 @@ class contrail::uninstall_control (
        command => "apt-get autoremove -y --purge",
        provider => shell,
        logoutput => $contrail_logoutput
-    }
+    } ->
 
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, contrail-api-lib, contrail-control, contrail-dns,
@@ -94,10 +98,11 @@ class contrail::uninstall_control (
            '/etc/contrail/contrail-control-nodemgr.conf',
            ] :
 	ensure => absent,
-    }
+    } ->
     # Ensure the services needed are running.
     contrail::lib::report_status { 'uninstall_control_completed':
         state              => 'uninstall_control_completed',
         contrail_logoutput => $contrail_logoutput
     }
+    contain ::contrail::delete_vnc_control
 }

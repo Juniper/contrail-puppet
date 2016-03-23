@@ -3,12 +3,11 @@ class contrail::collector::install {
           command   => "dpkg -P contrail-analytics python-kafka-python",
           provider  => shell,
           logoutput => $contrail_logoutput,
-          before => Package['python-kafka'],
-    }
+    } ->
     package {'python-kafka':
         ensure => latest,
-        before => Package['contrail-analytics']
-    }
+        notify => Service['supervisor-analytics']
+    } ->
     package { ['contrail-analytics','contrail-openstack-analytics', 'contrail-docs'] :
         ensure => latest,
         configfiles => "replace",

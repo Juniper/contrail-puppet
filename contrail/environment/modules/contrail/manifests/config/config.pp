@@ -128,51 +128,6 @@ class contrail::config::config (
         # notify { "OS is $operatingsystem":; }
         }
     }
-    contrail_api_ini {
-            'program:contrail-api/command'      : value => "$api_command_to_use";
-            'program:contrail-api/numprocs'     : value => "$api_nworkers";
-            'program:contrail-api/process_name' : value => '%(process_num)s';
-            'program:contrail-api/redirect_stderr' : value => 'true';
-            'program:contrail-api/stdout_logfile' : value => '/var/log/contrail/contrail-api-%(process_num)s.log';
-            'program:contrail-api/stderr_logfile' : value => '/dev/null';
-            'program:contrail-api/priority' : value => '440';
-            'program:contrail-api/autostart' : value => 'true';
-            'program:contrail-api/killasgroup' : value => 'true';
-            'program:contrail-api/stopsignal' : value => 'KILL';
-    }
-
-    contrail_discovery_ini {
-             'program:contrail-discovery/command'      : value => "$discovery_command_to_use";
-             'program:contrail-discovery/numprocs'     : value => "$disc_nworkers";
-             'program:contrail-discovery/process_name' : value => '%(process_num)s';
-             'program:contrail-discovery/redirect_stderr' : value => 'true';
-             'program:contrail-discovery/stdout_logfile' : value => '/var/log/contrail/contrail-discovery-%(process_num)s.log';
-             'program:contrail-discovery/stderr_logfile' : value => '/dev/null';
-             'program:contrail-discovery/priority' : value => '430';
-             'program:contrail-discovery/autostart' : value => 'true';
-             'program:contrail-discovery/killasgroup' : value => 'true';
-             'program:contrail-discovery/stopsignal' : value => 'KILL';
-    }
-
-    include ::contrail::openstackrc
-    include ::contrail::keystone
-
-    #set rpc backend in neutron.conf
-    contrail::lib::augeas_conf_rm { "config_neutron_rpc_backend":
-        key => 'rpc_backend',
-        config_file => '/etc/neutron/neutron.conf',
-        lens_to_use => 'properties.lns',
-        match_value => 'neutron.openstack.common.rpc.impl_qpid',
-    }
-
-    #form the sudoers
-    file { '/etc/sudoers.d/contrail_sudoers' :
-        mode   => '0440',
-        group  => root,
-        source => "puppet:///modules/${module_name}/contrail_sudoers"
-    }
-
-    # Ensure log4j.properties file is present with right content.
     $log4j_properties_file = '/etc/ifmap-server/log4j.properties'
     $log4j_properties_config = { 'log4j_properties' => {
          'log4j.rootLogger' => "TRACE, CONSOLE",
@@ -196,35 +151,10 @@ class contrail::config::config (
          'log4j.appender.CONSOLE.layout.ConversionPattern' => "%-8r [%t] %-5p %C{1} %x - %m%n",
         },
     }
-
     $log4j_augeas_lens_to_use = 'properties.lns'
-    contrail::lib::augeas_conf_set { 'log4j_properties_keys':
-            config_file => $log4j_properties_file,
-            settings_hash => $log4j_properties_config['log4j_properties'],
-            lens_to_use => $log4j_augeas_lens_to_use,
-    }
-    contrail::lib::augeas_conf_rm { 'remove_key_log4j.appender.A1.File':
-            key => 'log4j.appender.A1.File',
-            config_file => $log4j_properties_file,
-            lens_to_use => $log4j_augeas_lens_to_use,
-    }
-
-    # Ensure authorization.properties file is present with right content.
     $authorizaion_properties_file = '/etc/ifmap-server/authorization.properties'
     $authorizaion_properties_config = { 'authorizaion_properties' => {'reader' => 'ro',},}
     $authorizaion_augeas_lens_to_use = 'properties.lns'
-    contrail::lib::augeas_conf_set { 'authorizaion_properties_keys':
-            config_file => $authorizaion_properties_file,
-            settings_hash => $authorizaion_properties_config['authorizaion_properties'],
-            lens_to_use => $authorizaion_augeas_lens_to_use,
-    }
-
-    # Ensure basicauthusers.proprties file is present with right content.
-    file { '/etc/ifmap-server/basicauthusers.properties' :
-        content => template("${module_name}/basicauthusers.properties.erb"),
-    }
-
-    # Ensure publisher.properties file is present with right content.
     $publisher_properties_file = '/etc/ifmap-server/publisher.properties'
     $publisher_properties_config = { 'publisher_properties' => {
          'visual' => 'visual--1877135140-1',
@@ -245,14 +175,81 @@ class contrail::config::config (
         },
     }
     $publisher_augeas_lens_to_use = 'properties.lns'
+
+    $config_sysctl_settings = {
+      'net.ipv4.tcp_keepalive_time' => { value => 5 },
+      'net.ipv4.tcp_keepalive_probes' => { value => 5 },
+      'net.ipv4.tcp_keepalive_intvl' => { value => 1 },
+    }
+    create_resources(sysctl::value, $config_sysctl_settings, {} )
+    contrail_api_ini {
+            'program:contrail-api/command'      : value => "$api_command_to_use";
+            'program:contrail-api/numprocs'     : value => "$api_nworkers";
+            'program:contrail-api/process_name' : value => '%(process_num)s';
+            'program:contrail-api/redirect_stderr' : value => 'true';
+            'program:contrail-api/stdout_logfile' : value => '/var/log/contrail/contrail-api-%(process_num)s.log';
+            'program:contrail-api/stderr_logfile' : value => '/dev/null';
+            'program:contrail-api/priority' : value => '440';
+            'program:contrail-api/autostart' : value => 'true';
+            'program:contrail-api/killasgroup' : value => 'true';
+            'program:contrail-api/stopsignal' : value => 'KILL';
+    } ->
+    contrail_discovery_ini {
+             'program:contrail-discovery/command'      : value => "$discovery_command_to_use";
+             'program:contrail-discovery/numprocs'     : value => "$disc_nworkers";
+             'program:contrail-discovery/process_name' : value => '%(process_num)s';
+             'program:contrail-discovery/redirect_stderr' : value => 'true';
+             'program:contrail-discovery/stdout_logfile' : value => '/var/log/contrail/contrail-discovery-%(process_num)s.log';
+             'program:contrail-discovery/stderr_logfile' : value => '/dev/null';
+             'program:contrail-discovery/priority' : value => '430';
+             'program:contrail-discovery/autostart' : value => 'true';
+             'program:contrail-discovery/killasgroup' : value => 'true';
+             'program:contrail-discovery/stopsignal' : value => 'KILL';
+    } ->
+    #set rpc backend in neutron.conf
+    contrail::lib::augeas_conf_rm { "config_neutron_rpc_backend":
+        key => 'rpc_backend',
+        config_file => '/etc/neutron/neutron.conf',
+        lens_to_use => 'properties.lns',
+        match_value => 'neutron.openstack.common.rpc.impl_qpid',
+    } ->
+    #form the sudoers
+    file { '/etc/sudoers.d/contrail_sudoers' :
+        mode   => '0440',
+        group  => root,
+        source => "puppet:///modules/${module_name}/contrail_sudoers"
+    } ->
+    # Ensure log4j.properties file is present with right content.
+    contrail::lib::augeas_conf_set { 'log4j_properties_keys':
+            config_file => $log4j_properties_file,
+            settings_hash => $log4j_properties_config['log4j_properties'],
+            lens_to_use => $log4j_augeas_lens_to_use,
+    } ->
+    contrail::lib::augeas_conf_rm { 'remove_key_log4j.appender.A1.File':
+            key => 'log4j.appender.A1.File',
+            config_file => $log4j_properties_file,
+            lens_to_use => $log4j_augeas_lens_to_use,
+    } ->
+
+    # Ensure authorization.properties file is present with right content.
+    contrail::lib::augeas_conf_set { 'authorizaion_properties_keys':
+            config_file => $authorizaion_properties_file,
+            settings_hash => $authorizaion_properties_config['authorizaion_properties'],
+            lens_to_use => $authorizaion_augeas_lens_to_use,
+    } ->
+
+    # Ensure basicauthusers.proprties file is present with right content.
+    file { '/etc/ifmap-server/basicauthusers.properties' :
+        content => template("${module_name}/basicauthusers.properties.erb"),
+    } ->
+
+    # Ensure publisher.properties file is present with right content.
     contrail::lib::augeas_conf_set { 'publisher_properties_keys':
             config_file => $publisher_properties_file,
             settings_hash => $publisher_properties_config['publisher_properties'],
             lens_to_use => $publisher_augeas_lens_to_use,
-    }
-
+    } ->
     # Ensure all config files with correct content are present.
-
     contrail_api_config {
         'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
         'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
@@ -274,15 +271,11 @@ class contrail::config::config (
         'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/apiserver_key.pem';
         'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/apiserver.pem';
         'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
-
-
-    }
-
+    } ->
     contrail_config_nodemgr_config {
         'DISCOVERY/server'     : value => "$config_ip";
         'DISCOVERY/port'     : value => '5998';
-    }
-
+    } ->
     contrail_schema_config {
         'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
         'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
@@ -302,8 +295,7 @@ class contrail::config::config (
         'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/schema_xfer_key.pem';
         'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/schema_xfer.pem';
         'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
-    }
-
+    } ->
     contrail_svc_monitor_config {
          'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
          'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
@@ -326,8 +318,7 @@ class contrail::config::config (
          'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
          'SCHEDULER/analytics_server_ip' : value => "$collector_ip";
          'SCHEDULER/analytics_server_port': value => '8081';
-    }
-
+    } ->
     contrail_device_manager_config {
         'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
         'DEFAULTS/api_server_ip'        : value => "$config_ip";
@@ -339,8 +330,7 @@ class contrail::config::config (
         'DEFAULTS/disc_server_port'     : value => '5998';
         'DEFAULTS/log_local'            : value => '1';
         'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
-    }
-
+    } ->
     contrail_discovery_config {
         'DEFAULTS/zk_server_ip'         : value => "$zk_ip_list";
         'DEFAULTS/zk_server_port'       : value => '2181';
@@ -356,8 +346,7 @@ class contrail::config::config (
         'DEFAULTS/hc_max_miss'          : value => '3';
         'DEFAULTS/ttl_short'            : value => '1';
         'DNS-SERVER/policy'             : value => 'fixed';
-    }
-
+    } ->
     contrail_vnc_api_config {
         'global/WEB_SERVER'             : value => '127.0.0.1';
         'global/WEB_PORT'               : value => '8082';
@@ -367,8 +356,7 @@ class contrail::config::config (
         'auth/AUTHN_SERVER'             : value => "$keystone_auth_server";
         'auth/AUTHN_PORT'               : value => '35357';
         'auth/AUTHN_URL'                : value => '/v2.0/tokens';
-    }
-
+    } ->
     contrail_plugin_ini {
         'APISERVER/api_server_ip'   : value => "$config_ip";
         'APISERVER/api_server_port' : value => '8082';
@@ -377,13 +365,12 @@ class contrail::config::config (
         'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
         'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
-    }
+    } ->
     # initd script wrapper for contrail-api
     file { '/etc/init.d/contrail-api' :
         mode    => '0777',
         content => template("${module_name}/contrail-api.svc.erb"),
-    }
-
+    } ->
     # contrail plugin for opencontrail
     opencontrail_plugin_ini {
         'APISERVER/api_server_ip'   : value => "$config_ip";
@@ -395,38 +382,37 @@ class contrail::config::config (
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
         'COLLECTOR/analytics_api_ip': value => "$collector_ip";
         'COLLECTOR/analytics_api_port': value => "$analytics_api_port";
-    }
-
+    } ->
     contrail::lib::augeas_conf_set { 'NEUTRON_PLUGIN_CONFIG':
         config_file => '/etc/default/neutron-server',
         settings_hash => { 'NEUTRON_PLUGIN_CONFIG' => $contrail_plugin_location, },
         lens_to_use => 'properties.lns',
-    }
-    ->
-    class {'::contrail::config::config_neutron_server':}
-    ->
+    } ->
+
+    Class['::contrail::config::config_neutron_server'] ->
+
     # initd script wrapper for contrail-discovery
     file { '/etc/init.d/contrail-discovery' :
         mode    => '0777',
         content => template("${module_name}/contrail-discovery.svc.erb"),
-    }
-    ->
-    class {'contrail::config::rabbitmq':}
+    } ->
 
-    # run setup-pki.sh script
-    if $use_certs == true {
-         include ::contrail::config::setup_pki
-    }
+    Class['::contrail::config::rabbitmq'] ->
+
     file { '/usr/bin/nodejs':
         ensure => link,
         target => '/usr/bin/node',
     } ->
-    class {'::contrail::config::setup_quantum_server_setup':}
 
-    $config_sysctl_settings = {
-      'net.ipv4.tcp_keepalive_time' => { value => 5 },
-      'net.ipv4.tcp_keepalive_probes' => { value => 5 },
-      'net.ipv4.tcp_keepalive_intvl' => { value => 1 },
+    Sysctl::Value['net.ipv4.tcp_keepalive_time']
+    # run setup-pki.sh script
+    if $use_certs == true {
+         contain ::contrail::config::setup_pki
+         Class['::contrail::config::rabbitmq']->Class['::contrail::config::setup_pki']->File['/usr/bin/nodejs']
     }
-    create_resources(sysctl::value,$config_sysctl_settings, {} )
+    contain ::contrail::openstackrc
+    contain ::contrail::keystone
+    contain ::contrail::config::config_neutron_server
+    contain ::contrail::config::rabbitmq
+    contain ::contrail::config::setup_quantum_server_setup
 }
