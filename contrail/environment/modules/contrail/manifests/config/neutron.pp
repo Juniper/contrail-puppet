@@ -29,7 +29,7 @@ class contrail::config::neutron {
     rabbit_hosts           => $contrail_rabbit_servers,
     bind_port             => $::contrail::params::quantum_port,
     auth_strategy         => 'keystone',
-    core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',
+    core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_v3.NeutronPluginContrailCoreV3',
     allow_overlapping_ips => true,
     rabbit_user           => $::openstack::config::rabbitmq_user,
     rabbit_password       => $::openstack::config::rabbitmq_password,
