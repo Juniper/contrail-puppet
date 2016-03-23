@@ -1,44 +1,34 @@
 class contrail::contrail_all() {
-
-    include ::contrail
+    contain ::contrail
     $host_roles = $contrail::params::host_roles
-
-    stage { 'first': }
-    stage { 'last': }
-    stage { 'compute': }
-    stage { 'pre': }
-    stage { 'post': }
-
-    Stage['pre']->Stage['first']->Stage['main']->Stage['last']->Stage['compute']->Stage['post']
+    class { '::contrail::provision_start' : state => 'provision_started' }
+    contain ::contrail::provision_start
+    contain ::sysctl::base
+    contain ::apt
+    contain ::contrail::profile::common
+    contain ::contrail::profile::keepalived
+    contain ::contrail::profile::haproxy
+    contain ::contrail::profile::database
+    contain ::contrail::profile::webui
+    contain ::contrail::profile::openstack_controller
+    contain ::contrail::ha_config
+    contain ::contrail::profile::config
+    contain ::contrail::profile::controller
+    contain ::contrail::profile::collector
+    contain ::contrail::profile::compute
+    class { '::contrail::provision_complete' : state => 'post_provision_completed' }
+    contain ::contrail::provision_complete
+    Class['::contrail']->Class['::contrail::provision_start']->Class['::sysctl::base']->Class['::contrail::profile::common']->Class['::contrail::profile::keepalived']->Class['::contrail::profile::haproxy']->Class['::contrail::profile::database']->Class['::contrail::profile::webui']->Class['::contrail::profile::openstack_controller']->Class['::contrail::ha_config']->Class['::contrail::profile::config']->Class['::contrail::profile::controller']->Class['::contrail::profile::collector']->Class['::contrail::profile::compute']->Class['::contrail::provision_complete']
     if 'tsn' in $host_roles {
-       stage { 'tsn': }
-       Stage['compute'] -> Stage['tsn'] -> Stage['post']
-       class { '::contrail::profile::tsn' :  stage => 'tsn' }
+       contain ::contrail::profile::tsn
+       Class['::contrail::profile::compute']->Class['::contrail::profile::tsn']->Class['::contrail::provision_complete']
     }
     if 'toragent' in $host_roles {
-       stage { 'toragent': }
-       Stage['compute'] -> Stage['toragent'] -> Stage['post']
-       class { '::contrail::profile::toragent' :  stage => 'toragent' }
+       contain ::contrail::profile::toragent
+       Class['::contrail::profile::compute']->Class['::contrail::profile::toragent']->Class['::contrail::provision_complete']
     }
     if 'storage-master' in $host_roles or 'storage-compute' in $host_roles {
-       stage { 'storage': }
-       Stage['compute'] -> Stage['storage'] -> Stage['post']
-       class { '::contrail::profile::storage' :  stage => 'storage' }
+       contain ::contrail::profile::storage
+       Class['::contrail::profile::compute']->Class['::contrail::profile::storage']->Class['::contrail::provision_complete']
     }
-    class { '::contrail::provision_start' : state => 'provision_started', stage => 'pre' }
-    class { '::sysctl::base' : stage => 'first' }
-    class { '::apt' : stage => 'first' }
-    class { '::contrail::profile::common' : stage => 'first' }
-    include ::contrail::profile::keepalived
-    include ::contrail::profile::haproxy
-    include ::contrail::profile::database
-    include ::contrail::profile::webui
-    include ::contrail::profile::openstack_controller
-    include ::contrail::ha_config
-    include ::contrail::profile::config
-    include ::contrail::profile::controller
-    include ::contrail::profile::collector
-    class { '::contrail::profile::compute' : stage => 'compute' }
-    class { '::contrail::provision_complete' : state => 'post_provision_completed', stage => 'post' }
-
 }
