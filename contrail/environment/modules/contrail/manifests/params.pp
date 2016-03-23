@@ -705,7 +705,7 @@ class contrail::params (
     }
 
     if ($zookeeper_ip_list == undef) {
-        $zk_ip_list_to_use = $config_ip_list
+        $zk_ip_list_to_use = $database_ip_list
     }
     else {
         $zk_ip_list_to_use = $zookeeper_ip_list
