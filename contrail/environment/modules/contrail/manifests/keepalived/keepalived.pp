@@ -4,18 +4,14 @@ define contrail::keepalived::keepalived (
     $vip = undef,
     $host_control_ip = $::contrail::params::host_ip,
 ) {
-    notify { "Keepalived - Setting up vip_${name}":; }
 
     $control_data_intf = get_device_name($host_control_ip)
-
     $num_nodes = inline_template('<%= @contrail_ip_list.length %>')
     $tmp_index = inline_template('<%= @contrail_ip_list.index(@host_control_ip) %>')
     if ($tmp_index == nil) {
         fail("Host ${host_control_ip} not found in servers of config roles")
     }
-
     $config_index = $tmp_index + 1
-    notify { "Keepalived - config_index for ${name} = ${config_index}":; }
 
     if ($config_index == 1 ) {
         $keepalived_state = 'MASTER'
@@ -30,15 +26,13 @@ define contrail::keepalived::keepalived (
         $contrail_garp_master_delay = 1
         $contrail_preempt_delay = 1
     }
-
-    include ::keepalived
-
     $interface = find_matching_interface($vip)
     $netmask = inline_template("<%= scope.lookupvar('netmask_' + @interface) %>")
     $cidr = convert_netmask_to_cidr($netmask)
-
     $keepalived_priority = $virtual_router_id - $config_index
 
+    notify { "Keepalived - Setting up vip_${name}":; } ->
+    notify { "Keepalived - config_index for ${name} = ${config_index}":; } ->
     keepalived::vrrp::script { "check_haproxy_${name}":
         script   => '/usr/bin/killall -0 haproxy',
         timeout  => '3',
@@ -69,5 +63,7 @@ define contrail::keepalived::keepalived (
         vmac_xmit_base      => true,
         track_interface     => $control_data_intf,
         track_script        => ["check_haproxy_${name}","check_peers_${name}"],
-    }
+    } ->
+    Class['::keepalived']
+    contain ::keepalived
 }

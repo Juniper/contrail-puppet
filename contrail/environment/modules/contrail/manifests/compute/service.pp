@@ -5,9 +5,11 @@ class contrail::compute::service(
   $nfs_server = $::contrail::params::nfs_server,
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
-    service { 'supervisor-vrouter':
-        ensure  => running,
-        enable  => true,
+    if !('toragent' in $contrail::params::host_roles) {
+        service { 'supervisor-vrouter':
+            ensure  => running,
+            enable  => true,
+        }
     }
     service { 'nova-compute' :
         enable => $nova_compute_status,
@@ -15,6 +17,7 @@ class contrail::compute::service(
     }
     ## Same condition as compute/config.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
+       Service['nova-compute']->
        service { 'nfs-kernel-server':
          ensure => running,
          enable => true

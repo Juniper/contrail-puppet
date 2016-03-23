@@ -30,24 +30,20 @@ class contrail::config::install(
           command   => "apt-get -y --force-yes purge contrail-openstack-config contrail-config-openstack",
           provider  => shell,
           logoutput => $contrail_logoutput,
-          before => Package['contrail-config'],
-  }
+  } ->
   package { 'contrail-config':
     ensure => latest,
     configfiles => "replace",
-    before => Package['contrail-openstack-config'],
     notify => Service['supervisor-config']
-  }
+  } ->
   package { 'contrail-openstack-config' :
     ensure => latest,
     configfiles => "replace",
-    before => Package['contrail-config-openstack'],
     notify => Service['supervisor-config']
-  }
+  } ->
   package { 'contrail-config-openstack' :
     ensure => latest,
     configfiles => "replace",
     notify => Service['supervisor-config']
   }
-
 }
