@@ -2,7 +2,6 @@ class contrail::uninstall_haproxy(
     $host_control_ip = $::contrail::params::host_ip,
     $host_roles = $::contrail::params::host_roles,
 ) inherits ::contrail::params {
-
     service { 'haproxy' :
 	ensure => stopped,
     }
@@ -14,5 +13,4 @@ class contrail::uninstall_haproxy(
            ]:
         ensure  => absent,
     }
-
 }

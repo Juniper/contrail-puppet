@@ -152,7 +152,93 @@ class contrail::compute::config(
         $contrail_work_mode = "default"
     }
 
+    if ($operatingsystem == "Ubuntu"){
+        if 'tsn' in $contrail_host_roles {
+            Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
+            file { "/etc/init/nova-compute.override":
+                ensure => present,
+                content => "manual",
+            }
+        }
+        if ($enable_dpdk == true) {
+            #Looks like this is still seen as re-declaration by puppet
+            /*
+            Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
+	    file { 'remove_supervisor_vrouter_override':
+		path => "/etc/init/supervisor-vrouter.override",
+		ensure => absent,
+	    }->
+            */
+            exec { 'remove_supervisor_override':
+                command => "rm -rf /etc/init/supervisor-vrouter.override",
+                provider => shell,
+                logoutput => $contrail_logoutput,
+            }
+        }
+    }
 
+    # Install interface rename package for centos.
+    if (inline_template('<%= @operatingsystem.downcase %>') == 'centos') {
+        Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
+        contrail::lib::contrail_rename_interface { 'centos-rename-interface' :
+        }
+    }
+    # for storage
+    ## Same condition as compute/service.pp
+    if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
+        contain ::contrail::compute::create_nfs
+        Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->Class['::contrail::compute::create_nfs']->Nova_config['neutron/admin_auth_url']
+    }
+
+    $nova_params = {
+      'neutron/admin_auth_url'=> {   value => "http://${keystone_ip_to_use}:35357/v2.0/" },
+      'neutron/admin_tenant_name' => { value => 'services', },
+      'neutron/admin_username' => { value => 'neutron', },
+      'neutron/admin_password'=>  {  value => "${keystone_admin_password}" },
+      'neutron/url' =>  {  value => "http://${config_ip_to_use}:9696" },
+      'neutron/url_timeout' =>  {  value => "300" },
+      'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
+      'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
+      'DEFAULT/rabbit_hosts' => {value => "${contrail_rabbit_servers}"},
+    }
+    create_resources(nova_config, $nova_params, {} )
+
+    # Update modprobe.conf
+    if inline_template('<%= @operatingsystem.downcase %>') == 'centos' {
+        # Ensure modprobe.conf file is present with right content.
+        $modprobe_conf_file = '/etc/modprobe.conf'
+        Contrail::Lib::Augeas_conf_rm["compute_rm_rabbit_port"] ->
+        contrail::lib::augeas_conf_set { 'alias':
+                config_file => $modprobe_conf_file,
+                settings_hash => {'alias' => 'bridge off',},
+                lens_to_use => 'spacevars.lns',
+        } ->
+        Class['::contrail::compute::add_dev_tun_in_cgroup_device_acl']
+    }
+
+    if ($physical_dev != undef and $physical_dev != 'vhost0') {
+        $update_dev_net_cmd = "/bin/bash -c \"python /etc/contrail/contrail_setup_utils/update_dev_net_config_files.py --vhost_ip ${vhost_ip} ${multinet_opt} --dev \'${physical_dev}\' --compute_dev \'${contrail_compute_dev}\' --netmask \'${contrail_netmask}\' --gateway \'${contrail_gway}\' --cidr \'${contrail_cidr}\' --host_non_mgmt_ip \'${host_non_mgmt_ip}\' --mac ${contrail_macaddr} && echo update-dev-net-config >> /etc/contrail/contrail_compute_exec.out\""
+
+        class { '::contrail::compute::update_dev_net_config':
+            update_dev_net_cmd => $update_dev_net_cmd
+        } ->
+        File['/etc/contrail/agent_param']
+        contain ::contrail::compute::update_dev_net_config
+    }
+    if ! defined(File['/etc/contrail/vnc_api_lib.ini']) {
+        File['/etc/contrail/agent_param'] ->
+        file { '/etc/contrail/vnc_api_lib.ini' :
+            ensure  => present,
+            content => template("${module_name}/vnc_api_lib.ini.erb"),
+        } ->
+        Contrail_vrouter_agent_config['DEFAULT/xmpp_auth_enable']
+    }
+
+    if $contrail_agent_mode == 'tsn' {
+      Contrail_vrouter_agent_config['VIRTUAL-HOST-INTERFACE/compute_node_address'] ->
+      contrail_vrouter_agent_config { 'DEFAULT/agent_mode' : value => "tsn"; } ->
+      Contrail_vrouter_nodemgr_config['DISCOVERY/server']
+    }
 
     # Debug Print all variable values
     notify {"host_control_ip = ${host_control_ip}":; } ->
@@ -204,56 +290,8 @@ class contrail::compute::config(
     notify {"quantum_service_protocol = ${quantum_service_protocol}":; } ->
     notify {"discovery_ip = ${discovery_ip}":; } ->
     notify {"hypervisor_type = ${hypervisor_type}":; } ->
-    notify {"vmware_physical_intf = ${vmware_physical_intf}":; }
-
-    if ($operatingsystem == "Ubuntu"){
-        if 'tsn' in $contrail_host_roles {
-            file { "/etc/init/nova-compute.override":
-                ensure => present,
-                content => "manual",
-            }
-        }
-        if ($enable_dpdk == true) {
-            #Looks like this is still seen as re-declaration by puppet
-            /*
-	    file { 'remove_supervisor_vrouter_override':
-		path => "/etc/init/supervisor-vrouter.override",
-		ensure => absent,
-	    }->
-            */
-            exec { 'remove_supervisor_override':
-                command => "rm -rf /etc/init/supervisor-vrouter.override",
-                provider => shell,
-                logoutput => $contrail_logoutput,
-            }
-
-        }
-    }
-
-    # Install interface rename package for centos.
-    if (inline_template('<%= @operatingsystem.downcase %>') == 'centos') {
-        contrail::lib::contrail_rename_interface { 'centos-rename-interface' :
-        }
-    }
-    # for storage
-    ## Same condition as compute/service.pp
-    if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
-        include ::contrail::compute::create_nfs
-    }
-
-    $nova_params = {
-      'neutron/admin_auth_url'=> {   value => "http://${keystone_ip_to_use}:35357/v2.0/" },
-      'neutron/admin_tenant_name' => { value => 'services', },
-      'neutron/admin_username' => { value => 'neutron', },
-      'neutron/admin_password'=>  {  value => "${keystone_admin_password}" },
-      'neutron/url' =>  {  value => "http://${config_ip_to_use}:9696" },
-      'neutron/url_timeout' =>  {  value => "300" },
-      'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
-      'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
-      'DEFAULT/rabbit_hosts' => {value => "${contrail_rabbit_servers}"},
-    }
-
-    create_resources(nova_config,$nova_params, {} )
+    notify {"vmware_physical_intf = ${vmware_physical_intf}":; } ->
+    Nova_config['neutron/admin_auth_url'] ->
 
     # set rpc backend in neutron.conf
     contrail::lib::augeas_conf_rm { "compute_neutron_rpc_backend":
@@ -261,72 +299,37 @@ class contrail::compute::config(
         config_file => '/etc/neutron/neutron.conf',
         lens_to_use => 'properties.lns',
         match_value => 'neutron.openstack.common.rpc.impl_qpid',
-    }
+    } ->
     #set rpc backend in nova.conf
     contrail::lib::augeas_conf_rm { "compute_nova_rpc_backend":
         key => 'rpc_backend',
         config_file => '/etc/nova/nova.conf',
         lens_to_use => 'properties.lns',
         match_value => 'nova.openstack.common.rpc.impl_qpid',
-    }
+    } ->
     # Remove rabbit host and port from nova.conf
     contrail::lib::augeas_conf_rm { "compute_rm_rabbit_host":
         key => 'rabbit_host',
         config_file => '/etc/nova/nova.conf',
         lens_to_use => 'properties.lns',
-    }
+    } ->
     contrail::lib::augeas_conf_rm { "compute_rm_rabbit_port":
         key => 'rabbit_port',
         config_file => '/etc/nova/nova.conf',
         lens_to_use => 'properties.lns',
-    }
-
-    # Update modprobe.conf
-    if inline_template('<%= @operatingsystem.downcase %>') == 'centos' {
-        # Ensure modprobe.conf file is present with right content.
-        $modprobe_conf_file = '/etc/modprobe.conf'
-        contrail::lib::augeas_conf_set { 'alias':
-                config_file => $modprobe_conf_file,
-                settings_hash => {'alias' => 'bridge off',},
-                lens_to_use => 'spacevars.lns',
-        }
-    }
-
-    include ::contrail::compute::add_dev_tun_in_cgroup_device_acl
+    } ->
+    Class['::contrail::compute::add_dev_tun_in_cgroup_device_acl'] ->
 
     file { '/etc/contrail/vrouter_nodemgr_param' :
         ensure  => present,
         require => Package['contrail-openstack-vrouter'],
         content => template("${module_name}/vrouter_nodemgr_param.erb"),
-    }
-
-    # Ensure ctrl-details file is present with right content.
-    include ::contrail::ctrl_details
-
-    include ::contrail::xmpp_cert_files
-
-    if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
-        include ::contrail::compute::exec_set_rabbitmq_tcp_params
-    }
-
-    if ($physical_dev != undef and $physical_dev != 'vhost0') {
-        $update_dev_net_cmd = "/bin/bash -c \"python /etc/contrail/contrail_setup_utils/update_dev_net_config_files.py --vhost_ip ${vhost_ip} ${multinet_opt} --dev \'${physical_dev}\' --compute_dev \'${contrail_compute_dev}\' --netmask \'${contrail_netmask}\' --gateway \'${contrail_gway}\' --cidr \'${contrail_cidr}\' --host_non_mgmt_ip \'${host_non_mgmt_ip}\' --mac ${contrail_macaddr} && echo update-dev-net-config >> /etc/contrail/contrail_compute_exec.out\""
-
-        class { '::contrail::compute::update_dev_net_config':
-            update_dev_net_cmd => $update_dev_net_cmd
-        }
-    }
+    } ->
 
     file { '/etc/contrail/agent_param' :
         ensure  => present,
         content => template("${module_name}/agent_param.tmpl.erb"),
-    }
-    if ! defined(File['/etc/contrail/vnc_api_lib.ini']) {
-        file { '/etc/contrail/vnc_api_lib.ini' :
-            ensure  => present,
-            content => template("${module_name}/vnc_api_lib.ini.erb"),
-        }
-    }
+    } ->
 
     contrail_vrouter_agent_config {
       'DEFAULT/xmpp_auth_enable' : value => "$xmpp_auth_enable";
@@ -347,20 +350,15 @@ class contrail::compute::config(
       'VIRTUAL-HOST-INTERFACE/gateway' : value => "$contrail_gway";
       'VIRTUAL-HOST-INTERFACE/physical_interface' : value => "$contrail_dev";
       'SERVICE-INSTANCE/netns_command' : value => "/usr/bin/opencontrail-vrouter-netns";
-    }
+    } ->
     contrail_vrouter_agent_config {
       'VIRTUAL-HOST-INTERFACE/compute_node_address' : ensure => 'absent';
-    }
-
-    if $contrail_agent_mode == 'tsn' {
-      contrail_vrouter_agent_config { 'DEFAULT/agent_mode' : value => "tsn"; }
-    }
+    } ->
 
     contrail_vrouter_nodemgr_config {
       'DISCOVERY/server' : value => "$discovery_ip";
       'DISCOVERY/port' : value => '5998';
-    }
-
+    } ->
     class {'::contrail::compute::add_vnc_config':
         host_control_ip => $host_control_ip,
         config_ip_to_use => $config_ip_to_use,
@@ -377,7 +375,6 @@ class contrail::compute::config(
     contrail::lib::setup_coremask{ 'core_mask':
     }
     ->
-
     class {'::contrail::compute::setup_compute_server_setup':}
     ->
     reboot { 'compute':
@@ -385,8 +382,20 @@ class contrail::compute::config(
       subscribe       => Exec ["setup-compute-server-setup"],
       timeout => 0,
     }
+    contain ::contrail::compute::setup_compute_server_setup
+    contain ::contrail::compute::add_vnc_config
     # Now reboot the system
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        include ::contrail::compute::cp_ifcfg_file
+        contain ::contrail::compute::cp_ifcfg_file
+    }
+
+    contain ::contrail::compute::add_dev_tun_in_cgroup_device_acl
+    # Ensure ctrl-details file is present with right content.
+    contain ::contrail::ctrl_details
+    contain ::contrail::xmpp_cert_files
+
+
+    if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
+        contain ::contrail::compute::exec_set_rabbitmq_tcp_params
     }
 }

@@ -15,6 +15,7 @@ class contrail::compute::service(
     }
     ## Same condition as compute/config.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
+       Service['nova-compute']->
        service { 'nfs-kernel-server':
          ensure => running,
          enable => true

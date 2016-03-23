@@ -94,25 +94,15 @@ class contrail::uninstall_database (
         }
     }
 
-
     # Debug - Print all variables
-    notify { "Database - contrail cassandra dir is $contrail_cassandra_dir":; }
-    notify { "Database - host_control_ip = $host_control_ip":;}
-    notify { "Database - config_ip = $config_ip":;}
-    notify { "Database - internal_vip = $internal_vip":;}
-    notify { "Database - database_ip_list = $database_ip_list":;}
-    notify { "Database - zookeeper_ip_list = $zookeeper_ip_list":;}
-    notify { "Database - database_index = $database_index":;}
-    notify { "Database - cassandra_seeds = $cassandra_seeds":;}
-    if ($analytics_data_dir != "") {
-        # Make dir ContrailAnalytics in cassandra database folder
-        file { "$database_dir/ContrailAnalytics":
-            ensure => link,
-            target => "$analytics_data_dir/ContrailAnalytics",
-            require => File["$database_dir"],
-            notify => Service["supervisor-database"]
-        }
-    }
+    notify { "Database - contrail cassandra dir is $contrail_cassandra_dir":; } ->
+    notify { "Database - host_control_ip = $host_control_ip":;} ->
+    notify { "Database - config_ip = $config_ip":;} ->
+    notify { "Database - internal_vip = $internal_vip":;} ->
+    notify { "Database - database_ip_list = $database_ip_list":;} ->
+    notify { "Database - zookeeper_ip_list = $zookeeper_ip_list":;} ->
+    notify { "Database - database_index = $database_index":;} ->
+    notify { "Database - cassandra_seeds = $cassandra_seeds":;} ->
     contrail::lib::report_status { "uninstall_database_started":
         state => "uninstall_database_started", 
         contrail_logoutput => $contrail_logoutput }
@@ -128,7 +118,6 @@ class contrail::uninstall_database (
     service { "supervisor-database" :
         ensure => stopped,
     }
-
     ->
     # Ensure all needed packages are absent
     package { ['contrail-openstack-database', 'cassandra'] : ensure => purged, notify =>  ["Exec[apt_auto_remove_database]"]}
@@ -152,10 +141,20 @@ class contrail::uninstall_database (
            ]:
          ensure => absent,
     }
-
     ->
     contrail::lib::report_status { "uninstall_database_completed":
         state => "database_completed", 
         contrail_logoutput => $contrail_logoutput }
-
+    if ($analytics_data_dir != "") {
+        Contrail::Lib::Report_status["uninstall_database_started"] ->
+        # Make dir ContrailAnalytics in cassandra database folder
+        file { "$database_dir/ContrailAnalytics":
+            ensure => link,
+            target => "$analytics_data_dir/ContrailAnalytics",
+            require => File["$database_dir"],
+            notify => Service["supervisor-database"]
+        } ->
+        Class['::contrail::delete_role_database']
+    }
+    contain ::contrail::delete_role_database
 }

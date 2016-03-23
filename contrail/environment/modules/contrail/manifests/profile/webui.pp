@@ -16,10 +16,8 @@ class contrail::profile::webui (
     if ($enable_module and 'webui' in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::webui
     } elsif ((!('webui' in $host_roles)) and ($contrail_roles['webui'] == true)) {
-
         notify { 'uninstalling webui':; }
         contain ::contrail::uninstall_webui
-
+        Notify['uninstalling webui']->Class['::contrail::uninstall_webui']
     }
-
 }

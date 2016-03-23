@@ -32,24 +32,24 @@ class contrail::profile::mongodb {
             bind_ip => ['127.0.0.1', $mongodb_bind_address],
             replset => 'rs-ceilometer',
             master  => true,
-      }
-
+      } ->
       class { '::mongodb::client': }
       mongodb_database { 'ceilometer':
           ensure  => present,
           tries   => 20,
           require => Class['mongodb::server'],
       }
-
+      notify { "contrail::profile::mongodb - mongodb_bind_address = ${mongodb_bind_address}":;} ->
+      notify { "contrail::profile::mongodb - {primary_db_ip} = ${primary_db_ip}":;}
 
       if($mongodb_bind_address == $primary_db_ip){
+        Notify["contrail::profile::mongodb - {primary_db_ip} = ${primary_db_ip}"] ->
         # Check Mongodb conection
         exec { 'exec_mongo_connection':
             command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'db = db.getSiblingDB(\"ceilometer\")\'",
             logoutput => $contrail_logoutput,
             returns   => 0,
-        }
-
+        } ->
         # Setup MongoDb replicaSet
         exec { 'exec_mongo_create_replset':
             command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.initiate({_id:\"rs-ceilometer\", members:[{_id:0, host:\"${primary_db_ip}:27017\"}]}).ok\' && echo exec_mongo_create_replset >> /etc/contrail/contrail_database_exec.out",
@@ -58,27 +58,23 @@ class contrail::profile::mongodb {
             tries     => 5,
             unless    => '/bin/grep -qx exec_mongo_create_replset /etc/contrail/contrail_database_exec.out',
             try_sleep => 15,
-        }
-
+        } ->
         # Check Mongodb Primary is Master
         exec { 'exec_mongo_check_master':
             command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'db.isMaster().ismaster\'",
             logoutput => $contrail_logoutput,
             returns   => 0,
-        }
-
+        } ->
         add_rs_members {
           $mongo_slave_ip_list:
           primary_db_ip => $primary_db_ip,
-        }
-
+        } ->
         # Verify Replica set status and members
         exec { 'exec_verify_rs_status':
             command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.status().ok\'",
             logoutput => $contrail_logoutput,
             returns   => 0,
-        }
-
+        } ->
         # MongoDb check user ceilometer
         exec { 'exec_check_user_ceilometer':
             command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'db.system.users.find({user:\"ceilometer\"}).count()\'",
@@ -86,8 +82,7 @@ class contrail::profile::mongodb {
             returns   => 0,
             tries     => 5,
             try_sleep => 15,
-        }
-
+        } ->
         # Add MongoDb user ceilometer
         exec { 'exec_add_user_ceilometer':
             command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'db = db.getSiblingDB(\"ceilometer\"); db.addUser({user: \"ceilometer\", pwd: \"${ceilometer_mongo_password}\", roles: [ \"readWrite\", \"dbAdmin\" ]})\' && echo exec_add_user_ceilometer >> /etc/contrail/contrail_database_exec.out",
@@ -97,11 +92,5 @@ class contrail::profile::mongodb {
             try_sleep => 15,
             unless    => '/bin/grep -qx exec_add_user_ceilometer /etc/contrail/contrail_database_exec.out',
         }
-
       }
-
-      notify { "contrail::profile::mongodb - mongodb_bind_address = ${mongodb_bind_address}":;}
-      notify { "contrail::profile::mongodb - {primary_db_ip} = ${primary_db_ip}":;}
-
-      Class['::mongodb::server'] -> Class['::mongodb::client']
 }

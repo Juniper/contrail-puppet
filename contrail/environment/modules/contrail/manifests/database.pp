@@ -63,11 +63,12 @@
 #
 class contrail::database (
 ) {
-    anchor {'contrail::database::start': } ->
     contrail::lib::report_status { 'database_started': } ->
-    class { '::contrail::database::install': } ->
-    class { '::contrail::database::config': } ~>
-    class { '::contrail::database::service': } ->
+    Class['::contrail::database::install'] ->
+    Class['::contrail::database::config'] ~>
+    Class['::contrail::database::service'] ->
     contrail::lib::report_status { 'database_completed': }
-    anchor {'contrail::database::end': }
+    contain ::contrail::database::install
+    contain ::contrail::database::config
+    contain ::contrail::database::service
 }
