@@ -34,8 +34,8 @@ class contrail::database::config (
     $database_index = $tmp_index + 1
 
     # set cassandra_seeds list
-    if (size($::contrail::params::data_base_ip_list) > 1) {
-        $cassandra_seeds = difference($database_ip_list, [$host_control_ip])
+    if (size($::contrail::params::database_ip_list) > 1) {
+        $cassandra_seeds = difference($database_ip_list, [$database_ip_list[0]])
     }
     else {
         $cassandra_seeds = $database_ip_list
@@ -52,37 +52,6 @@ class contrail::database::config (
     }
     $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh ${::operatingsystem} ${database_index} ${zk_ip_list_for_shell} && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
 
-    # Debug - Print all variables
-    notify { "Database - contrail cassandra dir is ${contrail_cassandra_dir}":; }
-    notify { "Database - host_control_ip = ${host_control_ip}":;}
-    notify { "Database - config_ip = ${config_ip}":;}
-    notify { "Database - internal_vip = ${internal_vip}":;}
-    notify { "Database - database_ip_list = ${database_ip_list}":;}
-    notify { "Database - zookeeper_ip_list = ${zookeeper_ip_list}":;}
-    notify { "Database - database_index = ${database_index}":;}
-    notify { "Database - cassandra_seeds = ${cassandra_seeds}":;}
-    if ($analytics_data_dir != '') {
-        # Make dir ContrailAnalytics in cassandra database folder
-        file { "${database_dir}/ContrailAnalytics":
-            ensure  => link,
-            target  => "${analytics_data_dir}/ContrailAnalyticsCql",
-            require => File[$database_dir],
-            owner   => cassandra,
-            group   => cassandra,
-        }
-    }
-    file { $database_dir :
-        ensure  => directory,
-        owner   => cassandra,
-        group   => cassandra,
-    }
-    ->
-    class {'::contrail::database::config_cassandra':
-            cassandra_seeds => $cassandra_seeds,
-            contrail_cassandra_dir => $contrail_cassandra_dir
-    }
-
-    # Ensure kafka/config/server.properties file is present with right content.
     $kafka_server_properties_file = '/usr/share/kafka/config/server.properties'
     $kafka_server_properties_config = { 'kafka_server_properties' => {
             'broker.id' => $tmp_index,
@@ -95,20 +64,7 @@ class contrail::database::config (
             'delete.topic.enable' => 'true',
         },
     }
-
     $kafka_server_augeas_lens_to_use = 'properties.lns'
-    contrail::lib::augeas_conf_set { 'kafka_server_properties_keys':
-            config_file => $kafka_server_properties_file,
-            settings_hash => $kafka_server_properties_config['kafka_server_properties'],
-            lens_to_use => $kafka_server_augeas_lens_to_use,
-    }
-    contrail::lib::augeas_conf_rm {"remove_key_listeners":
-            key => 'listeners',
-            config_file => $kafka_server_properties_file,
-            lens_to_use => $kafka_server_augeas_lens_to_use,
-    }
-
-    # Ensure kafka/config/log4j.properties file is present with right content.
     $kafka_log4j_properties_file = '/usr/share/kafka/config/log4j.properties'
     $kafka_log4j_properties_config = { 'kafka_log4j_properties' => {
             'log4j.rootLogger' => 'INFO, stdout',
@@ -125,57 +81,92 @@ class contrail::database::config (
         },
     }
     $kafka_log4j_augeas_lens_to_use = 'properties.lns'
+
+    # Debug - Print all variables
+    notify { "Database - contrail cassandra dir is ${contrail_cassandra_dir}":; } ->
+    notify { "Database - host_control_ip = ${host_control_ip}":;} ->
+    notify { "Database - config_ip = ${config_ip}":;} ->
+    notify { "Database - internal_vip = ${internal_vip}":;} ->
+    notify { "Database - database_ip_list = ${database_ip_list}":;} ->
+    notify { "Database - zookeeper_ip_list = ${zookeeper_ip_list}":;} ->
+    notify { "Database - database_index = ${database_index}":;} ->
+    notify { "Database - cassandra_seeds = ${cassandra_seeds}":;} ->
+    file { $database_dir :
+        ensure  => directory,
+        owner   => cassandra,
+        group   => cassandra,
+    } ->
+    class {'::contrail::database::config_cassandra':
+            cassandra_seeds => $cassandra_seeds,
+            contrail_cassandra_dir => $contrail_cassandra_dir
+    } ->
+
+    # Ensure kafka/config/server.properties file is present with right content.
+    contrail::lib::augeas_conf_set { 'kafka_server_properties_keys':
+            config_file => $kafka_server_properties_file,
+            settings_hash => $kafka_server_properties_config['kafka_server_properties'],
+            lens_to_use => $kafka_server_augeas_lens_to_use,
+    } ->
+    contrail::lib::augeas_conf_rm {"remove_key_listeners":
+            key => 'listeners',
+            config_file => $kafka_server_properties_file,
+            lens_to_use => $kafka_server_augeas_lens_to_use,
+    } ->
+
+    # Ensure kafka/config/log4j.properties file is present with right content.
     contrail::lib::augeas_conf_ins { 'setting_kafka.logs.dir':
             key => 'kafka.logs.dir',
             value => 'logs',
             config_file => $kafka_log4j_properties_file,
             lens_to_use => $kafka_log4j_augeas_lens_to_use,
-    }
+    } ->
     contrail::lib::augeas_conf_set { 'kafka_log4j_properties_keys':
             config_file => $kafka_log4j_properties_file,
             settings_hash => $kafka_log4j_properties_config['kafka_log4j_properties'],
             lens_to_use => $kafka_log4j_augeas_lens_to_use,
-    }
-
-    ->
+    } ->
     file { '/etc/zookeeper/conf/zoo.cfg':
         ensure  => present,
         content => template("${module_name}/zoo.cfg.erb"),
-    }
-
-    #File['/usr/share/kafka/config/log4j.properties'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
-    # Below is temporary to work-around in Ubuntu as Service resource fails
-    # as upstart is not correctly linked to /etc/init.d/service-name
-    if ($::operatingsystem == 'Ubuntu') {
-        file { '/etc/init.d/supervisord-contrail-database':
-            ensure  => link,
-            target  => '/lib/init/upstart-job',
-        }
-        # Replaced the below script with augeas
-        # File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/contrail/contrail_setup_utils/config-zk-files-setup.sh']
-        File['/etc/init.d/supervisord-contrail-database'] -> File['/etc/zookeeper/conf/zoo.cfg'] ->
-        File ['/etc/zookeeper/conf/log4j.properties'] -> File ['/etc/zookeeper/conf/environment'] ->
-        File ['/etc/zookeeper/conf/myid'] ~> Service['zookeeper']
-    }
-    # set high session timeout to survive glance led disk activity
-    # Commented out call to old exec
-    #class {'::contrail::database::config_zk_files_setup':
-    #    contrail_zk_exec_cmd => $contrail_zk_exec_cmd
-    #}
-    # Replaced exec with call to augeas in this class
+    } ->
     class {'::contrail::database::new_config_zk_files_setup':
         database_index => $database_index
-    }
-
+    } ->
     contrail_database_nodemgr_config {
       'DEFAULT/hostip': value => $host_control_ip;
       'DEFAULT/minimum_diskGB' : value => $database_minimum_diskGB;
       'DISCOVERY/server' : value => $config_ip;
       'DISCOVERY/port' : value => '5998';
-    }
-
+    } ->
     file { '/etc/contrail/database_nodemgr_param' :
         ensure  => present,
         content => template("${module_name}/database_nodemgr_param.erb"),
     }
+
+    if ($analytics_data_dir != '') {
+        Notify["Database - cassandra_seeds = ${cassandra_seeds}"] ->
+        # Make dir ContrailAnalytics in cassandra database folder
+        file { "${database_dir}/ContrailAnalytics":
+            ensure  => link,
+            target  => "${analytics_data_dir}/ContrailAnalyticsCql",
+            require => File[$database_dir],
+            owner   => cassandra,
+            group   => cassandra,
+        } ->
+        File["$database_dir"]
+    }
+
+    # Below is temporary to work-around in Ubuntu as Service resource fails
+    # as upstart is not correctly linked to /etc/init.d/service-name
+    if ($::operatingsystem == 'Ubuntu') {
+        File['/etc/zookeeper/conf/zoo.cfg'] ->
+        file { '/etc/init.d/supervisord-contrail-database':
+            ensure  => link,
+            target  => '/lib/init/upstart-job',
+        } ->
+        File ['/etc/zookeeper/conf/log4j.properties'] -> File ['/etc/zookeeper/conf/environment'] ->
+        File ['/etc/zookeeper/conf/myid'] ~> Service['zookeeper']
+    }
+    contain ::contrail::database::config_cassandra
+    contain ::contrail::database::new_config_zk_files_setup
 }

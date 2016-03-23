@@ -11,6 +11,7 @@ class contrail::control::config (
     $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
 ) {
     # Main class code begins here
+    contain ::contrail::xmpp_cert_files
     case $::operatingsystem {
         Ubuntu: {
             # Below is temporary to work-around in Ubuntu as Service resource fails
@@ -19,7 +20,8 @@ class contrail::control::config (
                    '/etc/init.d/supervisor-dns']:
                 ensure => link,
                 target => '/lib/init/upstart-job',
-            }
+            } ->
+            Contrail_dns_config['DEFAULT/xmpp_dns_auth_enable']
         }
     }
 
@@ -43,8 +45,7 @@ class contrail::control::config (
       'IFMAP/user'        : value => "$host_control_ip.dns";
       'IFMAP/password'    : value => "$host_control_ip.dns";
       'IFMAP/certs_store' : value => "$certs_store";
-    }
-
+    } ->
     contrail_control_config {
       'DEFAULT/xmpp_auth_enable' : value => "$xmpp_auth_enable";
       'DEFAULT/hostip'    : value => $host_control_ip;
@@ -55,12 +56,10 @@ class contrail::control::config (
       'IFMAP/user'        : value => "$host_control_ip";
       'IFMAP/password'    : value => "$host_control_ip";
       'IFMAP/certs_store' : value => "$certs_store";
-    }
-
+    } ->
     contrail_control_nodemgr_config {
       'DISCOVERY/server'  : value => $config_ip_to_use;
       'DISCOVERY/port'    : value => '5998';
-    }
-
-    include ::contrail::xmpp_cert_files
+    } ->
+    Class['::contrail::xmpp_cert_files']
 }

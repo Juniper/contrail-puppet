@@ -162,12 +162,12 @@
 #
 class contrail::compute (
 ) {
-
-    anchor {'contrail::compute::start': } ->
     contrail::lib::report_status { 'compute_started': } ->
-    class { '::contrail::compute::install': } ->
-    class { '::contrail::compute::config': } ~>
-    class { '::contrail::compute::service': } ->
+    Class['::contrail::compute::install'] ->
+    Class['::contrail::compute::config'] ~>
+    Class['::contrail::compute::service'] ->
     contrail::lib::report_status { "compute_completed": }
-    anchor {'contrail::compute::end': }
+    contain ::contrail::compute::install
+    contain ::contrail::compute::config
+    contain ::contrail::compute::service
 }

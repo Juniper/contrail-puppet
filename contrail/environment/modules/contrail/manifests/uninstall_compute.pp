@@ -27,15 +27,8 @@ class contrail::uninstall_compute (
     $enable_lbass =  $::contrail::params::enable_lbass,
 ) inherits ::contrail::params {
 
-    # Debug Print all variable values
-    notify {'host_control_ip = $host_control_ip':; } ->
-    notify {'openstack_ip = $openstack_ip':; } ->
-    notify {'config_ip_to_use = $config_ip_to_use':; } 
-
     #Determine vrouter package to be installed based on the kernel
     #TODO add DPDK support here
-
-
     if ($operatingsystem == 'Ubuntu'){
 
         if ($lsbdistrelease == '14.04') {
@@ -55,9 +48,11 @@ class contrail::uninstall_compute (
     else {
       	$vrouter_pkg = 'contrail-vrouter' 
     }
-
-
-    contrail::lib::report_status { 'uninstall_compute_started': }
+    # Debug Print all variable values
+    contrail::lib::report_status { 'uninstall_compute_started': } ->
+    notify {'host_control_ip = $host_control_ip':; } ->
+    notify {'openstack_ip = $openstack_ip':; } ->
+    notify {'config_ip_to_use = $config_ip_to_use':; } 
     ->
     class {'::contrail::delete_vnc_config':
            config_ip_to_use => $config_ip_to_use,
@@ -84,22 +79,13 @@ class contrail::uninstall_compute (
     package { [$vrouter_pkg, 'contrail-openstack-vrouter'] :
         ensure => purged,
         notify => ['Exec[apt_auto_remove_compute]']
-    }
-
-    if ($enable_lbass == true) {
-        package{['haproxy', 'iproute']:
-            ensure => purged,
-            notify => ['Exec[apt_auto_remove_compute]']
-        }
-    }
+    } ->
 
     #The below way should be the ideal one,
     #But when vrouter-agent starts , the actual physical interface is not removed,
     #when vhost comes up.
     #This results in non-reachablity
     #package { 'contrail-openstack-vrouter' : ensure => latest, notify => 'Service[supervisor-vrouter]'}
-
-
 
     exec { 'apt_auto_remove_compute':
         command => 'apt-get autoremove -y --purge',
@@ -125,9 +111,20 @@ class contrail::uninstall_compute (
       apply => "immediately",
       subscribe       => Class['::contrail::clear_compute'],
       timeout => 0,
-    }
-
+    } ->
     class {'::contrail::do_reboot_server':
         reboot_flag => 'uninstall_compute_reboot',
+    }
+    contain ::contrail::delete_vnc_config
+    contain ::contrail::clear_compute
+    contain ::contrail::do_reboot_server
+
+    if ($enable_lbass == true) {
+        File['/etc/network/interfaces']->
+        package{['haproxy', 'iproute']:
+            ensure => purged,
+            notify => ['Exec[apt_auto_remove_compute]']
+        } ->
+        Package[$vrouter_pkg]
     }
 }
