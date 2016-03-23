@@ -7,10 +7,12 @@ class contrail::collector::install {
     }
     package {'python-kafka':
         ensure => latest,
-        before => Package['contrail-analytics']
+        before => Package['contrail-analytics'],
+        notify => Service['supervisor-analytics']
     }
     package { ['contrail-analytics','contrail-openstack-analytics', 'contrail-docs'] :
         ensure => latest,
         configfiles => "replace",
+        notify => Service['supervisor-analytics']
     }
 }
