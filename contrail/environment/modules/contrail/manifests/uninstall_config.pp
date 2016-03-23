@@ -59,47 +59,44 @@ class contrail::uninstall_config (
 
     case $::operatingsystem {
 	Ubuntu: {
-	    file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']}
-	    file {"/etc/init/neutron-server.override": ensure => absent, require => Package['contrail-openstack-config']}
-
+            Contrail::Lib::Report_status["uninstall_config_started""]->
+	    file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']} ->
+	    file {"/etc/init/neutron-server.override": ensure => absent, require => Package['contrail-openstack-config']} ->
 	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
 		ensure  => absent,
-	    }
-
+	    } ->
 	    file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" :
 		ensure  => absent,
-	    }
-
+	    } ->
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
 	    file { '/etc/init.d/supervisor-config':
 		ensure => link,
 		target => '/lib/init/upstart-job',
-	    }
-
-
+	    } ->
+            Class['::contrail::delete_role_config']
 	}
 	Centos: {
 		       # notify { "OS is Ubuntu":; }
+            Contrail::Lib::Report_status["uninstall_config_started""]->
 	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
 		ensure  => absent,
-	    }
-
+	    } ->
 	    file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" :
 		ensure  => absent,
-	    }
-
+	    } ->
+            Class['::contrail::delete_role_config']
 	}
 	Fedora: {
 		    #        notify { "OS is Ubuntu":; }
+            Contrail::Lib::Report_status["uninstall_config_started""]->
 	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
 		ensure  => absent,
-	    }
-
+	    } ->
 	    file { "/etc/contrail/supervisord_config_files/contrail-discovery.ini" :
 		ensure  => absent,
-	    }
-
+	    } ->
+            Class['::contrail::delete_role_config']
 	}
 	default: {
 	    # notify { "OS is $operatingsystem":; }
@@ -165,7 +162,7 @@ class contrail::uninstall_config (
     contrail::lib::report_status { "uninstall_config_completed":
         state => "config_completed", 
         contrail_logoutput => $contrail_logoutput }
-
+    contain ::contrail::delete_role_config
 # end of user defined type contrail_config.
 
 }
