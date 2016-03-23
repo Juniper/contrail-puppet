@@ -116,7 +116,6 @@ class contrail::provision_contrail (
                 group  => root,
                 source => "puppet:///modules/${module_name}/provision_role.py"
     }
-
     contain '::contrail::exec_provision_control'
     contain '::contrail::setup_external_bgp'
     contain '::contrail::provision_metadata_services'
@@ -124,4 +123,5 @@ class contrail::provision_contrail (
     contain '::contrail::provision_role_config'
     contain '::contrail::provision_role_database'
     contain '::contrail::provision_role_collector'
+    File['/opt/contrail/provision_role.py']->Class['::contrail::exec_provision_control']->Class['::contrail::setup_external_bgp']->Class['::contrail::provision_metadata_services']->Class['::contrail::provision_encap_type']->Class['::contrail::provision_role_config']->Class['::contrail::provision_role_database']->Class['::contrail::provision_role_collector']
 }

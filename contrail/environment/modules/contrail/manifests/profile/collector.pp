@@ -15,10 +15,9 @@ class contrail::profile::collector (
     if ($enable_module and "collector" in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::collector
     } elsif ((!("collector" in $host_roles)) and ($contrail_roles["collector"] == true)) {
-
         notify { "uninstalling collector":; }
         contain ::contrail::uninstall_collector
-
+        Notify["uninstalling collector"]->Class['::contrail::uninstall_collector']
     }
 
 }

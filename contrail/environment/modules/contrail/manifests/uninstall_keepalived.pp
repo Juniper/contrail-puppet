@@ -14,5 +14,4 @@ class contrail::uninstall_keepalived (
            ]:
         ensure  => absent,
     }
-
 }

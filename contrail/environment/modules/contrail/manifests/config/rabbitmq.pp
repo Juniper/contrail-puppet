@@ -29,7 +29,7 @@ class contrail::config::rabbitmq (
 		$master = 'no'
 	    }
 
-	    $cfgm_ip_list_shell = join($config_ip_list,",")
+        $cfgm_ip_list_shell = join($config_ip_list,",")
         $cfgm_name_list_shell = join($config_name_list, ",")
         $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctl\n"
 
@@ -53,13 +53,15 @@ class contrail::config::rabbitmq (
         class {'::contrail::config::add_etc_hosts':
             cfgm_ip_list_shell => $cfgm_ip_list_shell,
             cfgm_name_list_shell => $cfgm_name_list_shell
-        }
-        ->
+        } ->
+        
         class {'::contrail::config::verify_rabbitmq':
             master => $master,
             host_control_ip => $host_control_ip,
             config_ip_list => $config_ip_list
         }
+        contain ::contrail::config::verify_rabbitmq
+        contain ::contrail::config::add_etc_hosts
     }
 
 }

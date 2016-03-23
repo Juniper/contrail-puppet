@@ -112,13 +112,12 @@
 #     (optional) - Defaults to false
 #
 class contrail::collector ()  {
-
-    anchor {'contrail::collector::start': } ->
     contrail::lib::report_status { 'collector_started': } ->
-    class { '::contrail::collector::install': } ->
-    class { '::contrail::collector::config': } ~>
-    class { '::contrail::collector::service': } ->
+    Class['::contrail::collector::install'] ->
+    Class['::contrail::collector::config'] ~>
+    Class['::contrail::collector::service'] ->
     contrail::lib::report_status { 'collector_completed': }
-    anchor {'contrail::collector::end': }
-
+    contain ::contrail::collector::install
+    contain ::contrail::collector::config
+    contain ::contrail::collector::service
 }

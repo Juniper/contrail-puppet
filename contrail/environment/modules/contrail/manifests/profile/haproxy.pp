@@ -17,11 +17,10 @@ class contrail::profile::haproxy (
            ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true))
           ) 
   {
-        notify { 'uninstalling haproxy':; }
-        contrail::lib::report_status { 'uninstall_haproxy_started': state => 'uninstall_haproxy_started' }
-        -> class {'::contrail::uninstall_haproxy' : }
-        -> contrail::lib::report_status { 'uninstall_haproxy_completed': state => 'uninstall_haproxy_completed' }
-
+        notify { 'uninstalling haproxy':; } ->
+        contrail::lib::report_status { 'uninstall_haproxy_started': state => 'uninstall_haproxy_started' } ->
+        Class['::contrail::uninstall_haproxy'] ->
+        contrail::lib::report_status { 'uninstall_haproxy_completed': state => 'uninstall_haproxy_completed' }
+        contain ::contrail::uninstall_haproxy
   }
-
 }
