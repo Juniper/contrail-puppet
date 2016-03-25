@@ -694,6 +694,8 @@ class contrail (
     $contrail_amqp_port = '',
     $openstack_amqp_ip_list = '',
     $openstack_amqp_port = '',
+    $sriov = {},
+    $sriov_enable = false,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -778,6 +780,8 @@ class contrail (
     contrail_amqp_port =>                   hiera(openstack::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),
     openstack_amqp_ip_list =>               hiera(openstack::openstack_amqp_ip_list, hiera(contrail::params::openstack_amqp_ip_list, $openstack_amqp_ip_list)),
     openstack_amqp_port =>                  hiera(openstack::openstack_amqp_port, hiera(contrail::params::openstack_amqp_port, $openstack_amqp_port)),
+        sriov_enable =>                         hiera(contrail::openstack::sriov::enable, hiera(contrail::params::sriov_enable, $sriov_enable)),
+
         # Openstack HA Parameters
 	internal_vip =>				hiera(openstack::ha::internal_vip, hiera(contrail::params::internal_vip, $internal_vip)),
 	external_vip =>				hiera(openstack::ha::external_vip, hiera(contrail::params::external_vip, $external_vip)),
@@ -804,7 +808,7 @@ class contrail (
 	compute_passwd_list =>			hiera(contrail::compute::compute_passwd_list, hiera(contrail::params::compute_passwd_list, $compute_passwd_list)),
         huge_pages =>                           hiera(contrail::compute::dpdk::huge_pages, hiera(contrail::params::huge_pages, $huge_pages)),
         core_mask => 	                        hiera(contrail::compute::dpdk::core_mask, hiera(contrail::params::core_mask, $core_mask)),
-
+        sriov =>                                hiera(contrail::compute::sriov,hiera(contrail::params::sriov, $sriov)),
         # VMWare Parameters
 	vmware_ip =>				hiera(contrail::vmware::vmware_ip, hiera(contrail::params::vmware_ip, $vmware_ip)),
 	vmware_username =>			hiera(contrail::vmware::vmware_username, hiera(contrail::params::vmware_username, $vmware_username)),
