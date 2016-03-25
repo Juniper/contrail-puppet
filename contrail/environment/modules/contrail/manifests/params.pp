@@ -693,6 +693,8 @@ class contrail::params (
     $contrail_amqp_port,
     $openstack_amqp_ip_list,
     $openstack_amqp_port,
+    $sriov,
+    $sriov_enable,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
