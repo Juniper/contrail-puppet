@@ -20,6 +20,8 @@ class openstack::common::nova ($is_compute    = false) {
   $contrail_neutron_server = $::contrail::params::config_ip_to_use
 
   $openstack_ip_list = $::contrail::params::openstack_ip_list
+
+  $sriov_enable = $::contrail::params::sriov_enable
   $contrail_memcache_servers = inline_template('<%= @openstack_ip_list.map{ |ip| "#{ip}:11211" }.join(",") %>')
 
   nova_config { 'DEFAULT/default_floating_pool': value => 'public' }
@@ -158,6 +160,26 @@ class openstack::common::nova ($is_compute    = false) {
         line   => 'notification_driver=ceilometer.compute.nova_notifier',
         path   => '/etc/nova/nova.conf',
         after  => '^\s*\[DEFAULT\]';
+    }
+  }
+
+  notify { "sriov = ${sriov}":; }
+  if ($sriov_enable) {
+    file_line_after {
+      'scheduler_default_filters':
+        line   =>
+          'scheduler_default_filters=PciPassthroughFilter',
+        path   => '/etc/nova/nova.conf',
+        after  => '^\s*\[DEFAULT\]';
+      'scheduler_available_filters':
+        line   => 'scheduler_available_filters=nova.scheduler.filters.pci_passthrough_filter.PciPassthroughFilter',
+        path   => '/etc/nova/nova.conf',
+        after  => '^\s*\[DEFAULT\]';
+      'scheduler_available_filters2':
+        line   => 'scheduler_available_filters=nova.scheduler.filters.all_filters',
+        path   => '/etc/nova/nova.conf',
+        after  => '^\s*\[DEFAULT\]';
+
     }
   }
 
