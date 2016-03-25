@@ -40,6 +40,7 @@ class contrail::compute::config(
     $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
     $enable_dpdk=  $::contrail::params::enable_dpdk,
     $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
+    $sriov = $::contrail::params::sriov,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -330,6 +331,16 @@ class contrail::compute::config(
         ensure  => present,
         content => template("${module_name}/agent_param.tmpl.erb"),
     } ->
+
+
+    notify { "sriov = ${sriov}":; }
+    $sriov_keys = keys($sriov)
+    if (!empty($sriov)) {
+      contrail::lib::setup_sriov_wrapper {$sriov_keys:
+            intf_hash => $sriov,
+            enable_dpdk => $enable_dpdk,
+      }
+    }
 
     contrail_vrouter_agent_config {
       'DEFAULT/xmpp_auth_enable' : value => "$xmpp_auth_enable";
