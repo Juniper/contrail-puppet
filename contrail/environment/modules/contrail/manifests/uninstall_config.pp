@@ -121,7 +121,7 @@ class contrail::uninstall_config (
     }
     ->
     # Ensure all needed packages are absent
-    package { 'contrail-openstack-config' : ensure => purged, install_options => [], uninstall_options => ["--auto-remove"] , notify => ["Exec[apt_auto_remove_config]"]}
+    package { ['contrail-openstack-config', 'contrail-config'] : ensure => purged, install_options => [], uninstall_options => ["--auto-remove"] , notify => ["Exec[apt_auto_remove_config]"]}
     # The above wrapper package should be broken down to the below packages
     # For Debian/Ubuntu - supervisor, contrail-nodemgr, contrail-lib, contrail-config, neutron-plugin-contrail, neutron-server, python-novaclient,
     #                     python-keystoneclient, contrail-setup, haproxy, euca2ools, rabbitmq-server, python-qpid, python-iniparse, python-bottle,

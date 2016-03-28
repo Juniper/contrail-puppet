@@ -45,11 +45,11 @@ class contrail::uninstall_collector (
             config_ip => $config_ip,
             hostname => $hostname,
             host_control_ip => $host_control_ip,
-            multi_tenancy_options => $multi_tenancy_options
+            multi_tenancy_options => $multi_tenancy_options,
     }
     ->
     # Ensure all needed packages are present
-    package { 'contrail-openstack-analytics' :
+    package { ['contrail-openstack-analytics', 'contrail-analytics'] :
         ensure => purged,
         notify => ["Exec[apt_auto_remove_collector]"],
     }
