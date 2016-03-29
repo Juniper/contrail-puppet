@@ -12,6 +12,7 @@ class contrail::toragent(
     $haproxy = $::contrail::params::haproxy,
     $host_control_ip = $::contrail::params::host_ip
 ) {
+    include ::contrail
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $discovery_ip_to_use = $::contrail::params::discovery_ip_to_use
 
@@ -29,11 +30,13 @@ class contrail::toragent(
         'keepalive_time'          => '10000',
         'host_control_ip'         => $host_control_ip
     }
-    contrail::lib::report_status { 'toragent_started': state => 'toragent_started' }
-    include ::contrail
+    $global_tor_config = $::contrail::params::tor_ha_config
+    # get myhost configuration
+    $tor_config = $global_tor_config["$::hostname"]
+    create_resources(contrail::lib::top_of_rack, $tor_config, $tor_defaults)
 
+    contrail::lib::report_status { 'toragent_started': state => 'toragent_started' } ->
     # directories are created by xmpp_cert_files
-
     file { "tor-agent-ssl-cacert" :
         ensure => $ssl_enable,
         path   => "/etc/contrail/ssl/certs/cacert.pem",
@@ -41,23 +44,11 @@ class contrail::toragent(
         owner  => root,
         group  => root,
         source => "puppet:///ssl_certs/ca-cert.pem",
-    }
-
-    $global_tor_config = $::contrail::params::tor_ha_config
-    # get myhost configuration
-    $tor_config = $global_tor_config["$::hostname"]
-    create_resources(contrail::lib::top_of_rack, $tor_config, $tor_defaults)
-
+    } ->
+    Contrail::Lib::Top_of_rack <| |> ~>
     service { 'supervisor-vrouter':
         enable => true,
         ensure => running
-    }
-
+    } ->
     contrail::lib::report_status { 'toragent_completed': state => 'toragent_completed' }
-
-    Contrail::Lib::Report_status['toragent_started']
-    -> File['tor-agent-ssl-cacert']
-    -> Contrail::Lib::Top_of_rack <| |>
-    ~> Service['supervisor-vrouter']
-    -> Contrail::Lib::Report_status['toragent_completed']
 }

@@ -30,9 +30,31 @@ class contrail::collector::config (
     $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
     $zk_ip_list = join($zookeeper_ip_port_list, ',')
 
+    $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
+    $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
 
+    $redis_config_file = '/etc/redis/redis.conf'
+    $redis_augeas_lens_to_use = 'spacevars.lns'
 
-    include ::contrail::keystone
+    if ($redis_password != "" ) {
+        $redis_config = { 'redis_conf' => { 'requirepass' => $redis_password,},}
+        Contrail_topology_ini_config['program:contrail-topology/user'] ->
+        contrail_analytics_api_config { 'REDIS/redis_password' : value => $redis_password; } ->
+        contrail_collector_config { 'REDIS/password': value => $redis_password; } ->
+        contrail_query_engine_config { 'REDIS/password': value => $redis_password; } ->
+        contrail::lib::augeas_conf_set { 'redis_conf_keys':
+             config_file => $redis_config_file,
+             settings_hash => $redis_config['redis_conf'],
+             lens_to_use => $redis_augeas_lens_to_use,
+        } ->
+        Contrail::Lib::Augeas_conf_rm["remove_bind"]
+    } else {
+        Contrail_topology_ini_config['program:contrail-topology/user'] ->
+        contrail_analytics_api_config { 'REDIS/redis_password' : ensure => absent; } ->
+        contrail_collector_config { 'REDIS/password': ensure => absent; } ->
+        contrail_query_engine_config { 'REDIS/password': ensure => absent; } ->
+        Contrail::Lib::Augeas_conf_rm["remove_bind"]
+    }
 
     contrail_analytics_api_config {
       'DEFAULTS/host_ip'          : value => $host_control_ip;
@@ -52,7 +74,7 @@ class contrail::collector::config (
       'DISCOVERY/disc_server_port' : value => '5998';
       'REDIS/redis_server_port'    : value => '6379';
       'REDIS/redis_query_port'     : value => '6379';
-    }
+    } ->
 
     contrail_query_engine_config {
       'DEFAULT/hostip'          : value => $host_control_ip;
@@ -65,7 +87,7 @@ class contrail::collector::config (
       'REDIS/server'             : value => '127.0.0.1';
       'DISCOVERY/server'         : value => $config_ip_to_use;
       'DISCOVERY/port'           : value => '5998';
-    }
+    } ->
 
     contrail_collector_config {
       'DEFAULT/hostip'          : value => $host_control_ip;
@@ -85,7 +107,7 @@ class contrail::collector::config (
       'DISCOVERY/server'         : value => $config_ip_to_use;
       'REDIS/port'               : value => '6379';
       'REDIS/server'             : value => '127.0.0.1';
-    }
+    } ->
 
     contrail_snmp_collector_config {
       'DEFAULTS/zookeeper'          : value => "$zk_ip_list";
@@ -97,12 +119,12 @@ class contrail::collector::config (
       'DEFAULTS/http_server_port'   : value => '5920';
       'DISCOVERY/disc_server_port' : value => '5998';
       'DISCOVERY/disc_server_ip'   : value => $discovery_ip_to_use;
-    }
+    } ->
 
     contrail_analytics_nodemgr_config {
       'DEFAULT/server' : value => $config_ip_to_use;
       'DEFAULT/port'   : value => '5998';
-    }
+    } ->
 
     contrail_alarm_gen_config {
       'DEFAULTS/host_ip'            : value => $host_control_ip;
@@ -114,7 +136,7 @@ class contrail::collector::config (
       'DEFAULTS/log_file'           : value => '/var/log/contrail/contrail-alarm-gen.log';
       'DISCOVERY/disc_server_port' : value => '5998';
       'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
-    }
+    } ->
 
     contrail_topology_config {
       'DEFAULTS/zookeeper'          : value => "$zk_ip_list";
@@ -124,9 +146,8 @@ class contrail::collector::config (
       'DEFAULTS/scan_frequency'     : value => $topology_scan_frequency;
       'DISCOVERY/disc_server_ip'    : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port'  : value => '5998';
-    }
+    } ->
 
-    $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     contrail_snmp_collector_ini_config {
       'program:contrail-snmp-collector/command' : value => $contrail_snmp_collector_ini_command;
       'program:contrail-snmp-collector/priority' : value => '340';
@@ -140,9 +161,8 @@ class contrail::collector::config (
       'program:contrail-snmp-collector/startsecs' : value => '5';
       'program:contrail-snmp-collector/exitcodes' : value => '0';
       'program:contrail-snmp-collector/user' : value => 'contrail';
-    }
+    } ->
 
-    $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     contrail_topology_ini_config {
       'program:contrail-topology/command' : value => $contrail_topology_ini_command;
       'program:contrail-topology/priority' : value => '340';
@@ -156,43 +176,23 @@ class contrail::collector::config (
       'program:contrail-topology/startsecs' : value => '5';
       'program:contrail-topology/exitcodes' : value => '0';
       'program:contrail-topology/user' : value => 'contrail';
-    }
-
-    $redis_config_file = '/etc/redis/redis.conf'
-    $redis_augeas_lens_to_use = 'spacevars.lns'
-
-    if ($redis_password != "" ) {
-      contrail_analytics_api_config { 'REDIS/redis_password' : value => $redis_password; }
-      contrail_collector_config { 'REDIS/password': value => $redis_password; }
-      contrail_query_engine_config { 'REDIS/password': value => $redis_password; }
-      $redis_config = { 'redis_conf' => { 'requirepass' => $redis_password,},}
-      contrail::lib::augeas_conf_set { 'redis_conf_keys':
-             config_file => $redis_config_file,
-             settings_hash => $redis_config['redis_conf'],
-             lens_to_use => $redis_augeas_lens_to_use,
-      }
-
-    } else {
-      contrail_analytics_api_config { 'REDIS/redis_password' : ensure => absent; }
-      contrail_collector_config { 'REDIS/password': ensure => absent; }
-      contrail_query_engine_config { 'REDIS/password': ensure => absent; }
-    }
+    } ->
 
     contrail::lib::augeas_conf_rm { "remove_bind":
                 key => 'bind',
                 config_file => $redis_config_file,
                 lens_to_use => $redis_augeas_lens_to_use,
-    }
+    } ->
     contrail::lib::augeas_conf_rm { "remove_save":
                 key => 'save',
                 config_file => $redis_config_file,
                 lens_to_use => $redis_augeas_lens_to_use,
-    }
+    } ->
     contrail::lib::augeas_conf_rm { "remove_dbfilename":
                 key => 'dbfilename',
                 config_file => $redis_config_file,
                 lens_to_use => $redis_augeas_lens_to_use,
-    }
+    } ->
 
     file { '/etc/snmp':
        ensure  => directory,
@@ -200,5 +200,4 @@ class contrail::collector::config (
     file { '/etc/snmp/snmp.conf':
       content => 'mibs +ALL'
     }
-
 }

@@ -11,7 +11,7 @@ define contrail::lib::contrail_install_repo(
         provider => shell,
         unless => "grep -qx exec-pip-install-fabric /etc/contrail/contrail_common_exec.out",
         logoutput => $contrail_logoutput
-    }
+    } ->
     #Untill we upgrade to latest puppet , commenting this out
     #package {Fabric: ensure => present, provider => pip, install_options => ['--find-links=file://opt/contrail/python_packages']}
     # May need to install fabric-utils here. below commented out code is kept for reference, in case needed.

@@ -77,5 +77,12 @@ class contrail::uninstall_openstack (
         state              => 'uninstall_openstack_completed',
         contrail_logoutput => $contrail_logoutput
     }
-
+    contain ::contrail::delete_conductor
+    contain ::contrail::delete_consoleauth
+    contain ::contrail::delete_scheduler
+    contain ::contrail::delete_console
+    contain ::contrail::remove_mysql_cmon_user
+    contain ::contrail::remove_mysql_root_user
+    contain ::contrail::remove_mysql_flush_privileges
+    contain ::contrail::remove_mysql_log_files
 }

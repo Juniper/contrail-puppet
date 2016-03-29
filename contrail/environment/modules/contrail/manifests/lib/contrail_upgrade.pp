@@ -8,18 +8,20 @@ define contrail::lib::contrail_upgrade(
 
     $needed_version = $::contrail::params::contrail_version
     # needed_version is not available om old SMs
-    notify {"*** installed_version => $::contrail_version ***":;}
+    notify {'contrail_upgrade_notify_1': name => "*** installed_version => $::contrail_version ***";}->
+    notify {'contrail_upgrade_notify_2': name => "*** $::contrail_version => ${needed_version} or ${contrail_upgrade} or ${upgrade_needed}";}
     if $needed_version and $::contrail_version and (versioncmp($needed_version, $::contrail_version) > 0) {
-      notify {"*** need => $::needed_version ***":;}
-      $upgrade_needed = 1
+        notify {'contrail_upgrade_notify_3': name => "*** need => $::needed_version ***";}
+        Notify['contrail_upgrade_notify_1']->Notify['contrail_upgrade_notify_3']->Notify['contrail_upgrade_notify_2']
+        $upgrade_needed = 1
     } else {
-      $upgrade_needed = 0
+        $upgrade_needed = 0
     }
 
-    notify { "*** $::contrail_version => ${needed_version} or ${contrail_upgrade} or ${upgrade_needed}":;}
     if (($contrail_upgrade == true) or ($upgrade_needed == 1)) {
-        notify {"*** UPGRADING ***":;} ->
-        exec { 'update_interface_file1':
+        Notify['contrail_upgrade_notify_2']->Notify['contrail_upgrade_notify_4']
+        notify {'contrail_upgrade_notify_4': name => '*** UPGRADING ***';} ->
+        exec { "update_interface_file1":
             command   => "sed -i 's/^\"//g' /etc/network/interfaces",
             provider  => shell,
             logoutput => $contrail_logoutput

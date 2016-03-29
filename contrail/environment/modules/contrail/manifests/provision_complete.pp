@@ -14,11 +14,11 @@ class contrail::provision_complete(
             openstack_ip_list  => $openstack_ip_list,
             internal_vip       => $internal_vip,
             contrail_logoutput => $contrail_logoutput
-        }
-        ->
-        contrail::lib::report_status { $state: }
+        } ->
+        contrail::lib::report_status { $state: } ->
         class {'::contrail::do_reboot_server':
             reboot_flag => "provision_complete_reboot",
         }
+        contain ::contrail::do_reboot_server
     }
 }

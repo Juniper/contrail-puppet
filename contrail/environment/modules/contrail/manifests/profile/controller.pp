@@ -18,10 +18,9 @@ class contrail::profile::controller (
         #contrail expects neutron server to run on controls
         include ::contrail::profile::neutron_server
     } elsif ((!("control" in $host_roles)) and ($contrail_roles["control"] == true)) {
-
         notify { "uninstalling control":; }
         contain ::contrail::uninstall_control
-
+        Notify["uninstalling control"]->Class['::contrail::uninstall_control']
     }
 
 }
