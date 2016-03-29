@@ -27,6 +27,7 @@ class contrail::database::install (
   }
   ->
   package { 'contrail-openstack-database' :
-    ensure => latest
+    ensure => latest,
+    notify => Service["supervisor-database"]
   }
 }
