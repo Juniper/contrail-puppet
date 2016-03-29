@@ -38,12 +38,12 @@
 #
 class contrail::control (
 ) {
-
-    anchor {'contrail::control::start': } ->
     contrail::lib::report_status { 'control_started': } ->
-    class {'::contrail::control::install' : } ->
-    class {'::contrail::control::config' : } ~>
-    class { '::contrail::control::service': } ->
+    Class['::contrail::control::install'] ->
+    Class['::contrail::control::config'] ~>
+    Class['::contrail::control::service'] ->
     contrail::lib::report_status { 'control_completed': }
-    anchor {'contrail::control::end': }
+    contain ::contrail::control::install
+    contain ::contrail::control::config
+    contain ::contrail::control::service
 }

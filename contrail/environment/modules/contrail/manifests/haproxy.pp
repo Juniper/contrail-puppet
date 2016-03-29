@@ -17,13 +17,12 @@
 #
 # The puppet module to set up a haproxy server
 class contrail::haproxy () {
-
-    anchor { 'contrail::haproxy::start': } ->
     contrail::lib::report_status { 'haproxy_started': } ->
-    class { '::contrail::haproxy::install': } ->
-    class { '::contrail::haproxy::config': } ~>
-    class { '::contrail::haproxy::service': } ->
+    Class['::contrail::haproxy::install'] ->
+    Class['::contrail::haproxy::config'] ~>
+    Class['::contrail::haproxy::service'] ->
     contrail::lib::report_status { 'haproxy_completed': }
-    anchor { 'contrail::haproxy::end': }
+    contain ::contrail::haproxy::install
+    contain ::contrail::haproxy::config
+    contain ::contrail::haproxy::service
 }
-

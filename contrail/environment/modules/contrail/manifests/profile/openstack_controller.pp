@@ -35,9 +35,9 @@ class contrail::profile::openstack_controller (
         #class {'::openstack::profile::horizon' : } ->
         class {'::openstack::profile::auth_file' : } ->
         class {'::openstack::profile::provision' : } ->
-        class {'::contrail::contrail_openstack' : }
-        -> package { 'openstack-dashboard': ensure => present }
-        -> file {'/etc/openstack-dashboard/local_settings.py':
+        class {'::contrail::contrail_openstack' : } ->
+        package { 'openstack-dashboard': ensure => present } ->
+        file {'/etc/openstack-dashboard/local_settings.py':
             ensure => present,
             mode   => '0755',
             group  => root,
@@ -45,7 +45,7 @@ class contrail::profile::openstack_controller (
         }
         Class['::openstack::profile::provision']->Service['glance-api']
         if ($enable_ceilometer) {
-            include ::contrail::profile::openstack::ceilometer
+            contain ::contrail::profile::openstack::ceilometer
         }
         notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; }
 

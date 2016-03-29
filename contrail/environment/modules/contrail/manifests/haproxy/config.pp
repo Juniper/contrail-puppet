@@ -14,26 +14,21 @@ class contrail::haproxy::config(
 
     $ha_internal_vip = pick($internal_vip, 'none')
     $ha_contrail_internal_vip = pick($contrail_internal_vip, 'none')
-
     $openstack_ip_list_shell   = join($openstack_ip_list, ",")
     $openstack_name_list_shell = join($openstack_name_list, ",")
-
     $config_ip_list_shell   = join($config_ip_list, ",")
     $config_name_list_shell = join($config_name_list, ",")
-
     $collector_ip_list_shell   = join($collector_ip_list, ",")
     $collector_name_list_shell = join($collector_name_list, ",")
-
     $contrail_exec_haproxy_gen = "python /opt/contrail/bin/generate_haproxy.py  && echo generate_ha_config >> /etc/contrail/contrail_openstack_exec.out"
 
-    notify { "haproxy cmd  $contrail_exec_haproxy_gen":;}
-    -> file { '/opt/contrail/bin/generate_haproxy.py' :
+    notify { "haproxy cmd  $contrail_exec_haproxy_gen":;} ->
+    file { '/opt/contrail/bin/generate_haproxy.py' :
         ensure => present,
         mode   => '0755',
         group  => root,
         content => template("${module_name}/generate_haproxy.erb")
-    }
-    ->
+    } ->
     exec { 'generate_ha_config' :
         command   => $contrail_exec_haproxy_gen,
         provider  => shell,
