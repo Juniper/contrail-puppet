@@ -3,5 +3,5 @@ class contrail::profile::nova::compute {
 
     $controller_management_address = hiera(openstack::controller::address::management)
     notify { "contrail::profile::nova::compute - controller_management_address = ${controller_management_address}":; }
-    include contrail::compute
+    contain contrail::compute
 }

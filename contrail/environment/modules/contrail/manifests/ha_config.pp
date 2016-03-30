@@ -215,151 +215,146 @@ class contrail::ha_config (
             contrail::lib::report_status { 'pre_exec_vnc_galera_completed': }
         }
         if ($enable_post_exec_vnc_galera) {
-        contrail::lib::report_status { 'post_exec_vnc_galera_started': }
-        if ($openstack_index == '1' ) {
-            # Fix WSREP cluster address
-            # Need check this from provisioned ha box
-            Contrail::Lib::Report_status['post_exec_vnc_galera_started'] -> File['/opt/contrail/bin/check_galera.py']
-            file { '/opt/contrail/bin/check_galera.py' :
+            contrail::lib::report_status { 'post_exec_vnc_galera_started': }
+            if ($openstack_index == '1' ) {
+                # Fix WSREP cluster address
+                # Need check this from provisioned ha box
+                Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
+                file { '/opt/contrail/bin/check_galera.py' :
+                    ensure => present,
+                    mode   => '0755',
+                    group  => root,
+                    source => "puppet:///modules/${module_name}/check_galera.py"
+                }
+                ->
+                exec { 'exec_check_galera' :
+                    command   => "python /opt/contrail/bin/check_galera.py ${openstack_mgmt_ip_list_shell} ${openstack_user_list_shell} ${openstack_passwd_list_shell} && echo check_galera >> /etc/contrail/contrail_openstack_exec.out",
+                    cwd       => '/opt/contrail/bin/',
+                    provider  => shell,
+                    logoutput => $contrail_logoutput,
+                }
+                ->
+                file { '/opt/contrail/bin/check-wsrep-status.py' :
+                    ensure => present,
+                    mode   => '0755',
+                    group  => root,
+                    source => "puppet:///modules/${module_name}/check-wsrep-status.py"
+                }
+                ->
+                exec { 'exec_check_wsrep' :
+                    command   => $contrail_exec_check_wsrep,
+                    cwd       => '/opt/contrail/bin/',
+                    provider  => shell,
+                    logoutput => true,
+                }
+            }
+            #This will be skipped if there is an external nfs server
+            if ($contrail_nfs_server == $host_control_ip) {
+                Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
+                package { 'nfs-kernel-server':
+                    ensure  => present,
+                }
+                ->
+                exec { 'create-nfs' :
+                    command   => 'echo \'/var/lib/glance/images *(rw,sync,no_subtree_check)\' >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && chown root:root /var/lib/glance/images && chmod 777 /var/lib/glance/images && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ',
+                    unless    => 'grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out',
+                    provider  => shell,
+                    logoutput => $contrail_logoutput
+                } ->
+                Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
+            }
+            else {
+                Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
+                package { 'nfs-common':
+                    ensure  => present,
+                }
+                ->
+                exec { 'mount-nfs' :
+                    command   => "sudo mount ${contrail_nfs_server}:${contrail_nfs_glance_path} /var/lib/glance/images && echo mount-nfs >> /etc/contrail/contrail_openstack_exec.out",
+                    unless    => 'grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out',
+                    provider  => shell,
+                    logoutput => $contrail_logoutput
+                } ->
+                exec { 'add-fstab' :
+                    command   => "echo \"${contrail_nfs_server}:${contrail_nfs_glance_path} /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
+                    unless    => 'grep -qx add-fstab  /etc/contrail/contrail_openstack_exec.out',
+                    provider  => shell,
+                    logoutput => $contrail_logoutput
+                } ->
+                Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
+            }
+
+            $ha_config_sysctl_settings = {
+              'net.netfilter.nf_conntrack_max' => { value => 256000 },
+              'net.netfilter.nf_conntrack_tcp_timeout_time_wait' => { value => 30 },
+              'net.ipv4.tcp_syncookies' => { value => 1 },
+              'net.ipv4.tcp_tw_recycle' => { value => 1 },
+              'net.ipv4.tcp_tw_reuse' => { value => 1 },
+              'net.ipv4.tcp_fin_timeout' => { value => 30 },
+              'net.unix.max_dgram_qlen' => { value => 1000 },
+            }
+            create_resources(sysctl::value,$ha_config_sysctl_settings, {} )
+            # setup_cmon
+            Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
+            file { '/opt/contrail/bin/setup-cmon-schema.py' :
                 ensure => present,
                 mode   => '0755',
                 group  => root,
-                source => "puppet:///modules/${module_name}/check_galera.py"
+                source => "puppet:///modules/${module_name}/setup-cmon-schema.py"
             }
             ->
-            exec { 'exec_check_galera' :
-                command   => "python /opt/contrail/bin/check_galera.py ${openstack_mgmt_ip_list_shell} ${openstack_user_list_shell} ${openstack_passwd_list_shell} && echo check_galera >> /etc/contrail/contrail_openstack_exec.out",
+            exec { 'exec_setup_cmon_schema' :
+                command   => $contrail_exec_setup_cmon_schema,
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
                 logoutput => $contrail_logoutput,
             }
             ->
-            file { '/opt/contrail/bin/check-wsrep-status.py' :
+            exec { 'fix_xinetd_conf' :
+                command   => "sed -i -e 's#only_from = 0.0.0.0/0#only_from = ${host_control_ip} 127.0.0.1#' /etc/xinetd.d/contrail-mysqlprobe && service xinetd restart && chkconfig xinetd on && echo fix_xinetd_conf >> /etc/contrail/contrail_openstack_exec.out",
+                unless    => 'grep -qx fix_xinetd_conf  /etc/contrail/contrail_openstack_exec.out',
+                provider  => shell,
+                logoutput => $contrail_logoutput,
+            }
+            ->
+            Sysctl::Value['net.netfilter.nf_conntrack_max'] ->
+            #TODO tune tcp
+            #fix cmon and add ssh keys
+            file { '/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py' :
                 ensure => present,
                 mode   => '0755',
                 group  => root,
-                source => "puppet:///modules/${module_name}/check-wsrep-status.py"
+                source => "puppet:///modules/${module_name}/fix-cmon-params-and-add-ssh-keys.py"
             }
             ->
-            exec { 'exec_check_wsrep' :
-                command   => $contrail_exec_check_wsrep,
+            exec { 'fix-cmon-params-and-add-ssh-keys' :
+                command   => "python fix-cmon-params-and-add-ssh-keys.py ${compute_name_list_shell} ${config_name_list_shell} && echo fix-cmon-params-and-add-ssh-keys >> /etc/contrail/contrail_openstack_exec.out",
                 cwd       => '/opt/contrail/bin/',
                 provider  => shell,
+                logoutput => $contrail_logoutput,
+            }
+            ->
+            file { '/opt/contrail/bin/transfer_keys.py':
+                ensure => present,
+                mode   => '0755',
+                owner  => root,
+                group  => root,
+                source => "puppet:///modules/${module_name}/transfer_keys.py"
+            }
+            ->
+            exec { 'exec-transfer-keys':
+                command   => "python /opt/contrail/bin/transfer_keys.py ${os_master} \"/etc/ssl/\" ${os_username} ${os_passwd} && echo exec-transfer-keys >> /etc/contrail/contrail_openstack_exec.out",
+                provider  => shell,
                 logoutput => true,
-            }
-        }
-        #This will be skipped if there is an external nfs server
-        if ($contrail_nfs_server == $host_control_ip) {
-            Contrail::Lib::Report_status['post_exec_vnc_galera_started'] -> Package['nfs-kernel-server']
-            package { 'nfs-kernel-server':
-                ensure  => present,
-            }
-            ->
-            exec { 'create-nfs' :
-                command   => 'echo \'/var/lib/glance/images *(rw,sync,no_subtree_check)\' >> /etc/exports && sudo /etc/init.d/nfs-kernel-server restart && chown root:root /var/lib/glance/images && chmod 777 /var/lib/glance/images && echo create-nfs >> /etc/contrail/contrail_compute_exec.out ',
-                unless    => 'grep -qx create-nfs  /etc/contrail/contrail_compute_exec.out',
-                provider  => shell,
-                logoutput => $contrail_logoutput
-            }
-        }
-
-        $ha_config_sysctl_settings = {
-          'net.netfilter.nf_conntrack_max' => { value => 256000 },
-          'net.netfilter.nf_conntrack_tcp_timeout_time_wait' => { value => 30 },
-          'net.ipv4.tcp_syncookies' => { value => 1 },
-          'net.ipv4.tcp_tw_recycle' => { value => 1 },
-          'net.ipv4.tcp_tw_reuse' => { value => 1 },
-          'net.ipv4.tcp_fin_timeout' => { value => 30 },
-          'net.unix.max_dgram_qlen' => { value => 1000 },
-        }
-        # setup_cmon
-        Contrail::Lib::Report_status['post_exec_vnc_galera_started']
-        -> File['/opt/contrail/bin/setup-cmon-schema.py']
-
-        file { '/opt/contrail/bin/setup-cmon-schema.py' :
-            ensure => present,
-            mode   => '0755',
-            group  => root,
-            source => "puppet:///modules/${module_name}/setup-cmon-schema.py"
-        }
-        ->
-        exec { 'exec_setup_cmon_schema' :
-            command   => $contrail_exec_setup_cmon_schema,
-            cwd       => '/opt/contrail/bin/',
-            provider  => shell,
-            logoutput => $contrail_logoutput,
-        }
-        ->
-        exec { 'fix_xinetd_conf' :
-            command   => "sed -i -e 's#only_from = 0.0.0.0/0#only_from = ${host_control_ip} 127.0.0.1#' /etc/xinetd.d/contrail-mysqlprobe && service xinetd restart && chkconfig xinetd on && echo fix_xinetd_conf >> /etc/contrail/contrail_openstack_exec.out",
-            unless    => 'grep -qx fix_xinetd_conf  /etc/contrail/contrail_openstack_exec.out',
-            provider  => shell,
-            logoutput => $contrail_logoutput,
-        }
-        ->
-        class { 'memcached':
-            max_memory => 2048,
-            listen_ip  => $host_control_ip
-        }
-
-        create_resources(sysctl::value,$ha_config_sysctl_settings, {} )
-        #TODO tune tcp
-        #fix cmon and add ssh keys
-        file { '/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py' :
-            ensure => present,
-            mode   => '0755',
-            group  => root,
-            source => "puppet:///modules/${module_name}/fix-cmon-params-and-add-ssh-keys.py"
-        }
-        ->
-        exec { 'fix-cmon-params-and-add-ssh-keys' :
-            command   => "python fix-cmon-params-and-add-ssh-keys.py ${compute_name_list_shell} ${config_name_list_shell} && echo fix-cmon-params-and-add-ssh-keys >> /etc/contrail/contrail_openstack_exec.out",
-            cwd       => '/opt/contrail/bin/',
-            provider  => shell,
-            logoutput => $contrail_logoutput,
-        }
-        ->
-        file { '/opt/contrail/bin/transfer_keys.py':
-            ensure => present,
-            mode   => '0755',
-            owner  => root,
-            group  => root,
-            source => "puppet:///modules/${module_name}/transfer_keys.py"
-        }
-        ->
-        exec { 'exec-transfer-keys':
-            command   => "python /opt/contrail/bin/transfer_keys.py ${os_master} \"/etc/ssl/\" ${os_username} ${os_passwd} && echo exec-transfer-keys >> /etc/contrail/contrail_openstack_exec.out",
-            provider  => shell,
-            logoutput => true,
-        }
-
-        if (enable_sequence_provisioning == false) {
-            Exec['exec-transfer-keys']
-            -> Contrail::Lib::Check_transfer_keys[$openstack_mgmt_ip_list]
-            -> Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
-            contrail::lib::check_transfer_keys{ $openstack_mgmt_ip_list :;}
-        }
-        contrail::lib::report_status { 'post_exec_vnc_galera_completed':}
-        #This wil be executed for all openstacks ,if there is an external nfs server
-        if ($contrail_nfs_server != $host_control_ip ) {
-            package { 'nfs-common':
-                ensure  => present,
-            }
-            ->
-            exec { 'mount-nfs' :
-                command   => "sudo mount ${contrail_nfs_server}:${contrail_nfs_glance_path} /var/lib/glance/images && echo mount-nfs >> /etc/contrail/contrail_openstack_exec.out",
-                unless    => 'grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out',
-                provider  => shell,
-                logoutput => $contrail_logoutput
             } ->
-            exec { 'add-fstab' :
-                command   => "echo \"${contrail_nfs_server}:${contrail_nfs_glance_path} /var/lib/glance/images nfs nfsvers=3,hard,intr,auto 0 0\" >> /etc/fstab && echo add-fstab >> /etc/contrail/contrail_openstack_exec.out ",
-                unless    => 'grep -qx add-fstab  /etc/contrail/contrail_openstack_exec.out',
-                provider  => shell,
-                logoutput => $contrail_logoutput
+            contrail::lib::report_status { 'post_exec_vnc_galera_completed':}
+            #This wil be executed for all openstacks ,if there is an external nfs server
+
+            if (enable_sequence_provisioning == false) {
+                Exec['exec-transfer-keys']
+                -> contrail::lib::check_transfer_keys{ $openstack_mgmt_ip_list :;}
+                -> Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
             }
-            Exec['add-fstab'] -> Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
-        }
         }
     }
 }

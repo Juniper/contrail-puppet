@@ -45,12 +45,12 @@
 #     (optional) - Defaults to false
 #
 class contrail::webui () {
-
-    anchor {'contrail::webui::start':} ->
     contrail::lib::report_status { 'webui_started': } ->
-    class { 'contrail::webui::install' : } ->
-    class { 'contrail::webui::config' : } ~>
-    class { 'contrail::webui::service' : } ->
+    Class['::contrail::webui::install'] ->
+    Class['::contrail::webui::config'] ~>
+    Class['::contrail::webui::service'] ->
     contrail::lib::report_status { 'webui_completed': }
-    anchor {'contrail::webui::end':}
+    contain ::contrail::webui::install
+    contain ::contrail::webui::config
+    contain ::contrail::webui::service
 }

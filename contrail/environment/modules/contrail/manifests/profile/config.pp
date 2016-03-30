@@ -16,11 +16,11 @@ class contrail::profile::config (
     if ($enable_module and 'config' in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::config
         #contrail expects neutron server to run on configs
-        include ::contrail::profile::neutron_server
+        contain ::contrail::profile::neutron_server
+        Class['::contrail::config']->Class['::contrail::profile::neutron_server']
     } elsif ((!('config' in $host_roles)) and ($contrail_roles['config'] == true)) {
-
         notify { 'uninstalling config':; }
         contain ::contrail::uninstall_config
-
+        Notify['uninstalling config']->Class['::contrail::uninstall_config']
     }
 }
