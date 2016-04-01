@@ -123,9 +123,9 @@ class contrail::database::config_cassandra (
         line => 'JVM_OPTS="$JVM_OPTS -Xss512k"',
         match   => "JVM_OPTS=\"\$JVM_OPTS -Xss.*\"",
       }
-      -> file_line { 'ENV Cassandra jmm setting':
-        path => $cassandra_env_file,
-        line => 'JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/jamm-0.3.0.jar"',
-        match   => "JVM_OPTS=\"\$JVM_OPTS -javaagent:.*\"",
+      ->
+      exec { 'update-jamm':
+        command => "sed -i -e 's/lib\/jamm-0.2.5.jar/lib\/jamm-0.3.0.jar/' $cassandra_env_file",
+        provider => shell,
       }
 }

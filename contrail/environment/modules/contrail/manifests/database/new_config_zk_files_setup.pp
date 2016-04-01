@@ -33,10 +33,10 @@ class contrail::database::new_config_zk_files_setup (
               file {'/etc/zookeeper/conf/environment':
                    ensure => present,
               } ->
-              contrail::lib::augeas_conf_set { 'ZOO_LOG4J_PROP':
-                  config_file => '/etc/zookeeper/conf/environment',
-                  settings_hash => {'ZOO_LOG4J_PROP' => "INFO,CONSOLE,ROLLINGFILE"},
-                  lens_to_use => 'properties.lns',
+              file_line { 'Add ZOO_LOG4J_PROP to Zookeeper env':
+                   path => '/etc/zookeeper/conf/environment',
+                   line => "ZOO_LOG4J_PROP=\"INFO,CONSOLE,ROLLINGFILE\"",
+                   match   => "ZOO_LOG4J_PROP=.*$",
               } ->
               File['/etc/zookeeper/conf/myid']
           }
