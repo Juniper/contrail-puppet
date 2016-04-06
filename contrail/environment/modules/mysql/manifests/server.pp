@@ -7,7 +7,7 @@ class mysql::server (
   $package_ensure          = $mysql::params::server_package_ensure,
   $package_name            = $mysql::params::server_package_name,
   $purge_conf_dir          = $mysql::params::purge_conf_dir,
-  $remove_default_accounts = false,
+  $remove_default_accounts = true,
 #  $restart                 = $mysql::params::restart,
   $restart                 = false,
   $root_group              = $mysql::params::root_group,
