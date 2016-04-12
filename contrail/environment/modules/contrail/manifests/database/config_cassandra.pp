@@ -23,6 +23,11 @@ class contrail::database::config_cassandra (
                 ensure => latest,
                 configfiles => "replace",
       } ->
+      file_line { 'Config Cassandra start_rpc':
+          path => $cassandra_config_file,
+          line => "start_rpc: true",
+          match   => "^start_rpc:.*$",
+      } ->
       file_line { 'Config Cassandra listen_address':
           path => $cassandra_config_file,
           line => "listen_address: ${host_control_ip}",
