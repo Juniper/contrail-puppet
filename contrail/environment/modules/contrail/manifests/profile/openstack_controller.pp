@@ -42,33 +42,45 @@ class contrail::profile::openstack_controller (
             mode   => '0755',
             group  => root,
             content => template("${module_name}/local_settings.py.erb")
-        }
-        Class['::openstack::profile::provision']->Service['glance-api']
-        if ($enable_ceilometer) {
-            contain ::contrail::profile::openstack::ceilometer
-        }
-        notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; }
-
-        if ($package_sku !~ /^*2015.1.*/) {
-            package { 'contrail-openstack-dashboard':
-                ensure  => latest,
-            }
-            Package['contrail-openstack-dashboard'] -> Exec['openstack-neutron-db-sync']
-        }
-
-
-        openstack::resources::database { 'neutron': }
-        ->
-        package { 'neutron-server': ensure => present }
-        ->
+        } ->
+        notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; } ->
+        openstack::resources::database { 'neutron': } ->
+        package { 'neutron-server': ensure => present } ->
         class {'::contrail::profile::neutron_db_sync':
             database_connection => $::openstack::resources::connectors::neutron
-        }
-        ->
-        notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; }
-        ->
+        } ->
+        notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; } ->
         contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
+        contain ::openstack::profile::base
+        contain ::nova::quota
+        contain ::openstack::profile::firewall
+        contain ::contrail::profile::openstack::mysql
+        contain ::openstack::profile::keystone
+        contain ::openstack::profile::memcache
+        contain ::contrail::profile::openstack::glance::api
+        contain ::openstack::profile::cinder::api
+        contain ::openstack::profile::nova::api
+        contain ::contrail::profile::openstack::heat
+        contain ::openstack::profile::auth_file
+        contain ::openstack::profile::provision
+        contain ::contrail::contrail_openstack
+        contain ::contrail::profile::neutron_db_sync
+        Class['::openstack::profile::provision']->Service['glance-api']
+        if ($enable_ceilometer) {
+            Class['::contrail::profile::openstack::heat'] ->
+            class {'::contrail::profile::openstack::ceilometer' : } ->
+            Class['::openstack::profile::auth_file']
+            contain ::contrail::profile::openstack::ceilometer
+        }
 
+        if ($package_sku !~ /^*2015.1.*/) {
+            Package['openstack-dashboard'] ->
+            package { 'contrail-openstack-dashboard':
+                ensure  => latest,
+            } ->
+            File['/etc/openstack-dashboard/local_settings.py']
+            Package['contrail-openstack-dashboard'] -> Exec['openstack-neutron-db-sync']
+        }
     } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
 
       notify { 'uninstalling openstack':; }
