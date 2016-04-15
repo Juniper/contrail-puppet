@@ -397,22 +397,23 @@ class contrail::config::config (
         content => template("${module_name}/contrail-discovery.svc.erb"),
     } ->
 
-    Class['::contrail::config::rabbitmq'] ->
-
     file { '/usr/bin/nodejs':
         ensure => link,
         target => '/usr/bin/node',
     } ->
 
     Sysctl::Value['net.ipv4.tcp_keepalive_time']
+    if (! defined(Class['::contrail::rabbitmq'])){
+        contain ::contrail::rabbitmq
+        File['/etc/init.d/contrail-discovery']->Class['::contrail::rabbitmq']->File['/usr/bin/nodejs']
+    }
     # run setup-pki.sh script
     if $use_certs == true {
          contain ::contrail::config::setup_pki
-         Class['::contrail::config::rabbitmq']->Class['::contrail::config::setup_pki']->File['/usr/bin/nodejs']
+         File['/etc/init.d/contrail-discovery']->Class['::contrail::config::setup_pki']->File['/usr/bin/nodejs']
     }
     contain ::contrail::openstackrc
     contain ::contrail::keystone
     contain ::contrail::config::config_neutron_server
-    contain ::contrail::config::rabbitmq
     contain ::contrail::config::setup_quantum_server_setup
 }
