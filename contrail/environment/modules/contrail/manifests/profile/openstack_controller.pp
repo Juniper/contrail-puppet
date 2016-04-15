@@ -16,7 +16,8 @@ class contrail::profile::openstack_controller (
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
   $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
   $host_roles = $::contrail::params::host_roles,
-  $package_sku = $::contrail::params::package_sku
+  $package_sku = $::contrail::params::package_sku,
+  $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp
 ) {
     if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
         contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
@@ -50,6 +51,17 @@ class contrail::profile::openstack_controller (
             database_connection => $::openstack::resources::connectors::neutron
         } ->
         notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; } ->
+        package { 'contrail-openstack':
+            ensure    => latest,
+        }
+        ->
+        exec { 'exec_start_supervisor_openstack' :
+            command   => 'service supervisor-openstack restart && echo start_supervisor_openstack >> /etc/contrail/contrail_openstack_exec.out',
+            provider  => shell,
+            require   => [ Package['contrail-openstack']  ],
+            logoutput => $contrail_logoutput
+        }
+        ->
         contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
         contain ::openstack::profile::base
         contain ::nova::quota
@@ -66,6 +78,7 @@ class contrail::profile::openstack_controller (
         contain ::contrail::contrail_openstack
         contain ::contrail::profile::neutron_db_sync
         Class['::openstack::profile::provision']->Service['glance-api']
+        Package['contrail-openstack'] -> Exec['exec_start_supervisor_openstack']
         if ($enable_ceilometer) {
             Class['::contrail::profile::openstack::heat'] ->
             class {'::contrail::profile::openstack::ceilometer' : } ->
@@ -81,6 +94,12 @@ class contrail::profile::openstack_controller (
             File['/etc/openstack-dashboard/local_settings.py']
             Package['contrail-openstack-dashboard'] -> Exec['openstack-neutron-db-sync']
         }
+
+        if ($openstack_manage_amqp and ! defined(Class['::contrail::rabbitmq']) ) {
+            contain ::contrail::rabbitmq
+            Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Exec['exec_start_supervisor_openstack']
+        }
+
     } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
 
       notify { 'uninstalling openstack':; }
