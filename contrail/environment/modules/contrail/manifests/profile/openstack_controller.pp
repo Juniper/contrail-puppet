@@ -16,7 +16,8 @@ class contrail::profile::openstack_controller (
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
   $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
   $host_roles = $::contrail::params::host_roles,
-  $package_sku = $::contrail::params::package_sku
+  $package_sku = $::contrail::params::package_sku,
+  $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp
 ) {
     if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
         contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
@@ -65,7 +66,22 @@ class contrail::profile::openstack_controller (
             database_connection => $::openstack::resources::connectors::neutron
         }
         ->
+        package { 'contrail-openstack':
+            ensure    => latest,
+        }
+        ->
         notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; }
+        if ($openstack_manage_amqp and ! defined(Class['::contrail::rabbitmq']) ) {
+            contain ::contrail::rabbitmq
+            Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Exec['exec_start_supervisor_openstack']
+        }
+        Package['contrail-openstack'] -> Exec['exec_start_supervisor_openstack']
+        exec { 'exec_start_supervisor_openstack' :
+            command   => 'service supervisor-openstack restart && echo start_supervisor_openstack >> /etc/contrail/contrail_openstack_exec.out',
+            provider  => shell,
+            require   => [ Package['contrail-openstack']  ],
+            logoutput => $contrail_logoutput
+        }
         ->
         contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
 

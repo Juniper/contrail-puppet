@@ -40,6 +40,7 @@ class contrail::compute::config(
     $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
     $enable_dpdk=  $::contrail::params::enable_dpdk,
     $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
+    $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -190,6 +191,12 @@ class contrail::compute::config(
         Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->Class['::contrail::compute::create_nfs']->Nova_config['neutron/admin_auth_url']
     }
 
+    if ($openstack_manage_amqp) {
+        $nova_compute_rabbit_hosts = $openstack_rabbit_servers
+    } else {
+        $nova_compute_rabbit_hosts = $contrail_rabbit_servers
+    }
+
     $nova_params = {
       'neutron/admin_auth_url'=> {   value => "http://${keystone_ip_to_use}:35357/v2.0/" },
       'neutron/admin_tenant_name' => { value => 'services', },
@@ -199,7 +206,7 @@ class contrail::compute::config(
       'neutron/url_timeout' =>  {  value => "300" },
       'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
-      'DEFAULT/rabbit_hosts' => {value => "${contrail_rabbit_servers}"},
+      'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
     }
     create_resources(nova_config, $nova_params, {} )
 

@@ -6,17 +6,6 @@ define contrail::lib::post_openstack(
     $contrail_logoutput = false,
 ) {
   if ($host_control_ip in $openstack_ip_list) {
-    package { 'contrail-openstack':
-    ensure    => latest,
-  }
-  ->
-  exec { 'exec_start_supervisor_openstack' :
-    command   => 'service supervisor-openstack restart && echo start_supervisor_openstack >> /etc/contrail/contrail_openstack_exec.out',
-    provider  => shell,
-    require   => [ Package['contrail-openstack']  ],
-    logoutput => $contrail_logoutput
-  }
-
     #Make ha-mon start later
     if($internal_vip != '') {
         #Get the value for hiera and not from openstack::config

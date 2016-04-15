@@ -770,6 +770,8 @@ class contrail::params (
         $openstack_rabbit_ip_list = $openstack_amqp_ip_list
     } elsif ($contrail_amqp_ip_list != '') {
         $openstack_rabbit_ip_list = $contrail_amqp_ip_list
+    } elsif ($openstack_manage_amqp) {
+        $openstack_rabbit_ip_list = $openstack_ip_list
     } else {
         $openstack_rabbit_ip_list = $config_ip_list
     }
