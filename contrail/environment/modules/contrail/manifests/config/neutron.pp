@@ -69,7 +69,13 @@ class contrail::config::neutron {
       'DEFAULT/log_format' => {value => '%(asctime)s.%(msecs)d %(levelname)8s [%(name)s] %(message)s'},
       'DEFAULT/api_extensions_path' => {value => "extensions:${::python_dist}/neutron_plugin_contrail/extensions" }
   }
+  contrail::lib::augeas_conf_rm { "config_rm_service_provider":
+      key => 'service_provider',
+      config_file => '/etc/neutron/neutron.conf',
+      lens_to_use => 'properties.lns',
+  }
   create_resources(neutron_config, $neutron_contrail_params, {} )
+  Contrail::Lib::Augeas_conf_rm['config_rm_service_provider'] -> Neutron_config['service_providers/service_provider']
   # Openstack HA specific config
   if (($internal_vip != '')) {
       $neutron_ha_params = {
