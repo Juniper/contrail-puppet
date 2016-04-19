@@ -5,7 +5,8 @@ database_dir=$1; shift
 contrail_package_name=$1
 cassandra_version=''
 cassandra_version=`dpkg -s cassandra | grep Version | awk '{print $2}'`
-if [ "$cassandra_version" == "2.1.9" ] || [ "$cassandra_version" == '' ]; then
+version_check=`echo -e "$cassandra_version\n2.1.9" | sort -V | head -n1`
+if [ "$version_check" == "2.1.9" ] || [ "$cassandra_version" == '' ]; then
   # Don't do upgrade
   exit
 fi
