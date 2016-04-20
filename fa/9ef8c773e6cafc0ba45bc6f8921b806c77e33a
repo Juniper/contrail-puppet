@@ -1,0 +1,9 @@
+Verified+2: Zuul <zuul@lists.opencontrail.org>
+Approved+1: Thilak Raj <tsurendra@juniper.net>
+Code-Review+2: Thilak Raj <tsurendra@juniper.net>
+Code-Review+1: Nitish Krishna Kaveri <nitishk@juniper.net>
+Submitted-by: Zuul <zuul@lists.opencontrail.org>
+Submitted-at: Wed, 20 Apr 2016 10:56:33 -0700
+Reviewed-on: https://review.opencontrail.org/19300
+Project: Juniper/contrail-puppet
+Branch: refs/heads/master
