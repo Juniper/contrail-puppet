@@ -16,8 +16,8 @@ class openstack::common::nova ($is_compute    = false) {
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
+  $contrail_neutron_server = $::contrail::params::contrail_neutron_server
   $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
-  $contrail_neutron_server = $::contrail::params::config_ip_to_use
 
   $openstack_ip_list = $::contrail::params::openstack_ip_list
 
