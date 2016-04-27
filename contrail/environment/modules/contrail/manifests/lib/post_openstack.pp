@@ -16,7 +16,6 @@ define contrail::lib::post_openstack(
         exec { 'ha-mon-restart':
             command   => 'service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
             provider  => shell,
-            before    => Exec['exec_start_supervisor_openstack'],
             logoutput => $contrail_logoutput,
         }
       # Set mysql cpnnection string at the end
