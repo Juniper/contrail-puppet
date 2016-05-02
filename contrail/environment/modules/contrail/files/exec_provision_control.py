@@ -31,6 +31,11 @@ class ExecControlProvisioner(object):
             mt_options = ""
       
         for control_ip,hostname in itertools.izip(host_ip_list, host_name_list):
+            # Configuring global system config with the ASN
+            status, output= commands.getstatusoutput('python /opt/contrail/utils/provision_control.py --api_server_ip %s --api_server_port %s --router_asn %s %s' %(contrail_config_ip, api_server_port, self._args.router_asn, mt_options))
+            if status != 0:
+                print "Configure global system config with the ASN output :" + output 
+                sys.exit(1);
             status, output= commands.getstatusoutput('python /opt/contrail/utils/provision_control.py --api_server_ip %s --api_server_port %s --host_name %s  --host_ip %s --router_asn %s %s --oper add' %(contrail_config_ip, api_server_port, hostname, control_ip, self._args.router_asn, mt_options))
             if status != 0:
                 print "the output :" + output 
