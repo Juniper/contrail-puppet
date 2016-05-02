@@ -59,7 +59,7 @@ class contrail::uninstall_config (
 
     case $::operatingsystem {
 	Ubuntu: {
-            Contrail::Lib::Report_status["uninstall_config_started""]->
+            Contrail::Lib::Report_status["uninstall_config_started"]->
 	    file {"/etc/init/supervisor-config.override": ensure => absent, require => Package['contrail-openstack-config']} ->
 	    file {"/etc/init/neutron-server.override": ensure => absent, require => Package['contrail-openstack-config']} ->
 	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
@@ -78,7 +78,7 @@ class contrail::uninstall_config (
 	}
 	Centos: {
 		       # notify { "OS is Ubuntu":; }
-            Contrail::Lib::Report_status["uninstall_config_started""]->
+            Contrail::Lib::Report_status["uninstall_config_started"]->
 	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
 		ensure  => absent,
 	    } ->
@@ -89,7 +89,7 @@ class contrail::uninstall_config (
 	}
 	Fedora: {
 		    #        notify { "OS is Ubuntu":; }
-            Contrail::Lib::Report_status["uninstall_config_started""]->
+            Contrail::Lib::Report_status["uninstall_config_started"]->
 	    file { "/etc/contrail/supervisord_config_files/contrail-api.ini" :
 		ensure  => absent,
 	    } ->
