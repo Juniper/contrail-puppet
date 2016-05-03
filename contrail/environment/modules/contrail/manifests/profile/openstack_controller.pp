@@ -17,7 +17,8 @@ class contrail::profile::openstack_controller (
   $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
   $host_roles = $::contrail::params::host_roles,
   $package_sku = $::contrail::params::package_sku,
-  $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp
+  $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
+  $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use
 ) {
     if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
         contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
@@ -79,6 +80,11 @@ class contrail::profile::openstack_controller (
         contain ::contrail::profile::neutron_db_sync
         Class['::openstack::profile::provision']->Service['glance-api']
         Package['contrail-openstack'] -> Exec['exec_start_supervisor_openstack']
+        if ($neutron_ip_to_use) {
+            $neutron_params = {'DEFAULT/bind_host' =>  {  value => "${neutron_ip_to_use}" }}
+            create_resources(neutron_config, $neutron_params, {} )
+            Class['::contrail::profile::neutron_db_sync']->Neutron_config['DEFAULT/bind_host']->Package['contrail-openstack']
+        }
         if ($enable_ceilometer) {
             Class['::contrail::profile::openstack::heat'] ->
             class {'::contrail::profile::openstack::ceilometer' : } ->

@@ -550,6 +550,14 @@
 #     User provided port for amqp service
 #     (optional) - Defaults to ''.
 #
+# [*nova_rabbit_hosts*]
+#     AMQP IP list to use for Nova when using an external openstack
+#     (optional) - Defaults to undef
+#
+# [*neutron_ip_to_use*]
+#     Neutron IP to use for Nova when using an external openstack
+#     (optional) - Defaults to undef
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -618,6 +626,8 @@ class contrail (
     $vmware_password = '',
     $vmware_vswitch = '',
     $mysql_root_password = 'c0ntrail123',
+    $nova_rabbit_hosts = undef,
+    $neutron_ip_to_use = undef,
     $openstack_mgmt_ip_list = undef,
     $encap_priority = 'VXLAN,MPLSoUDP,MPLSoGRE',
     $router_asn = 64512,
@@ -775,6 +785,8 @@ class contrail (
 	openstack_manage_amqp =>		hiera(openstack::openstack_manage_amqp, hiera(contrail::params::openstack_manage_amqp, $openstack_manage_amqp)),
 	mysql_root_password =>			hiera(openstack::mysql::root_password, hiera(contrail::params::mysql_root_password, $mysql_root_password)),
 	metadata_secret =>			hiera(openstack::metadata_secret, hiera(contrail::params::metadata_secret, $metadata_secret)),
+	nova_rabbit_hosts =>                    hiera(openstack::nova::rabbit_hosts, hiera(contrail::params::nova_rabbit_hosts, $nova_rabbit_hosts)),
+	neutron_ip_to_use =>                    hiera(openstack::nova::neutron_ip_to_use, hiera(contrail::params::neutron_ip_to_use, $neutron_ip_to_use)),
 	enable_ceilometer =>			hiera(openstack::enable_ceilometer, hiera(contrail::params::enable_ceilometer, $enable_ceilometer)),
 	contrail_amqp_ip_list =>                hiera(openstack::contrail_amqp_ip_list, hiera(contrail::params::contrail_amqp_ip_list, $contrail_amqp_ip_list)),
     contrail_amqp_port =>                   hiera(openstack::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),

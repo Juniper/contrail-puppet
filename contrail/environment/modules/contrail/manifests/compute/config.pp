@@ -42,6 +42,7 @@ class contrail::compute::config(
     $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
     $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers,
     $sriov = $::contrail::params::sriov,
+    $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -194,6 +195,8 @@ class contrail::compute::config(
 
     if ($openstack_manage_amqp) {
         $nova_compute_rabbit_hosts = $openstack_rabbit_servers
+    } elsif ($nova_rabbit_hosts){
+        $nova_compute_rabbit_hosts = $nova_rabbit_hosts
     } else {
         $nova_compute_rabbit_hosts = $contrail_rabbit_servers
     }
@@ -208,6 +211,10 @@ class contrail::compute::config(
       'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
       'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
+    }
+    if ($keystone_ip) {
+      $vnc_base_url_port = '5999'
+      nova_config { 'DEFAULT/novncproxy_base_url': value => "http://${keystone_ip}:${vnc_base_url_port}/vnc_auto.html" }
     }
     create_resources(nova_config, $nova_params, {} )
 
