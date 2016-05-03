@@ -549,6 +549,14 @@
 #     User provided port for amqp service 
 #     (optional) - Defaults to ''.
 #
+# [*nova_rabbit_hosts*]
+#     AMQP IP list to use for Nova when using an external openstack
+#     (optional) - Defaults to undef
+#
+# [*neutron_ip_to_use*]
+#     Neutron IP to use for Nova when using an external openstack
+#     (optional) - Defaults to undef
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -617,6 +625,8 @@ class contrail::params (
     $vmware_password,
     $vmware_vswitch,
     $mysql_root_password,
+    $nova_rabbit_hosts,
+    $neutron_ip_to_use,
     $openstack_mgmt_ip_list,
     $encap_priority,
     $router_asn,
@@ -733,16 +743,22 @@ class contrail::params (
         $vip_to_use = $contrail_internal_vip
         $config_ip_to_use = $contrail_internal_vip
         $collector_ip_to_use = $contrail_internal_vip
+        $contrail_controller_address_api = $contrail_internal_vip
+        $contrail_controller_address_management = $contrail_internal_vip
         $rest_api_port_to_use = '9081'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
+        $contrail_controller_address_api = $::openstack::config::controller_address_api
+        $contrail_controller_address_management = $::openstack::config::controller_address_management
         $rest_api_port_to_use = '9081'
     } else {
         $vip_to_use = ''
         $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
+        $contrail_controller_address_api = $::contrail::params::config_ip_list[0]
+        $contrail_controller_address_management = $::contrail::params::config_ip_list[0]
         $rest_api_port_to_use = '8081'
     }
 
@@ -820,6 +836,10 @@ class contrail::params (
         $multi_tenancy_options = ""
     }
 
+    $contrail_neutron_server = pick($::contrail::params::neutron_ip_to_use, $config_ip_to_use)
+    $contrail_neutron_public_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_api)
+    $contrail_neutron_admin_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
+    $contrail_neutron_internal_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
     notify { "host_role = $host_roles and contrail_roles = $contrail_roles":; }
     $contrail_roles_present_hash = delete_values($contrail_roles, false)
     $contrail_roles_present_array = keys($contrail_roles_present_hash)
@@ -834,7 +854,7 @@ class contrail::params (
     if ($num_role_to_delete) {
        $is_there_roles_to_delete = true
     } else {
-       $is_there_roles_to_delete = false 
+       $is_there_roles_to_delete = false
     }
 
 }

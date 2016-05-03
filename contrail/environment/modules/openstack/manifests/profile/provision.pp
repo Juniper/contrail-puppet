@@ -4,17 +4,6 @@ class openstack::profile::provision {
 
     $internal_vip = $::contrail::params::internal_vip
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip
-
-    if ($contrail_internal_vip != "" and $contrail_internal_vip != undef) {
-      $contrail_controller_address_api = $contrail_internal_vip
-      $contrail_controller_address_management = $contrail_internal_vip
-    } elsif ($internal_vip != "" and $internal_vip != undef) {
-      $contrail_controller_address_api = $::openstack::config::controller_address_api
-      $contrail_controller_address_management = $::openstack::config::controller_address_management
-    } else {
-      $contrail_controller_address_api = $::contrail::params::config_ip_list[0]
-      $contrail_controller_address_management = $::contrail::params::config_ip_list[0]
-    }
     $tenants = $::openstack::config::keystone_tenants
     $users   = $::openstack::config::keystone_users
     class { 'keystone::endpoint':
@@ -47,9 +36,9 @@ class openstack::profile::provision {
     }
     class { '::neutron::keystone::auth':
       password         => $::openstack::config::neutron_password,
-      public_address   => $contrail_controller_address_api,
-      admin_address    => $contrail_controller_address_management,
-      internal_address => $contrail_controller_address_management,
+      public_address   => $::contrail::params::contrail_neutron_public_address,
+      admin_address    => $::contrail::params::contrail_neutron_admin_address,
+      internal_address => $::contrail::params::contrail_neutron_internal_address,
       region           => $::openstack::config::region,
     }
     create_resources('openstack::resources::tenant', $tenants)
