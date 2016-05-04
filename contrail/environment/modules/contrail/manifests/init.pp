@@ -763,6 +763,8 @@ class contrail (
 	router_asn =>				hiera(contrail::control::router_asn, hiera(contrail::params::router_asn, $router_asn)),
 	external_bgp =>				hiera(contrail::control::external_bgp, hiera(contrail::params::external_bgp, $external_bgp)),
         # Openstack Parameters
+	openstack_controller_address_api =>     hiera(openstack::controller::address::api, hiera(contrail::params::openstack_controller_address_api, $openstack_controller_address_api)),
+	openstack_controller_address_management => hiera(openstack::controller::address::management, hiera(contrail::params::openstack_controller_address_management, $openstack_controller_address_management)),
 	openstack_ip_list =>			hiera(openstack::openstack_ip_list, hiera(contrail::params::openstack_ip_list, $openstack_ip_list)),
 	openstack_name_list =>			hiera(openstack::openstack_name_list, hiera(contrail::params::openstack_name_list, $openstack_name_list)),
 	openstack_passwd_list =>		hiera(openstack::openstack_passwd_list, hiera(contrail::params::openstack_passwd_list, $openstack_passwd_list)),

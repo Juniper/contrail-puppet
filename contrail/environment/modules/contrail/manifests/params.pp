@@ -705,6 +705,8 @@ class contrail::params (
     $openstack_amqp_port,
     $sriov,
     $sriov_enable,
+    $openstack_controller_address_management,
+    $openstack_controller_address_api,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -750,8 +752,8 @@ class contrail::params (
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-        $contrail_controller_address_api = $::openstack::config::controller_address_api
-        $contrail_controller_address_management = $::openstack::config::controller_address_management
+        $contrail_controller_address_api = $openstack_controller_address_api
+        $contrail_controller_address_management = $openstack_controller_address_management
         $rest_api_port_to_use = '9081'
     } else {
         $vip_to_use = ''
