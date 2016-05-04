@@ -16,7 +16,7 @@ class contrail::rabbitmq (
     $uuid = $::contrail::params::uuid,
 ) {
     # Check to see if amqp_ip_list was passed by user. If yes, rabbitmq provisioning can be skipped
-    if (! $contrail_amqp_ip_list) {
+    if (!$contrail_amqp_ip_list or ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) ) {
         if ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) {
             $amqp_ip_list = $openstack_ip_list
             $amqp_name_list = $openstack_name_list
