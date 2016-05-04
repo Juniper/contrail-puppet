@@ -41,6 +41,7 @@ class contrail::compute::config(
     $enable_dpdk=  $::contrail::params::enable_dpdk,
     $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
     $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers,
+    $openstack_amqp_ip_list = $::contrail::params::openstack_amqp_ip_list,
     $sriov = $::contrail::params::sriov,
     $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
 )  {
@@ -193,7 +194,7 @@ class contrail::compute::config(
         Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->Class['::contrail::compute::create_nfs']->Nova_config['neutron/admin_auth_url']
     }
 
-    if ($openstack_manage_amqp) {
+    if ($openstack_manage_amqp or $openstack_amqp_ip_list) {
         $nova_compute_rabbit_hosts = $openstack_rabbit_servers
     } elsif ($nova_rabbit_hosts){
         $nova_compute_rabbit_hosts = $nova_rabbit_hosts
