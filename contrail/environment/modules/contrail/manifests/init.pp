@@ -755,6 +755,7 @@ class contrail (
 	analytics_syslog_port =>		hiera(contrail::analytics::analytics_syslog_port, hiera(contrail::params::analytics_syslog_port, $analytics_syslog_port)),
 	analytics_data_dir =>			hiera(contrail::analytics::analytics_data_dir, hiera(contrail::params::analytics_data_dir, $analytics_data_dir)),
 	ssd_data_dir =>				hiera(contrail::analytics::ssd_data_dir, hiera(contrail::params::ssd_data_dir, $ssd_data_dir)),
+	redis_password =>			hiera(contrail::analytics::redis_password, hiera(contrail::params::redis_password, $redis_password)),
         # Control Parameters
 	control_ip_list =>			hiera(contrail::control::control_ip_list, hiera(contrail::params::control_ip_list, $control_ip_list)),
 	control_name_list =>			hiera(contrail::control::control_name_list, hiera(contrail::params::control_name_list, $control_name_list)),
@@ -790,11 +791,8 @@ class contrail (
 	nova_rabbit_hosts =>                    hiera(openstack::nova::rabbit_hosts, hiera(contrail::params::nova_rabbit_hosts, $nova_rabbit_hosts)),
 	neutron_ip_to_use =>                    hiera(openstack::nova::neutron_ip_to_use, hiera(contrail::params::neutron_ip_to_use, $neutron_ip_to_use)),
 	enable_ceilometer =>			hiera(openstack::enable_ceilometer, hiera(contrail::params::enable_ceilometer, $enable_ceilometer)),
-	contrail_amqp_ip_list =>                hiera(openstack::contrail_amqp_ip_list, hiera(contrail::params::contrail_amqp_ip_list, $contrail_amqp_ip_list)),
-    contrail_amqp_port =>                   hiera(openstack::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),
     openstack_amqp_ip_list =>               hiera(openstack::openstack_amqp_ip_list, hiera(contrail::params::openstack_amqp_ip_list, $openstack_amqp_ip_list)),
     openstack_amqp_port =>                  hiera(openstack::openstack_amqp_port, hiera(contrail::params::openstack_amqp_port, $openstack_amqp_port)),
-        sriov_enable =>                         hiera(contrail::openstack::sriov::enable, hiera(contrail::params::sriov_enable, $sriov_enable)),
 
         # Openstack HA Parameters
 	internal_vip =>				hiera(openstack::ha::internal_vip, hiera(contrail::params::internal_vip, $internal_vip)),
@@ -812,8 +810,9 @@ class contrail (
 	manage_neutron =>			hiera(contrail::config::manage_neutron, hiera(contrail::params::manage_neutron, $manage_neutron)),
 	zk_ip_port =>				hiera(contrail::config::zk_ip_port, hiera(contrail::params::zk_ip_port, $zk_ip_port)),
 	hc_interval =>				hiera(contrail::config::hc_interval, hiera(contrail::params::hc_interval, $hc_interval)),
-	redis_password =>			hiera(contrail::config::redis_password, hiera(contrail::params::redis_password, $redis_password)),
 	contrail_plugin_location =>		hiera(contrail::config::contrail_plugin_location, hiera(contrail::params::contrail_plugin_location, $contrail_plugin_location)),
+	contrail_amqp_ip_list =>                hiera(contrail::config::contrail_amqp_ip_list, hiera(contrail::params::contrail_amqp_ip_list, $contrail_amqp_ip_list)),
+	contrail_amqp_port =>                   hiera(contrail::config::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),
         # webui Parameters
 	webui_ip_list =>			hiera(contrail::webui::webui_ip_list, hiera(contrail::params::webui_ip_list, $webui_ip_list)),
         # compute Parameters
@@ -823,6 +822,7 @@ class contrail (
         huge_pages =>                           hiera(contrail::compute::dpdk::huge_pages, hiera(contrail::params::huge_pages, $huge_pages)),
         core_mask => 	                        hiera(contrail::compute::dpdk::core_mask, hiera(contrail::params::core_mask, $core_mask)),
         sriov =>                                hiera(contrail::compute::sriov,hiera(contrail::params::sriov, $sriov)),
+        sriov_enable =>                         hiera(contrail::compute::sriov::enable, hiera(contrail::params::sriov_enable, $sriov_enable)),
         # VMWare Parameters
 	vmware_ip =>				hiera(contrail::vmware::vmware_ip, hiera(contrail::params::vmware_ip, $vmware_ip)),
 	vmware_username =>			hiera(contrail::vmware::vmware_username, hiera(contrail::params::vmware_username, $vmware_username)),
