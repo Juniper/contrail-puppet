@@ -12,6 +12,7 @@ require 'rubygems'
 require 'net/http'
 require 'net/https'
 require 'json'
+require 'puppet/util/inifile'
 
 class KeystoneError < Puppet::Error
 end
@@ -29,10 +30,15 @@ end
 #   An HTTPRequest object
 # +url+::
 #   A parsed URL (returned from URI.parse)
-def handle_request(req, url)
+def neutron_handle_request(req, url)
     begin
-        http = Net::HTTP.new(url.host, url.port)
-        http.use_ssl = url.scheme == 'https'
+        # There is issue with ipv6 where address has to be in brackets, this causes the
+        # underlying ruby TCPSocket to fail. Net::HTTP.new will fail without brackets on
+        # joining the ipv6 address with :port or passing brackets to TCPSocket. It was
+        # found that if we use Net::HTTP.start with url.hostname the incriminated code
+        # won't be hit.
+        use_ssl = url.scheme == "https" ? true : false
+        http = Net::HTTP.start(url.hostname, url.port, {:use_ssl => use_ssl})
         res = http.request(req)
 
         if res.code != '200'
@@ -97,7 +103,7 @@ def keystone_v2_authenticate(auth_url,
     req['content-type'] = 'application/json'
     req.body = post_args.to_json
 
-    res = handle_request(req, url)
+    res = neutron_handle_request(req, url)
     data = JSON.parse res.body
     return data['access']['token']['id']
 end
@@ -120,12 +126,14 @@ def keystone_v2_tenants(auth_url,
     req['content-type'] = 'application/json'
     req['x-auth-token'] = token
 
-    res = handle_request(req, url)
+    res = neutron_handle_request(req, url)
     data = JSON.parse res.body
     data['tenants']
 end
 
 Puppet::Type.type(:nova_admin_tenant_id_setter).provide(:ruby) do
+    @tenant_id = nil
+
     def authenticate
         keystone_v2_authenticate(
           @resource[:auth_url],
@@ -144,11 +152,17 @@ Puppet::Type.type(:nova_admin_tenant_id_setter).provide(:ruby) do
     end
 
     def exists?
-        false
+      ini_file  = Puppet::Util::IniConfig::File.new
+      ini_file.read("/etc/neutron/neutron.conf")
+      ini_file['DEFAULT'] && ini_file['DEFAULT']['nova_admin_tenant_id'] && ini_file['DEFAULT']['nova_admin_tenant_id'] == tenant_id
     end
 
     def create
         config
+    end
+
+    def tenant_id
+      @tenant_id ||= get_tenant_id
     end
 
     # This looks for the tenant specified by the 'tenant_name' parameter to
@@ -174,7 +188,7 @@ Puppet::Type.type(:nova_admin_tenant_id_setter).provide(:ruby) do
 
     def config
         Puppet::Type.type(:neutron_config).new(
-            {:name => 'DEFAULT/nova_admin_tenant_id', :value => "#{get_tenant_id}"}
+            {:name => 'DEFAULT/nova_admin_tenant_id', :value => "#{tenant_id}"}
         ).create
     end
 

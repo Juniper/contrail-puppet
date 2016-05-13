@@ -26,6 +26,10 @@
 #   split into.
 #   Defaults to 1
 #
+# [*network_size*]
+#   (optional) Number of addresses in each private subnet.
+#   Defaults to 255
+#
 # [*floating_range*]
 #   (optional) Range of floating ip addresses to create.
 #   Defaults to false
@@ -55,6 +59,15 @@
 #   (optional) Whether to install and enable the service
 #   Defaults to true
 #
+# [*allowed_start*]
+#   (optional) Start of allowed addresses for instances
+#   Defaults to undef
+#
+# [*allowed_end*]
+#   (optional) End of allowed addresses for instances
+#   Defaults to undef
+#
+
 class nova::network(
   $private_interface = undef,
   $fixed_range       = '10.0.0.0/8',
@@ -67,10 +80,12 @@ class nova::network(
   $config_overrides  = {},
   $create_networks   = true,
   $ensure_package    = 'present',
-  $install_service   = true
+  $install_service   = true,
+  $allowed_start     = undef,
+  $allowed_end       = undef,
 ) {
 
-  include nova::params
+  include ::nova::params
 
   # forward all ipv4 traffic
   # this is required for the vms to pass through the gateways
@@ -79,9 +94,7 @@ class nova::network(
     path => $::path
   }
 
-  sysctl::value { 'net.ipv4.ip_forward':
-    value => '1'
-  }
+  ensure_resource('sysctl::value', 'net.ipv4.ip_forward', { value => '1' })
 
   if $floating_range {
     nova_config { 'DEFAULT/floating_range':   value => $floating_range }
@@ -109,6 +122,8 @@ class nova::network(
       num_networks  => $num_networks,
       network_size  => $network_size,
       vlan_start    => $vlan_start,
+      allowed_start => $allowed_start,
+      allowed_end   => $allowed_end,
     }
     if $floating_range {
       nova::manage::floating { 'nova-vm-floating':

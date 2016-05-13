@@ -1,3 +1,9 @@
+# LP#1408531
+File.expand_path('../..', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+File.expand_path('../../../../openstacklib/lib', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+
+require 'puppet/provider/keystone/util'
+
 Puppet::Type.newtype(:keystone_user_role) do
 
   desc <<-EOT
@@ -12,22 +18,13 @@ Puppet::Type.newtype(:keystone_user_role) do
   ensurable
 
   newparam(:name, :namevar => true) do
-    newvalues(/^\S+@\S+$/)
-    #munge do |value|
-    #  matchdata = /(\S+)@(\S+)/.match(value)
-    #  {
-    #    :user   =>  matchdata[1],
-    #    :tenant =>  matchdata[2]
-    #  }
-    #nd
   end
 
   newproperty(:roles,  :array_matching => :all) do
-  end
-
-  newproperty(:id) do
-    validate do |v|
-      raise(Puppet::Error, 'This is a read only property')
+    def insync?(is)
+      return false unless is.is_a? Array
+      # order of roles does not matter
+      is.sort == self.should.sort
     end
   end
 
@@ -36,16 +33,33 @@ Puppet::Type.newtype(:keystone_user_role) do
   end
 
   autorequire(:keystone_tenant) do
-    self[:name].rpartition('@').last
+    proj, dom = Util.split_domain(self[:name].rpartition('@').last)
+    rv = nil
+    if proj # i.e. not ::domain
+      rv = self[:name].rpartition('@').last
+    end
+    rv
   end
 
   autorequire(:keystone_role) do
     self[:roles]
   end
 
-  # we should not do anything until the keystone service is started
-  autorequire(:service) do
-    ['keystone']
+  autorequire(:keystone_domain) do
+    rv = []
+    userdom = Util.split_domain(self[:name].rpartition('@').first)[1]
+    if userdom
+      rv << userdom
+    end
+    projectdom = Util.split_domain(self[:name].rpartition('@').last)[1]
+    if projectdom
+      rv << projectdom
+    end
+    rv
   end
 
+  # we should not do anything until the keystone service is started
+  autorequire(:anchor) do
+    ['keystone_started']
+  end
 end

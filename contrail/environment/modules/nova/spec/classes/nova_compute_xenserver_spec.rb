@@ -11,19 +11,27 @@ describe 'nova::compute::xenserver' do
   context 'with required parameters' do
 
     it 'configures xenapi in nova.conf' do
-      should contain_nova_config('DEFAULT/compute_driver').with_value('xenapi.XenAPIDriver')
-      should contain_nova_config('DEFAULT/connection_type').with_value('xenapi')
-      should contain_nova_config('DEFAULT/xenapi_connection_url').with_value(params[:xenapi_connection_url])
-      should contain_nova_config('DEFAULT/xenapi_connection_username').with_value(params[:xenapi_connection_username])
-      should contain_nova_config('DEFAULT/xenapi_connection_password').with_value(params[:xenapi_connection_password])
-      should contain_nova_config('DEFAULT/xenapi_inject_image').with_value(false)
+      is_expected.to contain_nova_config('DEFAULT/compute_driver').with_value('xenapi.XenAPIDriver')
+      is_expected.to contain_nova_config('DEFAULT/xenapi_connection_url').with_value(params[:xenapi_connection_url])
+      is_expected.to contain_nova_config('DEFAULT/xenapi_connection_username').with_value(params[:xenapi_connection_username])
+      is_expected.to contain_nova_config('DEFAULT/xenapi_connection_password').with_value(params[:xenapi_connection_password])
     end
 
     it 'installs xenapi with pip' do
-      should contain_package('xenapi').with(
+      is_expected.to contain_package('xenapi').with(
         :ensure   => 'present',
         :provider => 'pip'
       )
+    end
+  end
+
+  context 'with overridden parameters' do
+    before do
+      params.merge!({:compute_driver => 'xenapi.FoobarDriver'})
+    end
+
+    it 'configures xenapi in nova.conf' do
+      is_expected.to contain_nova_config('DEFAULT/compute_driver').with_value('xenapi.FoobarDriver')
     end
   end
 end

@@ -1,11 +1,26 @@
-# $volume_name_template = volume-%s
+# == Class: cinder::volume
+#
+# === Parameters
+#
+# [*package_ensure*]
+#   (Optional) The state of the package.
+#   Defaults to 'present'.
+#
+# [*enabled*]
+#   (Optional) The state of the service
+#   Defaults to 'true'.
+#
+# [*manage_service*]
+#   (Optional) Whether to start/stop the service.
+#   Defaults to 'true'.
+#
 class cinder::volume (
   $package_ensure = 'present',
   $enabled        = true,
   $manage_service = true
 ) {
 
-  include cinder::params
+  include ::cinder::params
 
   Cinder_config<||> ~> Service['cinder-volume']
   Cinder_api_paste_ini<||> ~> Service['cinder-volume']
@@ -19,6 +34,7 @@ class cinder::volume (
     package { 'cinder-volume':
       ensure => $package_ensure,
       name   => $::cinder::params::volume_package,
+      tag    => 'openstack',
     }
   }
 

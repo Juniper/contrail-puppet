@@ -1,7 +1,7 @@
 puppet-heat
 =============
 
-4.0.0 - 2014.1.0 - Icehouse
+6.1.0 - 2015.1 - Kilo
 
 #### Table of Contents
 
@@ -12,15 +12,14 @@ puppet-heat
 5. [Limitations - OS compatibility, etc.](#limitations)
 6. [Development - Guide for contributing to the module](#development)
 7. [Contributors - Those with commits](#contributors)
-8. [Release Notes - Notes on the most recent updates to the module](#release-notes)
 
 Overview
 --------
 
-The heat module is part of [Stackforge](https://github.com/stackforge), an effort by the
+The heat module is part of [OpenStack](https://github.com/openstack), an effort by the
 OpenStack infrastructure team to provice continuous integration testing and code review for
-OpenStack and OpenStack community projects not part of the core software. The module itself
-is used to flexibly configure and manage the orchestration service for OpenStack
+OpenStack and OpenStack community projects as part of the core software. The module itself
+is used to flexibly configure and manage the orchestration service for OpenStack.
 
 Module Description
 ------------------
@@ -53,6 +52,18 @@ Limitations
 
 None
 
+Beaker-Rspec
+------------
+
+This module has beaker-rspec tests
+
+To run:
+
+``shell
+bundle install
+bundle exec rspec spec/acceptance
+``
+
 Development
 -----------
 
@@ -63,53 +74,4 @@ Developer documentation for the entire puppet-openstack project.
 Contributors
 ------------
 
-* https://github.com/stackforge/puppet-heat/graphs/contributors
-
-Release Notes
--------------
-
-**4.0.0**
-
-* Stable Icehouse release.
-* Added SSL parameter for RabbitMQ.
-* Added support for puppetlabs-mysql 2.2 and greater.
-* Added option to define RabbitMQ queues as durable.
-* Fixed outdated DB connection parameter.
-* Fixed Keystone auth_uri parameter.
-
-**3.1.0**
-
-* Fixed postgresql connection string.
-* Allow log_dir to be set to false to disable file logging.
-* Added support for database idle timeout.
-* Aligned Keystone auth_uri with other OpenStack services.
-* Fixed the EC2 auth token settings.
-* Fixed rabbit_virtual_host configuration.
-
-**3.0.0**
-
-* Initial release of the puppet-heat module.
-
-License
--------
-
-Apache License 2.0
-
-   Copyright 2012 eNovance <licensing@enovance.com> and Authors
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-Contact
--------
-
-techs@enovance.com
+* https://github.com/openstack/puppet-heat/graphs/contributors

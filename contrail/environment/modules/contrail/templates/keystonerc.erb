@@ -1,4 +1,7 @@
 export OS_USERNAME=<%= @keystone_admin_user %>
+<% if @keystone_service_token -%>
+export OS_SERVICE_TOKEN='<%= @keystone_service_token.gsub(/'/){ %q(\') } %>'
+<% end -%>
 <% if @keystone_ip != "" -%>
 export OS_SERVICE_ENDPOINT=<%= @keystone_auth_protocol %>://<%= @keystone_ip %>:35357/v2.0/
 <% elsif @internal_vip != "" -%>

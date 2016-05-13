@@ -69,7 +69,7 @@ class contrail::contrail_openstack (
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
-    $keystone_service_token = $::contrail::params::keystone_service_token,
+    $keystone_service_token     = $::contrail::params::os_keystone_admin_token,
     $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_control_ip = $::contrail::params::host_ip,
@@ -106,7 +106,7 @@ class contrail::contrail_openstack (
     class {'::contrail::exec_create_ec2rc_file':}
 
     $nova_params =  {
-      'DEFAULT/novncproxy_base_url' => { value => "http://${vnc_base_url_ip}:${vnc_base_url_port}/vnc_auto.html"},
+      #'DEFAULT/novncproxy_base_url' => { value => "http://${vnc_base_url_ip}:${vnc_base_url_port}/vnc_auto.html"},
       'DEFAULT/ec2_private_dns_show_ip' => { value => 'False' },
     }
     create_resources(nova_config,$nova_params, {} )

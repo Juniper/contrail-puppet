@@ -11,7 +11,7 @@
 #
 # [*volume_driver*]
 #   (optional) Setup cinder-volume to use SolidFire volume driver.
-#   Defaults to 'cinder.volume.drivers.solidfire.SolidFire'
+#   Defaults to 'cinder.volume.drivers.solidfire.SolidFireDriver'
 #
 # [*san_ip*]
 #   (required) IP address of SolidFire clusters MVIP.
@@ -38,16 +38,23 @@
 #   (optional) Port ID to use to connect to SolidFire API.
 #   Defaults to 443
 #
+# [*extra_options*]
+#   (optional) Hash of extra options to pass to the backend stanza
+#   Defaults to: {}
+#   Example :
+#     { 'solidfire_backend/param1' => { 'value' => value1 } }
+#
 define cinder::backend::solidfire(
   $san_ip,
   $san_login,
   $san_password,
   $volume_backend_name = $name,
-  $volume_driver       = 'cinder.volume.drivers.solidfire.SolidFire',
+  $volume_driver       = 'cinder.volume.drivers.solidfire.SolidFireDriver',
   $sf_emulate_512      = true,
   $sf_allow_tenant_qos = false,
   $sf_account_prefix   = '',
-  $sf_api_port         = '443'
+  $sf_api_port         = '443',
+  $extra_options       = {},
 ) {
 
   cinder_config {
@@ -61,4 +68,7 @@ define cinder::backend::solidfire(
     "${name}/sf_account_prefix":   value => $sf_account_prefix;
     "${name}/sf_api_port":         value => $sf_api_port;
   }
+
+  create_resources('cinder_config', $extra_options)
+
 }

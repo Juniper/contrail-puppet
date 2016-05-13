@@ -43,7 +43,7 @@
 class contrail::uninstall_config (
     $host_control_ip = $::contrail::params::host_ip,
     $keystone_ip = $::contrail::params::keystone_ip,
-    $keystone_admin_token = $::contrail::params::keystone_admin_token,
+    $keystone_admin_token = $::contrail::params::os_keystone_admin_token,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $config_ip = $::contrail::params::config_ip_to_use,

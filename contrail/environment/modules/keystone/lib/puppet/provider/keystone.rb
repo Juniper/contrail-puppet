@@ -1,190 +1,192 @@
 require 'puppet/util/inifile'
-class Puppet::Provider::Keystone < Puppet::Provider
+require 'puppet/provider/openstack'
+require 'puppet/provider/openstack/auth'
+require 'puppet/provider/openstack/credentials'
+require 'puppet/provider/keystone/util'
 
-  # retrieves the current token from keystone.conf
-  def self.admin_token
-    @admin_token ||= get_admin_token
-  end
+class Puppet::Provider::Keystone < Puppet::Provider::Openstack
 
-  def self.get_admin_token
-    if keystone_file and keystone_file['DEFAULT'] and keystone_file['DEFAULT']['admin_token']
-      return "#{keystone_file['DEFAULT']['admin_token'].strip}"
-    else
-      raise(Puppet::Error, "File: /etc/keystone/keystone.conf does not contain a section DEFAULT with the admin_token specified. Keystone types will not work if keystone is not correctly configured")
-    end
-  end
+  extend Puppet::Provider::Openstack::Auth
+
+  INI_FILENAME = '/etc/keystone/keystone.conf'
+
+  @@default_domain_id = nil
 
   def self.admin_endpoint
     @admin_endpoint ||= get_admin_endpoint
   end
 
-  def self.get_admin_endpoint
-    admin_endpoint = keystone_file['DEFAULT']['admin_endpoint'] ? keystone_file['DEFAULT']['admin_endpoint'].strip : nil
-    return admin_endpoint if admin_endpoint
+  def self.admin_token
+    @admin_token ||= get_admin_token
+  end
 
-    admin_port = keystone_file['DEFAULT']['admin_port'] ? keystone_file['DEFAULT']['admin_port'].strip : '35357'
-    ssl = keystone_file['ssl'] && keystone_file['ssl']['enable'] ? keystone_file['ssl']['enable'].strip.downcase == 'true' : false
-    protocol = ssl ? 'https' : 'http'
-    if keystone_file and keystone_file['DEFAULT'] and keystone_file['DEFAULT']['admin_bind_host']
-      host = keystone_file['DEFAULT']['admin_bind_host'].strip
-      if host == "0.0.0.0"
-        host = "127.0.0.1"
-      end
+  def self.clean_host(host)
+    host ||= '127.0.0.1'
+    case host
+    when '0.0.0.0'
+      return '127.0.0.1'
+    when '::0'
+      return '[::1]'
     else
-      host = "127.0.0.1"
+      # if ipv6, make sure ip address has brackets - LP#1541512
+      if host.include?(':') and !host.include?(']')
+        return "[" + host + "]"
+      else
+        return host
+      end
     end
-    "#{protocol}://#{host}:#{admin_port}/v2.0/"
+  end
+
+  def self.default_domain
+    domain_name_from_id(default_domain_id)
+  end
+
+  def self.default_domain_id
+    if @@default_domain_id
+      @@default_domain_id
+    elsif keystone_file and keystone_file['identity'] and keystone_file['identity']['default_domain_id']
+      keystone_file['identity']['default_domain_id'].strip
+    else
+      'default'
+    end
+  end
+
+  def self.default_domain_id=(id)
+    @@default_domain_id = id
+  end
+
+  def self.domain_name_from_id(id)
+    unless @domain_hash
+      list = request('domain', 'list')
+      @domain_hash = Hash[list.collect{|domain| [domain[:id], domain[:name]]}]
+    end
+    unless @domain_hash.include?(id)
+      name = request('domain', 'show', id)[:name]
+      @domain_hash[id] = name if name
+    end
+    unless @domain_hash.include?(id)
+      err("Could not find domain with id [#{id}]")
+    end
+    @domain_hash[id]
+  end
+
+  def self.get_admin_endpoint
+    endpoint = nil
+    if keystone_file
+      if url = get_section('DEFAULT', 'admin_endpoint')
+        endpoint = url.chomp('/')
+      else
+        admin_port = get_section('DEFAULT', 'admin_port') || '35357'
+        host = clean_host(get_section('DEFAULT', 'admin_bind_host'))
+        protocol = ssl? ? 'https' : 'http'
+        endpoint = "#{protocol}://#{host}:#{admin_port}"
+      end
+    end
+    return endpoint
+  end
+
+  def self.get_admin_token
+    get_section('DEFAULT', 'admin_token')
+  end
+
+  def self.get_auth_url
+    auth_url = nil
+    if ENV['OS_AUTH_URL']
+      auth_url = ENV['OS_AUTH_URL'].dup
+    elsif auth_url = get_os_vars_from_rcfile(rc_filename)['OS_AUTH_URL']
+    else
+      auth_url = admin_endpoint
+    end
+    return auth_url
+  end
+
+  def self.get_section(group, name)
+    if keystone_file && keystone_file[group] && keystone_file[group][name]
+      return keystone_file[group][name].strip
+    end
+    return nil
+  end
+
+  def self.get_service_url
+    service_url = nil
+    if ENV['OS_URL']
+      service_url = ENV['OS_URL'].dup
+    elsif admin_endpoint
+      service_url = admin_endpoint
+      service_url << "/v#{@credentials.version}"
+    end
+    return service_url
+  end
+
+  def self.ini_filename
+    INI_FILENAME
   end
 
   def self.keystone_file
     return @keystone_file if @keystone_file
-    @keystone_file = Puppet::Util::IniConfig::File.new
-    @keystone_file.read('/etc/keystone/keystone.conf')
-    @keystone_file
-  end
-
-  def self.tenant_hash
-    @tenant_hash ||= build_tenant_hash
-  end
-
-  def tenant_hash
-    self.class.tenant_hash
-  end
-
-  def self.reset
-    @admin_endpoint = nil
-    @tenant_hash    = nil
-    @admin_token    = nil
-    @keystone_file  = nil
-  end
-
-  # the path to withenv changes between versions of puppet, so redefining this function here,
-  # Run some code with a specific environment.  Resets the environment at the end of the code.
-  def self.withenv(hash, &block)
-    saved = ENV.to_hash
-    hash.each do |name, val|
-      ENV[name.to_s] = val
-    end
-    block.call
-  ensure
-    ENV.clear
-    saved.each do |name, val|
-      ENV[name] = val
+    if File.exists?(ini_filename)
+      @keystone_file = Puppet::Util::IniConfig::File.new
+      @keystone_file.read(ini_filename)
+      @keystone_file
     end
   end
 
-  def self.auth_keystone(*args)
-    authenv = {:OS_SERVICE_TOKEN => admin_token}
-    begin
-      withenv authenv do
-        remove_warnings(keystone('--os-endpoint', admin_endpoint, args))
-      end
-    rescue Exception => e
-      if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)|(Unable\s+to\s+establish\s+connection)/
-        sleep 10
-        withenv authenv do
-          remove_warnings(keystone('--os-endpoint', admin_endpoint, args))
-        end
-      else
-        raise(e)
-      end
+  # use the domain in this order:
+  # 1 - the domain name specified in the resource definition - resource[:domain]
+  # 2 - the domain name part of the resource name/title e.g. user_name::user_domain
+  #     if passed in by name_and_domain above
+  # 3 - use the specified default_domain_name
+  # 4 - lookup the default domain
+  # 5 - use 'Default' - the "default" default domain if no other one is configured
+  # Usage: name_and_domain(resource[:name], resource[:domain], default_domain_name)
+  def self.name_and_domain(namedomstr, domain_from_resource=nil, default_domain_name=nil)
+    name, domain = Util.split_domain(namedomstr)
+    ret = [name]
+    if domain_from_resource
+      ret << domain_from_resource
+    elsif domain
+      ret << domain
+    elsif default_domain_name
+      ret << default_domain_name
+    elsif default_domain
+      ret << default_domain
+    else
+      ret << 'Default'
     end
+    ret
   end
 
-  def auth_keystone(*args)
-    self.class.auth_keystone(args)
+  def self.request(service, action, properties=nil)
+    super
+  rescue Puppet::Error::OpenstackAuthInputError => error
+    request_by_service_token(service, action, error, properties)
   end
 
-  def self.creds_keystone(name, tenant, password, *args)
-    authenv = {:OS_USERNAME => name, :OS_TENANT_NAME => tenant, :OS_PASSWORD => password}
-    begin
-      withenv authenv do
-        remove_warnings(keystone('--os-auth-url', admin_endpoint, args))
-      end
-    rescue Exception => e
-      if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)|(Unable\s+to\s+establish\s+connection)/
-        sleep 10
-        withenv authenv do
-          remove_warnings(keystone('--os-auth-url', admin_endpoint, args))
-        end
-      else
-        raise(e)
-      end
-    end
-   end
-
-   def creds_keystone(name, tenant, password, *args)
-     self.class.creds_keystone(name, tenant, password, args)
-   end
-
-  def self.parse_keystone_object(data)
-    # Parse the output of [type]-{create,get} into a hash
-    attrs = {}
-    header_lines = 3
-    footer_lines = 1
-    data.split("\n")[header_lines...-footer_lines].each do |line|
-      if match_data = /\|\s([^|]+)\s\|\s([^|]+)\s\|/.match(line)
-        attrs[match_data[1].strip] = match_data[2].strip
-      end
-    end
-    attrs
+  def self.request_by_service_token(service, action, error, properties=nil)
+    properties ||= []
+    @credentials.token = admin_token
+    @credentials.url   = service_url
+    raise error unless @credentials.service_token_set?
+    Puppet::Provider::Openstack.request(service, action, properties, @credentials)
   end
 
-  private
+  def self.service_url
+    @service_url ||= get_service_url
+  end
 
-    def self.list_keystone_objects(type, number_columns, *args)
-      # this assumes that all returned objects are of the form
-      # id, name, enabled_state, OTHER
-      # number_columns can be a Fixnum or an Array of possible values that can be returned
-      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).collect do |line|
-        row = line.split(/\|/)[1..-1]
-        row = row.map {|x| x.strip }
-        # if both checks fail then we have a mismatch between what was expected and what was received
-        if (number_columns.class == Array and !number_columns.include? row.size) or (number_columns.class == Fixnum and row.size != number_columns)
-          raise(Puppet::Error, "Expected #{number_columns} columns for #{type} row, found #{row.size}. Line #{line}")
-        end
-        row
-      end
-      list
+  def self.ssl?
+    if keystone_file && keystone_file['ssl'] && keystone_file['ssl']['enable'] && keystone_file['ssl']['enable'].strip.downcase == 'true'
+      return true
     end
+    return false
+  end
 
-    def self.get_keystone_object(type, id, attr)
-      id = id.chomp
-      auth_keystone("#{type}-get", id).split(/\|\n/m).each do |line|
-        if line =~ /\|(\s+)?#{attr}(\s+)?\|/
-          if line.kind_of?(Array)
-            return line[0].split("|")[2].strip
-          else
-            return  line.split("|")[2].strip
-          end
-        else
-          nil
-        end
-      end
-      raise(Puppet::Error, "Could not find colummn #{attr} when getting #{type} #{id}")
-    end
+  # Helper functions to use on the pre-validated enabled field
+  def bool_to_sym(bool)
+    bool == true ? :true : :false
+  end
 
-    # remove warning from the output. this is a temporary hack until
-    # I refactor things to use the the rest API
-    def self.remove_warnings(results)
-      found_header = false
-      in_warning = false
-      results.split("\n").collect do |line|
-        unless found_header
-          if line =~ /^\+[-\+]+\+$/
-            in_warning = false
-            found_header = true
-            line
-          elsif line =~ /^WARNING/ or line =~ /UserWarning/ or in_warning
-            # warnings can be multi line, we have to skip all of them
-            in_warning = true
-            nil
-          else
-            line
-          end
-        else
-          line
-        end
-      end.compact.join("\n")
-    end
+  def sym_to_bool(sym)
+    sym == :true ? true : false
+  end
 end

@@ -1,29 +1,27 @@
 require 'spec_helper_acceptance'
 
-describe 'mysql::db define', :unless => UNSUPPORTED_PLATFORMS.include?(fact('operatingsystem')) do
+describe 'mysql::db define' do
   describe 'creating a database' do
-    # Using puppet_apply as a helper
-    it 'should work with no errors' do
-      pp = <<-EOS
+    let(:pp) do
+      <<-EOS
         class { 'mysql::server': root_password => 'password' }
         mysql::db { 'spec1':
           user     => 'root1',
           password => 'password',
         }
       EOS
+    end
+    it_behaves_like "a idempotent resource"
 
-      # Run it twice and test for idempotency
-      apply_manifest(pp, :catch_failures => true)
-      apply_manifest(pp, :catch_changes => true)
-
-      expect(shell("mysql -e 'show databases;'|grep spec1").exit_code).to be_zero
+    describe command("mysql -e 'show databases;'") do
+      its(:exit_status) { is_expected.to eq 0 }
+      its(:stdout) { is_expected.to match /^spec1$/ }
     end
   end
 
   describe 'creating a database with post-sql' do
-    # Using puppet_apply as a helper
-    it 'should work with no errors' do
-      pp = <<-EOS
+    let(:pp) do
+      <<-EOS
         class { 'mysql::server': override_options => { 'root_password' => 'password' } }
         file { '/tmp/spec.sql':
           ensure  => file,
@@ -36,14 +34,32 @@ describe 'mysql::db define', :unless => UNSUPPORTED_PLATFORMS.include?(fact('ope
           sql      => '/tmp/spec.sql',
         }
       EOS
-
-      # Run it twice and test for idempotency
-      apply_manifest(pp, :catch_failures => true)
-      apply_manifest(pp, :catch_changes => true)
     end
+    it_behaves_like "a idempotent resource"
 
-    it 'should have the table' do
-      expect(shell("mysql -e 'show tables;' spec2|grep table1").exit_code).to be_zero
+    describe command("mysql -e 'show tables;' spec2") do
+      its(:exit_status) { is_expected.to eq 0 }
+      its(:stdout) { is_expected.to match /^table1$/ }
+    end
+  end
+
+  describe 'creating a database with dbname parameter' do
+    let(:check_command) { " | grep realdb" }
+    let(:pp) do
+      <<-EOS
+        class { 'mysql::server': override_options => { 'root_password' => 'password' } }
+        mysql::db { 'spec1':
+          user     => 'root1',
+          password => 'password',
+          dbname   => 'realdb',
+        }
+      EOS
+    end
+    it_behaves_like "a idempotent resource"
+
+    describe command("mysql -e 'show databases;'") do
+      its(:exit_status) { is_expected.to eq 0 }
+      its(:stdout) { is_expected.to match /^realdb$/ }
     end
   end
 end

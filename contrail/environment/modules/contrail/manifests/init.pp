@@ -601,7 +601,7 @@ class contrail (
     $ssd_data_dir = '',
     $database_minimum_diskGB = 256,
     $keystone_ip = '',
-    $keystone_admin_password = 'contrail123',
+    $keystone_admin_password = 'undef',
     $keystone_admin_user = 'admin',
     $keystone_admin_tenant = 'admin',
     $keystone_service_tenant = 'services',
@@ -625,7 +625,7 @@ class contrail (
     $vmware_username = '',
     $vmware_password = '',
     $vmware_vswitch = '',
-    $mysql_root_password = 'c0ntrail123',
+    $mysql_root_password = undef,
     $nova_rabbit_hosts = undef,
     $neutron_ip_to_use = undef,
     $openstack_mgmt_ip_list = undef,
@@ -704,6 +704,9 @@ class contrail (
     $contrail_amqp_port = '',
     $openstack_amqp_ip_list = '',
     $openstack_amqp_port = '',
+    $openstack_verbose= 'false',
+    $openstack_debug ='false',
+    $openstack_mysql_allowed_hosts = '127.0.0.1',
     $sriov = {},
     $sriov_enable = false,
 ) {
@@ -791,8 +794,32 @@ class contrail (
 	nova_rabbit_hosts =>                    hiera(openstack::nova::rabbit_hosts, hiera(contrail::params::nova_rabbit_hosts, $nova_rabbit_hosts)),
 	neutron_ip_to_use =>                    hiera(openstack::nova::neutron_ip_to_use, hiera(contrail::params::neutron_ip_to_use, $neutron_ip_to_use)),
 	enable_ceilometer =>			hiera(openstack::enable_ceilometer, hiera(contrail::params::enable_ceilometer, $enable_ceilometer)),
+	contrail_amqp_ip_list =>                hiera(openstack::contrail_amqp_ip_list, hiera(contrail::params::contrail_amqp_ip_list, $contrail_amqp_ip_list)),
+    contrail_amqp_port =>                   hiera(openstack::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),
     openstack_amqp_ip_list =>               hiera(openstack::openstack_amqp_ip_list, hiera(contrail::params::openstack_amqp_ip_list, $openstack_amqp_ip_list)),
     openstack_amqp_port =>                  hiera(openstack::openstack_amqp_port, hiera(contrail::params::openstack_amqp_port, $openstack_amqp_port)),
+    sriov_enable              => hiera(contrail::openstack::sriov::enable, hiera(contrail::params::sriov_enable, $sriov_enable)),
+    os_verbose                => hiera(openstack::verbose, $openstack_verbose),
+    os_debug                  => hiera(openstack::debug, $openstack_debug),
+    os_region                 => hiera(openstack::region, $openstack_region),
+    os_mysql_allowed_hosts    => hiera(openstack::mysql::allowed_hosts, $openstack_mysql_allowed_hosts),
+    os_rabbitmq_user          => hiera(openstack::rabbitmq::user,$openstack_rabbitmq_user),
+    os_rabbitmq_password      => hiera(openstack::rabbitmq::password,$openstack_rabbitmq_password),
+    os_nova_password          => hiera(openstack::nova::password,$openstack_nova_password),
+    os_neutron_password       => hiera(openstack::neutron::password,$openstack_neutron_password),
+    os_glance_password        => hiera(openstack::glance::password,$openstack_glance_password),
+    os_cinder_password        => hiera(openstack::cinder::password,$openstack_cinder_password),
+    os_mysql_service_password => hiera(openstack::mysql::service_password,$openstack_mysql_service_password),
+    ##TODO: current this value is a no-op.
+    os_neutron_shared_secret  => hiera(openstack::neutron::shared_secret, $os_neutron_shared_secret),
+    os_glance_mgmt_address    => hiera(openstack::storage::address::management, $os_glance_mgmt_address),
+    os_glance_api_address     => hiera(openstack::storage::address::api, $os_glance_api_address),
+    os_controller_mgmt_address=> hiera(openstack::controller::address::management, $os_controller_mgmt_address),
+    os_controller_api_address => hiera(openstack::controller::address::api, $os_controller_api_address),
+    os_keystone_admin_email   => hiera(openstack::keystone::admin_email, $keystone_admin_email),
+    os_keystone_admin_token    => hiera(openstack::keystone::admin_token, $keystone_admin_token),
+
+
 
         # Openstack HA Parameters
 	internal_vip =>				hiera(openstack::ha::internal_vip, hiera(contrail::params::internal_vip, $internal_vip)),
@@ -811,8 +838,6 @@ class contrail (
 	zk_ip_port =>				hiera(contrail::config::zk_ip_port, hiera(contrail::params::zk_ip_port, $zk_ip_port)),
 	hc_interval =>				hiera(contrail::config::hc_interval, hiera(contrail::params::hc_interval, $hc_interval)),
 	contrail_plugin_location =>		hiera(contrail::config::contrail_plugin_location, hiera(contrail::params::contrail_plugin_location, $contrail_plugin_location)),
-	contrail_amqp_ip_list =>                hiera(contrail::config::contrail_amqp_ip_list, hiera(contrail::params::contrail_amqp_ip_list, $contrail_amqp_ip_list)),
-	contrail_amqp_port =>                   hiera(contrail::config::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),
         # webui Parameters
 	webui_ip_list =>			hiera(contrail::webui::webui_ip_list, hiera(contrail::params::webui_ip_list, $webui_ip_list)),
         # compute Parameters
@@ -821,8 +846,8 @@ class contrail (
 	compute_passwd_list =>			hiera(contrail::compute::compute_passwd_list, hiera(contrail::params::compute_passwd_list, $compute_passwd_list)),
         huge_pages =>                           hiera(contrail::compute::dpdk::huge_pages, hiera(contrail::params::huge_pages, $huge_pages)),
         core_mask => 	                        hiera(contrail::compute::dpdk::core_mask, hiera(contrail::params::core_mask, $core_mask)),
-        sriov =>                                hiera(contrail::compute::sriov,hiera(contrail::params::sriov, $sriov)),
-        sriov_enable =>                         hiera(contrail::compute::sriov::enable, hiera(contrail::params::sriov_enable, $sriov_enable)),
+        sriov     =>                            hiera(contrail::compute::sriov,hiera(contrail::params::sriov, $sriov)),
+
         # VMWare Parameters
 	vmware_ip =>				hiera(contrail::vmware::vmware_ip, hiera(contrail::params::vmware_ip, $vmware_ip)),
 	vmware_username =>			hiera(contrail::vmware::vmware_username, hiera(contrail::params::vmware_username, $vmware_username)),

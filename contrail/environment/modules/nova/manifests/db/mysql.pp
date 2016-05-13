@@ -25,7 +25,7 @@
 #
 # [*collate*]
 #   (optional) The collate to use for the nova database
-#   Defaults to 'utf8_unicode_ci'
+#   Defaults to 'utf8_general_ci'
 #
 # [*allowed_hosts*]
 #   (optional) Additional hosts that are allowed to access this DB
@@ -44,15 +44,10 @@ class nova::db::mysql(
   $user          = 'nova',
   $host          = '127.0.0.1',
   $charset       = 'utf8',
-  $collate       = 'utf8_unicode_ci',
+  $collate       = 'utf8_general_ci',
   $allowed_hosts = undef,
   $mysql_module  = undef,
-  $cluster_id    = undef
 ) {
-
-  if $cluster_id {
-    warning('The cluster_id parameter is deprecated and has no effect.')
-  }
 
   if $mysql_module {
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')

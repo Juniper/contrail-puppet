@@ -1,7 +1,7 @@
 keystone
 =======
 
-4.0.0 - 2014.1.0 - Icehouse
+6.1.0 - 2015.1 - Kilo
 
 #### Table of Contents
 
@@ -12,12 +12,11 @@ keystone
 5. [Limitations - OS compatibility, etc.](#limitations)
 6. [Development - Guide for contributing to the module](#development)
 7. [Contributors - Those with commits](#contributors)
-8. [Release Notes - Notes on the most recent updates to the module](#release-notes)
 
 Overview
 --------
 
-The keystone module is a part of [Stackforge](https://github.com/stackfoge), an effort by the Openstack infrastructure team to provide continuous integration testing and code review for Openstack and Openstack community projects not part of the core software.  The module its self is used to flexibly configure and manage the identify service for Openstack.
+The keystone module is a part of [OpenStack](https://github.com/openstack), an effort by the Openstack infrastructure team to provide continuous integration testing and code review for Openstack and Openstack community projects as part of the core software.  The module its self is used to flexibly configure and manage the identify service for Openstack.
 
 Module Description
 ------------------
@@ -45,10 +44,10 @@ To utilize the keystone module's functionality you will need to declare multiple
 
 ```puppet
 class { 'keystone':
-  verbose        => True,
-  catalog_type   => 'sql',
-  admin_token    => 'random_uuid',
-  sql_connection => 'mysql://keystone_admin:super_secret_db_password@openstack-controller.example.com/keystone',
+  verbose             => True,
+  catalog_type        => 'sql',
+  admin_token         => 'random_uuid',
+  database_connection => 'mysql://keystone_admin:super_secret_db_password@openstack-controller.example.com/keystone',
 }
 
 # Adds the admin credential to keystone.
@@ -59,10 +58,10 @@ class { 'keystone::roles::admin':
 
 # Installs the service user endpoint.
 class { 'keystone::endpoint':
-  public_address   => '10.16.0.101',
-  admin_address    => '10.16.1.101',
-  internal_address => '10.16.2.101',
-  region           => 'example-1',
+  public_url   => 'http://10.16.0.101:5000/v2.0',
+  admin_url    => 'http://10.16.1.101:35357/v2.0',
+  internal_url => 'http://10.16.2.101:5000/v2.0',
+  region       => 'example-1',
 }
 ```
 
@@ -148,6 +147,18 @@ Limitations
 
 * If you've setup Openstack using previous versions of this module you need to be aware that it used UUID as the dedault to the token_format parameter but now defaults to PKI.  If you're using this module to manage a Grizzly Openstack deployment that was set up using a development release of the modules or are attempting an upgrade from Folsom then you'll need to make sure you set the token_format to UUID at classification time.
 
+Beaker-Rspec
+------------
+
+This module has beaker-rspec tests
+
+To run:
+
+``shell
+bundle install
+bundle exec rspec spec/acceptance
+``
+
 Development
 -----------
 
@@ -158,78 +169,4 @@ Developer documentation for the entire puppet-openstack project.
 Contributors
 ------------
 
-* https://github.com/stackforge/puppet-keystone/graphs/contributors
-
-Release Notes
--------------
-
-**4.0.0**
-
-* Stable Icehouse release.
-* Added template_file parameter to specify catalog.
-* Added keystone::config to handle additional custom options.
-* Added notification parameters.
-* Added support for puppetlabs-mysql 2.2 and greater.
-* Fixed deprecated sql section header in keystone.conf.
-* Fixed deprecated bind_host parameter.
-* Fixed example for native type keystone_service.
-* Fixed LDAP module bugs.
-* Fixed variable for host_access dependency.
-* Reduced default token duration to one hour.
-
-**3.2.0**
-
-* Added ability to configure any catalog driver.
-* Ensures log_file is absent when using syslog.
-
-**3.1.1**
-
-* Fixed inconsistent variable for mysql allowed hosts.
-
-**3.1.0**
-
-* Added ability to disable pki_setup.
-* Load tenant un-lazily if needed.
-* Add log_dir param, with option to disable.
-* Updated endpoint argument.
-* Added support to enable SSL.
-* Removes setting of Keystone endpoint by default.
-* Relaxed regex when keystone refuses connections.
-
-**3.0.0**
-
-* Major release for OpenStack Havana.
-* Fixed duplicated keystone endpoints.
-* Refactored keystone_endpoint to use prefetch and flush paradigm.
-* Switched from signing/format to token/provider.
-* Created memcache_servers option to allow for multiple cache servers.
-* Enabled serving Keystone from Apache mod_wsgi.
-* Moved db_sync to its own class.
-* Removed creation of Member role.
-* Improved performance of Keystone providers.
-* Updated endpoints to support paths and ssl.
-* Added support for token expiration parameter.
-
-**2.2.0**
-
-* Optimized tenant and user queries.
-* Added syslog support.
-* Added support for token driver backend.
-* Various bug and lint fixes.
-
-**2.1.0**
-
-* Tracks release of puppet-quantum
-* Fixed allowed_hosts contitional statement
-* Pinned depedencies
-* Select keystone endpoint based on SSL setting
-* Improved tenant_hash usage in keystone_tenant
-* Various cleanup and bug fixes.
-
-**2.0.0**
-
-* Upstream is now part of stackfoge.
-* keystone_user can be used to change passwords.
-* service tenant name now configurable.
-* keystone_user is now idempotent.
-* Various cleanups and bug fixes.
+* https://github.com/openstack/puppet-keystone/graphs/contributors

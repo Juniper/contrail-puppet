@@ -18,9 +18,10 @@ describe 'glance::db::mysql' do
       }
     end
 
-    it { should contain_openstacklib__db__mysql('glance').with(
+    it { is_expected.to contain_openstacklib__db__mysql('glance').with(
       :password_hash => '*41C910F70EB213CF4CB7B2F561B4995503C0A87B',
-      :charset       => 'utf8'
+      :charset       => 'utf8',
+      :collate       => 'utf8_general_ci',
     )}
 
   end
@@ -34,7 +35,7 @@ describe 'glance::db::mysql' do
       }
     end
 
-    it { should contain_openstacklib__db__mysql('glance').with(
+    it { is_expected.to contain_openstacklib__db__mysql('glance').with(
       :password_hash => '*6F9A1CB9BD83EE06F3903BDFF9F4188764E694CA',
       :dbname        => 'glancedb2',
       :charset       => 'utf8'

@@ -7,6 +7,11 @@
 # [*keystone_password*]
 #   (required) Password used to authentication.
 #
+# [*package_ensure*]
+#   (optional) Ensure state for package. On RedHat platforms this
+#   setting is ignored and the setting from the glance class is used
+#   because there is only one glance package. Defaults to 'present'.
+#
 # [*verbose*]
 #   (optional) Rather to log the glance api service at verbose level.
 #   Default: false
@@ -57,36 +62,40 @@
 #   (optional) Type is authorization being used.
 #   Defaults to 'keystone'
 #
-# [* auth_host*]
-#   (optional) Host running auth service.
+# [*auth_host*]
+#   (optional) DEPRECATED Host running auth service.
 #   Defaults to '127.0.0.1'.
 #
 # [*auth_url*]
-#   (optional) Authentication URL.
+#   (optional) DEPRECATED Authentication URL.
 #   Defaults to 'http://localhost:5000/v2.0'.
 #
-# [* auth_port*]
-#   (optional) Port to use for auth service on auth_host.
+# [*auth_port*]
+#   (optional) DEPRECATED Port to use for auth service on auth_host.
 #   Defaults to '35357'.
 #
-# [* auth_uri*]
+# [*auth_uri*]
 #   (optional) Complete public Identity API endpoint.
 #   Defaults to false.
 #
 # [*auth_admin_prefix*]
-#   (optional) Path part of the auth url.
+#   (optional) DEPRECATED Path part of the auth url.
 #   This allow admin auth URIs like http://auth_host:35357/keystone/admin.
 #   (where '/keystone/admin' is auth_admin_prefix)
 #   Defaults to false for empty. If defined, should be a string with a leading '/' and no trailing '/'.
 #
-# [* auth_protocol*]
-#   (optional) Protocol to use for auth.
+# [*auth_protocol*]
+#   (optional) DEPRECATED Protocol to use for auth.
 #   Defaults to 'http'.
+#
+# [*identity_uri*]
+#   (optional) Complete admin Identity API endpoint.
+#   Defaults to: false
 #
 # [*pipeline*]
 #   (optional) Partial name of a pipeline in your paste configuration file with the
 #   service name removed.
-#   Defaults to 'keystone+cachemanagement'.
+#   Defaults to 'keystone'.
 #
 # [*keystone_tenant*]
 #   (optional) Tenant to authenticate to.
@@ -96,17 +105,13 @@
 #   (optional) User to authenticate as with keystone.
 #   Defaults to 'glance'.
 #
+# [*manage_service*]
+#   (optional) If Puppet should manage service startup / shutdown.
+#   Defaults to true.
+#
 # [*enabled*]
 #   (optional) Whether to enable services.
 #   Defaults to true.
-#
-# [*sql_idle_timeout*]
-#   (optional) Deprecated. Use database_idle_timeout instead
-#   Defaults to false
-#
-# [*sql_connection*]
-#   (optional) Deprecated. Use database_connection instead.
-#   Defaults to false
 #
 # [*database_connection*]
 #   (optional) Connection url to connect to nova database.
@@ -158,8 +163,33 @@
 #   (optional) Base directory that the Image Cache uses.
 #    Defaults to '/var/lib/glance/image-cache'.
 #
+# [*os_region_name*]
+#   (optional) Sets the keystone region to use.
+#   Defaults to 'RegionOne'.
+#
+# [*validate*]
+#   (optional) Whether to validate the service is working after any service refreshes
+#   Defaults to false
+#
+# [*validation_options*]
+#   (optional) Service validation options
+#   Should be a hash of options defined in openstacklib::service_validation
+#   If empty, defaults values are taken from openstacklib function.
+#   Default command list images.
+#   Require validate set at True.
+#   Example:
+#   glance::api::validation_options:
+#     glance-api:
+#       command: check_glance-api.py
+#       path: /usr/bin:/bin:/usr/sbin:/sbin
+#       provider: shell
+#       tries: 5
+#       try_sleep: 10
+#   Defaults to {}
+#
 class glance::api(
   $keystone_password,
+  $package_ensure           = 'present',
   $verbose                  = false,
   $debug                    = false,
   $bind_host                = '0.0.0.0',
@@ -172,15 +202,12 @@ class glance::api(
   $registry_port            = '9191',
   $registry_client_protocol = 'http',
   $auth_type                = 'keystone',
-  $auth_host                = '127.0.0.1',
-  $auth_url                 = 'http://localhost:5000/v2.0',
-  $auth_port                = '35357',
   $auth_uri                 = false,
-  $auth_admin_prefix        = false,
-  $auth_protocol            = 'http',
-  $pipeline                 = 'keystone+cachemanagement',
+  $identity_uri             = false,
+  $pipeline                 = 'keystone',
   $keystone_tenant          = 'services',
   $keystone_user            = 'glance',
+  $manage_service           = true,
   $enabled                  = true,
   $use_syslog               = false,
   $log_facility             = 'LOG_USER',
@@ -193,12 +220,19 @@ class glance::api(
   $database_connection      = 'sqlite:///var/lib/glance/glance.sqlite',
   $database_idle_timeout    = 3600,
   $image_cache_dir          = '/var/lib/glance/image-cache',
+  $os_region_name           = 'RegionOne',
+  $validate                 = false,
+  $validation_options       = {},
   # DEPRECATED PARAMETERS
   $mysql_module             = undef,
-  $sql_idle_timeout         = false,
-  $sql_connection           = false,
+  $auth_host                = '127.0.0.1',
+  $auth_url                 = 'http://localhost:5000/v2.0',
+  $auth_port                = '35357',
+  $auth_admin_prefix        = false,
+  $auth_protocol            = 'http',
 ) inherits glance {
 
+  include ::glance::policy
   require keystone::python
 
   if $mysql_module {
@@ -206,10 +240,16 @@ class glance::api(
   }
 
   if ( $glance::params::api_package_name != $glance::params::registry_package_name ) {
-    ensure_packages([$glance::params::api_package_name])
+    ensure_packages([$glance::params::api_package_name],
+      {
+        ensure => $package_ensure,
+        tag    => ['openstack'],
+      }
+    )
   }
 
   Package[$glance::params::api_package_name] -> File['/etc/glance/']
+  Package[$glance::params::api_package_name] -> Class['glance::policy']
   Package[$glance::params::api_package_name] -> Glance_api_config<||>
   Package[$glance::params::api_package_name] -> Glance_cache_config<||>
 
@@ -220,6 +260,8 @@ class glance::api(
   Exec<| title == 'glance-manage db_sync' |> ~> Service['glance-api']
   Glance_api_config<||>   ~> Service['glance-api']
   Glance_cache_config<||> ~> Service['glance-api']
+  Class['glance::policy'] ~> Service['glance-api']
+  Service['glance-api']   ~> Glance_image<||>
 
   File {
     ensure  => present,
@@ -230,34 +272,20 @@ class glance::api(
     require => Class['glance']
   }
 
-  if $sql_connection {
-    warning('The sql_connection parameter is deprecated, use database_connection instead.')
-    $database_connection_real = $sql_connection
-  } else {
-    $database_connection_real = $database_connection
-  }
-
-  if $sql_idle_timeout {
-    warning('The sql_idle_timeout parameter is deprecated, use database_idle_timeout instead.')
-    $database_idle_timeout_real = $sql_idle_timeout
-  } else {
-    $database_idle_timeout_real = $database_idle_timeout
-  }
-
-  if $database_connection_real {
-    if($database_connection_real =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+  if $database_connection {
+    if($database_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
       require 'mysql::bindings'
       require 'mysql::bindings::python'
-    } elsif($database_connection_real =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+    } elsif($database_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
-    } elsif($database_connection_real =~ /sqlite:\/\//) {
+    } elsif($database_connection =~ /sqlite:\/\//) {
 
     } else {
-      fail("Invalid db connection ${database_connection_real}")
+      fail("Invalid db connection ${database_connection}")
     }
     glance_api_config {
-      'database/connection':   value => $database_connection_real, secret => true;
-      'database/idle_timeout': value => $database_idle_timeout_real;
+      'database/connection':   value => $database_connection, secret => true;
+      'database/idle_timeout': value => $database_idle_timeout;
     }
   }
 
@@ -271,22 +299,24 @@ class glance::api(
     'DEFAULT/workers':               value => $workers;
     'DEFAULT/show_image_direct_url': value => $show_image_direct_url;
     'DEFAULT/image_cache_dir':       value => $image_cache_dir;
+    'glance_store/os_region_name':   value => $os_region_name;
   }
 
   # known_stores config
   if $known_stores {
     glance_api_config {
-      'DEFAULT/known_stores':  value => join($known_stores, ',');
+      'glance_store/stores':  value => join($known_stores, ',');
     }
   } else {
     glance_api_config {
-      'DEFAULT/known_stores': ensure => absent;
+      'glance_store/stores': ensure => absent;
     }
   }
 
   glance_cache_config {
-    'DEFAULT/verbose':   value => $verbose;
-    'DEFAULT/debug':     value => $debug;
+    'DEFAULT/verbose':             value => $verbose;
+    'DEFAULT/debug':               value => $debug;
+    'glance_store/os_region_name': value => $os_region_name;
   }
 
   # configure api service to connect registry service
@@ -301,26 +331,57 @@ class glance::api(
     'DEFAULT/registry_port': value => $registry_port;
   }
 
+  if $identity_uri {
+    glance_api_config { 'keystone_authtoken/identity_uri': value => $identity_uri; }
+  } else {
+    glance_api_config { 'keystone_authtoken/identity_uri': ensure => absent; }
+  }
+
   if $auth_uri {
     glance_api_config { 'keystone_authtoken/auth_uri': value => $auth_uri; }
   } else {
     glance_api_config { 'keystone_authtoken/auth_uri': value => "${auth_protocol}://${auth_host}:5000/"; }
   }
 
-  # auth config
-  glance_api_config {
-    'keystone_authtoken/auth_host':     value => $auth_host;
-    'keystone_authtoken/auth_port':     value => $auth_port;
-    'keystone_authtoken/auth_protocol': value => $auth_protocol;
-  }
+  # if both auth_uri and identity_uri are set we skip these deprecated settings entirely
+  if !$auth_uri or !$identity_uri {
 
-  if $auth_admin_prefix {
-    validate_re($auth_admin_prefix, '^(/.+[^/])?$')
-    glance_api_config {
-      'keystone_authtoken/auth_admin_prefix': value => $auth_admin_prefix;
+    if $auth_host {
+      warning('The auth_host parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      glance_api_config { 'keystone_authtoken/auth_host': value => $auth_host; }
+    } else {
+      glance_api_config { 'keystone_authtoken/auth_host': ensure => absent; }
     }
+
+    if $auth_port {
+      warning('The auth_port parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      glance_api_config { 'keystone_authtoken/auth_port': value => $auth_port; }
+    } else {
+      glance_api_config { 'keystone_authtoken/auth_port': ensure => absent; }
+    }
+
+    if $auth_protocol {
+      warning('The auth_protocol parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      glance_api_config { 'keystone_authtoken/auth_protocol': value => $auth_protocol; }
+    } else {
+      glance_api_config { 'keystone_authtoken/auth_protocol': ensure => absent; }
+    }
+
+    if $auth_admin_prefix {
+      warning('The auth_admin_prefix  parameter is deprecated. Please use auth_uri and identity_uri instead.')
+      validate_re($auth_admin_prefix, '^(/.+[^/])?$')
+      glance_api_config {
+        'keystone_authtoken/auth_admin_prefix': value => $auth_admin_prefix;
+      }
+    } else {
+      glance_api_config { 'keystone_authtoken/auth_admin_prefix': ensure => absent; }
+    }
+
   } else {
     glance_api_config {
+      'keystone_authtoken/auth_host': ensure => absent;
+      'keystone_authtoken/auth_port': ensure => absent;
+      'keystone_authtoken/auth_protocol': ensure => absent;
       'keystone_authtoken/auth_admin_prefix': ensure => absent;
     }
   }
@@ -423,10 +484,12 @@ class glance::api(
           '/etc/glance/glance-cache.conf']:
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
   }
 
   service { 'glance-api':
@@ -436,4 +499,15 @@ class glance::api(
     hasstatus  => true,
     hasrestart => true,
   }
+
+  if $validate {
+    $defaults = {
+      'glance-api' => {
+        'command'  => "glance --os-auth-url ${auth_url} --os-tenant-name ${keystone_tenant} --os-username ${keystone_user} --os-password ${keystone_password} image-list",
+      }
+    }
+    $validation_options_hash = merge ($defaults, $validation_options)
+    create_resources('openstacklib::service_validation', $validation_options_hash, {'subscribe' => 'Service[glance-api]'})
+  }
+
 }
