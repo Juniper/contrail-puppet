@@ -3,16 +3,12 @@ define contrail::lib::post_openstack(
     $host_control_ip,
     $openstack_ip_list,
     $internal_vip,
+    $password  = $::contrail::params::os_mysql_service_password,
     $contrail_logoutput = false,
 ) {
   if ($host_control_ip in $openstack_ip_list) {
     #Make ha-mon start later
     if($internal_vip != '') {
-        #Get the value for hiera and not from openstack::config
-        #as with sequencing changes openstack modules is disabled after its
-        #step is completed.
-
-        $password = hiera(openstack::mysql::service_password)
         exec { 'ha-mon-restart':
             command   => 'service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
             provider  => shell,

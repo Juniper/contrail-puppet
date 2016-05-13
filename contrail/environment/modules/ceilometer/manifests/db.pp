@@ -18,7 +18,7 @@ class ceilometer::db (
   $mysql_module        = undef,
 ) {
 
-  include ceilometer::params
+  include ::ceilometer::params
 
   if $mysql_module {
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
@@ -33,9 +33,10 @@ class ceilometer::db (
     /^mysql:\/\//: {
       $backend_package = false
 
-      include mysql::bindings::python
+      include ::mysql::bindings::python
+      Package<| title == 'python-mysqldb' |> -> Class['ceilometer::db']
     }
-    /^postgres:\/\//: {
+    /^postgresql:\/\//: {
       $backend_package = $::ceilometer::params::psycopg_package_name
     }
     /^mongodb:\/\//: {
@@ -59,6 +60,7 @@ class ceilometer::db (
     package {'ceilometer-backend-package':
       ensure => present,
       name   => $backend_package,
+      tag    => 'openstack',
     }
   }
 

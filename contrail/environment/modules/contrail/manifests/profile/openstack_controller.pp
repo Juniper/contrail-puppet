@@ -22,21 +22,25 @@ class contrail::profile::openstack_controller (
 ) {
     if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
         contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
-        class {'::openstack::profile::base' : } ->
+        package {'contrail-openstack' :
+            ensure => latest,
+            before => Class['::mysql::server']
+        } ->
+        class { 'memcached': }->
         class {'::nova::quota' :
               quota_instances => 10000,
         } ->
-        class {'::openstack::profile::firewall' : } ->
         class {'::contrail::profile::openstack::mysql' : } ->
-        class {'::openstack::profile::keystone' : } ->
-        class {'::openstack::profile::memcache' : } ->
-        class {'::contrail::profile::openstack::glance::api' : } ->
-        class {'::openstack::profile::cinder::api' : } ->
-        class {'::openstack::profile::nova::api' : } ->
-        class {'::contrail::profile::openstack::heat' : } ->
-        #class {'::openstack::profile::horizon' : } ->
-        class {'::openstack::profile::auth_file' : } ->
-        class {'::openstack::profile::provision' : } ->
+        Package['python-openstackclient'] ->
+        class {'::contrail::profile::openstack::keystone' : } ->
+        class {'::contrail::profile::openstack::glance' : } ->
+        class {'::contrail::profile::openstack::cinder' : } ->
+        service { 'supervisor-openstack': enable => true, ensure => running } ->
+        class {'::contrail::profile::openstack::nova' : } ->
+        class {'::contrail::profile::openstack::neutron' : } ->
+        #class {'::contrail::profile::openstack::heat' : } ->
+        class {'::contrail::profile::openstack::provision' : } ->
+        class {'::contrail::profile::openstack::auth_file' : } ->
         class {'::contrail::contrail_openstack' : } ->
         package { 'openstack-dashboard': ensure => present } ->
         file {'/etc/openstack-dashboard/local_settings.py':
@@ -45,65 +49,28 @@ class contrail::profile::openstack_controller (
             group  => root,
             content => template("${module_name}/local_settings.py.erb")
         } ->
-        notify { "contrail::profile::openstack_controller - enable_ceilometer = ${enable_ceilometer}":; } ->
-        openstack::resources::database { 'neutron': } ->
-        package { 'neutron-server': ensure => present } ->
-        class {'::contrail::profile::neutron_db_sync':
-            database_connection => $::openstack::resources::connectors::neutron
-        } ->
-        notify { "contrail::profile::openstack_controller - neutron_db_connection = ${::openstack::resources::connectors::neutron}":; } ->
-        package { 'contrail-openstack':
-            ensure    => latest,
-        }
-        ->
-        exec { 'exec_start_supervisor_openstack' :
-            command   => 'service supervisor-openstack restart && echo start_supervisor_openstack >> /etc/contrail/contrail_openstack_exec.out',
-            provider  => shell,
-            require   => [ Package['contrail-openstack']  ],
-            logoutput => $contrail_logoutput
-        }
-        ->
         contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
-        contain ::openstack::profile::base
-        contain ::nova::quota
-        contain ::openstack::profile::firewall
+
         contain ::contrail::profile::openstack::mysql
-        contain ::openstack::profile::keystone
-        contain ::openstack::profile::memcache
-        contain ::contrail::profile::openstack::glance::api
-        contain ::openstack::profile::cinder::api
-        contain ::openstack::profile::nova::api
-        contain ::contrail::profile::openstack::heat
-        contain ::openstack::profile::auth_file
-        contain ::openstack::profile::provision
+        contain ::contrail::profile::openstack::keystone
+        contain ::contrail::profile::openstack::glance
+        contain ::contrail::profile::openstack::cinder
+        contain ::contrail::profile::openstack::nova
+        contain ::contrail::profile::openstack::neutron
+        #contain ::contrail::profile::openstack::heat
+        contain ::contrail::profile::openstack::auth_file
+        contain ::contrail::profile::openstack::provision
         contain ::contrail::contrail_openstack
-        contain ::contrail::profile::neutron_db_sync
-        Class['::openstack::profile::provision']->Service['glance-api']
-        Package['contrail-openstack'] -> Exec['exec_start_supervisor_openstack']
-        if ($neutron_ip_to_use) {
-            $neutron_params = {'DEFAULT/bind_host' =>  {  value => "${neutron_ip_to_use}" }}
-            create_resources(neutron_config, $neutron_params, {} )
-            Class['::contrail::profile::neutron_db_sync']->Neutron_config['DEFAULT/bind_host']->Package['contrail-openstack']
-        }
+
         if ($enable_ceilometer) {
             Class['::contrail::profile::openstack::heat'] ->
             class {'::contrail::profile::openstack::ceilometer' : } ->
-            Class['::openstack::profile::auth_file']
+            Class['::contrail::profile::openstack::auth_file']
             contain ::contrail::profile::openstack::ceilometer
         }
-
-        if ($package_sku !~ /^*2015.1.*/) {
-            Package['openstack-dashboard'] ->
-            package { 'contrail-openstack-dashboard':
-                ensure  => latest,
-            } ->
-            File['/etc/openstack-dashboard/local_settings.py']
-            Package['contrail-openstack-dashboard'] -> Exec['openstack-neutron-db-sync']
-        }
-
-        if ($openstack_manage_amqp and ! defined(Class['::contrail::rabbitmq']) ) {
+        if ($openstack_manage_amqp and !  defined(Class['::contrail::rabbitmq']) ) {
             contain ::contrail::rabbitmq
-            Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Exec['exec_start_supervisor_openstack']
+            Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Service['supervisor-openstack']
         }
 
     } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {

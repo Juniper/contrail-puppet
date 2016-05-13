@@ -3,8 +3,12 @@
 #  ceilometer base package & configuration
 #
 # == parameters
+#
 #  [*metering_secret*]
 #    secret key for signing messages. Mandatory.
+#  [*notification_topics*]
+#    AMQP topic used for OpenStack notifications (list value)
+#    Defaults to 'notifications'
 #  [*package_ensure*]
 #    ensure state for package. Optional. Defaults to 'present'
 #  [*debug*]
@@ -53,10 +57,7 @@
 #    (optional) SSL version to use (valid only if SSL enabled).
 #    Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
 #    available on some distributions.
-#    Defaults to 'SSLv3'
-#  [*auth_strategy*]
-#    Ceilometer authentication strategy
-#    Defaults to 'keystone'
+#    Defaults to 'TLSv1'
 #
 # [*qpid_hostname*]
 # [*qpid_port*]
@@ -73,7 +74,6 @@
 # [*qpid_reconnect_interval_max*]
 # (optional) various QPID options
 #
-
 class ceilometer(
   $metering_secret     = false,
   $notification_topics = ['notifications'],
@@ -94,7 +94,7 @@ class ceilometer(
   $kombu_ssl_ca_certs  = undef,
   $kombu_ssl_certfile  = undef,
   $kombu_ssl_keyfile   = undef,
-  $kombu_ssl_version   = 'SSLv3',
+  $kombu_ssl_version   = 'TLSv1',
   $qpid_hostname = 'localhost',
   $qpid_port = 5672,
   $qpid_username = 'guest',
@@ -107,13 +107,12 @@ class ceilometer(
   $qpid_reconnect_limit = 0,
   $qpid_reconnect_interval_min = 0,
   $qpid_reconnect_interval_max = 0,
-  $qpid_reconnect_interval = 0,
-  $auth_strategy = 'keystone'
+  $qpid_reconnect_interval = 0
 ) {
 
   validate_string($metering_secret)
 
-  include ceilometer::params
+  include ::ceilometer::params
 
   if $kombu_ssl_ca_certs and !$rabbit_use_ssl {
     fail('The kombu_ssl_ca_certs parameter requires rabbit_use_ssl to be set to true')
@@ -145,21 +144,22 @@ class ceilometer(
   }
 
   file { '/etc/ceilometer/':
-    ensure  => directory,
-    owner   => 'ceilometer',
-    group   => 'ceilometer',
-    mode    => '0750',
+    ensure => directory,
+    owner  => 'ceilometer',
+    group  => 'ceilometer',
+    mode   => '0750',
   }
 
   file { '/etc/ceilometer/ceilometer.conf':
-    owner   => 'ceilometer',
-    group   => 'ceilometer',
-    mode    => '0640',
+    owner => 'ceilometer',
+    group => 'ceilometer',
+    mode  => '0640',
   }
 
   package { 'ceilometer-common':
     ensure => $package_ensure,
     name   => $::ceilometer::params::common_package_name,
+    tag    => 'openstack',
   }
 
   Package['ceilometer-common'] -> Ceilometer_config<||>
@@ -167,64 +167,64 @@ class ceilometer(
   if $rpc_backend == 'ceilometer.openstack.common.rpc.impl_kombu' {
 
     if $rabbit_hosts {
-      ceilometer_config { 'DEFAULT/rabbit_host': ensure => absent }
-      ceilometer_config { 'DEFAULT/rabbit_port': ensure => absent }
-      ceilometer_config { 'DEFAULT/rabbit_hosts':
-        value => $rabbit_hosts
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_host': ensure => absent }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_port': ensure => absent }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_hosts':
+        value => join($rabbit_hosts, ',')
       }
       } else {
-      ceilometer_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
-      ceilometer_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
-      ceilometer_config { 'DEFAULT/rabbit_hosts':
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_host': value => $rabbit_host }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_port': value => $rabbit_port }
+      ceilometer_config { 'oslo_messaging_rabbit/rabbit_hosts':
         value => "${rabbit_host}:${rabbit_port}"
       }
     }
 
       if size($rabbit_hosts) > 1 {
-        ceilometer_config { 'DEFAULT/rabbit_ha_queues': value => true }
+        ceilometer_config { 'oslo_messaging_rabbit/rabbit_ha_queues': value => true }
       } else {
-        ceilometer_config { 'DEFAULT/rabbit_ha_queues': value => false }
+        ceilometer_config { 'oslo_messaging_rabbit/rabbit_ha_queues': value => false }
       }
 
       ceilometer_config {
-        'DEFAULT/rabbit_userid'          : value => $rabbit_userid;
-        'DEFAULT/rabbit_password'        : value => $rabbit_password, secret => true;
-        'DEFAULT/rabbit_virtual_host'    : value => $rabbit_virtual_host;
-        'DEFAULT/rabbit_use_ssl'         : value => $rabbit_use_ssl;
+        'oslo_messaging_rabbit/rabbit_userid'          : value => $rabbit_userid;
+        'oslo_messaging_rabbit/rabbit_password'        : value => $rabbit_password, secret => true;
+        'oslo_messaging_rabbit/rabbit_virtual_host'    : value => $rabbit_virtual_host;
+        'oslo_messaging_rabbit/rabbit_use_ssl'         : value => $rabbit_use_ssl;
       }
 
       if $rabbit_use_ssl {
 
       if $kombu_ssl_ca_certs {
-        ceilometer_config { 'DEFAULT/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs; }
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_ca_certs': value => $kombu_ssl_ca_certs; }
       } else {
-        ceilometer_config { 'DEFAULT/kombu_ssl_ca_certs': ensure => absent; }
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_ca_certs': ensure => absent; }
       }
 
       if $kombu_ssl_certfile or $kombu_ssl_keyfile {
         ceilometer_config {
-          'DEFAULT/kombu_ssl_certfile': value => $kombu_ssl_certfile;
-          'DEFAULT/kombu_ssl_keyfile':  value => $kombu_ssl_keyfile;
+          'oslo_messaging_rabbit/kombu_ssl_certfile': value => $kombu_ssl_certfile;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  value => $kombu_ssl_keyfile;
         }
       } else {
         ceilometer_config {
-          'DEFAULT/kombu_ssl_certfile': ensure => absent;
-          'DEFAULT/kombu_ssl_keyfile':  ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_certfile': ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  ensure => absent;
         }
       }
 
       if $kombu_ssl_version {
-        ceilometer_config { 'DEFAULT/kombu_ssl_version':  value => $kombu_ssl_version; }
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_version':  value => $kombu_ssl_version; }
       } else {
-        ceilometer_config { 'DEFAULT/kombu_ssl_version':  ensure => absent; }
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_ssl_version':  ensure => absent; }
       }
 
       } else {
         ceilometer_config {
-          'DEFAULT/kombu_ssl_ca_certs': ensure => absent;
-          'DEFAULT/kombu_ssl_certfile': ensure => absent;
-          'DEFAULT/kombu_ssl_keyfile':  ensure => absent;
-          'DEFAULT/kombu_ssl_version':  ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_ca_certs': ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_certfile': ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_keyfile':  ensure => absent;
+          'oslo_messaging_rabbit/kombu_ssl_version':  ensure => absent;
         }
       }
 
@@ -279,12 +279,6 @@ class ceilometer(
   } else {
     ceilometer_config {
       'DEFAULT/use_syslog':           value => false;
-    }
-  }
-
-  if $auth_strategy {
-    ceilometer_config {
-        'DEFAULT/auth_strategy'      : value => $auth_strategy;
     }
   }
 

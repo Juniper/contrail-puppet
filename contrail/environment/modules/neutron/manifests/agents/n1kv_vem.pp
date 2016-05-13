@@ -9,6 +9,10 @@
 #   (required) N1KV VSM(Virtual Supervisor Module) VM's IP.
 #   Defaults to 127.0.0.1
 #
+# [*n1kv_vsm_ipv6*]
+#   (required) N1KV VSM(Virtual Supervisor Module) VM's IP.
+#   Defaults to ::1
+#
 # [*n1kv_vsm_domainid*]
 #   (required) N1KV VSM DomainID.
 #   Defaults to 1000
@@ -91,8 +95,17 @@
 #   (optional) Whether to start/stop the service
 #   Defaults to true
 #
+# [*portdb*]
+#   (optional) PortDB (ovs|vem)
+#   Defaults to ovs
+#
+# [*fastpath_flood*]
+#   (optional) Handle broadcast floods and unknown pkts in fastpath(KLM)
+#   Defaults to enable
+#
 class neutron::agents::n1kv_vem (
   $n1kv_vsm_ip          = '127.0.0.1',
+  $n1kv_vsm_ipv6        = '::1',
   $n1kv_vsm_domain_id   = 1000,
   $host_mgmt_intf       = 'eth1',
   $uplink_profile       = {},
@@ -103,10 +116,13 @@ class neutron::agents::n1kv_vem (
   $n1kv_version         = 'present',
   $package_ensure       = 'present',
   $enable               = true,
-  $manage_service       = true
+  $manage_service       = true,
+  $portdb               = 'ovs',
+  $fastpath_flood       = 'enable'
 ) {
 
-  include neutron::params
+  include ::neutron::params
+  require vswitch::ovs
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 
@@ -132,11 +148,6 @@ class neutron::agents::n1kv_vem (
   package { 'libnl':
     ensure => $package_ensure,
     name   => $::neutron::params::libnl_package
-  }
-
-  package { 'openvswitch':
-    ensure => $package_ensure,
-    name   => $::neutron::params::ovs_package
   }
 
   file {
@@ -176,6 +187,7 @@ class neutron::agents::n1kv_vem (
       ensure   => $n1kv_version,
       provider => $::neutron::params::package_provider,
       source   => $vemtgtimg,
+      tag      => 'openstack',
       require  => File[$vemtgtimg]
     }
   } else {
@@ -192,7 +204,8 @@ class neutron::agents::n1kv_vem (
       }
     }
     package {'nexus1000v':
-      ensure => $package_ensure
+      ensure => $package_ensure,
+      tag    => 'openstack',
     }
   }
 
@@ -229,7 +242,7 @@ class neutron::agents::n1kv_vem (
   }
 
   Package['libnl']            -> Package['nexus1000v']
-  Package['openvswitch']      -> Package['nexus1000v']
+  Service['openvswitch']      ~> Package['nexus1000v']
   File['/etc/n1kv/n1kv.conf'] -> Package['nexus1000v']
   Package['nexus1000v']       ~> Service['nexus1000v']
 }

@@ -20,10 +20,11 @@ describe 'nova::db::mysql' do
         required_params
       end
 
-      it { should contain_openstacklib__db__mysql('nova').with(
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with(
         :user          => 'nova',
         :password_hash => '*AA1420F182E88B9E5F874F6FBE7459291E8F4601',
-        :charset       => 'utf8'
+        :charset       => 'utf8',
+        :collate       => 'utf8_general_ci',
       )}
     end
 
@@ -32,7 +33,7 @@ describe 'nova::db::mysql' do
         { :charset => 'latin1' }.merge(required_params)
       end
 
-      it { should contain_openstacklib__db__mysql('nova').with_charset(params[:charset]) }
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with_charset(params[:charset]) }
     end
   end
 
@@ -46,10 +47,11 @@ describe 'nova::db::mysql' do
         required_params
       end
 
-      it { should contain_openstacklib__db__mysql('nova').with(
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with(
         :user          => 'nova',
         :password_hash => '*AA1420F182E88B9E5F874F6FBE7459291E8F4601',
-        :charset       => 'utf8'
+        :charset       => 'utf8',
+        :collate       => 'utf8_general_ci',
       )}
     end
 
@@ -58,7 +60,7 @@ describe 'nova::db::mysql' do
         { :charset => 'latin1' }.merge(required_params)
       end
 
-      it { should contain_openstacklib__db__mysql('nova').with_charset(params[:charset]) }
+      it { is_expected.to contain_openstacklib__db__mysql('nova').with_charset(params[:charset]) }
     end
   end
 

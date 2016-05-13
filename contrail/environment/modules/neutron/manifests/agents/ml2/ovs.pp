@@ -29,6 +29,10 @@
 #   (required) Whether or not to enable the OVS Agent
 #   Defaults to true
 #
+# [*manage_service*]
+#   (optional) Whether to start/stop the service
+#   Defaults to true
+#
 # [*bridge_uplinks*]
 #   (optional) List of interfaces to connect to the bridge when doing
 #   bridge mapping.
@@ -83,31 +87,43 @@
 #   (optional) Firewall driver for realizing neutron security group function.
 #   Defaults to 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver'.
 #
+# [*enable_distributed_routing*]
+#   (optional) Set to True on L2 agents to enable support
+#   for distributed virtual routing.
+#   Defaults to false
+#
 class neutron::agents::ml2::ovs (
-  $package_ensure        = 'present',
-  $enabled               = true,
-  $bridge_uplinks        = [],
-  $bridge_mappings       = [],
-  $integration_bridge    = 'br-int',
-  $enable_tunneling      = false,
-  $tunnel_types          = [],
-  $local_ip              = false,
-  $tunnel_bridge         = 'br-tun',
-  $vxlan_udp_port        = 4789,
-  $polling_interval      = 2,
-  $l2_population         = false,
-  $arp_responder         = false,
-  $firewall_driver       = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver'
+  $package_ensure             = 'present',
+  $enabled                    = true,
+  $manage_service             = true,
+  $bridge_uplinks             = [],
+  $bridge_mappings            = [],
+  $integration_bridge         = 'br-int',
+  $enable_tunneling           = false,
+  $tunnel_types               = [],
+  $local_ip                   = false,
+  $tunnel_bridge              = 'br-tun',
+  $vxlan_udp_port             = 4789,
+  $polling_interval           = 2,
+  $l2_population              = false,
+  $arp_responder              = false,
+  $firewall_driver            = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+  $enable_distributed_routing = false,
 ) {
 
-  include neutron::params
+  include ::neutron::params
   require vswitch::ovs
 
   if $enable_tunneling and ! $local_ip {
     fail('Local ip for ovs agent must be set when tunneling is enabled')
   }
 
-  Neutron_plugin_ml2<||> ~> Service['neutron-ovs-agent-service']
+  if $enable_tunneling and $enable_distributed_routing and ! $l2_population {
+    fail('L2 population must be enabled when DVR and tunneling are enabled')
+  }
+
+  Package['neutron-ovs-agent'] -> Neutron_agent_ovs<||>
+  Neutron_agent_ovs<||> ~> Service['neutron-ovs-agent-service']
 
   if ($bridge_mappings != []) {
     # bridge_mappings are used to describe external networks that are
@@ -125,7 +141,7 @@ class neutron::agents::ml2::ovs (
     # Set config for bridges that we're going to create
     # The OVS neutron plugin will talk in terms of the networks in the bridge_mappings
     $br_map_str = join($bridge_mappings, ',')
-    neutron_plugin_ml2 {
+    neutron_agent_ovs {
       'ovs/bridge_mappings': value => $br_map_str;
     }
     neutron::plugins::ovs::bridge{ $bridge_mappings:
@@ -136,50 +152,40 @@ class neutron::agents::ml2::ovs (
     }
   }
 
-  neutron_plugin_ml2 {
-    'agent/polling_interval': value => $polling_interval;
-    'agent/l2_population':    value => $l2_population;
-    'agent/arp_responder':    value => $arp_responder;
-    'ovs/integration_bridge': value => $integration_bridge;
+  neutron_agent_ovs {
+    'agent/polling_interval':           value => $polling_interval;
+    'agent/l2_population':              value => $l2_population;
+    'agent/arp_responder':              value => $arp_responder;
+    'agent/enable_distributed_routing': value => $enable_distributed_routing;
+    'ovs/integration_bridge':           value => $integration_bridge;
   }
 
-  if ($firewall_driver) {
-    neutron_plugin_ml2 { 'securitygroup/firewall_driver':
-      value => $firewall_driver
-    }
+  if $firewall_driver {
+    neutron_agent_ovs { 'securitygroup/firewall_driver': value => $firewall_driver }
   } else {
-    neutron_plugin_ml2 { 'securitygroup/firewall_driver': ensure => absent }
-  }
-
-  vs_bridge { $integration_bridge:
-    ensure => present,
-    before => Service['neutron-ovs-agent-service'],
+    neutron_agent_ovs { 'securitygroup/firewall_driver': ensure => absent }
   }
 
   if $enable_tunneling {
-    vs_bridge { $tunnel_bridge:
-      ensure => present,
-      before => Service['neutron-ovs-agent-service'],
-    }
-    neutron_plugin_ml2 {
+    neutron_agent_ovs {
       'ovs/enable_tunneling': value => true;
       'ovs/tunnel_bridge':    value => $tunnel_bridge;
       'ovs/local_ip':         value => $local_ip;
     }
 
     if size($tunnel_types) > 0 {
-      neutron_plugin_ml2 {
+      neutron_agent_ovs {
         'agent/tunnel_types': value => join($tunnel_types, ',');
       }
     }
     if 'vxlan' in $tunnel_types {
       validate_vxlan_udp_port($vxlan_udp_port)
-      neutron_plugin_ml2 {
+      neutron_agent_ovs {
         'agent/vxlan_udp_port': value => $vxlan_udp_port;
       }
     }
   } else {
-    neutron_plugin_ml2 {
+    neutron_agent_ovs {
       'ovs/enable_tunneling': value  => false;
       'ovs/tunnel_bridge':    ensure => absent;
       'ovs/local_ip':         ensure => absent;
@@ -188,37 +194,30 @@ class neutron::agents::ml2::ovs (
 
 
   if $::neutron::params::ovs_agent_package {
-    Package['neutron-ovs-agent'] -> Neutron_plugin_ml2<||>
     package { 'neutron-ovs-agent':
-      ensure  => $package_ensure,
-      name    => $::neutron::params::ovs_agent_package,
+      ensure => $package_ensure,
+      name   => $::neutron::params::ovs_agent_package,
+      tag    => 'openstack',
     }
   } else {
     # Some platforms (RedHat) do not provide a separate
     # neutron plugin ovs agent package. The configuration file for
     # the ovs agent is provided by the neutron ovs plugin package.
-    Package['neutron-ovs-agent'] -> Neutron_plugin_ml2<||>
-    Package['neutron-ovs-agent'] -> Service['ovs-cleanup-service']
-
     if ! defined(Package['neutron-ovs-agent']) {
       package { 'neutron-ovs-agent':
-        ensure  => $package_ensure,
-        name    => $::neutron::params::ovs_server_package,
-      } ->
-      # https://bugzilla.redhat.com/show_bug.cgi?id=1087647
-      # Causes init script for agent to load the old ovs file
-      # instead of the ml2 config file.
-      file { '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini':
-        ensure => link,
-        target => '/etc/neutron/plugin.ini'
-      } ~> Service<| title == 'neutron-ovs-agent-service' |>
+        ensure => $package_ensure,
+        name   => $::neutron::params::ovs_server_package,
+        tag    => 'openstack',
+      }
     }
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
   }
 
   service { 'neutron-ovs-agent-service':
@@ -229,8 +228,8 @@ class neutron::agents::ml2::ovs (
   }
 
   if $::neutron::params::ovs_cleanup_service {
-    service {'ovs-cleanup-service':
-      ensure => $service_ensure,
+    Package['neutron-ovs-agent'] -> Service['ovs-cleanup-service']
+    service { 'ovs-cleanup-service':
       name   => $::neutron::params::ovs_cleanup_service,
       enable => $enabled,
     }

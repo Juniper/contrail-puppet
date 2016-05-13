@@ -1,5 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 # Copyright 2013 OpenStack Foundation
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,40 +13,20 @@
 #    under the License.
 
 #
-# This file was copied from https://github.com/openstack/keystone/raw/c3b92295b718a41c3136876eb39297081015a97c/httpd/keystone.py
+# This file was copied from
+# raw.githubusercontent.com/openstack/keystone/a4f29db/httpd/keystone.py
 # It's only required for platforms on which it is not packaged yet.
 # It should be removed when available everywhere in a package.
 #
 
-import logging
 import os
 
-from paste import deploy
-
-from keystone.openstack.common import gettextutils
-
-# NOTE(blk-u):
-# gettextutils.install() must run to set _ before importing any modules that
-# contain static translated strings.
-gettextutils.install('keystone')
-
-from keystone.common import environment
-from keystone import config
-from keystone.openstack.common import log
+from keystone.server import wsgi as wsgi_server
 
 
-CONF = config.CONF
-CONF(project='keystone')
-config.setup_logging(CONF)
-
-environment.use_stdlib()
 name = os.path.basename(__file__)
-
-if CONF.debug:
-    CONF.log_opt_values(log.getLogger(CONF.prog), logging.DEBUG)
 
 # NOTE(ldbragst): 'application' is required in this context by WSGI spec.
 # The following is a reference to Python Paste Deploy documentation
 # http://pythonpaste.org/deploy/
-application = deploy.loadapp('config:%s' % config.find_paste_config(),
-                             name=name)
+application = wsgi_server.initialize_application(name)

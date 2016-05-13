@@ -5,6 +5,6 @@ class contrail::profile::neutron_db_sync (
     exec { 'openstack-neutron-db-sync':
         command     => "neutron-db-manage --database-connection ${database_connection} upgrade head",
         path        => '/usr/bin',
-        require     => Openstack::Resources::Database['neutron']
+        #require     => Openstack::Resources::Database['neutron']
     }
 }

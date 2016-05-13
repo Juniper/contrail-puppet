@@ -3,52 +3,67 @@
 #
 #
 class contrail::profile::openstack::heat (
-  $heat_auth_encryption_key = $::openstack::config::heat_encryption_key
+  $openstack_verbose = $::contrail::params::openstack_verbose,
+  $openstack_debug = $::contrail::params::openstack_debug,
 ) {
-    openstack::resources::database { 'heat': }
+  $heat_auth_encryption_key = hiera(openstack::heat::encryption_key)
+  $controller_management_address = hiera(openstack::controller::address::management)
+  $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_ip_list
+  $internal_vip = $::contrail::params::internal_vip
+  $address_api = hiera(openstack::controller::address::api)
+  $region_name = hiera(openstack::region)
+  $heat_password = hiera(openstack::heat::password)
+  $service_password = hiera(openstack::mysql::service_password)
 
-    $controller_management_address = $::openstack::config::controller_address_management
-    $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers
-    $internal_vip = $::contrail::params::internal_vip
+  $database_credentials = join([$service_password, "@", $host_control_ip],'')
+  $keystone_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
+  $sync_db = $::contrail::params::sync_db
+  $rabbitmq_user = hiera(openstack::rabbitmq::user)
+  $rabbitmq_password = hiera(openstack::rabbitmq::password)
+  $allowed_hosts     = hiera(openstack::mysql::allowed_hosts)
+
     if ($internal_vip != '' and $internal_vip != undef) {
       $heat_api_bind_host = '0.0.0.0'
       $heat_api_bind_port = '8005'
       $heat_api_cfn_bind_host = '0.0.0.0'
       $heat_api_cfn_bind_port = '8001'
-    }
-    else {
-      $heat_api_bind_host = $::openstack::config::controller_address_api
+    } else {
+      $heat_api_bind_host = $address_api
       $heat_api_bind_port = '8004'
-      $heat_api_cfn_bind_host = $::openstack::config::controller_address_api
+      $heat_api_cfn_bind_host = $address_api
       $heat_api_cfn_bind_port = '8000'
     }
 
+  class {'::heat::db::mysql':
+    password => $service_password,
+    allowed_hosts => $allowed_hosts,
+  }
+
     class { '::heat::keystone::auth':
-      password         => $::openstack::config::heat_password,
-      public_address   => $::openstack::config::controller_address_api,
-      admin_address    => $::openstack::config::controller_address_management,
-      internal_address => $::openstack::config::controller_address_management,
-      region           => $::openstack::config::region,
+      password         => $heat_password,
+      public_address   => $address_api,
+      admin_address    => $controller_management_address,
+      internal_address => $controller_management_address,
+      region           => $region_name,
     }
 
     class { '::heat::keystone::auth_cfn':
-      password         => $::openstack::config::heat_password,
-      public_address   => $::openstack::config::controller_address_api,
-      admin_address    => $::openstack::config::controller_address_management,
-      internal_address => $::openstack::config::controller_address_management,
-      region           => $::openstack::config::region,
+      password         => $heat_password,
+      public_address   => $address_api,
+      admin_address    => $controller_management_address,
+      internal_address => $controller_management_address,
+      region           => $region_name,
     }
 
     class { '::heat':
-      sql_connection    => $::openstack::resources::connectors::heat,
+      database_connection => $keystone_db_conn,
       rabbit_hosts       => $openstack_rabbit_servers,
-      rabbit_userid     => $::openstack::config::rabbitmq_user,
-      rabbit_password   => $::openstack::config::rabbitmq_password,
-      debug             => $::openstack::config::debug,
-      verbose           => $::openstack::config::verbose,
-      keystone_host     => $::openstack::config::controller_address_management,
-      keystone_password => $::openstack::config::heat_password,
-      mysql_module      => '2.2',
+      rabbit_userid      => $rabbitmq_user,
+      rabbit_password    => $rabbitmq_password,
+      verbose            => $openstack_verbose,
+      debug              => $openstack_debug,
+      keystone_host     => $controller_management_address,
+      keystone_password => $heat_password,
     }
 
     class { '::heat::api':
@@ -56,10 +71,10 @@ class contrail::profile::openstack::heat (
       bind_port => $heat_api_bind_port,
     }
 
-    class { '::heat::api_cfn':
-      bind_host => $heat_api_cfn_bind_host,
-      bind_port => $heat_api_cfn_bind_port,
-    }
+    #class { '::heat::api_cfn':
+      #bind_host => $heat_api_cfn_bind_host,
+      #bind_port => $heat_api_cfn_bind_port,
+    #}
 
     class { '::heat::engine':
       auth_encryption_key => $heat_auth_encryption_key
@@ -78,7 +93,7 @@ class contrail::profile::openstack::heat (
 
     notify { "contrail::profile::openstack::heat - heat_api_bind_host = ${heat_api_bind_host}":; }
     notify { "contrail::profile::openstack::heat - heat_api_bind_port = ${heat_api_bind_port}":; }
-    notify { "contrail::profile::openstack::heat - sql_connection = ${::openstack::resources::connectors::heat}":; }
+    notify { "contrail::profile::openstack::heat - sql_connection = ${keystone_db_conn}":; }
     notify { "contrail::profile::openstack::heat - rabbit_hosts = ${openstack_rabbit_servers}":; }
     notify { "contrail::profile::openstack::heat - contrail_api_server = ${contrail_api_server}":; }
     notify { "contrail::profile::openstack::heat - keystone_auth_public_url = ${::heat::keystone::auth::public_url}":; }

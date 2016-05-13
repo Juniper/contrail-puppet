@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'mysql_grant', :unless => UNSUPPORTED_PLATFORMS.include?(fact('operatingsystem')) do
+describe 'mysql_grant' do
 
   describe 'setup' do
     it 'setup mysql::server' do
@@ -67,6 +67,43 @@ describe 'mysql_grant', :unless => UNSUPPORTED_PLATFORMS.include?(fact('operatin
         expect(r.stdout).to match(/GRANT SELECT, UPDATE.*TO 'test2'@'tester'/)
         expect(r.stderr).to be_empty
       end
+    end
+  end
+
+  describe 'adding privileges with special character in name' do
+    it 'should work without errors' do
+      pp = <<-EOS
+        mysql_grant { 'test-2@tester/test.*':
+          ensure     => 'present',
+          table      => 'test.*',
+          user       => 'test-2@tester',
+          privileges => ['SELECT', 'UPDATE'],
+        }
+      EOS
+
+      apply_manifest(pp, :catch_failures => true)
+    end
+
+    it 'should find the user' do
+      shell("mysql -NBe \"SHOW GRANTS FOR 'test-2'@tester\"") do |r|
+        expect(r.stdout).to match(/GRANT SELECT, UPDATE.*TO 'test-2'@'tester'/)
+        expect(r.stderr).to be_empty
+      end
+    end
+  end
+
+  describe 'adding privileges with invalid name' do
+    it 'should fail' do
+      pp = <<-EOS
+        mysql_grant { 'test':
+          ensure     => 'present',
+          table      => 'test.*',
+          user       => 'test2@tester',
+          privileges => ['SELECT', 'UPDATE'],
+        }
+      EOS
+
+      expect(apply_manifest(pp, :expect_failures => true).stderr).to match(/name must match user and table parameters/)
     end
   end
 
@@ -305,4 +342,147 @@ describe 'mysql_grant', :unless => UNSUPPORTED_PLATFORMS.include?(fact('operatin
       end
     end
   end
+
+  describe 'grants with skip-name-resolve specified' do
+    it 'setup mysql::server' do
+      pp = <<-EOS
+        class { 'mysql::server':
+          override_options => {
+            'mysqld' => {'skip-name-resolve' => true}
+          },
+          restart          => true,
+        }
+      EOS
+
+      apply_manifest(pp, :catch_failures => true)
+    end
+
+    it 'should apply' do
+      pp = <<-EOS
+        mysql_grant { 'test@fqdn.com/test.*':
+          ensure     => 'present',
+          table      => 'test.*',
+          user       => 'test@fqdn.com',
+          privileges => 'ALL',
+        }
+        mysql_grant { 'test@192.168.5.7/test.*':
+          ensure     => 'present',
+          table      => 'test.*',
+          user       => 'test@192.168.5.7',
+          privileges => 'ALL',
+        }
+      EOS
+
+      apply_manifest(pp, :catch_failures => true)
+    end
+
+    it 'should fail with fqdn' do
+      expect(shell("mysql -NBe \"SHOW GRANTS FOR test@fqdn.com\"", { :acceptable_exit_codes => 1}).stderr).to match(/There is no such grant defined for user 'test' on host 'fqdn.com'/)
+    end
+    it 'finds ipv4' do
+      shell("mysql -NBe \"SHOW GRANTS FOR 'test'@'192.168.5.7'\"") do |r|
+        expect(r.stdout).to match(/GRANT ALL PRIVILEGES ON `test`.* TO 'test'@'192.168.5.7'/)
+        expect(r.stderr).to be_empty
+      end
+    end
+
+    it 'should fail to execute while applying' do
+      pp = <<-EOS
+        mysql_grant { 'test@fqdn.com/test.*':
+          ensure     => 'present',
+          table      => 'test.*',
+          user       => 'test@fqdn.com',
+          privileges => 'ALL',
+        }
+      EOS
+
+      mysql_cmd = shell('which mysql').stdout.chomp
+      shell("mv #{mysql_cmd} #{mysql_cmd}.bak")
+      expect(apply_manifest(pp, :expect_failures => true).stderr).to match(/Command mysql is missing/)
+      shell("mv #{mysql_cmd}.bak #{mysql_cmd}")
+    end
+
+    it 'reset mysql::server config' do
+      pp = <<-EOS
+        class { 'mysql::server':
+          restart          => true,
+        }
+      EOS
+
+      apply_manifest(pp, :catch_failures => true)
+    end
+  end
+
+  describe 'adding privileges to specific table' do
+    # Using puppet_apply as a helper
+    it 'setup mysql server' do
+      pp = <<-EOS
+        class { 'mysql::server': override_options => { 'root_password' => 'password' } }
+      EOS
+
+      apply_manifest(pp, :catch_failures => true)
+    end
+
+    it 'creates grant on missing table will fail' do
+      pp = <<-EOS
+        mysql_grant { 'test@localhost/grant_spec_db.grant_spec_table':
+          user       => 'test@localhost',
+          privileges => ['SELECT'],
+          table      => 'grant_spec_db.grant_spec_table',
+        }
+      EOS
+      expect(apply_manifest(pp, :expect_failures => true).stderr).to match(/Table 'grant_spec_db\.grant_spec_table' doesn't exist/)
+    end
+
+    it 'checks if table exists before grant' do
+      pp = <<-EOS
+        if mysql_table_exists('grant_spec_db.grant_spec_table') {
+          mysql_grant { 'test@localhost/grant_spec_db.grant_spec_table':
+            user       => 'test@localhost',
+            privileges => 'ALL',
+            table      => 'grant_spec_db.grant_spec_table',
+          }
+        }
+      EOS
+      apply_manifest(pp, :catch_changes => true)
+    end
+
+    it 'creates table' do
+      pp = <<-EOS
+        file { '/tmp/grant_spec_table.sql':
+          ensure  => file,
+          content => 'CREATE TABLE grant_spec_table (id int);',
+          before  => Mysql::Db['grant_spec_db'],
+        }
+        mysql::db { 'grant_spec_db':
+          user     => 'root1',
+          password => 'password',
+          sql      => '/tmp/grant_spec_table.sql',
+        }
+      EOS
+
+      apply_manifest(pp, :catch_failures => true)
+    end
+
+    it 'should have the table' do
+      expect(shell("mysql -e 'show tables;' grant_spec_db|grep grant_spec_table").exit_code).to be_zero
+    end
+
+    it 'checks if table exists before grant' do
+      pp = <<-EOS
+        if mysql_table_exists('grant_spec_db.grant_spec_table') {
+          mysql_grant { 'test@localhost/grant_spec_db.grant_spec_table':
+            user       => 'test@localhost',
+            privileges => ['SELECT'],
+            table      => 'grant_spec_db.grant_spec_table',
+          }
+        }
+      EOS
+      apply_manifest(pp, :catch_failures => true)
+      apply_manifest(pp, :catch_changes => true)
+    end
+
+
+  end
+
 end

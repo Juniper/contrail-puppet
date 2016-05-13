@@ -18,13 +18,11 @@ class contrail::profile::compute (
     $host_roles = $::contrail::params::host_roles
 ) {
     if ($enable_module and "compute" in $host_roles and $is_there_roles_to_delete == false) {
-        contain ::openstack::profile::firewall
         contain ::contrail::profile::nova::compute
-        Class['::openstack::profile::firewall']->Class['::contrail::profile::nova::compute']
         if ($enable_ceilometer) {
             contain ::openstack::profile::ceilometer::agent
             contain ::contrail::ceilometer::agent::auth
-            Class['::openstack::profile::ceilometer::agent']->Class['::contrail::ceilometer::agent::auth']->Class['::openstack::profile::firewall']
+            Class['::openstack::profile::ceilometer::agent']->Class['::contrail::ceilometer::agent::auth']
         }
     } elsif ((!("compute" in $host_roles)) and ($contrail_roles["compute"] == true)) {
         notify { "uninstalling compute":; }

@@ -1,9 +1,10 @@
+# LP#1408531
+File.expand_path('../..', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+File.expand_path('../../../../openstacklib/lib', File.dirname(__FILE__)).tap { |dir| $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir) }
+
 Puppet::Type.newtype(:keystone_endpoint) do
 
-  desc <<-EOT
-    This is currently used to model the management of
-    keystone endpoint.
-  EOT
+  desc 'Type for managing keystone endpoints.'
 
   ensurable
 
@@ -20,7 +21,6 @@ Puppet::Type.newtype(:keystone_endpoint) do
   newproperty(:region) do
   end
 
-  # TODO I should do some url validation
   newproperty(:public_url) do
   end
 
@@ -31,13 +31,12 @@ Puppet::Type.newtype(:keystone_endpoint) do
   end
 
   # we should not do anything until the keystone service is started
-  autorequire(:service) do
-    ['keystone']
+  autorequire(:anchor) do
+    ['keystone_started']
   end
 
   autorequire(:keystone_service) do
     (region, service_name) = self[:name].split('/')
     [service_name]
   end
-
 end

@@ -109,7 +109,7 @@ class neutron::plugins::cisco(
     Package['neutron'] -> Neutron_plugin_cisco_l2network<||>
   }
 
-  if $::osfamily == 'Debian' {
+  if $::operatingsystem == 'Ubuntu' {
     file_line { '/etc/default/neutron-server:NEUTRON_PLUGIN_CONFIG':
       path    => '/etc/default/neutron-server',
       match   => '^NEUTRON_PLUGIN_CONFIG=(.*)$',
@@ -122,6 +122,7 @@ class neutron::plugins::cisco(
   package { 'neutron-plugin-cisco':
     ensure => $package_ensure,
     name   => $::neutron::params::cisco_server_package,
+    tag    => 'openstack',
   }
 
 
@@ -171,9 +172,14 @@ class neutron::plugins::cisco(
 
   # In RH, this link is used to start Neutron process but in Debian, it's used only
   # to manage database synchronization.
-  ensure_resource('file', '/etc/neutron/plugin.ini', {
-    ensure  => link,
-    target  => '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini',
-    require => Package['neutron-plugin-ovs']
-  })
+  if defined(File['/etc/neutron/plugin.ini']) {
+    File <| path == '/etc/neutron/plugin.ini' |> { target => '/etc/neutron/plugins/cisco/cisco_plugins.ini' }
+  }
+  else {
+    file {'/etc/neutron/plugin.ini':
+      ensure  => link,
+      target  => '/etc/neutron/plugins/cisco/cisco_plugins.ini',
+      require => Package['neutron-plugin-cisco'],
+    }
+  }
 }

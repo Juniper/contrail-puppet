@@ -26,18 +26,19 @@ describe 'nova::compute::rbd' do
     { :libvirt_rbd_user             => 'nova',
       :libvirt_rbd_secret_uuid      => false,
       :libvirt_images_rbd_pool      => 'rbd',
-      :libvirt_images_rbd_ceph_conf => '/etc/ceph/ceph.conf' }
+      :libvirt_images_rbd_ceph_conf => '/etc/ceph/ceph.conf',
+      :ephemeral_storage            => true }
   end
 
   shared_examples_for 'nova compute rbd' do
 
-    it { should contain_class('nova::params') }
+    it { is_expected.to contain_class('nova::params') }
 
     it 'configure nova.conf with default parameters' do
-        should contain_nova_config('libvirt/images_type').with_value('rbd')
-        should contain_nova_config('libvirt/images_rbd_pool').with_value('rbd')
-        should contain_nova_config('libvirt/images_rbd_ceph_conf').with_value('/etc/ceph/ceph.conf')
-        should contain_nova_config('libvirt/rbd_user').with_value('nova')
+        is_expected.to contain_nova_config('libvirt/images_type').with_value('rbd')
+        is_expected.to contain_nova_config('libvirt/images_rbd_pool').with_value('rbd')
+        is_expected.to contain_nova_config('libvirt/images_rbd_ceph_conf').with_value('/etc/ceph/ceph.conf')
+        is_expected.to contain_nova_config('libvirt/rbd_user').with_value('nova')
     end
 
     context 'when overriding default parameters' do
@@ -51,10 +52,10 @@ describe 'nova::compute::rbd' do
       end
 
       it 'configure nova.conf with overridden parameters' do
-          should contain_nova_config('libvirt/images_type').with_value('rbd')
-          should contain_nova_config('libvirt/images_rbd_pool').with_value('AnotherPool')
-          should contain_nova_config('libvirt/images_rbd_ceph_conf').with_value('/tmp/ceph.conf')
-          should contain_nova_config('libvirt/rbd_user').with_value('joe')
+          is_expected.to contain_nova_config('libvirt/images_type').with_value('rbd')
+          is_expected.to contain_nova_config('libvirt/images_rbd_pool').with_value('AnotherPool')
+          is_expected.to contain_nova_config('libvirt/images_rbd_ceph_conf').with_value('/tmp/ceph.conf')
+          is_expected.to contain_nova_config('libvirt/rbd_user').with_value('joe')
       end
     end
 
@@ -67,11 +68,11 @@ describe 'nova::compute::rbd' do
       end
 
       it 'configure nova.conf with RBD secret UUID' do
-          should contain_nova_config('libvirt/rbd_secret_uuid').with_value('UUID')
+          is_expected.to contain_nova_config('libvirt/rbd_secret_uuid').with_value('UUID')
       end
 
       it 'configure ceph on compute nodes' do
-        verify_contents(subject, '/etc/nova/secret.xml', [
+        verify_contents(catalogue, '/etc/nova/secret.xml', [
           "<secret ephemeral=\'no\' private=\'no\'>",
           "  <usage type=\'ceph\'>",
           "    <name>client.rbd_test secret</name>",
@@ -79,13 +80,64 @@ describe 'nova::compute::rbd' do
           "  <uuid>UUID</uuid>",
           "</secret>"
         ])
-        should contain_exec('get-or-set virsh secret').with(
+        is_expected.to contain_exec('get-or-set virsh secret').with(
           :command =>  '/usr/bin/virsh secret-define --file /etc/nova/secret.xml | /usr/bin/awk \'{print $2}\' | sed \'/^$/d\' > /etc/nova/virsh.secret',
           :creates => '/etc/nova/virsh.secret',
           :require => 'File[/etc/nova/secret.xml]'
         )
-        should contain_exec('set-secret-value virsh').with(
-          :command => "/usr/bin/virsh secret-set-value --secret $(cat /etc/nova/virsh.secret) --base64 $(ceph auth get-key client.rbd_test)"
+        is_expected.to contain_exec('set-secret-value virsh').with(
+          :command => "/usr/bin/virsh secret-set-value --secret UUID --base64 $(ceph auth get-key client.rbd_test)"
+        )
+      end
+    end
+
+    context 'when using cephx and passing libvirt_rbd_secret_key' do
+      before :each do
+        params.merge!(
+          :libvirt_rbd_secret_uuid => 'UUID',
+          :libvirt_rbd_secret_key  => 'LIBVIRT/SECRET/KEY',
+        )
+      end
+
+      it 'set libvirt secret key from passed key' do
+        is_expected.to contain_exec('set-secret-value virsh').with(
+          :command => "/usr/bin/virsh secret-set-value --secret #{params[:libvirt_rbd_secret_uuid]} --base64 #{params[:libvirt_rbd_secret_key]}"
+        )
+      end
+    end
+
+    context 'when using cephx but disabling ephemeral storage' do
+      before :each do
+        params.merge!(
+          :libvirt_rbd_secret_uuid      => 'UUID',
+          :rbd_keyring                  => 'client.rbd_test',
+          :ephemeral_storage            => false
+        )
+      end
+
+      it 'should only set user and secret_uuid in nova.conf ' do
+          should_not contain_nova_config('libvirt/images_rbd_pool').with_value('rbd')
+          should_not contain_nova_config('libvirt/images_rbd_ceph_conf').with_value('/etc/ceph/ceph.conf')
+          should contain_nova_config('libvirt/rbd_user').with_value('nova')
+          should contain_nova_config('libvirt/rbd_secret_uuid').with_value('UUID')
+      end
+
+      it 'configure ceph on compute nodes' do
+        verify_contents(catalogue, '/etc/nova/secret.xml', [
+          "<secret ephemeral=\'no\' private=\'no\'>",
+          "  <usage type=\'ceph\'>",
+          "    <name>client.rbd_test secret</name>",
+          "  </usage>",
+          "  <uuid>UUID</uuid>",
+          "</secret>"
+        ])
+        is_expected.to contain_exec('get-or-set virsh secret').with(
+          :command =>  '/usr/bin/virsh secret-define --file /etc/nova/secret.xml | /usr/bin/awk \'{print $2}\' | sed \'/^$/d\' > /etc/nova/virsh.secret',
+          :creates => '/etc/nova/virsh.secret',
+          :require => 'File[/etc/nova/secret.xml]'
+        )
+        is_expected.to contain_exec('set-secret-value virsh').with(
+          :command => "/usr/bin/virsh secret-set-value --secret UUID --base64 $(ceph auth get-key client.rbd_test)"
         )
       end
     end

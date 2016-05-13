@@ -1,8 +1,6 @@
+# == Class: cinder::params
 #
 class cinder::params {
-
-  $cinder_conf = '/etc/cinder/cinder.conf'
-  $cinder_paste_api_ini = '/etc/cinder/api-paste.ini'
 
   if $::osfamily == 'Debian' {
     $package_name       = 'cinder-common'
@@ -41,19 +39,19 @@ class cinder::params {
     $lio_package_name   = 'targetcli'
 
     case $::operatingsystem {
-      'RedHat', 'CentOS', 'Scientific': {
-        if $::operatingsystemmajrelease >= 7 {
+      'RedHat', 'CentOS', 'Scientific', 'OracleLinux': {
+        if (versioncmp($::operatingsystemmajrelease, '7') >= 0) {
           $iscsi_helper = 'lioadm'
         } else {
           $iscsi_helper = 'tgtadm'
         }
       }
       default: {
-        $iscsi_helper = 'tgtadm'
+        $iscsi_helper = 'lioadm'
       }
     }
 
   } else {
-    fail("unsuported osfamily ${::osfamily}, currently Debian and Redhat are the only supported platforms")
+    fail("unsupported osfamily ${::osfamily}, currently Debian and Redhat are the only supported platforms")
   }
 }
