@@ -729,7 +729,7 @@ class contrail (
 	sync_db =>				hiera(contrail::sync_db, hiera(contrail::params::sync_db, $sync_db)),
         package_sku =>        hiera(contrail::package_sku, $package_sku),
         # HA Parameters
-	haproxy_flag =>				hiera(contrail::ha::enable, hiera(contrail::params::haproxy_flag, $haproxy_flag)),
+	haproxy_flag =>				hiera(contrail::ha::haproxy_enable, hiera(contrail::params::haproxy_flag, $haproxy_flag)),
 	contrail_internal_vip =>		hiera(contrail::ha::contrail_internal_vip, hiera(contrail::params::contrail_internal_vip, $contrail_internal_vip)),
 	contrail_external_vip =>		hiera(contrail::ha::contrail_external_vip, hiera(contrail::params::contrail_external_vip, $contrail_external_vip)),
 	contrail_internal_virtual_router_id =>	hiera(contrail::ha::contrail_internal_virtual_router_id, hiera(contrail::params::contrail_internal_virtual_router_id, $contrail_internal_virtual_router_id)),
