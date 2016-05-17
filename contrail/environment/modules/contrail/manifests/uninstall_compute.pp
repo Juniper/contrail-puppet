@@ -32,8 +32,8 @@ class contrail::uninstall_compute (
     if ($operatingsystem == 'Ubuntu'){
 
         if ($lsbdistrelease == '14.04') {
-            if ($kernelrelease == '3.13.0-40-generic') {
-            	$vrouter_pkg = 'contrail-vrouter-3.13.0-40-generic' 
+            if ($kernelrelease == '3.13.0-85-generic') {
+            	$vrouter_pkg = 'contrail-vrouter-3.13.0-85-generic'
             } else {
             	$vrouter_pkg = 'contrail-vrouter-dkms' 
             }
