@@ -815,14 +815,15 @@ class contrail::params (
     }
 
     # Set the contrail_dist_kernel_version
-    if ($contrail_kernel_version != "" ) {
-       $contrail_dist_kernel_version = $contrail_kernel_version
+    if ($kernel_version != "" ) {
+       $contrail_dist_kernel_version = $kernel_version
+       $contrail_grub_string = "GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-generic\'"
     } else {
        if ($lsbdistrelease == "14.04") {
-	   $contrail_dist_kernel_version = "3.13.0-40"
+           $contrail_dist_kernel_version = "3.13.0-40"
            $contrail_grub_string = 'GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux 3.13.0-40-generic\''
        } else {
-	   $contrail_dist_kernel_version = "3.13.0-34"
+           $contrail_dist_kernel_version = "3.13.0-34"
            $contrail_grub_string = 'GRUB_DEFAULT=\'Advanced options for Ubuntu>Ubuntu, with Linux 3.13.0-34-generic\''
        }
     }
