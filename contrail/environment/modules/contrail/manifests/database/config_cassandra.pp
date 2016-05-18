@@ -43,6 +43,11 @@ class contrail::database::config_cassandra (
           line => 'cluster_name: \'Contrail\'',
           match   => "^cluster_name:.*$",
       } ->
+      file_line { 'Config Cassandra compaction_throughput_mb_per_sec':
+          path => $cassandra_config_file,
+          line => "compaction_throughput_mb_per_sec: 96",
+          match   => "^compaction_throughput_mb_per_sec:.*$",
+      } ->
       file_line { 'Config Cassandra saved_caches_dir':
           path => $cassandra_config_file,
           line => "saved_caches_directory: ${database_dir}/saved_caches",
