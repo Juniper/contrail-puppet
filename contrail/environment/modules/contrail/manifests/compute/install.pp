@@ -58,8 +58,8 @@ class contrail::compute::install(
                     Package[$vrouter_pkg, 'contrail-openstack-vrouter']
 
                     $vrouter_pkg = 'contrail-vrouter-dpdk-init'
-                } elsif ($::kernelrelease == '3.13.0-40-generic') {
-                    $vrouter_pkg = 'contrail-vrouter-3.13.0-40-generic'
+                } elsif ($::kernelrelease == '3.13.0-85-generic') {
+                    $vrouter_pkg = 'contrail-vrouter-3.13.0-85-generic'
                 } else {
                     $vrouter_pkg = 'contrail-vrouter-dkms'
                 }
