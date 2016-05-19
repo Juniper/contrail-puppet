@@ -806,6 +806,8 @@ class contrail (
     os_neutron_password       => hiera(openstack::neutron::password,$openstack_neutron_password),
     os_glance_password        => hiera(openstack::glance::password,$openstack_glance_password),
     os_cinder_password        => hiera(openstack::cinder::password,$openstack_cinder_password),
+    os_heat_password          => hiera(openstack::heat::password,$openstack_heat_password),
+    os_heat_encryption_key    => hiera(openstack::heat::encryption_key ,$openstack_heat_encryption_key),
     os_mysql_service_password => hiera(openstack::mysql::service_password,$openstack_mysql_service_password),
     ##TODO: current this value is a no-op.
     os_neutron_shared_secret  => hiera(openstack::neutron::shared_secret, $os_neutron_shared_secret),

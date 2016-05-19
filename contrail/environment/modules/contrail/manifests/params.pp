@@ -713,6 +713,8 @@ class contrail::params (
     $os_neutron_password,
     $os_glance_password,
     $os_cinder_password,
+    $os_heat_password,
+    $os_heat_encryption_key,
     $os_mysql_service_password,
     $os_neutron_shared_secret,
     $os_glance_mgmt_address,
