@@ -129,6 +129,10 @@ class contrail::database (
             notify => Service["supervisor-database"]
         }
     }
+    $database_sysctl_settings = {
+        'fs.file-max' => { value => 165535 },
+    }
+    create_resources(sysctl::value, $database_sysctl_settings, {} )
     contrail::lib::report_status { "database_started":
         state => "database_started", 
         contrail_logoutput => $contrail_logoutput }
