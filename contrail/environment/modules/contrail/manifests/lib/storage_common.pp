@@ -79,14 +79,15 @@ define contrail::lib::storage_common(
         weekday  => 'absent',
     }
     if size($contrail_storage_ip_list) > 10 {
-        $contrail_storage_max_monitors = 10
+        $contrail_ceph_monitors = inline_template('<%= @contrail_storage_ip_list.first(10) %>')
+        $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.first(10).map{ |ip| "#{ip}" }.join(", ")  %>')
     } else {
-        $contrail_storage_max_monitors = size($contrail_storage_ip_list)
+        $contrail_ceph_monitors = $contrail_storage_ip_list
+        $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.map{ |ip| "#{ip}" }.join(", ")  %>')
     }
-
-    $contrail_ceph_monitors = inline_template('<%= @contrail_storage_ip_list.first(@contrail_storage_max_monitors) %>')
     notify {" monitors = ${contrail_ceph_monitors}":; }
-    $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.first(@contrail_storage_max_monitors).map{ |ip| "#{ip}" }.join(", ")  %>')
+    notify {" monitors_map = ${contrail_ceph_monitors_map}":; }
+
 
     class { 'ceph' :
         fsid            => $contrail_storage_fsid,
@@ -122,6 +123,15 @@ define contrail::lib::storage_common(
             secret  => $contrail_storage_admin_key,
             cap_mon => 'allow *',
             cap_osd => 'allow *',
+        }
+        ->
+        ceph::key{'client.bootstrap-osd':
+            secret         => $contrail_storage_osd_bootstrap_key,
+            keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
+            cap_mon        => 'allow profile bootstrap-osd',
+            #inject_as_id   => 'mon.',
+            #inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+            #inject         => true,
         }
     }
 
@@ -162,6 +172,7 @@ define contrail::lib::storage_common(
         Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage-master_completed']
 
         if size($contrail_storage_chassis_config)  > 0  {
+            ## following is the format expected
             ##'["cmbu-is1-12:0","cmbu-ixs1-5:1","cmbu-gravity-11:0","cmbu-cl73:0"]'
             $contrail_chassis_map = inline_template('<%= @contrail_storage_chassis_config.map{ |hostname| "\'#{hostname}\'" }.join(", ")  %>')
             file { 'storage_chassis_config' :
@@ -191,15 +202,7 @@ define contrail::lib::storage_common(
 
         $contrail_ceph_pg_num = 32 * $contrail_storage_num_osd
         ## if no disks on this host, don't run pools related stuf
-        ceph::pool{'data':
-            ensure => absent
-        }
-        ->
-        ceph::pool{'metadata':
-            ensure => absent
-        }
-        ->
-        ceph::pool{'rbd':
+        ceph::pool{['data', 'metadata', 'rbd']:
             ensure => absent
         }
         ->
