@@ -137,6 +137,7 @@ class ceph (
       'global/public_network':              value => $public_network;
       'global/rbd_cache':                   value => 'true';
       'global/rbd_cache_size':              value => '536870912';
+      'global/rbd_default_format':          value => '2';
     }
 
     ceph_config {
