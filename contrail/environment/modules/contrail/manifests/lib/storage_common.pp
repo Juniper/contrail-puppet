@@ -20,7 +20,8 @@ define contrail::lib::storage_common(
         $contrail_storage_chassis_config,
         $contrail_storage_cluster_network,
         $contrail_host_ip,
-        $contrail_logoutput = false
+        $contrail_logoutput = false,
+        $internal_vip = $contrail::params::internal_vip
         ) {
 
     contrail::lib::report_status { 'storage_started': state => 'storage_started' }
@@ -161,7 +162,8 @@ define contrail::lib::storage_common(
         ->
         exec { 'setup-config-storage-openstack' :
             command   => "/etc/contrail/contrail_setup_utils/config-storage-openstack.sh \
-                             ${contrail_storage_virsh_uuid} ${contrail_openstack_ip} ${contrail_storage_num_osd} \
+                             ${contrail_storage_virsh_uuid} ${contrail_openstack_ip} \
+                             ${contrail_storage_num_osd} ${internal_vip} \
                              && echo setup-config-storage-openstack \
                              >> /etc/contrail/contrail-storage-exec.out" ,
             require   => File['config-storage-openstack.sh'],
