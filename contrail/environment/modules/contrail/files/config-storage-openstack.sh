@@ -72,7 +72,7 @@ echo "current-osd : ${NUM_CURR_OSD}, target: ${NUM_TARGET_OSD}"
 if [ "x${NUM_CURR_OSD}" != "x${NUM_TARGET_OSD}" ]
 then
    echo "not all OSDs are up"
-   exit 1
+   #exit 1
 fi
 . /etc/contrail/openstackrc 
 
