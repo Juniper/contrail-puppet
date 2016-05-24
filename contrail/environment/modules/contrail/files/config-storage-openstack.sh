@@ -22,6 +22,7 @@ openstack-config --set /etc/cinder/cinder.conf DEFAULT rpc_backend rabbit
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v1_api true
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v2_api true
 openstack-config --set /etc/cinder/cinder.conf DEFAULT auth_strategy keystone
+openstack-config --set /etc/cinder/cinder.conf DEFAULT glance_api_version 2
 
 openstack-config --set /etc/cinder/cinder.conf keystone_authtoken auth_uri http://${openstack_ip}:5000/v2.0
 openstack-config --set /etc/cinder/cinder.conf keystone_authtoken identity_uri http://${openstack_ip}:35357
@@ -30,7 +31,6 @@ openstack-config --set /etc/cinder/cinder.conf keystone_authtoken identity_uri h
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_pool volumes
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_user volumes
 openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_secret_uuid $virsh_secret
-openstack-config --set /etc/cinder/cinder.conf rbd-disk glance_api_version 2
 openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_backend_name RBD
 openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_driver cinder.volume.drivers.rbd.RBDDriver
 openstack-config --set /etc/glance/glance-api.conf DEFAULT default_store rbd
