@@ -95,7 +95,6 @@ define contrail::lib::storage_common(
         mon_host        => $contrail_ceph_monitors_map,
         keyring         => '/etc/ceph/$cluster.$name.keyring',
         cluster_network => $contrail_storage_cluster_network,
-        #require        => Package['contrail-storage'],
     }
     if ($contrail_host_ip in $contrail_ceph_monitors) {
         ceph::mon { $contrail_storage_hostname:
@@ -130,9 +129,6 @@ define contrail::lib::storage_common(
             secret         => $contrail_storage_osd_bootstrap_key,
             keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
             cap_mon        => 'allow profile bootstrap-osd',
-            #inject_as_id   => 'mon.',
-            #inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
-            #inject         => true,
         }
     }
 
