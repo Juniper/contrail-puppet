@@ -21,6 +21,8 @@ define contrail::lib::storage_common(
         $contrail_storage_cluster_network,
         $contrail_host_ip,
         $contrail_logoutput = false,
+        $storge_pool_config = $contrail::params::storage_pool_config,
+        $storage_compute_name_list = $contrail::params::storage_compute_name_list,
         $internal_vip = $contrail::params::internal_vip
         ) {
 
@@ -134,12 +136,23 @@ define contrail::lib::storage_common(
 
     if 'storage-compute' in $contrail_host_roles {
       if $contrail_storage_osd_disks != 'undef' {
-          contrail::lib::prepare_disk{ $contrail_storage_osd_disks :
-            contrail_logoutput => $contrail_logoutput
+        contrail::lib::storage_disk { $contrail_storage_osd_disks:}
+        -> Contrail::Lib::Report_status['storage-compute_completed']
+        $pool_data = prefix($contrail_storage_osd_disks, "$contrail_storage_hostname:")
+        #notify { "Pool data: ${pool_data}":;}
+        $contrail_pool_map = join($pool_data, "', '")
+        $host_num_disk = size($contrail_storage_osd_disks)
+        ceph::pool {'internal': size => 1 }
+        -> file { 'compute_pool_config' :
+            path    => '/opt/contrail/bin/compute_pool_config.py',
+            content => template("${module_name}/compute-pool-config.erb"),
+            require => Package['contrail-storage']
           }
           ->
-          ceph::osd { $contrail_storage_osd_disks:
-              require => Contrail::Lib::Prepare_disk[$contrail_storage_osd_disks]
+          exec { 'setup_compute_pool_config' :
+            command   => 'python /opt/contrail/bin/compute_pool_config.py',
+            provider  => shell,
+            logoutput => $contrail_logoutput
           }
           -> Contrail::Lib::Report_status['storage-compute_completed']
       }
@@ -169,6 +182,34 @@ define contrail::lib::storage_common(
         }
         Exec['setup-config-storage-openstack']-> Contrail::Lib::Report_status['storage-master_completed']
 
+        ## This should be defined only on one node.
+        if size($storge_pool_config)  > 0 {
+          $contrail_pool_map = join($storge_pool_config, "', '")
+          $storage_compute_names = join($storage_compute_name_list,"', '")
+          file { 'storage_pool_config' :
+            path    => '/opt/contrail/bin/storage_pool_config.py',
+            content => template("${module_name}/storage-pool-config.erb"),
+            require => Package['contrail-storage']
+          }
+          ->
+          exec { 'setup_storage_pool_config' :
+            command   => 'python /opt/contrail/bin/storage_pool_config.py',
+            provider  => shell,
+            logoutput => $contrail_logoutput
+          } ->
+          file { 'storage_pool_openstack' :
+            path    => '/opt/contrail/bin/storage_pool_openstack.py',
+            content => template("${module_name}/storage_pool_openstack.erb"),
+            require => Package['contrail-storage']
+          }
+          ->
+          exec { 'setup_storage_openstack_config' :
+            command   => 'python /opt/contrail/bin/storage_pool_openstack.py',
+            provider  => shell,
+            logoutput => $contrail_logoutput
+          }
+          -> Contrail::Lib::Report_status['storage-master_completed']
+        }
         if size($contrail_storage_chassis_config)  > 0  {
             ## following is the format expected
             ##'["cmbu-is1-12:0","cmbu-ixs1-5:1","cmbu-gravity-11:0","cmbu-cl73:0"]'
