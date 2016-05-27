@@ -20,6 +20,7 @@ class contrail::config::neutron (
   $keystone_auth_protocol  = $::contrail::params::keystone_auth_protocol,
   $keystone_admin_token    = $::contrail::params::os_keystone_admin_token,
   $controller_mgmt_address = $::contrail::params::os_controller_mgmt_address,
+  $package_sku             = $::contrail::params::package_sku
 ){
 
   # Params from quantum-server-setup.sh are now set here
@@ -32,6 +33,11 @@ class contrail::config::neutron (
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
   $keystone_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
 
+  if ( $package_sku =~ /^*:12\.0.*$/) {
+    $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+  } else {
+    $neutron_extensions = ""
+  }
 
   class { '::neutron':
     rabbit_hosts           => $contrail_rabbit_servers,
@@ -43,7 +49,7 @@ class contrail::config::neutron (
     rabbit_password       => $rabbitmq_password,
     verbose               => $openstack_verbose,
     debug                 => $openstack_debug,
-    api_extensions_path   => "extensions:${::python_dist}/neutron_plugin_contrail/extensions",
+    api_extensions_path   => "extensions:${::python_dist}/neutron_plugin_contrail/extensions${neutron_extensions}",
     service_plugins       => ['neutron_plugin_contrail.plugins.opencontrail.loadbalancer.plugin.LoadBalancerPlugin'],
   }
 
