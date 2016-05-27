@@ -1,0 +1,133 @@
+#!/usr/bin/python
+import sys
+import subprocess
+import os
+import pdb
+from contrail_provisioning.storage.storagefs import ceph_utils
+
+host_ip = "<%=@contrail_host_ip%>"
+NUM_TARGET_OSD=<%=@host_num_disk%>
+storage_hostnames="<%= @contrail_storage_hostname %>"
+storage_chassis_config=['<%= @contrail_pool_map%>']
+
+osd_map_config=[]
+
+if len(storage_hostnames) == 0:
+    print 'storage_hostnames empty'
+    sys.exit(2)
+
+ceph_setup_utils = ceph_utils.SetupCephUtils()
+#NUM_CURR_OSD = ceph_setup_utils.exec_local("ceph -s | grep 'osdmap' | awk '{print $7}' ")
+NUM_CURR_OSD = ceph_setup_utils.exec_local("ceph osd dump | grep '%s' | wc -l" %host_ip)
+
+
+if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
+
+    for disk in storage_chassis_config:
+      disksplit = disk.split(':')
+      disk_name = disksplit[1]
+      cmd  = ("ceph-disk list | grep \" *%s.*ceph data\" | sed -ne 's/.*osd.\([0-9][0-9]*\).*/\\1/p' " %(disk_name))
+      osd_id=subprocess.check_output(cmd, shell=True)
+      disksplit[2] = osd_id.rstrip('\n')
+      osd_map= ':'.join(disksplit)
+      osd_map_config.append(osd_map)
+
+    file_name = storage_hostnames+'-disk-osd-map.txt'
+    file=open('/tmp/'+file_name,'w')
+    file.write(str(osd_map_config))
+    file.close()
+    ceph_setup_utils.exec_local("rados -p internal put %s /tmp/%s" %(file_name, file_name))
+    #os.remove('/tmp/'+file_name)
+  
+   
+    pool_detail = {}
+    file_name = 'pool_' + storage_hostnames+ '.txt'
+    #file_name = 'pool_x' + storage_hostnames+ '.txt'
+    file_full_path = '/tmp/'+file_name
+
+    ceph_setup_utils.exec_local("rados -p internal get %s %s" %(file_name, file_full_path))
+
+    if os.path.isfile(file_full_path) and os.path.getsize(file_full_path) > 0:
+      file=open(file_full_path, 'r')
+      if file :
+        pool_details_config =file.read()
+        file.close()
+        #os.remove(file_full_path)
+        pool_details = eval(pool_details_config)
+        print pool_details
+        for pool_name in pool_details:
+	  # Run local for storage-master for HDD/SSD pools
+	  ceph_setup_utils.exec_local('sudo ceph auth get-or-create client.%s mon \
+					\'allow r\' osd \
+					\'allow class-read object_prefix rbd_children, allow rwx pool=%s, allow rx pool=images\' \
+					-o /etc/ceph/client.%s.keyring'
+					%(pool_name, pool_name, pool_name))
+	  ceph_setup_utils.exec_local('sudo openstack-config --set /etc/ceph/ceph.conf client.%s keyring \
+					/etc/ceph/client.%s.keyring'
+					%(pool_name, pool_name))
+	  ceph_setup_utils.exec_local('ceph-authtool -p -n client.%s \
+					/etc/ceph/client.%s.keyring > \
+					/etc/ceph/client.%s'
+					%(pool_name, pool_name, pool_name))
+
+	  secret_present = '0'
+	  line_num = 1
+          while True:
+            print pool_name
+            #print pool_details[pool_name]['virsh_secret']
+	    virsh_secret = ceph_setup_utils.exec_local('virsh secret-list  | \
+						awk \'{print $1}\' | \
+						awk \'NR > 2 { print }\' | \
+						tail -n +%d | head -n 1'
+						%(line_num))
+	      
+	    if virsh_secret != "":
+	      print virsh_secret
+	      #pdb.set_trace()
+	      cmd = 'virsh secret-dumpxml '+ virsh_secret + ' |  grep -w "client.' +  pool_name +'" | wc -l'
+
+	      print cmd
+	      secret_present = subprocess.check_output([cmd], shell=True)
+	      #secret_present = ceph_setup_utils.exec_local('virsh secret-dumpxml %s |  grep -w "client.%s" | wc -l'
+					#%(virsh_secret.rstrip('\n'), pool_name))
+	      if secret_present != '0':
+	         break
+	      else:
+	         break
+	      line_num += 1
+
+          #pdb.set_trace()
+          # If secret is not present, create new secret
+          # Set the secret with the keyring
+          if secret_present.rstrip('\n') == '0':
+            virsh_secret = pool_details[pool_name]['virsh_secret']
+            ceph_setup_utils.exec_local('echo "<secret ephemeral=\'no\' private=\'no\'> \
+                              <uuid>%s</uuid> \
+			      <usage type=\'ceph\'> \
+			      <name>client.%s secret</name> \
+			      </usage> \
+			      </secret>" > /tmp/secret_%s.xml'
+			      %(virsh_secret.rstrip('\n'), pool_name, pool_name))
+            virsh_secret = ceph_setup_utils.exec_local('virsh secret-define --file \
+			          /tmp/secret_%s.xml  2>&1 | \
+			          cut -d " " -f 2' %(pool_name))
+            #os.remove('/tmp/secret_' + pool_name + '.xml')
+
+            volume_keyring_list = ceph_setup_utils.exec_local('cat /etc/ceph/client.%s.keyring | \
+			        grep key' %(pool_name))
+            volume_keyring = volume_keyring_list.split(' ')[2]
+
+            cmd = 'virsh secret-set-value ' + virsh_secret.rstrip('\n') +' --base64 ' + volume_keyring.rstrip('\n')
+            ceph_setup_utils.exec_local(cmd)
+      else:
+        print file_name + "not available yet"
+        sys.exit(2)
+    else:
+      print file_name + "not available yet"
+      sys.exit(3)
+
+else:
+    print 'Exiting as current OSDs={0}, needed= {1}'.format(NUM_CURR_OSD, NUM_TARGET_OSD)
+    sys.exit (3)
+
+
