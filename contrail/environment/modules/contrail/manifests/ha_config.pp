@@ -164,7 +164,7 @@ class contrail::ha_config (
 
         $contrail_exec_check_wsrep = "python check-wsrep-status.py ${openstack_mgmt_ip_list_shell}  && echo check-wsrep >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py ${os_master} ${host_control_ip} ${internal_vip} ${openstack_mgmt_ip_list_shell} && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"
-
+        $contrail_mount_nfs_check = "/bin/mount -l | grep ${contrail_nfs_glance_path}"
         $contrail_exec_password_less_ssh = "python /opt/contrail/bin/setup_passwordless_ssh.py ${openstack_mgmt_ip_list_shell} ${openstack_user_list_shell} ${openstack_passwd_list_shell} && echo exec-setup-password-less-ssh >> /etc/contrail/contrail_openstack_exec.out"
         if ($enable_pre_exec_vnc_galera) {
             # GALERA
@@ -271,7 +271,7 @@ class contrail::ha_config (
                 ->
                 exec { 'mount-nfs' :
                     command   => "sudo mount ${contrail_nfs_server}:${contrail_nfs_glance_path} /var/lib/glance/images && echo mount-nfs >> /etc/contrail/contrail_openstack_exec.out",
-                    unless    => 'grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out',
+                    unless    => $contrail_mount_nfs_check,
                     provider  => shell,
                     logoutput => $contrail_logoutput
                 } ->
