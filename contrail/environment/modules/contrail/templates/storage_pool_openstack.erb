@@ -1,0 +1,92 @@
+#!/usr/bin/python
+import sys
+import subprocess
+import os
+from contrail_provisioning.storage.storagefs import ceph_utils
+
+NUM_TARGET_OSD=<%=@contrail_storage_num_osd%>
+storage_hostnames=['<%= @storage_compute_names%>']
+
+if len(storage_hostnames) == 0:
+    print 'storage_hostnames empty'
+    sys.exit(1)
+
+ceph_setup_utils = ceph_utils.SetupCephUtils()
+NUM_CURR_OSD = ceph_setup_utils.exec_local("ceph -s | grep 'osdmap' | awk '{print $7}' ")
+
+if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
+  pools_created = '0'
+  for host in storage_hostnames:
+    print host
+    
+    file_name = 'pool_' + host + '.txt'
+    #file_name = 'pool_x' + storage_hostnames+ '.txt'
+    file_full_path = '/tmp/'+file_name
+
+    ceph_setup_utils.exec_local("rados -p internal get %s %s" %(file_name, file_full_path))
+    if os.path.isfile(file_full_path) and os.path.getsize(file_full_path) > 0:
+      pools_created = '1'
+      file=open(file_full_path, 'r')
+      if file :
+        pool_details_config =file.read()
+        file.close()
+        #os.remove(file_full_path)
+        pool_details = eval(pool_details_config)
+        print pool_details
+        back_end = 'rbd-disk'
+        CINDER_CONFIG_FILE = '/etc/cinder/cinder.conf'
+        for pool_name in pool_details:
+          back_end = back_end + ',' + ('rbd-%s-disk' %(pool_name))
+
+        ceph_setup_utils.exec_local('sudo openstack-config --set %s DEFAULT enabled_backends %s'
+                                    %(CINDER_CONFIG_FILE, back_end))
+
+        for pool_name in pool_details:
+ 
+          # Configure cinder backend for all the pools.
+          # Configure the backends in the storage master
+          ceph_setup_utils.exec_local('sudo openstack-config --set %s rbd-%s-disk \
+                                    volume_driver \
+                                    cinder.volume.drivers.rbd.RBDDriver'
+                                    %(CINDER_CONFIG_FILE, pool_name))
+          ceph_setup_utils.exec_local('sudo openstack-config --set %s rbd-%s-disk rbd_pool %s'
+                                    %(CINDER_CONFIG_FILE, pool_name, pool_name))
+          ceph_setup_utils.exec_local('sudo openstack-config --set %s rbd-%s-disk rbd_user %s'
+                                    %(CINDER_CONFIG_FILE, pool_name, pool_name))
+ 
+          virsh_secret = pool_details[pool_name]['virsh_secret']
+          ceph_setup_utils.exec_local('sudo openstack-config --set %s rbd-%s-disk \
+                                    rbd_secret_uuid %s'
+                                    %(CINDER_CONFIG_FILE, pool_name,
+                                    virsh_secret.rstrip('\n')))
+          ceph_setup_utils.exec_local('sudo openstack-config --set %s rbd-%s-disk \
+                                    volume_backend_name %s'
+                                    %(CINDER_CONFIG_FILE, pool_name,
+                                    pool_name.upper()))
+          # use the hdd-'pool name' (strip volumes_ from
+          # volumes_hdd/volumes_ssd/volumes_hdd_Pool_0/volumes_ssd_Pool_1)
+          type_configured = ceph_setup_utils.exec_local('(. /etc/contrail/openstackrc ; \
+                                            cinder type-list | \
+                                            grep -w ocs-block-%s-disk | \
+                                            wc -l)' %( pool_name[8:]),)
+          if type_configured.rstrip('\n') == '0':
+              ceph_setup_utils.exec_local('(. /etc/contrail/openstackrc ; \
+                        cinder type-create ocs-block-%s-disk)' %(pool_name[8:]))
+
+          ceph_setup_utils.exec_local('(. /etc/contrail/openstackrc ; \
+                        cinder type-key ocs-block-%s-disk set volume_backend_name=%s)'
+                        %(pool_name[8:], pool_name.upper()))
+ 
+          ceph_setup_utils.exec_local('service cinder-volume restart')
+ 
+      break
+    
+  if pools_created == '0':
+    print "pools have not been created"
+    sys.exit(2)
+
+else:
+  print 'Exiting as current OSDs={0}, needed= {1}'.format(NUM_CURR_OSD, NUM_TARGET_OSD)
+  sys.exit (1)
+
+
