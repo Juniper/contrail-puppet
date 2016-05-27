@@ -860,7 +860,7 @@ class contrail (
 	vgw_gateway_routes =>			hiera(contrail::vgw::gateway_routes, hiera(contrail::params::vgw_gateway_routes, $vgw_gateway_routes)),
         # Storage Parameters
 	storage_ip_list =>			hiera(contrail::storage::storage_ip_list, hiera(contrail::params::storage_ip_list, $storage_ip_list)),
-	storage_hostnames =>			hiera(contrail::storage::storage_name_list, hiera(contrail::params::storage_hostnames, $storage_hostnames)),
+	storage_hostnames => hiera(contrail::storage::storage_hostnames, hiera(contrail::params::storage_hostnames, $storage_hostnames)),
 	storage_num_osd =>			hiera(contrail::storage::storage_num_osd, hiera(contrail::params::storage_num_osd, $storage_num_osd)),
 	storage_fsid =>				hiera(contrail::storage::storage_fsid, hiera(contrail::params::storage_fsid, $storage_fsid)),
 	storage_num_hosts =>			hiera(contrail::storage::storage_num_hosts, hiera(contrail::params::storage_num_hosts, $storage_num_hosts)),
@@ -876,6 +876,8 @@ class contrail (
 	live_migration_ip =>			hiera(contrail::storage::live_migration_ip, hiera(contrail::params::live_migration_ip, $live_migration_ip)),
 	live_migration_storage_scope =>		hiera(contrail::storage::live_migration_storage_scope, hiera(contrail::params::live_migration_storage_scope, $live_migration_storage_scope)),
 	storage_cluster_network =>		hiera(contrail::storage::storage_cluster_network, hiera(contrail::params::storage_cluster_network, $storage_cluster_network)),
+	storage_pool_config           => hiera(contrail::storage::pool_config, hiera(contrail::params::pool_config, $storage_pool_config)),
+	storage_compute_name_list     => hiera(contrail::storage-compute::storage-compute_name_list, $storage_compute_name_list),
         # tsn Parameters
 	tsn_ip_list =>			        hiera(contrail::tsn::tsn_ip_list, hiera(contrail::params::tsn_ip_list, $tsn_ip_list)),
 	tsn_name_list =>			hiera(contrail::tsn::tsn_name_list, hiera(contrail::params::tsn_name_list, $tsn_name_list)),

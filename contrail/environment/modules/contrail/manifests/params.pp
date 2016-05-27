@@ -663,6 +663,8 @@ class contrail::params (
     $host_non_mgmt_ip,
     $host_non_mgmt_gateway,
     $storage_cluster_network,
+    $storage_pool_config,
+    $storage_compute_name_list,
     $openstack_passwd_list,
     $openstack_user_list,
     $compute_passwd_list,
