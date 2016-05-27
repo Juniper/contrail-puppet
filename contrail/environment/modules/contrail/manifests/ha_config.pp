@@ -271,7 +271,7 @@ class contrail::ha_config (
                 ->
                 exec { 'mount-nfs' :
                     command   => "sudo mount ${contrail_nfs_server}:${contrail_nfs_glance_path} /var/lib/glance/images && echo mount-nfs >> /etc/contrail/contrail_openstack_exec.out",
-                    unless    => 'grep -qx mount-nfs  /etc/contrail/contrail_openstack_exec.out',
+                    unless    => 'mount -l | grep ${contrail_nfs_glance_path}',
                     provider  => shell,
                     logoutput => $contrail_logoutput
                 } ->
