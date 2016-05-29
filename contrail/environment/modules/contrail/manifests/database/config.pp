@@ -169,4 +169,9 @@ class contrail::database::config (
     }
     contain ::contrail::database::config_cassandra
     contain ::contrail::database::new_config_zk_files_setup
+
+    $database_sysctl_settings = {
+      'fs.file-max' => { value => 165535 },
+    }
+    create_resources(sysctl::value, $database_sysctl_settings, {} )
 }
