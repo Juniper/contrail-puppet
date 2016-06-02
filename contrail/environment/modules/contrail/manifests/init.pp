@@ -878,6 +878,7 @@ class contrail (
 	storage_cluster_network =>		hiera(contrail::storage::storage_cluster_network, hiera(contrail::params::storage_cluster_network, $storage_cluster_network)),
 	storage_pool_config           => hiera(contrail::storage::pool_config, hiera(contrail::params::pool_config, $storage_pool_config)),
 	storage_compute_name_list     => hiera(contrail::storage-compute::storage-compute_name_list, $storage_compute_name_list),
+	storage_master_name_list      => hiera(contrail::storage-master::storage-master_name_list, $storage_master_name_list),
         # tsn Parameters
 	tsn_ip_list =>			        hiera(contrail::tsn::tsn_ip_list, hiera(contrail::params::tsn_ip_list, $tsn_ip_list)),
 	tsn_name_list =>			hiera(contrail::tsn::tsn_name_list, hiera(contrail::params::tsn_name_list, $tsn_name_list)),
