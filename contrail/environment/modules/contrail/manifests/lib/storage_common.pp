@@ -21,8 +21,9 @@ define contrail::lib::storage_common(
         $contrail_storage_cluster_network,
         $contrail_host_ip,
         $contrail_logoutput = false,
-        $storge_pool_config = $contrail::params::storage_pool_config,
+        $storge_pool_config        = $contrail::params::storage_pool_config,
         $storage_compute_name_list = $contrail::params::storage_compute_name_list,
+        $storage_master_name_list  = $contrail::params::storage_master_name_list,
         $internal_vip = $contrail::params::internal_vip
         ) {
 
@@ -186,6 +187,8 @@ define contrail::lib::storage_common(
         if size($storge_pool_config)  > 0 {
           $contrail_pool_map = join($storge_pool_config, "', '")
           $storage_compute_names = join($storage_compute_name_list,"', '")
+          $storage_master_names  = join($storage_master_name_list,"', '")
+
           file { 'storage_pool_config' :
             path    => '/opt/contrail/bin/storage_pool_config.py',
             content => template("${module_name}/storage-pool-config.erb"),

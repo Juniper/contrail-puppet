@@ -5,7 +5,9 @@ import os
 from contrail_provisioning.storage.storagefs import ceph_utils
 
 NUM_TARGET_OSD=<%=@contrail_storage_num_osd%>
+myhostname =  '<%=@contrail_storage_hostname%>'
 storage_hostnames=['<%= @storage_compute_names%>']
+storage_master_hosts=['<%= @storage_master_names%>']
 storage_chassis_config=['<%= @contrail_pool_map%>']
 
 osd_map_config=[]
@@ -18,43 +20,72 @@ if len(storage_chassis_config) == 0:
     print 'storage_chassis_config is empty'
     sys.exit(1)
 
+generate_virsh_secret = 0
+# virsh-secret to be generate by first openstack node
+if storage_master_hosts[0] == myhostname :
+  generate_virsh_secret = 1
 
 ceph_setup_utils = ceph_utils.SetupCephUtils()
 NUM_CURR_OSD = ceph_setup_utils.exec_local("ceph -s | grep 'osdmap' | awk '{print $7}' ")
+my_pool_details = {}
 
 if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
-  osd_map_config=[]
-  for host in storage_hostnames:
-    file_name =host+'-disk-osd-map.txt'
-    ceph_setup_utils.exec_local("rados -p internal get %s /tmp/%s" %(file_name, file_name))
+  if generate_virsh_secret == 1:
+    osd_map_config=[]
+    for host in storage_hostnames:
+      file_name =host+'-disk-osd-map.txt'
+      ceph_setup_utils.exec_local("rados -p internal get %s /tmp/%s" %(file_name, file_name))
 
-    file=open('/tmp/'+file_name, 'r')
-    osd_map_str=file.read()
-    file.close()
-    if osd_map_str != '' :
-      osd_map_config = osd_map_config + eval(osd_map_str)
-    #osd_map_config.append(osd_map_map)
+      file=open('/tmp/'+file_name, 'r')
+      osd_map_str=file.read()
+      file.close()
+      if osd_map_str != '' :
+        osd_map_config = osd_map_config + eval(osd_map_str)
+      #osd_map_config.append(osd_map_map)
 
-  print osd_map_config
+    print osd_map_config
 
-  # Initialize crush map
-  crush_map = ceph_setup_utils.initialize_crush()
-  # Do chassis configuration
-  crush_map = ceph_setup_utils.do_pool_config(crush_map,
-                                    storage_hostnames,
-                                    storage_chassis_config,
-                                    ['none'],
-                                    osd_map_config)
-  # Apply crushmap
-  ceph_setup_utils.apply_crush(crush_map)
+    # Initialize crush map
+    crush_map = ceph_setup_utils.initialize_crush()
+    # Do chassis configuration
+    crush_map = ceph_setup_utils.do_pool_config(crush_map,
+                                      storage_hostnames,
+                                      storage_chassis_config,
+                                      ['none'],
+                                      osd_map_config)
+    # Apply crushmap
+    ceph_setup_utils.apply_crush(crush_map)
+  
+    # Configure Pools
+    ceph_pool_list = ceph_setup_utils.do_configure_pools(
+                                      storage_hostnames,
+                                      storage_chassis_config,
+                                      ['none'],
+                                      ['none'], 'None')
+    print ceph_pool_list
 
-  # Configure Pools
-  ceph_pool_list = ceph_setup_utils.do_configure_pools(
-                                    storage_hostnames,
-                                    storage_chassis_config,
-                                    ['none'],
-                                    ['none'], 'None')
-  print ceph_pool_list
+  else :
+    ## NOTE: we are not first openstack node
+    file_name = 'pool_' + myhostname + '.txt'
+    file_full_path = '/tmp/'+file_name
+
+    ceph_setup_utils.exec_local("rados -p internal get %s %s" %(file_name, file_full_path))
+
+    if os.path.isfile(file_full_path) and os.path.getsize(file_full_path) > 0:
+      file=open(file_full_path, 'r')
+      if file :
+        pool_details_config =file.read()
+        file.close()
+        #os.remove(file_full_path)
+        my_pool_details = eval(pool_details_config)
+        print my_pool_details
+        ceph_pool_list = my_pool_details
+      else:
+        print  file_full_path + "file not available yet"
+        sys.exit (2)
+    else:
+      print  file_full_path + "file not available yet"
+      sys.exit (2)
 
   #ceph_pool_list=['volumes_hdd_Pool_b', 'volumes_hdd_Pool_a', 'volumes_hdd_Pool_c']
   pool_details = {}
@@ -102,12 +133,23 @@ if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
     # If secret is not present, create new secret
     # Set the secret with the keyring
     if secret_present.rstrip('\n') == '0':
-      ceph_setup_utils.exec_local('echo "<secret ephemeral=\'no\' private=\'no\'> \
-			<usage type=\'ceph\'> \
-			<name>client.%s secret</name> \
-			</usage> \
-			</secret>" > /tmp/secret_%s.xml'
-			%(pool_name, pool_name))
+      if generate_virsh_secret == 1 :
+        ceph_setup_utils.exec_local('echo "<secret ephemeral=\'no\' private=\'no\'> \
+			  <usage type=\'ceph\'> \
+			  <name>client.%s secret</name> \
+			  </usage> \
+			  </secret>" > /tmp/secret_%s.xml'
+			  %(pool_name, pool_name))
+      else : 
+        virsh_secret = my_pool_details[pool_name]['virsh_secret']
+        ceph_setup_utils.exec_local('echo "<secret ephemeral=\'no\' private=\'no\'> \
+                          <uuid>%s</uuid> \
+                          <usage type=\'ceph\'> \
+                          <name>client.%s secret</name> \
+                          </usage> \
+                          </secret>" > /tmp/secret_%s.xml'
+                          %(virsh_secret.rstrip('\n'), pool_name, pool_name))
+
       virsh_secret = ceph_setup_utils.exec_local('virsh secret-define --file \
 			    /tmp/secret_%s.xml  2>&1 | \
 			    cut -d " " -f 2' %(pool_name))
@@ -125,13 +167,23 @@ if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
   print "\n"
   print pool_details
 
-  for hostname in  storage_hostnames:
-    file_name = 'pool_' + hostname +'.txt'
-    file=open('/tmp/'+file_name,'w')
-    file.write(str(pool_details))
-    file.close()
-    ceph_setup_utils.exec_local("rados -p internal put %s /tmp/%s" %(file_name, file_name))
-    #os.remove('/tmp/'+file_name)
+  #NOTE: only first master node should push files
+  if generate_virsh_secret == 1 :
+    for hostname in  storage_hostnames:
+      file_name = 'pool_' + hostname +'.txt'
+      file=open('/tmp/'+file_name,'w')
+      file.write(str(pool_details))
+      file.close()
+      ceph_setup_utils.exec_local("rados -p internal put %s /tmp/%s" %(file_name, file_name))
+      #os.remove('/tmp/'+file_name)
+
+    for hostname in  storage_master_hosts:
+      file_name = 'pool_' + hostname +'.txt'
+      file=open('/tmp/'+file_name,'w')
+      file.write(str(pool_details))
+      file.close()
+      ceph_setup_utils.exec_local("rados -p internal put %s /tmp/%s" %(file_name, file_name))
+      #os.remove('/tmp/'+file_name)
 
 else:
   print 'Exiting as current OSDs={0}, needed= {1}'.format(NUM_CURR_OSD, NUM_TARGET_OSD)

@@ -665,6 +665,7 @@ class contrail::params (
     $storage_cluster_network,
     $storage_pool_config,
     $storage_compute_name_list,
+    $storage_master_name_list,
     $openstack_passwd_list,
     $openstack_user_list,
     $compute_passwd_list,
