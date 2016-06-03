@@ -37,6 +37,13 @@ if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
       elif len(disksplit) == 3 :
         #format is with disk-pool (hostname:disk-name:Pool_name)
         disksplit[2] = osd_id.rstrip('\n')
+        if disksplit[2].startswith('P') :
+          disksplit[2] = osd_id.rstrip('\n')
+          pool_available = 1
+      elif len(disksplit) == 4 :
+        #format is with disk-pool (hostname:disk-name:journal-disk:Pool_name)
+        disksplit[2] = osd_id.rstrip('\n')
+        disksplit.pop()
         pool_available = 1
       else:
         print "Unsupport format of disk-details"
