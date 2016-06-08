@@ -58,20 +58,23 @@ class contrail::profile::openstack_controller (
     contain ::contrail::profile::openstack::nova
     contain ::contrail::profile::openstack::neutron
     contain ::contrail::profile::openstack::heat
-    contain ::contrail::profile::openstack::auth_file
-    contain ::contrail::profile::openstack::provision
-    contain ::contrail::contrail_openstack
 
     if ($enable_ceilometer) {
-      Class['::contrail::profile::openstack::heat'] ->
-      class {'::contrail::profile::openstack::ceilometer' : } ->
-      Class['::contrail::profile::openstack::auth_file']
+      class {'::contrail::profile::openstack::ceilometer' : before =>
+        Class['::contrail::profile::openstack::provision']
+      }
       contain ::contrail::profile::openstack::ceilometer
     }
+
+    contain ::contrail::profile::openstack::provision
+    contain ::contrail::profile::openstack::auth_file
+    contain ::contrail::contrail_openstack
+
     if ($openstack_manage_amqp and !  defined(Class['::contrail::rabbitmq']) ) {
       contain ::contrail::rabbitmq
       Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Service['supervisor-openstack']
     }
+
   } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
     notify { 'uninstalling openstack':; }
     contain ::contrail::uninstall_openstack

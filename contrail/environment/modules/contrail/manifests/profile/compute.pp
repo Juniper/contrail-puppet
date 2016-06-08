@@ -12,17 +12,28 @@
 #     (optional) - Defaults to false.
 #
 class contrail::profile::compute (
-    $enable_module = $::contrail::params::enable_compute,
-    $enable_ceilometer = $::contrail::params::enable_ceilometer,
-    $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
-    $host_roles = $::contrail::params::host_roles
+  $enable_module     = $::contrail::params::enable_compute,
+  $enable_ceilometer = $::contrail::params::enable_ceilometer,
+  $host_roles        = $::contrail::params::host_roles,
+  $metering_secret   = $::contrail::params::os_metering_secret,
+  $openstack_verbose = $::contrail::params::os_verbose,
+  $openstack_debug   = $::contrail::params::os_debug,
+  $is_there_roles_to_delete   = $::contrail::params::is_there_roles_to_delete,
+  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
 ) {
     if ($enable_module and "compute" in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::profile::nova::compute
         if ($enable_ceilometer) {
-            contain ::openstack::profile::ceilometer::agent
-            contain ::contrail::ceilometer::agent::auth
-            Class['::openstack::profile::ceilometer::agent']->Class['::contrail::ceilometer::agent::auth']
+            #contain ::contrail::ceilometer::agent::auth
+            if !defined(Class['::ceilometer']) {
+              class { '::ceilometer':
+                metering_secret => $metering_secret,
+                debug           => $openstack_verbose,
+                verbose         => $openstack_debug,
+                rabbit_hosts    => $openstack_rabbit_servers,
+              }
+            }
+            class { '::ceilometer::agent::compute': }
         }
     } elsif ((!("compute" in $host_roles)) and ($contrail_roles["compute"] == true)) {
         notify { "uninstalling compute":; }
