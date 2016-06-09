@@ -675,7 +675,7 @@ class contrail::params (
     $contrail_plugin_location,
     $contrail_logoutput,
     $contrail_upgrade,
-    $enable_lbass,
+    $enable_lbaas,
     $enable_provision_started,
     $enable_keepalived,
     $enable_haproxy,

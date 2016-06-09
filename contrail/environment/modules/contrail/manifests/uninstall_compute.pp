@@ -24,7 +24,7 @@ class contrail::uninstall_compute (
     $openstack_ip = $::contrail::params::openstack_ip_list[0],
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_host_roles = $::contrail::params::host_roles,
-    $enable_lbass =  $::contrail::params::enable_lbass,
+    $enable_lbaas =  $::contrail::params::enable_lbaas,
 ) inherits ::contrail::params {
 
     #Determine vrouter package to be installed based on the kernel
@@ -119,7 +119,7 @@ class contrail::uninstall_compute (
     contain ::contrail::clear_compute
     contain ::contrail::do_reboot_server
 
-    if ($enable_lbass == true) {
+    if ($enable_lbaas == true) {
         File['/etc/network/interfaces']->
         package{['haproxy', 'iproute']:
             ensure => purged,

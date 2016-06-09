@@ -1,6 +1,6 @@
 class contrail::compute::install(
   $opencontrail_only = false,
-  $enable_lbass =  $::contrail::params::enable_lbass,
+  $enable_lbaas =  $::contrail::params::enable_lbaas,
   $enable_dpdk=  $::contrail::params::enable_dpdk,
 ) {
     $cur_kernel_version = $::kernelrelease
@@ -77,7 +77,7 @@ class contrail::compute::install(
         # Ensure all needed packages are latest
         package { [ $vrouter_pkg, 'contrail-openstack-vrouter'] : ensure => latest, notify => Service['supervisor-vrouter']}
 
-        if ($enable_lbass == true) {
+        if ($enable_lbaas == true) {
             Package[$vrouter_pkg, 'contrail-openstack-vrouter'] ->
             package{ ['haproxy', 'iproute'] : ensure => present,}
         }
