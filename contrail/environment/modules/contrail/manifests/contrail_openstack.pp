@@ -110,15 +110,4 @@ class contrail::contrail_openstack (
       'DEFAULT/ec2_private_dns_show_ip' => { value => 'False' },
     }
     create_resources(nova_config,$nova_params, {} )
-
-    #include ::contrail::exec_disable_mpm_event
-
-    if ($enable_ceilometer) {
-        # Set instance_usage_audit_period to hour
-        $ceilometer_nova_params =  {
-          'DEFAULT/instance_usage_audit_period' => { value => 'hour' },
-          'DEFAULT/instance_usage_audit' => { value => 'True' },
-        }
-        create_resources(nova_config,$ceilometer_nova_params, {} )
-    }
 }

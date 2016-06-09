@@ -13,6 +13,7 @@ class contrail::profile::openstack::nova(
   $service_password  = $::contrail::params::os_mysql_service_password,
   $address_api       = $::contrail::params::os_controller_api_address ,
   $sriov_enable      = $::contrail::params::sriov_enable,
+  $enable_ceilometer = $::contrail::params::enable_ceilometer,
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
   $neutron_shared_secret      = $::contrail::params::os_neutron_shared_secret,
@@ -67,7 +68,11 @@ class contrail::profile::openstack::nova(
     notification_driver => "nova.openstack.common.notifier.rpc_notifier",
   }
 
-  #nova_config { 'DEFAULT/default_floating_pool': value => 'public' }
+
+  if ($enable_ceilometer) {
+    $instance_usage_audit = 'True'
+    $instance_usage_audit_period = 'hour'
+  }
 
   class { '::nova::api':
     admin_password                       => $nova_password,
@@ -98,6 +103,8 @@ class contrail::profile::openstack::nova(
     vnc_enabled                   => true,
     vncserver_proxyclient_address => $management_address,
     vncproxy_host                 => $address_api,
+    instance_usage_audit          => $instance_usage_audit,
+    instance_usage_audit_period  => $instance_usage_audit_period
   }
 
   #TODO make sure we have vif package

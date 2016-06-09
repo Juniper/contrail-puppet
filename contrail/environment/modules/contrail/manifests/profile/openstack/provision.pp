@@ -6,6 +6,7 @@ class contrail::profile::openstack::provision (
   $cinder_password   = $::contrail::params::os_cinder_password,
   $heat_password     = $::contrail::params::os_heat_password,
   $region_name       = $::contrail::params::os_region,
+  $ceilometer_password       = $::contrail::params::os_ceilometer_password,
   $controller_mgmt_address   = $::contrail::params::os_controller_mgmt_address,
   $controller_api_address    = $::contrail::params::os_controller_api_address,
   $keystone_admin_email      = $::contrail::params::os_keystone_admin_email,
@@ -35,17 +36,13 @@ class contrail::profile::openstack::provision (
   class { '::keystone::roles::admin':
     email        => $keystone_admin_email,
     password     => $keystone_admin_password,
-    #configure_user => false,
-    #configure_user_role => false,
     admin_tenant => 'admin',
-    #admin_user_domain   => 'default', # domain for user
-    #admin_project_domain => 'default', # domain for project
   } ->
   class { 'keystone::endpoint':
     public_url   => "http://${address_api}:5000",
     admin_url    => "http://${controller_address_management}:35357",
     internal_url => "http://${controller_address_management}:5000",
-    region           => $region_name,
+    region       => $region_name,
   } ->
   class { '::cinder::keystone::auth':
     password         => $cinder_password,
@@ -70,6 +67,13 @@ class contrail::profile::openstack::provision (
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,
+    public_address   => $contrail_controller_address_api,
+    admin_address    => $contrail_controller_address_management,
+    internal_address => $contrail_controller_address_management,
+    region           => $region_name,
+  } ->
+  class { '::ceilometer::keystone::auth':
+    password         => $ceilometer_password,
     public_address   => $contrail_controller_address_api,
     admin_address    => $contrail_controller_address_management,
     internal_address => $contrail_controller_address_management,
