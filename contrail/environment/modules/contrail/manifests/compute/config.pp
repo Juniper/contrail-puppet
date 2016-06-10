@@ -35,7 +35,7 @@ class contrail::compute::config(
     $orchestrator = $::contrail::params::orchestrator,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_host_roles = $::contrail::params::host_roles,
-    $enable_lbass =  $::contrail::params::enable_lbass,
+    $enable_lbaas =  $::contrail::params::enable_lbaas,
     $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
     $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
     $enable_dpdk=  $::contrail::params::enable_dpdk,
