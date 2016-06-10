@@ -19,10 +19,6 @@ class contrail::database::config_cassandra (
       #        'commitlog_directory' => "${database_dir}/commitlog",
       #    },
       #}
-      package {'cassandra':
-                ensure => latest,
-                configfiles => "replace",
-      } ->
       file_line { 'Config Cassandra start_rpc':
           path => $cassandra_config_file,
           line => "start_rpc: true",
