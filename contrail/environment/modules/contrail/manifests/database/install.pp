@@ -19,6 +19,10 @@ class contrail::database::install (
       before => Package['contrail-openstack-database'],
   } ->
   notify { "executed contrail contrail_zk_exec_cmd : ${cassandra_upgrade_cmd}":; } ->
+  package {'cassandra':
+                ensure => latest,
+                configfiles => "replace",
+  } ->
   package { 'contrail-openstack-database' :
     ensure => latest,
     notify => Service["supervisor-database"]
@@ -28,6 +32,6 @@ class contrail::database::install (
       package { 'default-jre-headless' :
           ensure => latest
       } ->
-      Package['contrail-openstack-database']
+      Package['cassandra']
   }
 }
