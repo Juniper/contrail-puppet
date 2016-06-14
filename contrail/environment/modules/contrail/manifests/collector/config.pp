@@ -32,6 +32,7 @@ class contrail::collector::config (
 
     $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
+    $contrail_analytics_api_ini_command ="/usr/bin/contrail-analytics-api --conf_file /etc/contrail/contrail-analytics-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
 
     $redis_config_file = '/etc/redis/redis.conf'
     $redis_augeas_lens_to_use = 'spacevars.lns'
@@ -70,6 +71,7 @@ class contrail::collector::config (
       'DEFAULTS/analytics_config_audit_ttl' : value => $analytics_config_audit_ttl;
       'DEFAULTS/analytics_statistics_ttl'   : value => $analytics_statistics_ttl;
       'DEFAULTS/analytics_flow_ttl' : value => $analytics_flow_ttl;
+      'DEFAULTS/cloud_admin_access_only' : value => 'True';
       'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port' : value => '5998';
       'REDIS/redis_server_port'    : value => '6379';
@@ -146,6 +148,21 @@ class contrail::collector::config (
       'DEFAULTS/scan_frequency'     : value => $topology_scan_frequency;
       'DISCOVERY/disc_server_ip'    : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port'  : value => '5998';
+    } ->
+
+    contrail_analytics_api_ini_config {
+      'program:contrail-analytics-api/command' : value => $contrail_analytics_api_ini_command;
+      'program:contrail-analytics-api/priority' : value => '440';
+      'program:contrail-analytics-api/autostart' : value => 'true';
+      'program:contrail-analytics-api/killasgroup' : value => 'true';
+      'program:contrail-analytics-api/stopsignal' : value => 'KILL';
+      'program:contrail-analytics-api/stdout_capture_maxbytes' : value => '1MB';
+      'program:contrail-analytics-api/redirect_stderr' : value => 'true';
+      'program:contrail-analytics-api/stdout_logfile' : value => '/var/log/contrail/contrail-analytics-api-stdout.log';
+      'program:contrail-analytics-api/stderr_logfile' : value => '/var/log/contrail/contrail-analytics-api-stderr.log';
+      'program:contrail-analytics-api/startsecs' : value => '5';
+      'program:contrail-analytics-api/exitcodes' : value => '0';
+      'program:contrail-analytics-api/user' : value => 'contrail';
     } ->
 
     contrail_snmp_collector_ini_config {
