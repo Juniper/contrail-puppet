@@ -21,18 +21,19 @@ class contrail::profile::openstack::heat (
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-  $keystone_db_conn = join(["mysql://heat:",$database_credentials,"/heat"],'')
 
   if ($internal_vip != '' and $internal_vip != undef) {
       $heat_api_bind_host = '0.0.0.0'
       $heat_api_bind_port = '8005'
       $heat_api_cfn_bind_host = '0.0.0.0'
       $heat_api_cfn_bind_port = '8001'
+      $keystone_db_conn = join(["mysql://heat:",$database_credentials,":33306/heat"],'')
   } else {
       $heat_api_bind_host = $address_api
       $heat_api_bind_port = '8004'
       $heat_api_cfn_bind_host = $address_api
       $heat_api_cfn_bind_port = '8000'
+      $keystone_db_conn = join(["mysql://heat:",$database_credentials,"/heat"],'')
   }
 
   class {'::heat::db::mysql':

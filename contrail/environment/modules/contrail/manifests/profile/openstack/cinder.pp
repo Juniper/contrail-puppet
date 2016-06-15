@@ -19,10 +19,6 @@ class contrail::profile::openstack::cinder(
   #$api_address = ip_for_network($api_network)
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-  $keystone_db_conn = join(["mysql://cinder:",$database_credentials,"/cinder"],'')
-
-  $auth_uri = "http://${keystone_auth_host}:5000/"
-  $glance_api_server = "${storage_server}:9292"
 
   class {'::cinder::db::mysql':
     password      => $service_password,
@@ -30,38 +26,36 @@ class contrail::profile::openstack::cinder(
   }
 
   if ($internal_vip != '' and $internal_vip != undef) {
-    cinder_config {
-      'DEFAULT/osapi_volume_listen_port':  value => '9776';
-    }
+    $keystone_db_conn = join(["mysql://cinder:",$database_credentials,":33306/cinder"],'')
+    $auth_uri = "http://${internal_vip}:5000/"
+    $glance_api_server = "${internal_vip}:9292"
+
     class { '::cinder':
-      database_connection  => $::openstack::resources::connectors::cinder,
-      rabbit_hosts     => $openstack_rabbit_servers,
+      database_connection  => $keystone_db_conn,
+      rabbit_hosts    => $openstack_rabbit_servers,
       rabbit_userid   => $rabbitmq_user,
       rabbit_password => $rabbitmq_password,
       debug           => $openstack_debug,
       verbose         => $openstack_verbose,
-      database_idle_timeout => '180',
+      database_idle_timeout  => '180',
+      database_min_pool_size => '100',
+      database_max_pool_size => '700',
+      database_max_retries   => '-1',
+      database_retry_interval => "5",
+      database_max_overflow => "1080"
     }
-    class { '::cinder::glance':
-      glance_api_servers => [ $glance_api_server ],
-    }
-
     cinder_config {
-      'database/min_pool_size':            value => "100";
-      'database/max_pool_size':            value => "700";
-      'database/max_overflow':             value => "1080";
-      'database/retry_interval':           value => "5";
-      'database/max_retries':              value => "-1";
+      'DEFAULT/osapi_volume_listen_port':  value => '9776';
       'database/db_max_retries':           value => "3";
       'database/db_retry_interval':        value => "1";
       'database/connection_debug':         value => "10";
       'database/pool_timeout':             value => "120";
     }
-    class { '::cinder::api':
-      keystone_password => $cinder_password,
-      auth_uri         => $auth_uri,
-    }
   } else {
+    $keystone_db_conn = join(["mysql://cinder:",$database_credentials,"/cinder"],'')
+    $auth_uri = "http://${internal_vip}:5000/"
+    $glance_api_server = "${internal_vip}:9292"
+
     class { '::cinder':
       database_connection  => $keystone_db_conn,
       rabbit_hosts     => $openstack_rabbit_servers,
@@ -71,15 +65,16 @@ class contrail::profile::openstack::cinder(
       verbose         => $openstack_verbose,
       database_idle_timeout => '180',
     }
-    class { '::cinder::glance':
-      glance_api_servers => [ $glance_api_server ],
-    }
-    class { '::cinder::api':
-      keystone_password => $cinder_password,
-      auth_uri         => $auth_uri,
-    }
     class { '::cinder::scheduler':
       scheduler_driver => 'cinder.scheduler.simple.SimpleScheduler',
     }
+  }
+
+  class { '::cinder::glance':
+    glance_api_servers => [ $glance_api_server ],
+  }
+  class { '::cinder::api':
+    keystone_password => $cinder_password,
+    auth_uri          => $auth_uri,
   }
 }

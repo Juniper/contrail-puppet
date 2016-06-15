@@ -22,7 +22,6 @@ class contrail::profile::openstack::nova(
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-  $keystone_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
   $auth_uri = "http://${controller_mgmt_address}:5000/"
 
   class {'::nova::db::mysql':
@@ -46,15 +45,17 @@ class contrail::profile::openstack::nova(
     $neutron_ip_address = $controller_mgmt_address
     $vncproxy_port = '6999'
     $vncproxy_host = $host_control_ip
+    $keystone_db_conn = join(["mysql://nova:",$database_credentials, ":33306", "/nova"],'')
+    $osapi_compute_workers = '40'
+    $database_idle_timeout = '180'
   } else {
     $neutron_ip_address = $::contrail::params::config_ip_list[0]
     $vncproxy_port = '5999'
     $vncproxy_host = $address_api
+    $keystone_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
+    $osapi_compute_workers = $::processorcount
+    $database_idle_timeout = '3600'
   }
-
-#  $contrail_internal_vip = $::contrail::params::internal_vip
-#  $external_vip = $::contrail::params::internal_vip
-#  $contrail_external_vip = $::contrail::params::contrail_internal_vip
 
   class { '::nova':
     database_connection => $keystone_db_conn,
@@ -66,8 +67,30 @@ class contrail::profile::openstack::nova(
     verbose             => $openstack_verbose,
     debug               => $openstack_debug,
     notification_driver => "nova.openstack.common.notifier.rpc_notifier",
+    database_idle_timeout => $database_idle_timeout
   }
 
+  if ($internal_vip != "" and $internal_vip != undef) {
+    nova_config {
+      'DEFAULT/osapi_compute_listen_port':     value => '9774';
+      'DEFAULT/metadata_listen_port':          value => '9775';
+      'DEFAULT/scheduler_max_attempts':        value => '10';
+      'DEFAULT/disable_process_locking':       value => 'True';
+      'DEFAULT/rabbit_retry_interval':         value => '1';
+      'DEFAULT/rabbit_retry_backoff':          value => '2';
+      'DEFAULT/rabbit_max_retries':            value => '0';
+      'DEFAULT/rabbit_interval':               value => '15';
+      'DEFAULT/pool_timeout':                  value => '120';
+      'database/min_pool_size':                value => '100';
+      'database/max_pool_size':                value => '350';
+      'database/max_overflow':                 value => '700';
+      'database/retry_interval':               value => '5';
+      'database/max_retries':                  value => '-1';
+      'database/db_max_retries':               value => '3';
+      'database/db_retry_interval':            value => '1';
+      'database/connection_debug':             value => '10';
+    }
+  }
 
   if ($enable_ceilometer) {
     $instance_usage_audit = 'True'
@@ -79,7 +102,9 @@ class contrail::profile::openstack::nova(
     auth_host                            => $controller_mgmt_address,
     enabled                              => 'true',
     neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
-    sync_db                              => $sync_db,
+    #sync_db                             => $sync_db,
+    sync_db                              => true,
+    osapi_compute_workers                => $osapi_compute_workers
   }
 
   class { '::nova::vncproxy':
@@ -104,7 +129,7 @@ class contrail::profile::openstack::nova(
     vncserver_proxyclient_address => $management_address,
     vncproxy_host                 => $address_api,
     instance_usage_audit          => $instance_usage_audit,
-    instance_usage_audit_period  => $instance_usage_audit_period
+    instance_usage_audit_period   => $instance_usage_audit_period
   }
 
   #TODO make sure we have vif package
