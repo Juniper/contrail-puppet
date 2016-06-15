@@ -152,8 +152,7 @@ class contrail::database::config (
             require => File[$database_dir],
             owner   => cassandra,
             group   => cassandra,
-        } ->
-        File["$database_dir"]
+        }
     }
 
     # Below is temporary to work-around in Ubuntu as Service resource fails
