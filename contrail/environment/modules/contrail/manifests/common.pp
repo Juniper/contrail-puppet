@@ -34,6 +34,7 @@ class contrail::common(
     $contrail_upgrade = $::contrail::params::contrail_upgrade,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_roles = $::contrail::params::host_roles,
+    $upgrade_needed = $::contrail::params::upgrade_needed,
 ) {
     include ::contrail
     $contrail_group_details = {
@@ -58,7 +59,8 @@ class contrail::common(
     User['nova', 'libvirt-qemu', 'libvirt-dnsmasq'] ->
     contrail::lib::contrail_upgrade{ 'contrail_upgrade':
         contrail_upgrade   => $contrail_upgrade,
-        contrail_logoutput => $contrail_logoutput
+        contrail_logoutput => $contrail_logoutput,
+        upgrade_needed => $upgrade_needed
     } ->
     apt::pin { 'debian_repo_preferences':
       priority => '-10',

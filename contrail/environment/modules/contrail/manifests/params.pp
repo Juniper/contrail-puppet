@@ -887,4 +887,15 @@ class contrail::params (
        $is_there_roles_to_delete = false
     }
 
+    $needed_version = $::contrail::params::contrail_version
+    # needed_version is not available om old SMs
+    notify {'contrail_upgrade_notify_1': name => "*** installed_version => $::contrail_version ***";}->
+    notify {'contrail_upgrade_notify_2': name => "*** $::contrail_version => ${needed_version} or ${contrail_upgrade} or ${upgrade_needed}";}
+    if $needed_version and $::contrail_version and (versioncmp($needed_version, $::contrail_version) > 0) {
+        notify {'contrail_upgrade_notify_3': name => "*** need => $::needed_version ***";}
+        Notify['contrail_upgrade_notify_1']->Notify['contrail_upgrade_notify_3']->Notify['contrail_upgrade_notify_2']
+        $upgrade_needed = 1
+    } else {
+        $upgrade_needed = 0
+    }
 }
