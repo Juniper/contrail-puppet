@@ -4,18 +4,18 @@ class contrail::verify_rabbitmq (
     $host_control_ip,
     $amqp_ip_list
 ) {
-    file { '/etc/contrail/form_rmq_cluster.sh' :
-              mode   => '0755',
-              group  => root,
-              source => "puppet:///modules/${module_name}/form_rmq_cluster.sh"
-    } ->
-    exec { 'verify-rabbitmq' :
-            command   => "/etc/contrail/form_rmq_cluster.sh ${master} ${host_control_ip} ${amqp_ip_list} & echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
-            unless    => 'grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out',
-            provider  => shell,
-            logoutput => true,
-            notify    => Service['rabbitmq-server'],
-    }
-    ->
-    notify { "executed verify-rabbitmq":; }
+  file { '/etc/contrail/form_rmq_cluster.sh' :
+     mode   => '0755',
+     group  => root,
+     source => "puppet:///modules/${module_name}/form_rmq_cluster.sh"
+  } ->
+  exec { 'verify-rabbitmq' :
+    command   => "/etc/contrail/form_rmq_cluster.sh ${master} ${host_control_ip} ${amqp_ip_list} ; echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
+    unless    => 'grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out',
+    provider  => shell,
+    logoutput => true,
+    notify    => Service['rabbitmq-server'],
+  }
+  ->
+  notify { "executed verify-rabbitmq":; }
 }

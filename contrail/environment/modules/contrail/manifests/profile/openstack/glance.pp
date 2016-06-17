@@ -18,7 +18,6 @@ class contrail::profile::openstack::glance(
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-  $keystone_db_conn = join(["mysql://glance:",$database_credentials,"/glance"],'')
 
   class {'::glance::db::mysql':
     password => $service_password,
@@ -27,18 +26,19 @@ class contrail::profile::openstack::glance(
 
   if ($internal_vip != '' and $internal_vip != undef) {
 
+    $keystone_db_conn = join(["mysql://glance:",$database_credentials,":33306/glance"],'')
     class { '::glance::api':
       keystone_password => $glance_password,
       keystone_tenant   => 'services',
       keystone_user     => 'glance',
       database_connection  => $keystone_db_conn,
       registry_host     => $storage_address_management,
-      verbose            => $openstack_verbose,
-      debug              => $openstack_debug,
+      verbose           => $openstack_verbose,
+      debug             => $openstack_debug,
       enabled           => true,
       database_idle_timeout => '180',
-      bind_port     => '9393',
-    } ->
+      bind_port         => '9393',
+    }
     glance_api_config {
       'database/min_pool_size':            value => "100";
       'database/max_pool_size':            value => "700";
@@ -49,7 +49,7 @@ class contrail::profile::openstack::glance(
       'database/db_retry_interval':        value => "1";
       'database/connection_debug':         value => "10";
       'database/pool_timeout':             value => "120";
-    } ->
+    }
     glance_registry_config {
       'database/min_pool_size':            value => "100";
       'database/max_pool_size':            value => "700";
@@ -60,19 +60,20 @@ class contrail::profile::openstack::glance(
       'database/db_retry_interval':        value => "1";
       'database/connection_debug':         value => "10";
       'database/pool_timeout':             value => "120";
-    } ->
+    }
     class { '::glance::registry':
-      keystone_password => $glance_password,
-      sql_connection        => $::openstack::resources::connectors::glance,
-      auth_host             => $::openstack::config::controller_address_management,
+      keystone_password     => $glance_password,
+      database_connection   => $keystone_db_conn,
       keystone_tenant       => 'services',
       keystone_user         => 'glance',
       verbose               => $openstack_verbose,
       debug                 => $openstack_debug,
       database_idle_timeout => '180',
-      sync_db               => $sync_db,
+      #sync_db               => $sync_db
+      sync_db               => true
     }
   } else {
+    $keystone_db_conn = join(["mysql://glance:",$database_credentials,"/glance"],'')
     class { '::glance::api':
       keystone_password => $glance_password,
       keystone_tenant   => 'services',
@@ -90,7 +91,8 @@ class contrail::profile::openstack::glance(
       keystone_user     => 'glance',
       verbose           => $openstack_verbose,
       debug             => $openstack_debug,
-      sync_db           => $sync_db
+      #sync_db           => $sync_db,
+      sync_db           => true,
     }
   }
 

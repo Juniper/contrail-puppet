@@ -13,10 +13,8 @@ class contrail::profile::openstack::keystone(
   notify { "rabbit-servers => $openstack_rabbit_servers":;}
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-  $keystone_db_conn = join(["mysql://keystone:",$database_credentials,"/keystone"],'')
 
-  notify {"VALUES => ${admin_token}, ${keystone_db_conn}, ${admin_bind_host},
-${sync_db}, ${openstack_rabbit_servers}":;}
+  notify {"VALUES => ${admin_token}, ${keystone_db_conn}, ${admin_bind_host}, ${sync_db}, ${openstack_rabbit_servers}":;}
 
   class {'::keystone::db::mysql':
     password => $service_password,
@@ -25,19 +23,19 @@ ${sync_db}, ${openstack_rabbit_servers}":;}
 
   if ($internal_vip != "" and $internal_vip != undef) {
 
+    $keystone_db_conn = join(["mysql://keystone:",$database_credentials,":3306/keystone"],'')
     class { '::keystone':
       admin_token     =>  $admin_token,
-      default_domain => 'admin',
       database_connection => $keystone_db_conn,
       enabled         => true,
       admin_bind_host => $admin_bind_host,
-      sync_db         => $sync_db,
+      sync_db         => true,
       public_port     => '6000',
       admin_port      => '35358',
       database_idle_timeout => '180',
-      rabbit_hosts     => $openstack_rabbit_servers,
-      verbose          => $openstack_verbose,
-      debug            => $openstack_debug,
+      rabbit_hosts    => $openstack_rabbit_servers,
+      verbose         => $openstack_verbose,
+      debug           => $openstack_debug,
     }
     keystone_config {
       'database/min_pool_size':   value => "100";
@@ -52,12 +50,13 @@ ${sync_db}, ${openstack_rabbit_servers}":;}
     }
 
   } else {
+    $keystone_db_conn = join(["mysql://keystone:",$database_credentials,"/keystone"],'')
     class { '::keystone':
       admin_token     =>  $admin_token,
       database_connection => $keystone_db_conn,
       enabled         => true,
       admin_bind_host => $admin_bind_host,
-      sync_db         => $sync_db,
+      sync_db         => true,
       rabbit_hosts    => $openstack_rabbit_servers,
       verbose         => $openstack_verbose,
       debug           => $openstack_debug,

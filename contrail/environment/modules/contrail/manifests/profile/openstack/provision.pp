@@ -17,32 +17,40 @@ class contrail::profile::openstack::provision (
 
   if ($contrail_internal_vip != "" and $contrail_internal_vip != undef) {
     $contrail_controller_address_api = $contrail_internal_vip
+    $config_address = $contrail_internal_vip
     $contrail_controller_address_management = $contrail_internal_vip
+    $controller_address_management = $contrail_internal_vip
+    $address_api = $contrail_internal_vip
+    $storage_address_management = $contrail_internal_vip
+    $storage_address_api = $contrail_internal_vip
   } elsif ($internal_vip != "" and $internal_vip != undef) {
-    $contrail_controller_address_api = $controller_api_address
-    $contrail_controller_address_management = $controller_mgmt_address
+    $config_address = $internal_vip
+    $contrail_controller_address_api = $internal_vip
+    $contrail_controller_address_management = $internal_vip
+    $controller_address_management = $internal_vip
+    $address_api = $internal_vip
+    $storage_address_management = $internal_vip
+    $storage_address_api = $internal_vip
   } else {
-    $contrail_controller_address_api = $::contrail::params::config_ip_list[0]
-    $contrail_controller_address_management = $::contrail::params::config_ip_list[0]
+    $config_address = $::contrail::params::config_ip_list[0]
+    $contrail_controller_address_api =  $::contrail::params::openstack_ip_list[0]
+    $contrail_controller_address_management = $::contrail::params::openstack_ip_list[0]
+    $controller_address_management = $::contrail::params::openstack_ip_list[0]
+    $address_api =  $::contrail::params::openstack_ip_list[0]
+    $storage_address_management =  $::contrail::params::openstack_ip_list[0]
+    $storage_address_api =  $::contrail::params::openstack_ip_list[0]
   }
 
-  $controller_address_management = $controller_mgmt_address
-  $address_api = $controller_api_address
-  $storage_address_management = $::contrail::params::os_glance_mgmt_address
-  $storage_address_api = $::contrail::params::os_glance_api_address
-
-  notify {"keysstone: ${keystone_admin_email} and ${keystone_admin_password}":;}
-
-  class { '::keystone::roles::admin':
-    email        => $keystone_admin_email,
-    password     => $keystone_admin_password,
-    admin_tenant => 'admin',
-  } ->
   class { 'keystone::endpoint':
     public_url   => "http://${address_api}:5000",
     admin_url    => "http://${controller_address_management}:35357",
     internal_url => "http://${controller_address_management}:5000",
     region       => $region_name,
+  } ->
+  class { '::keystone::roles::admin':
+    email        => $keystone_admin_email,
+    password     => $keystone_admin_password,
+    admin_tenant => 'admin',
   } ->
   class { '::cinder::keystone::auth':
     password         => $cinder_password,
@@ -67,9 +75,9 @@ class contrail::profile::openstack::provision (
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,
-    public_address   => $contrail_controller_address_api,
-    admin_address    => $contrail_controller_address_management,
-    internal_address => $contrail_controller_address_management,
+    public_address   => $config_address,
+    admin_address    => $config_address,
+    internal_address => $config_address,
     region           => $region_name,
   } ->
   class { '::ceilometer::keystone::auth':
@@ -85,7 +93,7 @@ class contrail::profile::openstack::provision (
     admin_address    => $contrail_controller_address_management,
     internal_address => $contrail_controller_address_management,
     region           => $region_name,
-  }
+  } ->
   class { '::heat::keystone::auth_cfn':
     password         => $heat_password,
     public_address   => $contrail_controller_address_api,

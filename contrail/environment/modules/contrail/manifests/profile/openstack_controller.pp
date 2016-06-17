@@ -24,9 +24,14 @@ class contrail::profile::openstack_controller (
     contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
     package {'contrail-openstack' :
       ensure => latest,
-      before => Class['::mysql::server']
+      before => [ Class['::mysql::server'] ]
+ #Package['keystone'], Package['glance-api'], Package['glance-registry'],
+                  #Package['cinder'],Package['cinder-api'],Package['heat-engine'],Package['nova-common'],
+                  #Package['python-nova'],Package['heat-api'],Package['heat-common'],Package['heat-api-cfn'],
+                  #Package['python-numpy'], Package['pm-utils'], Package['libguestfs-tools'],
+                  #Package['python-mysqldb'], Package['python-keystone'], Package['python-cinderclient']]
     } ->
-    class { 'memcached': }->
+    class { 'memcached': } ->
     class {'::nova::quota' :
         quota_instances => 10000,
     } ->
@@ -48,8 +53,12 @@ class contrail::profile::openstack_controller (
       mode   => '0755',
       group  => root,
       content => template("${module_name}/local_settings.py.erb")
-    } ->
-    contrail::lib::report_status { 'openstack_completed': state => 'openstack_completed' }
+    }
+    ->
+    contrail::lib::report_status { 'openstack_completed':
+      state => 'openstack_completed' ,
+      require => [Class['keystone::endpoint'], Keystone_role['admin']]
+    }
 
     contain ::contrail::profile::openstack::mysql
     contain ::contrail::profile::openstack::keystone
@@ -60,8 +69,8 @@ class contrail::profile::openstack_controller (
     contain ::contrail::profile::openstack::heat
 
     if ($enable_ceilometer) {
-      class {'::contrail::profile::openstack::ceilometer' : before =>
-        Class['::contrail::profile::openstack::provision']
+      class {'::contrail::profile::openstack::ceilometer' : 
+        before => Class['::contrail::profile::openstack::provision']
       }
       contain ::contrail::profile::openstack::ceilometer
     }
