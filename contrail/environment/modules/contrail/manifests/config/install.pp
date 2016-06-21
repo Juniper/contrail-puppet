@@ -2,6 +2,7 @@ class contrail::config::install(
  $contrail_host_roles = $::contrail::params::host_roles,
  $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
  $internal_vip = $::contrail::params::internal_vip,
+ $upgrade_needed = $::contrail::params::upgrade_needed,
 ) {
   # Install a specific version of keepalived in non-ha
   # case also, to support upgrade of contrail software.
@@ -26,11 +27,14 @@ class contrail::config::install(
       Package['keepalived'] -> Package['contrail-openstack-config']
   }
 
-  exec { 'Temporarily delete contrail-openstack-config, contrail-config-openstack' :
+  if ($upgrade_needed == 1) {
+      exec { 'Temporarily delete contrail-openstack-config, contrail-config-openstack' :
           command   => "apt-get -y --force-yes purge contrail-openstack-config contrail-config-openstack",
           provider  => shell,
           logoutput => $contrail_logoutput,
-  } ->
+      }
+      Exec['Temporarily delete contrail-openstack-config, contrail-config-openstack'] -> Package['contrail-config']
+  }
   package { 'contrail-config':
     ensure => latest,
     configfiles => "replace",
