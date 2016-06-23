@@ -34,6 +34,13 @@ class contrail::database::install (
           ensure => latest
       }
   }
+  Package['contrail-openstack-database'] ->
+  exec { 'Stopping Cassandra till it is correctly configured':
+      command => "service cassandra stop",
+      provider => shell,
+      logoutput => $contrail_logoutput,
+      after => Package['contrail-openstack-database']
+  }
   if ($lsbdistrelease == "14.04") {
       package { 'default-jre-headless' :
           ensure => latest
