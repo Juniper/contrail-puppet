@@ -36,7 +36,7 @@ class contrail::database::new_config_zk_files_setup (
               file_line { 'Add ZOO_LOG4J_PROP to Zookeeper env':
                    path => '/etc/zookeeper/conf/environment',
                    line => "ZOO_LOG4J_PROP=\"INFO,CONSOLE,ROLLINGFILE\"",
-                   match   => "ZOO_LOG4J_PROP=.*$",
+                   match   => 'ZOO_LOG4J_PROP=.*$',
               } ->
               File['/etc/zookeeper/conf/myid']
           }
