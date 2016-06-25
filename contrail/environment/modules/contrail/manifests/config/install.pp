@@ -27,9 +27,15 @@ class contrail::config::install(
       Package['keepalived'] -> Package['contrail-openstack-config']
   }
 
+  if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+      $cmd='yum -y remove contrail-openstack-config contrail-config-openstack'
+  }
+  else {
+      $cmd="apt-get -y --force-yes purge contrail-openstack-config contrail-config-openstack"
+  }
   if ($upgrade_needed == 1) {
       exec { 'Temporarily delete contrail-openstack-config, contrail-config-openstack' :
-          command   => "apt-get -y --force-yes purge contrail-openstack-config contrail-config-openstack",
+          command   => $cmd,
           provider  => shell,
           logoutput => $contrail_logoutput,
       }

@@ -32,9 +32,12 @@ class contrail::collector::config (
 
     $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
-    $contrail_analytics_api_ini_command ="/usr/bin/contrail-analytics-api --conf_file /etc/contrail/contrail-analytics-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
-
-    $redis_config_file = '/etc/redis/redis.conf'
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $redis_config_file = '/etc/redis.conf'
+    }
+    if ($::operatingsystem == 'Ubuntu') {
+        $redis_config_file = '/etc/redis/redis.conf'
+    }
     $redis_augeas_lens_to_use = 'spacevars.lns'
 
     if ($redis_password != "" ) {
