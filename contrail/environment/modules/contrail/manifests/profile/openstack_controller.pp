@@ -20,33 +20,30 @@ class contrail::profile::openstack_controller (
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
   $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use
 ) {
+  $processor_count_str = "${::processorcount}"
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
     contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
     package {'contrail-openstack' :
       ensure => latest,
-      before => [ Class['::mysql::server'] ]
- #Package['keystone'], Package['glance-api'], Package['glance-registry'],
-                  #Package['cinder'],Package['cinder-api'],Package['heat-engine'],Package['nova-common'],
-                  #Package['python-nova'],Package['heat-api'],Package['heat-common'],Package['heat-api-cfn'],
-                  #Package['python-numpy'], Package['pm-utils'], Package['libguestfs-tools'],
-                  #Package['python-mysqldb'], Package['python-keystone'], Package['python-cinderclient']]
+      before => Class['::mysql::server']
     } ->
-    class { 'memcached': } ->
+    class { 'memcached': 
+        processorcount => $processor_count_str
+    }->
     class {'::nova::quota' :
         quota_instances => 10000,
     } ->
+    class {'::contrail::contrail_openstack' : } ->
     class {'::contrail::profile::openstack::mysql' : } ->
     Package['python-openstackclient'] ->
     class {'::contrail::profile::openstack::keystone' : } ->
     class {'::contrail::profile::openstack::glance' : } ->
     class {'::contrail::profile::openstack::cinder' : } ->
-    service { 'supervisor-openstack': enable => true, ensure => running } ->
     class {'::contrail::profile::openstack::nova' : } ->
     class {'::contrail::profile::openstack::neutron' : } ->
     class {'::contrail::profile::openstack::heat' : } ->
     class {'::contrail::profile::openstack::provision' : } ->
     class {'::contrail::profile::openstack::auth_file' : } ->
-    class {'::contrail::contrail_openstack' : } ->
     package { 'openstack-dashboard': ensure => present } ->
     file {'/etc/openstack-dashboard/local_settings.py':
       ensure => present,
@@ -68,6 +65,10 @@ class contrail::profile::openstack_controller (
     contain ::contrail::profile::openstack::neutron
     contain ::contrail::profile::openstack::heat
 
+    if ($::operatingsystem == 'Ubuntu') {
+        service { 'supervisor-openstack': enable => true, ensure => running }
+        Class['::contrail::profile::openstack::cinder'] -> Service['supervisor-openstack'] -> Class['::contrail::profile::openstack::nova']
+    }
     if ($enable_ceilometer) {
       class {'::contrail::profile::openstack::ceilometer' : 
         before => Class['::contrail::profile::openstack::provision']
@@ -81,9 +82,8 @@ class contrail::profile::openstack_controller (
 
     if ($openstack_manage_amqp and !  defined(Class['::contrail::rabbitmq']) ) {
       contain ::contrail::rabbitmq
-      Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Service['supervisor-openstack']
+      Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Class['::contrail::profile::openstack::cinder']
     }
-
   } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
     notify { 'uninstalling openstack':; }
     contain ::contrail::uninstall_openstack

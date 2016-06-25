@@ -59,17 +59,24 @@ class contrail::common(
     User['nova', 'libvirt-qemu', 'libvirt-dnsmasq'] ->
     contrail::lib::contrail_upgrade{ 'contrail_upgrade':
         contrail_upgrade   => $contrail_upgrade,
-        contrail_logoutput => $contrail_logoutput,
-        upgrade_needed => $upgrade_needed
-    } ->
-    apt::pin { 'debian_repo_preferences':
-      priority => '-10',
-      originator => 'Debian'
-    } ->
-    apt::pin { 'contrail_repo_preferences':
-      priority => '999',
-      codename => 'contrail'
-    } ->
+        contrail_logoutput => $contrail_logoutput
+    }
+    if 'Ubuntu' == $::operatingsystem {
+        apt::pin { 'debian_repo_preferences':
+          priority => '-10',
+          originator => 'Debian'
+        } ->
+        apt::pin { 'contrail_repo_preferences':
+          priority => '999',
+          codename => 'contrail'
+        }
+    }
+    if ($::operatingsystem == 'Ubuntu') {
+        $ssl_package='libssl0.9.8'
+    }
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $ssl_package='openssl'
+    } 
     # Create repository config on target.
     contrail::lib::contrail_setup_repo{ $contrail_repo_name:
         contrail_repo_ip   => $contrail_repo_ip,
@@ -87,7 +94,7 @@ class contrail::common(
         ensure => present,
         ip     => $host_mgmt_ip
     } ->
-    package { 'libssl0.9.8' : ensure => present,} ->
+    package { $ssl_package : ensure => present,} ->
     sysctl::value { 'kernel.core_pattern':
       value => '/var/crashes/core.%e.%p.%h.%t'
     } ->
@@ -102,10 +109,9 @@ class contrail::common(
         ensure => 'directory',
     } ->
     Class['::contrail::enable_kernel_core']
-
     # Disable SELINUX on boot, if not already disabled.
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        Package['libssl0.9.8']->
+        Package['openssl']->
         # Set SELINUX as disabled in selinux config
         contrail::lib::augeas_conf_set { 'SELINUX':
              config_file => '/etc/selinux/config',
