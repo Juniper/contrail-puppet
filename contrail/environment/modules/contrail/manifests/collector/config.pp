@@ -15,6 +15,7 @@ class contrail::collector::config (
     $redis_password = $::contrail::params::redis_password,
     $config_ip_to_use = $::contrail::params::config_ip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
 ) {
 
     $rest_api_port_to_use = $::contrail::params::rest_api_port_to_use
@@ -33,6 +34,7 @@ class contrail::collector::config (
     $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     $contrail_analytics_api_ini_command ="/usr/bin/contrail-analytics-api --conf_file /etc/contrail/contrail-analytics-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
+    $contrail_alarm_gen_ini_command ="/usr/bin/contrail-alarm-gen --conf_file /etc/contrail/contrail-alarm-gen.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
 
     $redis_config_file = '/etc/redis/redis.conf'
     $redis_augeas_lens_to_use = 'spacevars.lns'
@@ -132,6 +134,7 @@ class contrail::collector::config (
       'DEFAULTS/host_ip'            : value => $host_control_ip;
       'DEFAULTS/zk_list'            : value => "$zk_ip_list";
       'DEFAULTS/kafka_broker_list'  : value => "$kafka_broker_list";
+      'DEFAULTS/rabbitmq_server_list' : value => "$contrail_rabbit_servers";
       'DEFAULTS/http_server_port'   : value => '5995';
       'DEFAULTS/log_local'          : value => '1';
       'DEFAULTS/log_level'          : value => 'SYS_NOTICE';
@@ -148,6 +151,21 @@ class contrail::collector::config (
       'DEFAULTS/scan_frequency'     : value => $topology_scan_frequency;
       'DISCOVERY/disc_server_ip'    : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port'  : value => '5998';
+    } ->
+
+    contrail_alarm_gen_ini_config {
+      'program:contrail-alarm-gen/command' : value => $contrail_alarm_gen_ini_command;
+      'program:contrail-alarm-gen/priority' : value => '440';
+      'program:contrail-alarm-gen/autostart' : value => 'true';
+      'program:contrail-alarm-gen/killasgroup' : value => 'true';
+      'program:contrail-alarm-gen/stopsignal' : value => 'KILL';
+      'program:contrail-alarm-gen/stdout_capture_maxbytes' : value => '1MB';
+      'program:contrail-alarm-gen/redirect_stderr' : value => 'true';
+      'program:contrail-alarm-gen/stdout_logfile' : value => '/var/log/contrail/contrail-alarm-gen-stdout.log';
+      'program:contrail-alarm-gen/stderr_logfile' : value => '/var/log/contrail/contrail-alarm-gen-stderr.log';
+      'program:contrail-alarm-gen/startsecs' : value => '5';
+      'program:contrail-alarm-gen/exitcodes' : value => '0';
+      'program:contrail-alarm-gen/user' : value => 'contrail';
     } ->
 
     contrail_analytics_api_ini_config {
