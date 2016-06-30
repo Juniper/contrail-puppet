@@ -19,6 +19,9 @@ class contrail::database::config_cassandra (
       #        'commitlog_directory' => "${database_dir}/commitlog",
       #    },
       #}
+
+      $jvm_version_chk = 'sed -i -e \'s/if \[ \"\$JVM_VERSION\" \\< \"1.8\" \] && \[ \"\$JVM_PATCH_VERSION\" \\< \"25\" \] ; then/if \[ \"\$JVM_VERSION\" \\< \"1.8\" \] \&\& \[ \"\$JVM_PATCH_VERSION\" -lt \"25\" \] ; then/\' '
+
       package {'cassandra':
                 ensure => latest,
                 configfiles => "replace",
@@ -135,6 +138,11 @@ class contrail::database::config_cassandra (
       } ->
       exec { 'update-jamm':
         command => "sed -i -e 's/lib\/jamm-0.2.5.jar/lib\/jamm-0.3.0.jar/' $cassandra_env_file",
+        provider => shell,
+      }
+      exec {
+        'cassandra-env-update':
+        command => "${jvm_version_chk}${cassandra_env_file}",
         provider => shell,
       }
 }
