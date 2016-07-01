@@ -36,7 +36,7 @@ class contrail::database::install (
   }
   Package['contrail-openstack-database'] ->
   exec { 'Stopping Cassandra till it is correctly configured':
-      command => "service cassandra stop",
+      command => "service cassandra stop && sed -i 's/CMD_PATT=.*/CMD_PATT=cassandra/' /etc/init.d/cassandra && sed -i 's/CMD_PATT=.*/CMD_PATT=cassandra/' /etc/init.d/contrail-database",
       provider => shell,
       logoutput => $contrail_logoutput
   }
