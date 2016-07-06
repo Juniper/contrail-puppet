@@ -22,6 +22,11 @@ class contrail::database::install (
   package { 'contrail-openstack-database' :
     ensure => latest,
     notify => Service["supervisor-database"]
+  } ->
+  exec { 'Stopping Cassandra till it is correctly configured':
+      command => "service cassandra stop && sed -i 's/CMD_PATT=.*/CMD_PATT=cassandra/' /etc/init.d/cassandra && sed -i 's/CMD_PATT=.*/CMD_PATT=cassandra/' /etc/init.d/contrail-database",
+      provider => shell,
+      logoutput => $contrail_logoutput
   }
   if ($lsbdistrelease == "14.04") {
       Notify["executed contrail contrail_zk_exec_cmd : ${cassandra_upgrade_cmd}"] ->
