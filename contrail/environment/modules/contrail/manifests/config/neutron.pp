@@ -20,15 +20,16 @@ class contrail::config::neutron (
   $keystone_auth_protocol  = $::contrail::params::keystone_auth_protocol,
   $keystone_admin_token    = $::contrail::params::os_keystone_admin_token,
   $controller_mgmt_address = $::contrail::params::os_controller_mgmt_address,
-  $package_sku             = $::contrail::params::package_sku
+  $package_sku             = $::contrail::params::package_sku,
+  $keystone_ip_to_use       = $::contrail::params::keystone_ip_to_use,
 ){
 
   # Params from quantum-server-setup.sh are now set here
 
   # Neutron needs to authenticate with keystone but doesn't need keystone installed
   # keystone_authtoken params
-  $keystone_auth_uri = "${keystone_auth_protocol}://${controller}:35357/v2.0/"
-  $keystone_identity_uri = "${keystone_auth_protocol}://${controller}:5000"
+  $keystone_auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/v2.0/"
+  $keystone_identity_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000"
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
   $keystone_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
@@ -63,7 +64,7 @@ class contrail::config::neutron (
   }
   class { '::neutron::server::notifications':
     nova_url            => "http://${controller_mgmt_address}:8774/v2/",
-    nova_admin_auth_url => "http://${controller_mgmt_address}:35357/v2.0/",
+    nova_admin_auth_url => "http://${keystone_ip_to_use}:35357/v2.0/",
     nova_admin_password => $nova_password,
     nova_region_name    => $region_name,
     nova_admin_tenant_id => 'services'

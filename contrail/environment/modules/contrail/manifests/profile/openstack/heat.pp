@@ -18,10 +18,11 @@ class contrail::profile::openstack::heat (
   $encryption_key    = $::contrail::params::os_heat_encryption_key,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-
+  $auth_uri = "http://${keystone_ip_to_use}:5000/"
   if ($internal_vip != '' and $internal_vip != undef) {
       $heat_api_bind_host = '0.0.0.0'
       $heat_api_bind_port = '8005'
@@ -50,6 +51,7 @@ class contrail::profile::openstack::heat (
       debug              => $openstack_debug,
       keystone_host     => $controller_mgmt_address,
       keystone_password => $heat_password,
+      auth_uri          => $auth_uri,
   }
 
   class { '::heat::api':

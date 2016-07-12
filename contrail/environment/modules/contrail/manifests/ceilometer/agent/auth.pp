@@ -8,7 +8,7 @@ class contrail::ceilometer::agent::auth {
   $controller_address_management = hiera(openstack::controller::address::management)
   $ceilometer_password = hiera(openstack::ceilometer::password)
 
-  $auth_url = "http://${controller_address_management}:5000/v2.0"
+  $auth_url = "http://${contrail::params::keystone_ip_to_use}:5000/v2.0"
   $auth_password = $ceilometer_password
   $auth_tenant_name = 'service'
   $auth_username = 'ceilometer'

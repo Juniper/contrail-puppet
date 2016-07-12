@@ -5,6 +5,8 @@ define contrail::lib::post_openstack(
     $internal_vip,
     $password  = $::contrail::params::os_mysql_service_password,
     $contrail_logoutput = false,
+    $keystone_ip = $::contrail::params::keystone_ip,
+    $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
   if ($host_control_ip in $openstack_ip_list) {
     #Make ha-mon start later
@@ -23,11 +25,13 @@ define contrail::lib::post_openstack(
       # If mysql connection string is setup to local_ip while provisoning openstack.
       # openstack 2,3 provision will fail as db-sync is done only on 1,
       # and they dont find the tables.
+      $keystone_database_credentials = join([$password, "@", $keystone_ip_to_use],'')
       $database_credentials = join([$password, "@", $host_control_ip],'')
-      $keystone_db_conn = join(["mysql://keystone:",$database_credentials,"/keystone"],'')
+      $keystone_db_conn = join(["mysql://keystone:",$keystone_database_credentials,"/keystone"],'')
       $cinder_db_conn = join(["mysql://cinder:",$database_credentials,"/cinder"],'')
       $glance_db_conn = join(["mysql://glance:",$database_credentials,"/glance"],'')
       $neutron_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
+      $nova_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
 
       keystone_config {
         'DATABASE/connection'   : value => $keystone_db_conn;
@@ -44,6 +48,21 @@ define contrail::lib::post_openstack(
       }
       neutron_config {
         'DATABASE/connection'   : value => $neutron_db_conn;
+      }
+      nova_config {
+        'DATABASE/connection'   : value => $nova_db_conn;
+      }
+    } elsif($keystone_ip != '') {
+      # Temporary workaround because nova database_connection is getting removed for Central Keystone
+      $database_credentials = join([$password, "@", $host_control_ip],'')
+      $nova_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
+      nova_config {
+          'DATABASE/connection'   : value => $nova_db_conn;
+      } ->
+      exec { 'supervisor-openstack-restart':
+            command   => 'service supervisor-openstack restart ; service nova-compute restart',
+            provider  => shell,
+            logoutput => $contrail_logoutput,
       }
     }
   }

@@ -44,6 +44,8 @@ class contrail::compute::config(
     $openstack_amqp_ip_list = $::contrail::params::openstack_amqp_ip_list,
     $sriov = $::contrail::params::sriov,
     $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
+    $glance_management_address = $::contrail::params::os_glance_mgmt_address,
+    $host_roles = $::contrail::params::host_roles,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -216,6 +218,9 @@ class contrail::compute::config(
     if ($keystone_ip) {
       $vnc_base_url_port = '5999'
       nova_config { 'DEFAULT/novncproxy_base_url': value => "http://${keystone_ip}:${vnc_base_url_port}/vnc_auto.html" }
+    }
+    if (!('openstack' in $host_roles)){
+      nova_config { 'glance/api_servers': value => "http://${glance_management_address}:9292"}
     }
     create_resources(nova_config, $nova_params, {} )
 

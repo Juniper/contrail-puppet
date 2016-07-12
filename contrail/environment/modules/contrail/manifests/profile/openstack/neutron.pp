@@ -2,6 +2,7 @@ class contrail::profile::openstack::neutron(
   $host_control_ip   = $::contrail::params::host_ip,
   $allowed_hosts     = $::contrail::params::os_mysql_allowed_hosts,
   $service_password  = $::contrail::params::os_mysql_service_password,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
