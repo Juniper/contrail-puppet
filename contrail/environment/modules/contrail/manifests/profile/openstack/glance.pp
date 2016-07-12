@@ -15,10 +15,12 @@ class contrail::profile::openstack::glance(
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $keystone_region_name = $::contrail::params::keystone_region_name,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-
+  $auth_uri = "http://${keystone_ip_to_use}:5000/"
   class {'::glance::db::mysql':
     password => $service_password,
     allowed_hosts => $allowed_hosts,
@@ -38,6 +40,9 @@ class contrail::profile::openstack::glance(
       enabled           => true,
       database_idle_timeout => '180',
       bind_port         => '9393',
+      auth_uri          => $auth_uri,
+      auth_host         => $keystone_ip_to_use,
+      os_region_name    => $keystone_region_name,
     }
     glance_api_config {
       'database/min_pool_size':            value => "100";
@@ -70,7 +75,9 @@ class contrail::profile::openstack::glance(
       debug                 => $openstack_debug,
       database_idle_timeout => '180',
       #sync_db               => $sync_db
-      sync_db               => true
+      sync_db               => true,
+      auth_uri              => $auth_uri,
+      auth_host             => $keystone_ip_to_use,
     }
   } else {
     $keystone_db_conn = join(["mysql://glance:",$database_credentials,"/glance"],'')
@@ -83,6 +90,9 @@ class contrail::profile::openstack::glance(
       verbose           => $openstack_verbose,
       debug             => $openstack_debug,
       enabled           => true,
+      auth_uri          => $auth_uri,
+      auth_host         => $keystone_ip_to_use,
+      os_region_name    => $keystone_region_name,
     }
     class { '::glance::registry':
       keystone_password => $glance_password,
@@ -93,6 +103,8 @@ class contrail::profile::openstack::glance(
       debug             => $openstack_debug,
       #sync_db           => $sync_db,
       sync_db           => true,
+      auth_uri          => $auth_uri,
+      auth_host         => $keystone_ip_to_use,
     }
   }
 

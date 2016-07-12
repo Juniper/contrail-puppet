@@ -558,6 +558,14 @@
 #     Neutron IP to use for Nova when using an external openstack
 #     (optional) - Defaults to undef
 #
+# [*keystone_mysql_service_password*]
+#     The MySQL Password to use when connecting to a Central Keystone Server
+#     (optional) - Defaults to undef
+#
+# [*external_openstack_ip*]
+#     The IP Address of an External Openstack server the Contrail cluster connects to
+#     (optional) - Defaults to undef
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -709,6 +717,8 @@ class contrail (
     $openstack_mysql_allowed_hosts = '127.0.0.1',
     $sriov = {},
     $sriov_enable = false,
+    $keystone_mysql_service_password = undef,
+    $external_openstack_ip = undef,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -780,6 +790,8 @@ class contrail (
 	openstack_manage_amqp =>		hiera(openstack::openstack_manage_amqp, hiera(contrail::params::openstack_manage_amqp, $openstack_manage_amqp)),
 	keystone_region_name =>			hiera(openstack::region, hiera(contrail::params::keystone_region_name, $keystone_region_name)),
 	keystone_ip =>				hiera(openstack::keystone::ip, hiera(contrail::params::keystone_ip, $keystone_ip)),
+	external_openstack_ip =>		hiera(openstack::external_openstack_ip, hiera(contrail::params::external_openstack_ip, $external_openstack_ip)),
+	keystone_mysql_service_password =>	hiera(openstack::keystone::mysql_service_password, hiera(contrail::params::keystone_mysql_service_password, $keystone_mysql_service_password)),
 	keystone_admin_password =>		hiera(openstack::keystone::admin_password, hiera(contrail::params::keystone_admin_password, $keystone_admin_password)),
 	keystone_admin_user =>			hiera(openstack::keystone::admin_user, hiera(contrail::params::keystone_admin_user, $keystone_admin_user)),
 	keystone_admin_tenant =>		hiera(openstack::keystone::admin_tenant, hiera(contrail::params::keystone_admin_tenant, $keystone_admin_tenant)),

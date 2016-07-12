@@ -538,7 +538,7 @@
 #     (optional) - Defaults to ''.
 #
 # [*contrail_amqp_port*]
-#     User provided port for amqp service 
+#     User provided port for amqp service
 #     (optional) - Defaults to ''.
 #
 # [*openstack_amqp_ip_list*]
@@ -546,7 +546,7 @@
 #     (optional) - Defaults to ''.
 #
 # [*openstack_amqp_port*]
-#     User provided port for amqp service 
+#     User provided port for amqp service
 #     (optional) - Defaults to ''.
 #
 # [*nova_rabbit_hosts*]
@@ -600,6 +600,7 @@ class contrail::params (
     $ssd_data_dir,
     $database_minimum_diskGB,
     $keystone_ip,
+    $keystone_mysql_service_password,
     $keystone_admin_password,
     $keystone_admin_user,
     $keystone_admin_tenant,
@@ -733,6 +734,7 @@ class contrail::params (
     $sriov_enable,
     $openstack_controller_address_management,
     $openstack_controller_address_api,
+    $external_openstack_ip,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -760,6 +762,8 @@ class contrail::params (
     # Set keystone IP to be used.
     if ($keystone_ip != '') {
         $keystone_ip_to_use = $keystone_ip
+    } elsif ($external_openstack_ip != '') {
+        $keystone_ip_to_use = $external_openstack_ip
     } elsif ($internal_vip != '') {
         $keystone_ip_to_use = $internal_vip
     } else {
@@ -773,20 +777,35 @@ class contrail::params (
         $collector_ip_to_use = $contrail_internal_vip
         $contrail_controller_address_api = $contrail_internal_vip
         $contrail_controller_address_management = $contrail_internal_vip
+        $controller_address_management = $contrail_internal_vip
+        $address_api = $contrail_internal_vip
         $rest_api_port_to_use = '9081'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-        $contrail_controller_address_api = $openstack_controller_address_api
-        $contrail_controller_address_management = $openstack_controller_address_management
+        $contrail_controller_address_api = internal_vip
+        $contrail_controller_address_management = $internal_vip
+        $controller_address_management = $internal_vip
+        $address_api = $internal_vip
         $rest_api_port_to_use = '9081'
+    } elsif 'openstack' in $host_roles {
+        $vip_to_use = ''
+        $config_ip_to_use = $config_ip_list[0]
+        $collector_ip_to_use = $collector_ip_list[0]
+        $contrail_controller_address_api =  $openstack_ip_list[0]
+        $contrail_controller_address_management = $openstack_ip_list[0]
+        $controller_address_management = $openstack_ip_list[0]
+        $address_api =  $openstack_ip_list[0]
+        $rest_api_port_to_use = '8081'
     } else {
         $vip_to_use = ''
         $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
-        $contrail_controller_address_api = $::contrail::params::config_ip_list[0]
-        $contrail_controller_address_management = $::contrail::params::config_ip_list[0]
+        $contrail_controller_address_api = $config_ip_list[0]
+        $contrail_controller_address_management = $config_ip_list[0]
+        $controller_address_management = $config_ip_list[0]
+        $address_api =  $config_ip_list[0]
         $rest_api_port_to_use = '8081'
     }
 
@@ -866,7 +885,6 @@ class contrail::params (
         $multi_tenancy_options = ""
     }
 
-    $contrail_neutron_server = pick($::contrail::params::neutron_ip_to_use, $config_ip_to_use)
     $contrail_neutron_public_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_api)
     $contrail_neutron_admin_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
     $contrail_neutron_internal_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
