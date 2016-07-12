@@ -18,6 +18,7 @@ class contrail::profile::openstack::heat (
   $encryption_key    = $::contrail::params::os_heat_encryption_key,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -69,7 +70,7 @@ class contrail::profile::openstack::heat (
   $contrail_api_server = $::contrail::params::config_ip_to_use
 
   heat_config {
-      'DEFAULT/plugin_dirs': value => "${::python_dist}/vnc_api/gen/heat/resources,${::python_dist}/contrail_heat/resources";
+      'DEFAULT/plugin_dirs': value => '${::python_dist}/vnc_api/gen/heat/resources,${::python_dist}/contrail_heat/resources';
       'clients_contrail/user': value => 'admin';
       'clients_contrail/password': value => 'contrail123';
       'clients_contrail/tenent': value => 'admin';

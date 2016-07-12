@@ -19,10 +19,11 @@ class contrail::profile::openstack::nova(
   $neutron_shared_secret      = $::contrail::params::os_neutron_shared_secret,
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-  $auth_uri = "http://${controller_mgmt_address}:5000/"
+  $auth_uri = "http://${keystone_ip_to_use}:5000/"
 
   class {'::nova::db::mysql':
     password      => $service_password,
@@ -58,7 +59,7 @@ class contrail::profile::openstack::nova(
   }
 
   class { '::nova':
-    database_connection => $keystone_db_conn,
+    #database_connection => $keystone_db_conn,
     glance_api_servers  => "http://${storage_management_address}:9292",
     memcached_servers   => ["${controller_mgmt_address}:11211"],
     rabbit_hosts        => $openstack_rabbit_servers,
@@ -66,9 +67,16 @@ class contrail::profile::openstack::nova(
     rabbit_password     => $rabbitmq_password,
     verbose             => $openstack_verbose,
     debug               => $openstack_debug,
-    notification_driver => "nova.openstack.common.notifier.rpc_notifier",
-    database_idle_timeout => $database_idle_timeout
+    notification_driver => "nova.openstack.common.notifier.rpc_notifier"
+    #database_idle_timeout => $database_idle_timeout
   }
+
+  nova_config {
+      'database/connection': value => $keystone_db_conn;
+      'database/idle_timeout': value => $database_idle_timeout;
+  }
+
+  notify { "openstack::common::nova - database_connection = $keystone_db_conn":; }
 
   if ($internal_vip != "" and $internal_vip != undef) {
     nova_config {
@@ -99,7 +107,8 @@ class contrail::profile::openstack::nova(
 
   class { '::nova::api':
     admin_password                       => $nova_password,
-    auth_host                            => $controller_mgmt_address,
+    auth_host                            => $keystone_ip_to_use,
+    auth_uri                             => $auth_uri,
     enabled                              => 'true',
     neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
     #sync_db                             => $sync_db,
@@ -141,7 +150,7 @@ class contrail::profile::openstack::nova(
   class { '::nova::network::neutron':
     neutron_admin_password => $neutron_password,
     neutron_region_name    => $region_name,
-    neutron_admin_auth_url => "http://${controller_mgmt_address}:35357/v2.0",
+    neutron_admin_auth_url => "http://${keystone_ip_to_use}:35357/v2.0",
     neutron_url            => "http://${neutron_ip_address}:9696",
     vif_plugging_is_fatal  => false,
     vif_plugging_timeout   => '0',

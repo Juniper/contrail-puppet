@@ -538,7 +538,7 @@
 #     (optional) - Defaults to ''.
 #
 # [*contrail_amqp_port*]
-#     User provided port for amqp service 
+#     User provided port for amqp service
 #     (optional) - Defaults to ''.
 #
 # [*openstack_amqp_ip_list*]
@@ -546,7 +546,7 @@
 #     (optional) - Defaults to ''.
 #
 # [*openstack_amqp_port*]
-#     User provided port for amqp service 
+#     User provided port for amqp service
 #     (optional) - Defaults to ''.
 #
 # [*nova_rabbit_hosts*]
@@ -600,6 +600,7 @@ class contrail::params (
     $ssd_data_dir,
     $database_minimum_diskGB,
     $keystone_ip,
+    $keystone_mysql_service_password,
     $keystone_admin_password,
     $keystone_admin_user,
     $keystone_admin_tenant,
@@ -773,20 +774,35 @@ class contrail::params (
         $collector_ip_to_use = $contrail_internal_vip
         $contrail_controller_address_api = $contrail_internal_vip
         $contrail_controller_address_management = $contrail_internal_vip
+        $controller_address_management = $contrail_internal_vip
+        $address_api = $contrail_internal_vip
         $rest_api_port_to_use = '9081'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-        $contrail_controller_address_api = $openstack_controller_address_api
-        $contrail_controller_address_management = $openstack_controller_address_management
+        $contrail_controller_address_api = internal_vip
+        $contrail_controller_address_management = $internal_vip
+        $controller_address_management = $internal_vip
+        $address_api = $internal_vip
         $rest_api_port_to_use = '9081'
-    } else {
+    } elsif 'config' in $host_roles {
         $vip_to_use = ''
         $config_ip_to_use = $config_ip_list[0]
         $collector_ip_to_use = $collector_ip_list[0]
-        $contrail_controller_address_api = $::contrail::params::config_ip_list[0]
-        $contrail_controller_address_management = $::contrail::params::config_ip_list[0]
+        $contrail_controller_address_api = $config_ip_list[0]
+        $contrail_controller_address_management = $config_ip_list[0]
+        $controller_address_management = $config_ip_list[0]
+        $address_api =  $config_ip_list[0]
+        $rest_api_port_to_use = '8081'
+    } elsif 'openstack' in $host_roles {
+        $vip_to_use = ''
+        $config_ip_to_use = $config_ip_list[0]
+        $collector_ip_to_use = $collector_ip_list[0]
+        $contrail_controller_address_api =  $openstack_ip_list[0]
+        $contrail_controller_address_management = $openstack_ip_list[0]
+        $controller_address_management = $openstack_ip_list[0]
+        $address_api =  $openstack_ip_list[0]
         $rest_api_port_to_use = '8081'
     }
 

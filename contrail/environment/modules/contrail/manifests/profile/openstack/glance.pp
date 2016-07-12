@@ -15,6 +15,7 @@ class contrail::profile::openstack::glance(
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
