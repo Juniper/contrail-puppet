@@ -4,6 +4,7 @@ class contrail::openstackrc(
   $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
   $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $keystone_region_name = $::contrail::params::keystone_region_name,
 ) {
   # Create openstackrc file.
   file { '/etc/contrail/openstackrc' :

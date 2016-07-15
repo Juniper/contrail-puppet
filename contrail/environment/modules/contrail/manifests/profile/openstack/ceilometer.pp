@@ -16,11 +16,12 @@ class contrail::profile::openstack::ceilometer (
   $ceilometer_password        = $::contrail::params::os_ceilometer_password,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
 
   $mongo_connection = join([ "mongodb://ceilometer:", $mongo_password, "@", join($database_ip_list,':27017,') ,":27017/ceilometer?replicaSet=rs-ceilometer" ],'')
 
-  $auth_url = "http://${controller_address_management}:5000/v2.0"
+  $auth_url = "http://${keystone_ip_to_use}:5000/v2.0"
   $auth_password = $ceilometer_password
   $auth_tenant_name = 'service'
   $auth_username = 'ceilometer'
