@@ -10,8 +10,13 @@ class contrail::profile::openstack::neutron(
   class {'::neutron::db::mysql':
     password      => $service_password,
     allowed_hosts => $allowed_hosts,
-  } ->
-  package { 'neutron-server': ensure => present } ->
+  }
+  if ($::operatingsystem == 'Ubuntu') {
+      package { 'neutron-server': ensure => present }
+  }
+  if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+     package { 'openstack-neutron': ensure => present }
+  }
   class {'::contrail::profile::neutron_db_sync':
     database_connection => $keystone_db_conn
  }
