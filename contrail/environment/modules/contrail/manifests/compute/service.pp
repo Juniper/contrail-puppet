@@ -21,7 +21,6 @@ class contrail::compute::service(
     } else {
         $nova_service_name = "nova-compute"
     }
-
     service { $nova_service_name :
         enable => $nova_compute_status,
         ensure => $nova_compute_status,

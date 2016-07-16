@@ -36,7 +36,12 @@ class contrail::collector::config (
     $contrail_analytics_api_ini_command ="/usr/bin/contrail-analytics-api --conf_file /etc/contrail/contrail-analytics-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     $contrail_alarm_gen_ini_command ="/usr/bin/contrail-alarm-gen --conf_file /etc/contrail/contrail-alarm-gen.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
 
-    $redis_config_file = '/etc/redis/redis.conf'
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $redis_config_file = '/etc/redis.conf'
+    }
+    if ($::operatingsystem == 'Ubuntu') {
+        $redis_config_file = '/etc/redis/redis.conf'
+    }
     $redis_augeas_lens_to_use = 'spacevars.lns'
 
     if ($redis_password != "" ) {
