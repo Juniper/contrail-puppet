@@ -1,6 +1,7 @@
 class contrail::compute::add_dev_tun_in_cgroup_device_acl (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
 ) {
+    $os = $::operatingsystem
     file { '/etc/contrail/contrail_setup_utils/add_dev_tun_in_cgroup_device_acl.sh':
             ensure => present,
             mode   => '0755',
@@ -9,7 +10,7 @@ class contrail::compute::add_dev_tun_in_cgroup_device_acl (
             source => "puppet:///modules/${module_name}/add_dev_tun_in_cgroup_device_acl.sh"
     } ->
     exec { 'add_dev_tun_in_cgroup_device_acl' :
-            command   => './add_dev_tun_in_cgroup_device_acl.sh && echo add_dev_tun_in_cgroup_device_acl >> /etc/contrail/contrail_compute_exec.out',
+            command   => "./add_dev_tun_in_cgroup_device_acl.sh $os && echo add_dev_tun_in_cgroup_device_acl >> /etc/contrail/contrail_compute_exec.out",
             cwd       => '/etc/contrail/contrail_setup_utils/',
             unless    => 'grep -qx add_dev_tun_in_cgroup_device_acl /etc/contrail/contrail_compute_exec.out',
             provider  => shell,

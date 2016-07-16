@@ -45,6 +45,12 @@ define contrail::lib::post_openstack(
       neutron_config {
         'DATABASE/connection'   : value => $neutron_db_conn;
       }
+    } elsif ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        exec { 'openstack-svc-restart':
+            command => "service openstack-nova-api restart && service openstack-nova-conductor restart && service openstack-nova-scheduler restart",
+            provider => shell,
+            logoutput => $contrail_logoutput,
+        }
     }
   }
 }
