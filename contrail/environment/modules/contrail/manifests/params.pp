@@ -943,4 +943,16 @@ class contrail::params (
     } else {
         $upgrade_needed = 0
     }
+
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $redis_config_file = '/etc/redis.conf'
+        $redis_service = 'redis'
+        $ssl_package='openssl'
+    }
+    if ($::operatingsystem == 'Ubuntu') {
+        $redis_config_file = '/etc/redis/redis.conf'
+        $redis_service = 'redis-server'
+        $ssl_package='libssl0.9.8'
+    }
+
 }

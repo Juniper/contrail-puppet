@@ -7,7 +7,7 @@ define contrail::lib::contrail_upgrade(
     $upgrade_needed = $::contrail::params::upgrade_needed,
     ) {
 
-    if (($contrail_upgrade == true) or ($upgrade_needed == 1)) {
+    if ((($contrail_upgrade == true) or ($upgrade_needed == 1)) and ($::operatingsystem == "Ubuntu")) {
         Notify['contrail_upgrade_notify_2']->Notify['contrail_upgrade_notify_4']
         notify {'contrail_upgrade_notify_4': name => '*** UPGRADING ***';} ->
         exec { "update_interface_file1":

@@ -369,6 +369,16 @@ class contrail::compute::config(
     contain ::contrail::compute::add_vnc_config
     # Now reboot the system
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        Class['::contrail::compute::setup_compute_server_setup'] ->
+        Class['::contrail::compute::cp_ifcfg_file'] ->
+        # remove blank password line from nova.conf
+        exec { "set-nova-password":
+            command => "sed -i \'s/^password=$/password=${keystone_admin_password}/\' /etc/nova/nova.conf && echo exec-set-nova-password >> /etc/contrail/exec-contrail-compute.out",
+            provider => shell,
+            unless => "grep -qx set-nova-conf /etc/contrail/exec-contrail-compute.out",
+            logoutput => true
+        } ->
+        Reboot['compute']
         contain ::contrail::compute::cp_ifcfg_file
     }
 

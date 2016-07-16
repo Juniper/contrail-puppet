@@ -44,9 +44,14 @@ class contrail::rabbitmq (
         $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctl\n"
 
         if !defined(Service['rabbitmq-server']) {
+            if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+                $svc_en = false
+            } else {
+                $svc_en = true
+            }
             service { 'rabbitmq-server':
                 ensure => running,
-                enable => true
+                enable => $svc_en
             }
         }
 
@@ -76,7 +81,6 @@ class contrail::rabbitmq (
             host_control_ip => $host_control_ip,
             amqp_ip_list => $amqp_ip_list
         }
-
         contain ::contrail::verify_rabbitmq
         contain ::contrail::add_etc_hosts
     }

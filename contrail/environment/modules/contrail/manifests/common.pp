@@ -35,6 +35,7 @@ class contrail::common(
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_roles = $::contrail::params::host_roles,
     $upgrade_needed = $::contrail::params::upgrade_needed,
+    $ssl_package = $::contrail::params::ssl_package
 ) {
     include ::contrail
     $contrail_group_details = {
@@ -62,17 +63,18 @@ class contrail::common(
     User['nova', 'libvirt-qemu', 'libvirt-dnsmasq'] ->
     contrail::lib::contrail_upgrade{ 'contrail_upgrade':
         contrail_upgrade   => $contrail_upgrade,
-        contrail_logoutput => $contrail_logoutput,
-        upgrade_needed => $upgrade_needed
-    } ->
-    apt::pin { 'debian_repo_preferences':
-      priority => '-10',
-      originator => 'Debian'
-    } ->
-    apt::pin { 'contrail_repo_preferences':
-      priority => '999',
-      codename => 'contrail'
-    } ->
+        contrail_logoutput => $contrail_logoutput
+    }
+    if 'Ubuntu' == $::operatingsystem {
+        apt::pin { 'debian_repo_preferences':
+          priority => '-10',
+          originator => 'Debian'
+        } ->
+        apt::pin { 'contrail_repo_preferences':
+          priority => '999',
+          codename => 'contrail'
+        }
+    }
     # Create repository config on target.
     contrail::lib::contrail_setup_repo{ $contrail_repo_name:
         contrail_repo_ip   => $contrail_repo_ip,
@@ -90,7 +92,7 @@ class contrail::common(
         ensure => present,
         ip     => $host_mgmt_ip
     } ->
-    package { 'libssl0.9.8' : ensure => present,} ->
+    package { $ssl_package : ensure => present,} ->
     sysctl::value { 'kernel.core_pattern':
       value => '/var/crashes/core.%e.%p.%h.%t'
     } ->
@@ -105,10 +107,9 @@ class contrail::common(
         ensure => 'directory',
     } ->
     Class['::contrail::enable_kernel_core']
-
     # Disable SELINUX on boot, if not already disabled.
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        Package['libssl0.9.8']->
+        Package[$ssl_package]->
         # Set SELINUX as disabled in selinux config
         contrail::lib::augeas_conf_set { 'SELINUX':
              config_file => '/etc/selinux/config',
@@ -129,6 +130,7 @@ class contrail::common(
             lens_to_use => 'properties.lns',
         } ->
         Sysctl::Value['kernel.core_pattern']
+        package { 'yum-plugin-priorities' : ensure => present,}
         contain ::contrail::disable_selinux
     }
 
