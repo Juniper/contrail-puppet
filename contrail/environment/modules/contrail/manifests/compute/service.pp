@@ -11,7 +11,12 @@ class contrail::compute::service(
             enable  => true,
         }
     }
-    service { 'nova-compute' :
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $nova_service_name = "openstack-nova-compute"
+    } else {
+        $nova_service_name = "nova-compute"
+    }
+    service { $nova_service_name :
         enable => $nova_compute_status,
         ensure => $nova_compute_status,
     }
@@ -22,5 +27,10 @@ class contrail::compute::service(
          ensure => running,
          enable => true
        }
+    }
+    Service[$nova_service_name]->
+    reboot { 'compute':
+      apply => "immediately",
+      timeout => 0,
     }
 }
