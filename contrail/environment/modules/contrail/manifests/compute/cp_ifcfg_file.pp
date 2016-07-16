@@ -8,7 +8,5 @@ class contrail::compute::cp_ifcfg_file (
             logoutput => $contrail_logoutput
     }
     ->
-    Reboot['compute']
-    ->
     notify { "executed cp_ifcfg_file" :; }
 }
