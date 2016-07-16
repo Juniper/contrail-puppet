@@ -183,12 +183,6 @@ class contrail::compute::config(
         }
     }
 
-    # Install interface rename package for centos.
-    if (inline_template('<%= @operatingsystem.downcase %>') == 'centos') {
-        Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-        contrail::lib::contrail_rename_interface { 'centos-rename-interface' :
-        }
-    }
     # for storage
     ## Same condition as compute/service.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
@@ -215,12 +209,15 @@ class contrail::compute::config(
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
       'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
     }
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+      $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }
+    }
     if ($keystone_ip) {
       $vnc_base_url_port = '5999'
-      nova_config { 'DEFAULT/novncproxy_base_url': value => "http://${keystone_ip}:${vnc_base_url_port}/vnc_auto.html" }
+      $nova_params['DEFAULT/novncproxy_base_url'] = { value => "http://${keystone_ip}:${vnc_base_url_port}/vnc_auto.html" }
     }
     if (!('openstack' in $host_roles)){
-      nova_config { 'glance/api_servers': value => "http://${glance_management_address}:9292"}
+      $nova_params['glance/api_servers'] = { value => "http://${glance_management_address}:9292" }
     }
     create_resources(nova_config, $nova_params, {} )
 
@@ -407,16 +404,21 @@ class contrail::compute::config(
     }
     ->
     class {'::contrail::compute::setup_compute_server_setup':}
-    ->
-    reboot { 'compute':
-      apply => "immediately",
-      subscribe       => Exec ["setup-compute-server-setup"],
-      timeout => 0,
-    }
+    #->
+    #reboot { 'compute':
+    #  apply => "immediately",
+    #  subscribe       => Exec ["setup-compute-server-setup"],
+    #  timeout => 0,
+    #}
+
     contain ::contrail::compute::setup_compute_server_setup
     contain ::contrail::compute::add_vnc_config
     # Now reboot the system
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        Class['::contrail::compute::setup_compute_server_setup'] ->
+        Class['::contrail::compute::cp_ifcfg_file']
+        #Class['::contrail::compute::cp_ifcfg_file'] ->
+        #Reboot['compute']
         contain ::contrail::compute::cp_ifcfg_file
     }
 

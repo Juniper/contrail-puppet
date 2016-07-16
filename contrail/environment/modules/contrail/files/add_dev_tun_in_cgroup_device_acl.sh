@@ -1,9 +1,9 @@
 #!/bin/bash
+platform=$1
 grep -q '^cgroup_device_acl' /etc/libvirt/qemu.conf
 if [ "$?" -ne 0 ]
 then
-    grep -q -i -e 'centos' -e 'redhat' /etc/issue
-    if [ "$?" -eq 0 ]
+    if [ $platform == 'CentOS' ] || [ $platform == 'Fedora' ]
     then
 	echo "clear_emulator_capabilities = 1" >> /etc/libvirt/qemu.conf
 	echo 'user = "root"' >> /etc/libvirt/qemu.conf
@@ -15,5 +15,10 @@ then
     echo '    "/dev/ptmx", "/dev/kvm", "/dev/kqemu",' >> /etc/libvirt/qemu.conf
     echo '    "/dev/rtc", "/dev/hpet","/dev/net/tun",' >> /etc/libvirt/qemu.conf
     echo ']' >> /etc/libvirt/qemu.conf
-    service libvirt-bin restart
+    if [ $platform == 'CentOS' ] || [ $platform == 'Fedora' ]
+    then
+        service libvirtd restart
+    else
+        service libvirt-bin restart
+    fi
 fi
