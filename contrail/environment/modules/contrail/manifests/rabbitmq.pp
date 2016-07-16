@@ -76,7 +76,12 @@ class contrail::rabbitmq (
             host_control_ip => $host_control_ip,
             amqp_ip_list => $amqp_ip_list
         }
-
+        # bringup rabbit only after interface is up, 
+        # otherwise rabbit fails to start in centos after reboot
+        if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+            Class['::contrail::verify_rabbitmq'] ->
+            class { '::contrail::monitor_interface' : }
+        }
         contain ::contrail::verify_rabbitmq
         contain ::contrail::add_etc_hosts
     }
