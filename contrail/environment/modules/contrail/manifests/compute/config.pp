@@ -183,12 +183,6 @@ class contrail::compute::config(
         }
     }
 
-    # Install interface rename package for centos.
-    if (inline_template('<%= @operatingsystem.downcase %>') == 'centos') {
-        Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-        contrail::lib::contrail_rename_interface { 'centos-rename-interface' :
-        }
-    }
     # for storage
     ## Same condition as compute/service.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
@@ -215,6 +209,9 @@ class contrail::compute::config(
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
       'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
       'DEFAULT/novncproxy_base_url' => { value => "http://${host_control_ip}:5999/vnc_auto.html" },
+    }
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+      $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }
     }
     if (!('openstack' in $host_roles)){
       nova_config { 'glance/api_servers': value => "http://${glance_management_address}:9292"}
@@ -410,10 +407,21 @@ class contrail::compute::config(
       subscribe       => Exec ["setup-compute-server-setup"],
       timeout => 0,
     }
+
     contain ::contrail::compute::setup_compute_server_setup
     contain ::contrail::compute::add_vnc_config
     # Now reboot the system
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        Class['::contrail::compute::setup_compute_server_setup'] ->
+        Class['::contrail::compute::cp_ifcfg_file'] ->
+        # remove blank password line from nova.conf
+        exec { "set-nova-password":
+            command => "sed -i \'s/^password=$/password=${keystone_admin_password}/\' /etc/nova/nova.conf && echo exec-set-nova-password >> /etc/contrail/exec-contrail-compute.out",
+            provider => shell,
+            unless => "grep -qx set-nova-conf /etc/contrail/exec-contrail-compute.out",
+            logoutput => true
+        } ->
+        Reboot['compute']
         contain ::contrail::compute::cp_ifcfg_file
     }
 

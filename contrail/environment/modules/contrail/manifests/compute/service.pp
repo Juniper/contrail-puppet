@@ -11,7 +11,17 @@ class contrail::compute::service(
             enable  => true,
         }
     }
-    service { 'nova-compute' :
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $nova_service_name = "openstack-nova-compute"
+        exec { 'sevc-openstk-nova-restart' :
+            command => "service ${nova_service_name} restart",
+            provider => shell,
+            logoutput => $contrail_logoutput,
+        }
+    } else {
+        $nova_service_name = "nova-compute"
+    }
+    service { $nova_service_name :
         enable => $nova_compute_status,
         ensure => $nova_compute_status,
     }

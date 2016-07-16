@@ -4,7 +4,9 @@ class contrail::contrail_all() {
     $host_roles = $contrail::params::host_roles
     class { '::contrail::provision_start' : state => 'provision_started', stage => 'provision_start' }
     class { '::sysctl::base' : stage => 'base' }
-    class { '::apt' : stage => 'common' }
+    if 'Ubuntu' == $::operatingsystem {
+        class { '::apt' : stage => 'common' }
+    }
     class { '::contrail::profile::common' : stage => 'common' }
     class { '::contrail::profile::keepalived' : stage => 'keepalived' }
     class { '::contrail::profile::haproxy' : stage => 'haproxy' }
