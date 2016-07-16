@@ -3,9 +3,14 @@ require 'facter'
 Facter.add(:contrail_interfaces) do
     setcode do
         contrail_interfaces = {}
-        interface_list_str = %x[ifconfig -a | grep HWaddr | awk \'{ print $1 \'}]
+        operatingsystem = Facter.value('operatingsystem')
+           case operatingsystem
+               when "CentOS"
+                   interface_list_str = %x[ifconfig -a | grep flags | awk \'{ print $1 \'} |  sed \'s/:$// \']
+               when "Ubuntu"
+                   interface_list_str = %x[ifconfig -a | grep HWaddr | awk \'{ print $1 \'}]
+           end
         intf_list = interface_list_str.split("\n")
-
 	intf_list.each do |intf|
             intf_detail = {}
             vlan_intf = %x[ip addr show #{intf} | head -1| cut -f2 -d':' | grep -o '@.*']

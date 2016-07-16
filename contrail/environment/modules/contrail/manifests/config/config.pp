@@ -85,8 +85,8 @@ class contrail::config::config (
 
     $contrail_api_ubuntu_command = join(["/usr/bin/contrail-api --conf_file /etc/contrail/contrail-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf --listen_port ",$api_port_base,"%(process_num)01d --worker_id %(process_num)s"],'')
     $contrail_discovery_ubuntu_command = join(["/usr/bin/contrail-discovery --conf_file /etc/contrail/contrail-discovery.conf --listen_port ",$disc_port_base,"%(process_num)01d --worker_id %(process_num)s"],'')
-    $contrail_api_centos_command = join(['/bin/bash -c "source /opt/contrail/api-venv/bin/activate && exec python /opt/contrail/api-venv/lib/python2.7/site-packages/vnc_cfg_api_server/vnc_cfg_api_server.py --conf_file /etc/contrail/contrail-api.conf --listen_port ',$api_port_base,'%(process_num)01d --worker_id %(process_num)s"'],'')
-    $contrail_discovery_centos_command = join(['/bin/bash -c "source /opt/contrail/api-venv/bin/activate && exec python /opt/contrail/api-venv/lib/python2.7/site-packages/discovery/disc_server_zk.py --conf_file /etc/contrail/contrail-discovery.conf --listen_port ',$disc_port_base,'%(process_num)01d --worker_id %(process_num)s"'],'')
+    $contrail_api_centos_command = join(["/usr/bin/contrail-api --conf_file /etc/contrail/contrail-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf --conf_file /etc/contrail/contrail-database.conf --listen_port ",$api_port_base,"%(process_num)01d --worker_id %(process_num)s"],'')
+    $contrail_discovery_centos_command = join(["/usr/bin/contrail-discovery --conf_file /etc/contrail/contrail-discovery.conf --listen_port ",$disc_port_base,"%(process_num)01d --worker_id %(process_num)s"],'')
 
 
     $keystone_auth_server = $keystone_ip_to_use
@@ -363,6 +363,8 @@ class contrail::config::config (
         'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
         'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None,service-interface:None,vf-binding:None';
         'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
+        'KEYSTONE/admin_user'        : value => "$keystone_admin_user";
+        'KEYSTONE/admin_password'    : value => "$keystone_admin_password";
         'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
     } ->
@@ -378,6 +380,8 @@ class contrail::config::config (
         'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
         'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None';
         'KEYSTONE/auth_url'         : value => "$keystone_auth_url";
+        'KEYSTONE/admin_user'        : value => "$keystone_admin_user";
+        'KEYSTONE/admin_password'    : value => "$keystone_admin_password";
         'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
         'COLLECTOR/analytics_api_ip': value => "$collector_ip";
@@ -389,7 +393,7 @@ class contrail::config::config (
         lens_to_use => 'properties.lns',
     } ->
 
-    Class['::contrail::config::config_neutron_server'] ->
+    #Class['::contrail::config::config_neutron_server'] ->
 
     # initd script wrapper for contrail-discovery
     file { '/etc/init.d/contrail-discovery' :
@@ -414,6 +418,6 @@ class contrail::config::config (
     }
     contain ::contrail::openstackrc
     contain ::contrail::keystone
-    contain ::contrail::config::config_neutron_server
+    #contain ::contrail::config::config_neutron_server
     contain ::contrail::config::setup_quantum_server_setup
 }

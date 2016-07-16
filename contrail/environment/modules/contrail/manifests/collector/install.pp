@@ -1,7 +1,7 @@
 class contrail::collector::install(
     $upgrade_needed = $::contrail::params::upgrade_needed,
 ) {
-    if ($upgrade_needed == 1) {
+    if ($upgrade_needed == 1 and  $::operatingsystem == 'Ubuntu') {
         exec { 'Temporarily delete contrail-analytics to upgrade python-kafka' :
             command   => "dpkg -P contrail-analytics contrail-openstack-analytics python-kafka-python",
             provider  => shell,
