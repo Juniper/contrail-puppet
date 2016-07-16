@@ -85,6 +85,12 @@ define contrail::lib::post_openstack(
         provider  => shell,
         logoutput => $contrail_logoutput,
       }
+    } elsif ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        exec { 'openstack-svc-restart':
+            command => "service openstack-nova-api restart && service openstack-nova-conductor restart && service openstack-nova-scheduler restart",
+            provider => shell,
+            logoutput => $contrail_logoutput,
+        }
     }
 
   }

@@ -10,7 +10,7 @@ class contrail::profile::neutron_db_sync (
     }
 
     exec { 'openstack-neutron-db-sync':
-        command     => "neutron-db-manage --database-connection ${database_connection} upgrade head",
+        command     => $cmd,
         path        => '/usr/bin',
     }
 }
