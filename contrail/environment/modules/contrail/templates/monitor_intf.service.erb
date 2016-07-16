@@ -1,0 +1,14 @@
+[Unit]
+Description=Wait For INTF
+Requisite=NetworkManager.service
+After=NetworkManager.service
+Wants=network.target rabbitmq-server.service
+Before=network.target network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/etc/monitor_intf.sh
+
+[Install]
+WantedBy=multi-user.target
+

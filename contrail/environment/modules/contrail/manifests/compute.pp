@@ -164,7 +164,10 @@ class contrail::compute (
 ) {
     contrail::lib::report_status { 'compute_started': } ->
     Class['::contrail::compute::install'] ->
-    Class['::contrail::compute::config'] ~>
+    # Commenting out line below as service manifest is never executed, execution is 
+    # looping in config never goes to server.pp.
+    #Class['::contrail::compute::config'] ~>
+    Class['::contrail::compute::config'] ->
     Class['::contrail::compute::service'] ->
     contrail::lib::report_status { "compute_completed": }
     contain ::contrail::compute::install
