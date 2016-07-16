@@ -10,26 +10,35 @@ class contrail::config::install(
   #
   if ($contrail_internal_vip == "" and ($internal_vip == "" or !('openstack' in $contrail_host_roles))) {
 
-      if ($lsbdistrelease == "14.04") {
-          $keepalived_pkg         = '1.2.13-0~276~ubuntu14.04.1'
-      } else {
-          $keepalived_pkg         = '1:1.2.13-1~bpo70+1'
-      }
+      if ($::operatingsystem == 'Ubuntu') {
+          if ($lsbdistrelease == "14.04") {
+              $keepalived_pkg         = '1.2.13-0~276~ubuntu14.04.1'
+          } else {
+              $keepalived_pkg         = '1:1.2.13-1~bpo70+1'
+          }
 
-      package { 'keepalived' :
-          ensure => $keepalived_pkg,
+          package { 'keepalived' :
+              ensure => $keepalived_pkg,
+          }
       }
-      ->
       service { "keepalived" :
           enable => false,
           ensure => stopped,
       }
-      Package['keepalived'] -> Package['contrail-openstack-config']
+      if defined(Package['keepalived']) {
+          Package['keepalived'] -> Package['contrail-openstack-config']
+      }
   }
 
+  if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+      $cmd='yum -y remove contrail-openstack-config contrail-config-openstack'
+  }
+  else {
+      $cmd="apt-get -y --force-yes purge contrail-openstack-config contrail-config-openstack"
+  }
   if ($upgrade_needed == 1) {
       exec { 'Temporarily delete contrail-openstack-config, contrail-config-openstack' :
-          command   => "apt-get -y --force-yes purge contrail-openstack-config contrail-config-openstack",
+          command   => $cmd,
           provider  => shell,
           logoutput => $contrail_logoutput,
       }

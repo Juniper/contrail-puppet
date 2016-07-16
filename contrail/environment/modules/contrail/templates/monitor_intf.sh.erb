@@ -1,0 +1,19 @@
+#!/bin/bash
+
+rm -rf /var/log/monitor.log && touch /var/log/monitor.log
+chmod 777 /var/log/monitor.log
+ipaddr="<%= @host_control_ip %>"
+i=0
+while [ $i -lt 30 ]
+  do
+    (( i = i + 1))
+    ifconfig |grep -q $ipaddr
+    if [ $? -ne 0 ]; then
+      echo "no ip address yet!! $i" >> /var/log/monitor.log
+      sleep 20
+    else
+      echo "got the ip address" >> /var/log/monitor.log
+      exit 0
+    fi
+  done
+exit 1

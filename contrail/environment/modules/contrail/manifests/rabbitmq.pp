@@ -44,9 +44,14 @@ class contrail::rabbitmq (
         $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctl\n"
 
         if !defined(Service['rabbitmq-server']) {
+            if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+                $svc_en = false
+            } else {
+                $svc_en = true
+            }
             service { 'rabbitmq-server':
                 ensure => running,
-                enable => true
+                enable => $svc_en
             }
         }
 
@@ -76,7 +81,21 @@ class contrail::rabbitmq (
             host_control_ip => $host_control_ip,
             amqp_ip_list => $amqp_ip_list
         }
-
+        # bringup rabbit only after interface is up, 
+        # otherwise rabbit fails to start in centos after reboot
+        if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+            $sed_cmd = 'sed -i \'s/\(^After=.*\)/\1 monitor.service\nRequires=monitor.service/\''
+            Class['::contrail::verify_rabbitmq'] ->
+            class { '::contrail::monitor_interface' : } ->
+            # For centos rabbitmq is started as required from monitor_intf,
+            # disable automatic up.
+            exec { 'fix-rabbit-svc-config' :
+                command => "${sed_cmd} /usr/lib/systemd/system/rabbitmq-server.service && echo exec-rabbit-svc-config-fix >> /etc/contrail/rabbit-exec.out",
+                provider => shell,
+                unless => "grep -qx exec-rabbit-svc-config-fix /etc/contrail/rabbit-exec.out",
+                logoutput => $contrail_logoutput
+            }
+        }
         contain ::contrail::verify_rabbitmq
         contain ::contrail::add_etc_hosts
     }
