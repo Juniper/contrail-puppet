@@ -76,6 +76,13 @@ class contrail::profile::openstack::heat (
       'clients_contrail/api_server': value => $contrail_api_server;
       'clients_contrail/api_base_url': value => '/';
   }
+  ->
+  # We use admin user so need to remove heat_stack_owner from trusts_delegated_roles
+  contrail::lib::augeas_conf_rm { "remove_trusts_delegated_roles":
+        key => 'trusts_delegated_roles',
+        config_file => '/etc/heat/heat.conf',
+        lens_to_use => 'properties.lns',
+  }
 
   notify { "contrail::profile::openstack::heat - heat_api_bind_host = ${heat_api_bind_host}":; }
   notify { "contrail::profile::openstack::heat - heat_api_bind_port = ${heat_api_bind_port}":; }
