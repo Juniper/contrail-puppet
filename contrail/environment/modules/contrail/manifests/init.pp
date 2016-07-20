@@ -719,6 +719,8 @@ class contrail (
     $sriov_enable = false,
     $keystone_mysql_service_password = undef,
     $external_openstack_ip = undef,
+    $webui_key_file_path = '/etc/contrail/webui_ssl/cs-key.pem',
+    $webui_cert_file_path = '/etc/contrail/webui_ssl/cs-cert.pem',
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -894,6 +896,9 @@ class contrail (
 	storage_pool_config           => hiera(contrail::storage::pool_config, hiera(contrail::params::pool_config, $storage_pool_config)),
 	storage_compute_name_list     => hiera(contrail::storage-compute::storage-compute_name_list, $storage_compute_name_list),
 	storage_master_name_list      => hiera(contrail::storage-master::storage-master_name_list, $storage_master_name_list),
+        #Webui Parameters
+        webui_key_file_path =>                  hiera(contrail::webui::key_file_path, $webui_key_file_path),
+        webui_cert_file_path =>                 hiera(contrail::webui::cert_file_path, $webui_cert_file_path),
         # tsn Parameters
 	tsn_ip_list =>			        hiera(contrail::tsn::tsn_ip_list, hiera(contrail::params::tsn_ip_list, $tsn_ip_list)),
 	tsn_name_list =>			hiera(contrail::tsn::tsn_name_list, hiera(contrail::params::tsn_name_list, $tsn_name_list)),
