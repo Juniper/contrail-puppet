@@ -63,6 +63,7 @@ class contrail::profile::openstack::keystone(
     class { '::keystone':
       admin_token     =>  $admin_token,
       database_connection => $keystone_db_conn,
+      default_domain  => 'default',
       enabled         => true,
       admin_bind_host => $admin_bind_host,
       sync_db         => true,
