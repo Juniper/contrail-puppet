@@ -14,6 +14,7 @@ class contrail::profile::openstack::nova(
   $address_api       = $::contrail::params::os_controller_api_address ,
   $sriov_enable      = $::contrail::params::sriov_enable,
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
+  $package_sku       = $::contrail::params::package_sku,
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
   $neutron_shared_secret      = $::contrail::params::os_neutron_shared_secret,
@@ -30,6 +31,14 @@ class contrail::profile::openstack::nova(
     allowed_hosts => $allowed_hosts,
   }
 
+  if ( $package_sku =~ /^*:13\.0.*$/) {
+    ## TODO: Remove once we move to mitaka modules
+    class {'::nova::db::mysql_api':
+      password      => $service_password,
+      allowed_hosts => $allowed_hosts,
+    }
+  }
+
   $compute_ip_list = $::contrail::params::compute_ip_list
   $tmp_index = inline_template('<%= @compute_ip_list.index(@host_control_ip) %>')
 
@@ -38,9 +47,6 @@ class contrail::profile::openstack::nova(
   } else {
     $contrail_is_compute = false
   }
-  notify { "openstack::common::nova -contrail_is_compute  = $contrail_is_compute":;}
-  notify { "openstack::common::nova - tmp_index = X$tmp_index X":;}
-  notify { "openstack::common::nova - controller_mgmt_address = $controller_mgmt_address":; }
 
   if ($internal_vip != "" and $internal_vip != undef) {
     $neutron_ip_address = $controller_mgmt_address
@@ -111,6 +117,19 @@ class contrail::profile::openstack::nova(
     osapi_compute_workers                => $osapi_compute_workers
   }
 
+  if ( $package_sku =~ /^*:13\.0.*$/) {
+    ## TODO: Remove once we move to mitaka modules
+    $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials,"/nova_api"],'')
+    nova_config {
+      'api_database/connection': value => $nova_api_db_conn;
+      'neutron/auth_type': value => 'password';
+      'neutron/project_name': value => 'services';
+      'neutron/auth_url': value => "http://${controller_mgmt_address}:35357";
+      'neutron/username': value => 'neutron';
+      'neutron/password': value => $neutron_password;
+    }
+  }
+
   class { '::nova::vncproxy':
     host    => $vncproxy_host,
     enabled => 'true',
@@ -121,7 +140,7 @@ class contrail::profile::openstack::nova(
     'nova::scheduler',
     'nova::objectstore',
     'nova::consoleauth',
-    'nova::conductor'
+    'nova::conductor',
   ]:
     enabled => 'true',
   }
