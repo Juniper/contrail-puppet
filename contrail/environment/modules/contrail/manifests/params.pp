@@ -557,6 +557,14 @@
 #     Neutron IP to use for Nova when using an external openstack
 #     (optional) - Defaults to undef
 #
+# [*webui_key_file_path*]
+#    Path for Webui SSL Key File
+#    (optional) - Defaults to '/etc/contrail/webui_ssl/cs-key.pem'
+#
+# [*webui_cert_file_path*]
+#    Path for Webui SSL Cert File
+#    (optional) - Defaults to '/etc/contrail/webui_ssl/cs-cert.pem'
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -735,6 +743,8 @@ class contrail::params (
     $openstack_controller_address_management,
     $openstack_controller_address_api,
     $external_openstack_ip,
+    $webui_key_file_path,
+    $webui_cert_file_path,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or

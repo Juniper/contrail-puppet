@@ -272,4 +272,6 @@ config.getDomainsFromApiServer = false;
 
 // Export this as a module.
 module.exports = config;
-
+config.server_options = {};
+config.server_options.key_file = '<%= @webui_key_file_path %>';
+config.server_options.cert_file = '<%= @webui_cert_file_path %>';
