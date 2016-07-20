@@ -558,6 +558,14 @@
 #     Neutron IP to use for Nova when using an external openstack
 #     (optional) - Defaults to undef
 #
+# [*webui_key_file_path*]
+#    Path for Webui SSL Key File
+#    (optional) - Defaults to ‘/etc/contrail/webui_ssl/cs-key.pem’
+#
+# [*webui_cert_file_path*]
+#    Path for Webui SSL Cert File
+#    (optional) - Defaults to ‘/etc/contrail/webui_ssl/cs-cert.pem’
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -709,6 +717,8 @@ class contrail (
     $openstack_mysql_allowed_hosts = '127.0.0.1',
     $sriov = {},
     $sriov_enable = false,
+    $webui_key_file_path = '/etc/contrail/webui_ssl/cs-key.pem',
+    $webui_key_cert_path = '/etc/contrail/webui_ssl/cs-cert.pem',
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -882,6 +892,9 @@ class contrail (
 	storage_pool_config           => hiera(contrail::storage::pool_config, hiera(contrail::params::pool_config, $storage_pool_config)),
 	storage_compute_name_list     => hiera(contrail::storage-compute::storage-compute_name_list, $storage_compute_name_list),
 	storage_master_name_list      => hiera(contrail::storage-master::storage-master_name_list, $storage_master_name_list),
+        #Webui Parameters
+        webui_key_file_path =>                  hiera(contrail::webui::key_file_path, hiera(contrail::params::webui_key_file_path, $webui_key_file_path)),
+        webui_cert_file_path =>                 hiera(contrail::webui::cert_file_path, hiera(contrail::params::webui_cert_file_path, $webui_cert_file_path)),
         # tsn Parameters
 	tsn_ip_list =>			        hiera(contrail::tsn::tsn_ip_list, hiera(contrail::params::tsn_ip_list, $tsn_ip_list)),
 	tsn_name_list =>			hiera(contrail::tsn::tsn_name_list, hiera(contrail::params::tsn_name_list, $tsn_name_list)),
