@@ -41,6 +41,12 @@ class contrail::profile::openstack::provision (
     $storage_address_api =  $::contrail::params::openstack_ip_list[0]
   }
 
+  if ( $package_sku =~ /^*:13\.0.*$/) {
+    $endpoint_version = "v2.1"
+  } else {
+    $endpoint_version = "v2"
+  }
+
   class { 'keystone::endpoint':
     public_url   => "http://${address_api}:5000",
     admin_url    => "http://${controller_address_management}:35357",
@@ -72,6 +78,7 @@ class contrail::profile::openstack::provision (
     admin_address    => $controller_address_management,
     internal_address => $controller_address_management,
     region           => $region_name,
+    compute_version  => $endpoint_version
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,

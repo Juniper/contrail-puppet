@@ -24,12 +24,11 @@ class contrail::profile::openstack_controller (
     contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
     package {'contrail-openstack' :
       ensure => latest,
-      before => [ Class['::mysql::server'] ]
- #Package['keystone'], Package['glance-api'], Package['glance-registry'],
-                  #Package['cinder'],Package['cinder-api'],Package['heat-engine'],Package['nova-common'],
-                  #Package['python-nova'],Package['heat-api'],Package['heat-common'],Package['heat-api-cfn'],
-                  #Package['python-numpy'], Package['pm-utils'], Package['libguestfs-tools'],
-                  #Package['python-mysqldb'], Package['python-keystone'], Package['python-cinderclient']]
+      before => [ Class['::mysql::server'],
+                  Package['keystone', 'glance-api', 'glance-registry', 'cinder','cinder-api',
+                  'heat-engine','nova-common', 'python-nova','heat-api','heat-common','heat-api-cfn',
+                  'python-numpy', 'pm-utils', 'libguestfs-tools', 'python-mysqldb',
+                  'python-keystone', 'python-cinderclient']]
     } ->
     class { 'memcached': } ->
     class {'::nova::quota' :
