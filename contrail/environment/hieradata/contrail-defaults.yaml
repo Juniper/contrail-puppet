@@ -52,7 +52,7 @@ openstack::ceilometer::password: $openstack::keystone::admin_password
 openstack::ceilometer::meteringsecret: ''
 ######## Heat
 openstack::heat::password: $openstack::keystone::admin_password
-openstack::heat::encryption_key: $openstack::keystone::admin_password
+openstack::heat::encryption_key: '45C7BEA53581379B'
 ######## Horizon
 openstack::horizon::secret_key: $openstack::keystone::admin_password
 ######## Tempest
