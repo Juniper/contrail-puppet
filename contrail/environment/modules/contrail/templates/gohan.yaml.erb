@@ -1,0 +1,67 @@
+#######################################################
+#  Gohan API Server configuraion
+######################################################
+
+# database connection configuraion
+database:
+    # yaml, json, sqlite3 and mysql supported
+    # yaml and json db is for schema development purpose
+    type: "mysql"
+    # connection string
+    # it is file path for yaml, json and sqlite3 backend
+    connection: "ukai:<%= @os_mysql_service_password %>@/ukai"
+
+schemas:
+    - "embed://etc/schema/gohan.json"
+    - "embed://etc/extensions/gohan_extension.yaml"
+    - "./extensions/extensions.yaml"
+    - "./schema/schema.yaml"
+
+extension:
+    default: gohanscript
+    use:
+    - gohanscript
+    - go
+
+asn: 65000
+
+# listen address for gohan
+address: ":9500"
+tls:
+    # browsers need to add exception as long as we use self-signed certificates
+    # so lets leave it disabled for now
+    enabled: false
+    key_file: ./key.pem
+    cert_file: ./cert.pem
+# keystone configuraion
+keystone:
+    use_keystone: true
+    fake: false
+    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_ip_to_use %>:5000/v2.0/"
+    user_name: "<%= @keystone_admin_user %>"
+    tenant_name: "<%= @keystone_admin_tenant %>"
+    password: "<%= @keystone_admin_password %>"
+
+# allowed levels  "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG",
+logging:
+    stderr:
+        enabled: true
+        level: INFO
+        modules:
+        - name: gohanscript
+          level: DEBUG
+    file:
+        enabled: true
+        level: INFO
+        filename: ./gohan.log
+extension:
+    default: gohanscript
+    use:
+    - gohanscript
+    - go
+
+# Generate webui config
+webui_config:
+    enabled: true
+    tls: false
+    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_ip_to_use %>:5000/v2.0/"
