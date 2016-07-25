@@ -32,4 +32,9 @@ class contrail::contrail_all() {
        class { '::contrail::profile::storage' : stage => 'storage' }
        Stage['compute']->Stage['storage']->Stage['provision_complete']
     }
+    if 'global-controller' in $host_roles {
+       stage{'global_controller':}
+       class { '::contrail::profile::global_controller' : stage => 'global_controller' }
+       Stage['controller']->Stage['global_controller']->Stage['collector']
+    }
 }
