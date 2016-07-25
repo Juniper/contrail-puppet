@@ -735,6 +735,7 @@ class contrail::params (
     $openstack_controller_address_management,
     $openstack_controller_address_api,
     $external_openstack_ip,
+    $enable_global_controller,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
