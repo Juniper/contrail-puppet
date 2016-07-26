@@ -2,6 +2,7 @@ class contrail::profile::openstack::keystone(
   $internal_vip = $::contrail::params::internal_vip,
   $host_control_ip = $::contrail::params::host_ip,
   $sync_db = $::contrail::params::sync_db,
+  $package_sku       = $::contrail::params::package_sku,
   $openstack_verbose = $::contrail::params::os_verbose,
   $openstack_debug   = $::contrail::params::os_debug,
   $service_password  = $::contrail::params::os_mysql_service_password,
@@ -29,6 +30,12 @@ class contrail::profile::openstack::keystone(
     allowed_hosts => $allowed_hosts,
   }
 
+  if ( $package_sku =~ /^*:13\.0.*$/) {
+    $default_domain = 'default'
+  } else {
+    $default_domain = undef
+  }
+
   if ($internal_vip != "" and $internal_vip != undef) {
     $keystone_db_conn = join(["mysql://keystone:",$database_credentials,":3306/keystone"],'')
     notify {"KEYSTONE DB CONN => ${keystone_db_conn}":;}
@@ -40,6 +47,7 @@ class contrail::profile::openstack::keystone(
       sync_db         => true,
       public_port     => '6000',
       admin_port      => '35358',
+      default_domain  => $default_domain,
       database_idle_timeout => '180',
       rabbit_hosts    => $openstack_rabbit_servers,
       verbose         => $openstack_verbose,
@@ -63,7 +71,7 @@ class contrail::profile::openstack::keystone(
     class { '::keystone':
       admin_token     =>  $admin_token,
       database_connection => $keystone_db_conn,
-      default_domain  => 'default',
+      default_domain  => $default_domain,
       enabled         => true,
       admin_bind_host => $admin_bind_host,
       sync_db         => true,
