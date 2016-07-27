@@ -6,7 +6,9 @@ class contrail::webui::config(
     $config_ip_to_use = $::contrail::params::config_ip_to_use,
     $collector_ip_to_use = $::contrail::params::collector_ip_to_use,
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
-    $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use
+    $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
+    $webui_key_file_path = $::contrail::params::webui_key_file_path,
+    $webui_cert_file_path = $::contrail::params::webui_cert_file_path,
 ) {
 
     if ($is_storage_master) {
