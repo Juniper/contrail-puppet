@@ -3,6 +3,8 @@ class contrail::profile::openstack::neutron(
   $allowed_hosts     = $::contrail::params::os_mysql_allowed_hosts,
   $service_password  = $::contrail::params::os_mysql_service_password,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $contrail_logoutput = $::contrail::params::contrail_logoutput,
+  $host_roles = $::contrail::params::host_roles,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -20,5 +22,12 @@ class contrail::profile::openstack::neutron(
   }
   class {'::contrail::profile::neutron_db_sync':
     database_connection => $keystone_db_conn
+ }
+ if (!('config' in $host_roles)) {
+     exec { 'stop_neutron_server_service':
+          command => "service neutron-server stop",
+          provider => shell,
+          logoutput => $contrail_logoutput,
+     }
  }
 }
