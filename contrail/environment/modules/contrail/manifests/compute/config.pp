@@ -214,10 +214,7 @@ class contrail::compute::config(
       'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
       'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
-    }
-    if ($keystone_ip) {
-      $vnc_base_url_port = '5999'
-      nova_config { 'DEFAULT/novncproxy_base_url': value => "http://${keystone_ip}:${vnc_base_url_port}/vnc_auto.html" }
+      'DEFAULT/novncproxy_base_url' => { value => "http://${host_control_ip}:5999/vnc_auto.html" },
     }
     if (!('openstack' in $host_roles)){
       nova_config { 'glance/api_servers': value => "http://${glance_management_address}:9292"}
