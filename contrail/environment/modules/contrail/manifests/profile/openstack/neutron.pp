@@ -13,7 +13,7 @@ class contrail::profile::openstack::neutron(
     allowed_hosts => $allowed_hosts,
   }
   if ($::operatingsystem == 'Ubuntu') {
-      package { 'neutron-server': ensure => present }
+      package { 'neutron-common': ensure => present }
   }
   if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
      package { 'openstack-neutron': ensure => present }
