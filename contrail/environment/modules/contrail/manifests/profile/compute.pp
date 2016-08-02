@@ -19,7 +19,7 @@ class contrail::profile::compute (
   $openstack_verbose = $::contrail::params::os_verbose,
   $openstack_debug   = $::contrail::params::os_debug,
   $is_there_roles_to_delete   = $::contrail::params::is_there_roles_to_delete,
-  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
 ) {
     if ($enable_module and "compute" in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::profile::nova::compute
