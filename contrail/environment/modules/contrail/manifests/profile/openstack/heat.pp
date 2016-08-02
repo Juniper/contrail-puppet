@@ -17,7 +17,7 @@ class contrail::profile::openstack::heat (
   $heat_password     = $::contrail::params::os_heat_password,
   $encryption_key    = $::contrail::params::os_heat_encryption_key,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
-  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
 

@@ -858,8 +858,11 @@ class contrail::params (
         $openstack_rabbit_port = '5672'
     }
 
-    $contrail_rabbit_servers = join($contrail_rabbit_ip_list,",")
-    $openstack_rabbit_servers = join($openstack_rabbit_ip_list,",")
+    $contrail_rabbit_hosts = suffix($contrail_rabbit_ip_list, ":$openstack_rabbit_port")
+    $contrail_rabbit_servers = join($contrail_rabbit_hosts,",")
+
+    $openstack_rabbit_hosts = suffix($openstack_rabbit_ip_list, ":$openstack_rabbit_port")
+    $openstack_rabbit_servers = join($openstack_rabbit_hosts,",")
 
     # Set amqp_server_ip
     if ($::contrail::params::amqp_sever_ip != '') {
