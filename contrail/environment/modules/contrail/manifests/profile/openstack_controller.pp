@@ -20,16 +20,39 @@ class contrail::profile::openstack_controller (
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
   $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use
 ) {
+  include ::keystone::params
+  include ::glance::params
+  include ::cinder::params
+  include ::heat::params
+  include ::nova::params
+  include ::mysql::params
+
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
+    $pkg_list_a = ["${keystone::params::package_name}",
+                          "${glance::params::api_package_name}",
+                          "${glance::params::registry_package_name}",
+                          "${cinder::params::package_name}",
+                          "${heat::params::api_package_name}",
+                          "${heat::params::engine_package_name}",
+                          "${heat::params::common_package_name}",
+                          "${heat::params::api_cfn_package_name}",
+                          "${nova::params::common_package_name}",
+                          "${nova::params::numpy_package_name}",
+                          "${mysql::params::python_package_name}",
+                          "python-nova", "pm-utils",
+                          "python-keystone", "python-cinderclient"]
+    # api_package is false in case of Centos
+    if $::cinder::params::api_package {
+        $pkg_list = [$pkg_list_a, "${cinder::params::api_package}"]
+    } else {
+        $pkg_list = $pkg_list_a
+    }
     contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
+    notify { "##### pkgs dependency are : ${pkg_list} ######" :; } ->
     package {'contrail-openstack' :
       ensure => latest,
-      before => [ Class['::mysql::server'] ]
- #Package['keystone'], Package['glance-api'], Package['glance-registry'],
-                  #Package['cinder'],Package['cinder-api'],Package['heat-engine'],Package['nova-common'],
-                  #Package['python-nova'],Package['heat-api'],Package['heat-common'],Package['heat-api-cfn'],
-                  #Package['python-numpy'], Package['pm-utils'], Package['libguestfs-tools'],
-                  #Package['python-mysqldb'], Package['python-keystone'], Package['python-cinderclient']]
+      before => [ Class['::mysql::server'],
+                  Package[$pkg_list]]
     } ->
     class { 'memcached': } ->
     class {'::nova::quota' :
