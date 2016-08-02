@@ -14,7 +14,7 @@ class contrail::profile::openstack::ceilometer (
   $service_password  = $::contrail::params::os_mysql_service_password,
   $allowed_hosts     = $::contrail::params::os_mysql_allowed_hosts,
   $ceilometer_password        = $::contrail::params::os_ceilometer_password,
-  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {

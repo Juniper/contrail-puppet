@@ -12,7 +12,7 @@ class contrail::profile::openstack::cinder(
   $cinder_password   = $::contrail::params::os_cinder_password,
   $service_password  = $::contrail::params::os_mysql_service_password,
   $storage_server    = $::contrail::params::os_glance_api_address,
-  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_auth_host         = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
   $glance_management_address = $::contrail::params::os_glance_mgmt_address,
