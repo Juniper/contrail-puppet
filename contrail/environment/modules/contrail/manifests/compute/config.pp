@@ -208,6 +208,7 @@ class contrail::compute::config(
       'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
       'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
       'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
+      'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
     }
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
       $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }

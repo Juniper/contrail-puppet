@@ -174,6 +174,7 @@ class nova::api(
     'nova.api.openstack.compute.limits:RateLimitingMiddleware.factory',
   $validate              = false,
   $validation_options    = {},
+  $package_sku           = '',
   # DEPRECATED PARAMETER
   $auth_protocol         = 'http',
   $auth_port             = 35357,
@@ -350,18 +351,22 @@ class nova::api(
     Package<| title == $::nova::params::api_package_name |>    ~> Exec['nova-db-sync']
     Package<| title == $::nova::params::common_package_name |> ~> Exec['nova-db-sync']
 
-    Package<| title == $::nova::params::api_package_name |>  ~> Exec['nova-api-db-sync']
-    Package<| title == $::nova::params::common_package_name |> ~> Exec['nova-api-db-sync']
+    if ( $package_sku =~ /^*:13\.0.*$/) {
+      Package<| title == $::nova::params::api_package_name |>  ~> Exec['nova-api-db-sync']
+      Package<| title == $::nova::params::common_package_name |> ~> Exec['nova-api-db-sync']
+    }
 
     exec { 'nova-db-sync':
       command     => '/usr/bin/nova-manage db sync',
       refreshonly => true,
       subscribe   => Exec['post-nova_config'],
     }
-    exec { 'nova-api-db-sync':
-      command     => '/usr/bin/nova-manage api_db sync',
-      refreshonly => true,
-      subscribe   => Exec['post-nova_config'],
+    if ( $package_sku =~ /^*:13\.0.*$/) {
+      exec { 'nova-api-db-sync':
+        command     => '/usr/bin/nova-manage api_db sync',
+        refreshonly => true,
+        subscribe   => Exec['post-nova_config'],
+      }
     }
   }
 
