@@ -16,7 +16,7 @@ class contrail::config::neutron (
   $service_password  = $::contrail::params::os_mysql_service_password,
   $controller        = $::contrail::params::keystone_ip_to_use,
   $contrail_host_roles     = $::contrail::params::host_roles,
-  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_ip_list,
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_hosts,
   $keystone_auth_protocol  = $::contrail::params::keystone_auth_protocol,
   $keystone_admin_token    = $::contrail::params::os_keystone_admin_token,
   $controller_mgmt_address = $::contrail::params::os_controller_mgmt_address,

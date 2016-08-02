@@ -13,7 +13,7 @@ class contrail::profile::openstack::glance(
   $rabbitmq_user     = $::contrail::params::os_rabbitmq_user,
   $rabbitmq_password = $::contrail::params::os_rabbitmq_password,
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
-  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
   $keystone_region_name = $::contrail::params::keystone_region_name,
@@ -109,10 +109,6 @@ class contrail::profile::openstack::glance(
   }
 
   class { '::glance::backend::file': } ->
-  glance_api_config {'DEFAULT/rabbit_hosts':
-     value  => $openstack_rabbit_servers,
-     notify => Service['glance-api']
-  } ->
   class { '::glance::notify::rabbitmq':
     rabbit_userid    => $rabbitmq_user,
     rabbit_password  => $rabbitmq_password,
