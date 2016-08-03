@@ -745,6 +745,7 @@ class contrail::params (
     $external_openstack_ip,
     $webui_key_file_path,
     $webui_cert_file_path,
+    $enable_global_controller,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or

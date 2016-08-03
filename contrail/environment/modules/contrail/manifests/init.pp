@@ -566,6 +566,10 @@
 #     The IP Address of an External Openstack server the Contrail cluster connects to
 #     (optional) - Defaults to undef
 #
+# [*enable_global_controller*]
+#     Enable Global Controller or not
+#     (optional) - Defaults to false
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -721,6 +725,7 @@ class contrail (
     $external_openstack_ip = undef,
     $webui_key_file_path = '/etc/contrail/webui_ssl/cs-key.pem',
     $webui_cert_file_path = '/etc/contrail/webui_ssl/cs-cert.pem',
+    $enable_global_controller = false,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -739,6 +744,7 @@ class contrail (
 	contrail_upgrade =>			hiera(contrail::contrail_upgrade, hiera(contrail::params::contrail_upgrade, $contrail_upgrade)),
 	contrail_version =>			hiera(contrail::contrail_version, hiera(contrail::params::contrail_version, $contrail_version)),
 	enable_lbaas =>				hiera(contrail::enable_lbaas, hiera(contrail::params::enable_lbaas, $enable_lbaas)),
+	enable_global_controller =>     hiera(contrail::enable_global_controller, $enable_global_controller),
 	xmpp_auth_enable =>			hiera(contrail::xmpp_auth_enable, hiera(contrail::params::xmpp_auth_enable, $xmpp_auth_enable)),
 	xmpp_dns_auth_enable =>			hiera(contrail::xmpp_dns_auth_enable, hiera(contrail::params::xmpp_dns_auth_enable, $xmpp_dns_auth_enable)),
 	sync_db =>				hiera(contrail::sync_db, hiera(contrail::params::sync_db, $sync_db)),
@@ -810,6 +816,7 @@ class contrail (
 	amqp_server_ip =>			hiera(openstack::amqp::server_ip, hiera(contrail::params::amqp_server_ip, $amqp_server_ip)),
         openstack_amqp_ip_list =>               hiera(openstack::amqp::ip_list, hiera(contrail::params::openstack_amqp_ip_list, $openstack_amqp_ip_list)),
         openstack_amqp_port =>                  hiera(openstack::amqp::port, hiera(contrail::params::openstack_amqp_port, $openstack_amqp_port)),
+
     os_verbose                => hiera(openstack::verbose, $openstack_verbose),
     os_debug                  => hiera(openstack::debug, $openstack_debug),
     os_region                 => hiera(openstack::region, $openstack_region),
