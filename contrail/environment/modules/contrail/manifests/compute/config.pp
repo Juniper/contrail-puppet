@@ -259,58 +259,7 @@ class contrail::compute::config(
       Contrail_vrouter_nodemgr_config['DISCOVERY/server']
     }
 
-    # Debug Print all variable values
-    notify {"host_control_ip = ${host_control_ip}":; } ->
-    notify {"config_ip = ${config_ip}":; } ->
-    notify {"openstack_ip = ${openstack_ip}":; } ->
-    notify {"control_ip_list = ${control_ip_list}":; } ->
-    notify {"compute_ip_list = ${compute_ip_list}":; } ->
-    notify {"keystone_ip = ${keystone_ip}":; } ->
-    notify {"keystone_auth_protocol = ${keystone_auth_protocol}":; } ->
-    notify {"keystone_auth_port = ${keystone_auth_port}":; } ->
-    notify {"openstack_manage_amqp = ${openstack_manage_amqp}":; } ->
-    notify {"amqp_server_ip = ${amqp_server_ip}":; } ->
-    notify {"openstack_mgmt_ip = ${openstack_mgmt_ip}":; } ->
-    notify {"amqp_server_ip_to_use = ${amqp_server_ip_to_use}":; } ->
-    notify {"neutron_service_protocol = ${neutron_service_protocol}":; } ->
-    notify {"keystone_admin_user = ${keystone_admin_user}":; } ->
-    notify {"keystone_admin_password = ${keystone_admin_password}":; } ->
-    notify {"keystone_admin_tenant = ${keystone_admin_tenant}":; } ->
-    notify {"haproxy = ${haproxy}":; } ->
-    notify {"host_non_mgmt_ip = ${host_non_mgmt_ip}":; } ->
-    notify {"host_non_mgmt_gateway = ${host_non_mgmt_gateway}":; } ->
-    notify {"metadata_secret = ${metadata_secret}":; } ->
-    notify {"internal_vip = ${internal_vip}":; } ->
-    notify {"external_vip = ${external_vip}":; } ->
-    notify {"contrail_internal_vip = ${contrail_internal_vip}":; } ->
-    notify {"vmware_ip = ${vmware_ip}":; } ->
-    notify {"vmware_username = ${vmware_username}":; } ->
-    notify {"vmware_password = ${vmware_password}":; } ->
-    notify {"vmware_vswitch = ${vmware_vswitch}":; } ->
-    notify {"vgw_public_subnet = ${vgw_public_subnet}":; } ->
-    notify {"vgw_public_vn_name = ${vgw_public_vn_name}":; } ->
-    notify {"vgw_interface = ${vgw_interface}":; } ->
-    notify {"vgw_gateway_routes = ${vgw_gateway_routes}":; } ->
-    notify {"nfs_server = ${nfs_server}":; } ->
-    notify {"keystone_ip_to_use = ${keystone_ip_to_use}":; } ->
-    notify {"config_ip_to_use = ${config_ip_to_use}":; } ->
-    notify {"number_control_nodes = ${number_control_nodes}":; } ->
-    notify {"multinet_opt = ${multinet_opt}":; } ->
-    notify {"vhost_ip = ${vhost_ip}":; } ->
-    notify {"physical_dev = ${physical_dev}":; } ->
-    notify {"contrail_compute_dev = ${contrail_compute_dev}":; } ->
-    notify {"contrail_macaddr = ${contrail_macaddr}":; } ->
-    notify {"contrail_netmask = ${contrail_netmask}":; } ->
-    notify {"contrail_cidr = ${contrail_cidr}":; } ->
-    notify {"contrail_gway = ${contrail_gway}":; } ->
-    notify {"contrail_gateway = ${contrail_gateway}":; } ->
-    notify {"quantum_port = ${quantum_port}":; } ->
-    notify {"quantum_ip = ${quantum_ip}":; } ->
-    notify {"quantum_service_protocol = ${quantum_service_protocol}":; } ->
-    notify {"discovery_ip = ${discovery_ip}":; } ->
-    notify {"hypervisor_type = ${hypervisor_type}":; } ->
     notify {"vmware_physical_intf = ${vmware_physical_intf}":; } ->
-    Nova_config['neutron/admin_auth_url'] ->
 
     # set rpc backend in neutron.conf
     contrail::lib::augeas_conf_rm { "compute_neutron_rpc_backend":
@@ -411,6 +360,8 @@ class contrail::compute::config(
       subscribe       => Exec ["setup-compute-server-setup"],
       timeout => 0,
     }
+
+    Class['::contrail::compute::setup_compute_server_setup'] -> Nova_config <||>
 
     contain ::contrail::compute::setup_compute_server_setup
     contain ::contrail::compute::add_vnc_config
