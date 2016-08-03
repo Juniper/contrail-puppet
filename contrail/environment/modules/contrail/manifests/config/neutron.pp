@@ -21,7 +21,8 @@ class contrail::config::neutron (
   $keystone_admin_token    = $::contrail::params::os_keystone_admin_token,
   $controller_mgmt_address = $::contrail::params::os_controller_mgmt_address,
   $package_sku             = $::contrail::params::package_sku,
-  $keystone_ip_to_use       = $::contrail::params::keystone_ip_to_use,
+  $keystone_ip_to_use      = $::contrail::params::keystone_ip_to_use,
+  $neutron_mysql_ip        = $::contrail::params::neutron_mysql_to_use
 ){
 
   # Params from quantum-server-setup.sh are now set here
@@ -31,7 +32,7 @@ class contrail::config::neutron (
   $keystone_auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/v2.0/"
   $keystone_identity_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000"
 
-  $database_credentials = join([$service_password, "@", $host_control_ip],'')
+  $database_credentials = join([$service_password, "@", $neutron_mysql_ip],'')
   $keystone_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
 
   if ( $package_sku =~ /^*:12\.0.*$/) {
