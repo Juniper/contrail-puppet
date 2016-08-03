@@ -21,6 +21,12 @@ class contrail::profile::openstack::provision (
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
+  if ( $package_sku =~ /^*:13\.0.*$/) {
+    $endpoint_version = "v2.1"
+  } else {
+    $endpoint_version = "v2"
+  }
+
   class { 'keystone::endpoint':
     public_url   => "http://${keystone_ip_to_use}:5000",
     admin_url    => "http://${keystone_ip_to_use}:35357",
@@ -58,6 +64,7 @@ class contrail::profile::openstack::provision (
     admin_url_v3    => "http://${controller_address_management}:8774/v3",
     internal_url_v3 => "http://${controller_address_management}:8774/v3",
     region           => $region_name,
+    compute_version  => $endpoint_version
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,

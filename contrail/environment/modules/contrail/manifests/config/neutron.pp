@@ -36,6 +36,8 @@ class contrail::config::neutron (
 
   if ( $package_sku =~ /^*:12\.0.*$/) {
     $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+  } elsif ( $package_sku =~ /^*:13\.0.*$/) {
+    $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
   } else {
     $neutron_extensions = ""
   }
