@@ -115,7 +115,7 @@ class contrail::profile::openstack::nova(
     #sync_db                             => $sync_db,
     sync_db                              => true,
     osapi_compute_workers                => $osapi_compute_workers,
-    #package_sku                          => $package_sku
+    package_sku                          => $package_sku
   }
 
   if ( $package_sku =~ /^*:13\.0.*$/) {
