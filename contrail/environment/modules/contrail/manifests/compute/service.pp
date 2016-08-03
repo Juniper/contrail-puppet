@@ -11,13 +11,28 @@ class contrail::compute::service(
             enable  => true,
         }
     }
-    service { 'nova-compute' :
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $nova_service_name = "openstack-nova-compute"
+        exec { 'sevc-openstk-nova-restart' :
+            command => "service ${nova_service_name} restart",
+            provider => shell,
+            logoutput => $contrail_logoutput,
+        }
+    } else {
+        $nova_service_name = "nova-compute"
+    }
+
+    service { $nova_service_name :
         enable => $nova_compute_status,
         ensure => $nova_compute_status,
+        subscribe => Exec['setup-compute-server-setup']
     }
+
+    Nova_config <||> ~> Service[$nova_service_name]
+
     ## Same condition as compute/config.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
-       Service['nova-compute']->
+       Service[$nova_service_name]->
        service { 'nfs-kernel-server':
          ensure => running,
          enable => true

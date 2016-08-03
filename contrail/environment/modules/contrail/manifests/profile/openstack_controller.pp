@@ -18,7 +18,9 @@ class contrail::profile::openstack_controller (
   $host_roles = $::contrail::params::host_roles,
   $package_sku = $::contrail::params::package_sku,
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
-  $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use
+  $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use,
+  $openstack_ip_list = $::contrail::params::openstack_ip_list,
+  $host_control_ip = $::contrail::params::host_ip
 ) {
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
     contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
@@ -43,7 +45,6 @@ class contrail::profile::openstack_controller (
     class {'::contrail::profile::openstack::nova' : } ->
     class {'::contrail::profile::openstack::neutron' : } ->
     class {'::contrail::profile::openstack::heat' : } ->
-    class {'::contrail::profile::openstack::provision' : } ->
     class {'::contrail::profile::openstack::auth_file' : } ->
     class {'::contrail::contrail_openstack' : } ->
     package { 'openstack-dashboard': ensure => present } ->
@@ -56,7 +57,7 @@ class contrail::profile::openstack_controller (
     ->
     contrail::lib::report_status { 'openstack_completed':
       state => 'openstack_completed' ,
-      require => [Class['keystone::endpoint'], Keystone_role['admin']]
+      #require => [Class['keystone::endpoint'], Keystone_role['admin']]
     }
 
     contain ::contrail::profile::openstack::mysql
@@ -69,12 +70,26 @@ class contrail::profile::openstack_controller (
 
     if ($enable_ceilometer) {
       class {'::contrail::profile::openstack::ceilometer' : 
-        before => Class['::contrail::profile::openstack::provision']
+        ## NOTE: no dependency on heat, it cant be before provision
+        before => Class['::contrail::profile::openstack::heat']
       }
       contain ::contrail::profile::openstack::ceilometer
     }
 
-    contain ::contrail::profile::openstack::provision
+    if ($host_control_ip == $openstack_ip_list[0]) {
+      class { '::contrail::profile::openstack::provision':}
+
+      Class ['::contrail::profile::openstack::heat'] ->
+      Class ['::contrail::profile::openstack::provision'] ->
+      Class ['::contrail::profile::openstack::auth_file']
+
+      Class['keystone::endpoint'] ->
+      Contrail::Lib::Report_status['openstack_completed']
+
+      Keystone_role['admin'] ->
+      Contrail::Lib::Report_status['openstack_completed']
+      contain ::contrail::profile::openstack::provision
+    }
     contain ::contrail::profile::openstack::auth_file
     contain ::contrail::contrail_openstack
 
