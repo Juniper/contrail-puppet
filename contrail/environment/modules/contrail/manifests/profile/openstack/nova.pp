@@ -16,7 +16,7 @@ class contrail::profile::openstack::nova(
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
   $package_sku       = $::contrail::params::package_sku,
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
-  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_ip_list,
+  $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $neutron_shared_secret      = $::contrail::params::os_neutron_shared_secret,
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
@@ -114,7 +114,8 @@ class contrail::profile::openstack::nova(
     neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
     #sync_db                             => $sync_db,
     sync_db                              => true,
-    osapi_compute_workers                => $osapi_compute_workers
+    osapi_compute_workers                => $osapi_compute_workers,
+    #package_sku                          => $package_sku
   }
 
   if ( $package_sku =~ /^*:13\.0.*$/) {
@@ -122,6 +123,7 @@ class contrail::profile::openstack::nova(
     $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials,"/nova_api"],'')
     nova_config {
       'api_database/connection': value => $nova_api_db_conn;
+      'DEFAULT/use_neutron' : value => True;
       'neutron/auth_type': value => 'password';
       'neutron/project_name': value => 'services';
       'neutron/auth_url': value => "http://${controller_mgmt_address}:35357";
