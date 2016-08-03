@@ -829,6 +829,20 @@ class contrail::params (
         $discovery_ip_to_use = $config_ip_list[0]
     }
 
+    ## NOTE: if openstack role is there, use self ip for mysql
+    ## NOTE: else other nodes should use internal_vip (not contrail_interal_vip) 
+    ## NOTE: else we are using external  openstack, point to that guy
+    ## NOTE: else just point to openstack_ip_list[0]
+    if ('openstack' in $host_roles) {
+       $neutron_mysql_to_use = $host_ip
+    } elsif ($internal_vip != '') {
+       $neutron_mysql_to_use = $internal_vip
+    } elsif ($external_openstack_ip != '') {
+       $neutron_mysql_to_use = $external_openstack_ip
+    } else {
+       $neutron_mysql_to_use = $openstack_ip_list[0]
+    }
+
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
 
