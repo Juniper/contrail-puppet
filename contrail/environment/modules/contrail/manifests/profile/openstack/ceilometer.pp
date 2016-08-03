@@ -23,7 +23,7 @@ class contrail::profile::openstack::ceilometer (
 
   $auth_url = "http://${keystone_ip_to_use}:5000/v2.0"
   $auth_password = $ceilometer_password
-  $auth_tenant_name = 'service'
+  $auth_tenant_name = 'services'
   $auth_username = 'ceilometer'
 
   class { '::ceilometer':

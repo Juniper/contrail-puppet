@@ -794,7 +794,7 @@ class contrail::params (
         $vip_to_use = $internal_vip
         $config_ip_to_use = $internal_vip
         $collector_ip_to_use = $internal_vip
-        $contrail_controller_address_api = internal_vip
+        $contrail_controller_address_api = $internal_vip
         $contrail_controller_address_management = $internal_vip
         $controller_address_management = $internal_vip
         $address_api = $internal_vip
