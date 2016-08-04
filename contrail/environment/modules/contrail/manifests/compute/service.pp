@@ -28,8 +28,6 @@ class contrail::compute::service(
         subscribe => Exec['setup-compute-server-setup']
     }
 
-    Nova_config <||> ~> Service[$nova_service_name]
-
     ## Same condition as compute/config.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
        Service[$nova_service_name]->
