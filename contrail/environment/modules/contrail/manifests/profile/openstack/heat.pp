@@ -22,18 +22,20 @@ class contrail::profile::openstack::heat (
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
-  $auth_uri = "http://${keystone_ip_to_use}:5000/"
+  $auth_uri = "http://${keystone_ip_to_use}:5000/v2.0"
   if ($internal_vip != '' and $internal_vip != undef) {
       $heat_api_bind_host = '0.0.0.0'
       $heat_api_bind_port = '8005'
       $heat_api_cfn_bind_host = '0.0.0.0'
       $heat_api_cfn_bind_port = '8001'
+      $heat_server_ip = $internal_vip
       $keystone_db_conn = join(["mysql://heat:",$database_credentials,":33306/heat"],'')
   } else {
-      $heat_api_bind_host = $address_api
+      $heat_api_bind_host = '0.0.0.0'
       $heat_api_bind_port = '8004'
-      $heat_api_cfn_bind_host = $address_api
+      $heat_api_cfn_bind_host = '0.0.0.0'
       $heat_api_cfn_bind_port = '8000'
+      $heat_server_ip = $host_control_ip
       $keystone_db_conn = join(["mysql://heat:",$database_credentials,"/heat"],'')
   }
 
@@ -65,6 +67,7 @@ class contrail::profile::openstack::heat (
   }
 
   class { '::heat::engine':
+      heat_waitcondition_server_url => "http://${heat_server_ip}:8000/v1/waitcondition",
       auth_encryption_key => $encryption_key
   }
 
@@ -73,10 +76,12 @@ class contrail::profile::openstack::heat (
   heat_config {
       'DEFAULT/plugin_dirs': value => "${::python_dist}/vnc_api/gen/heat/resources,${::python_dist}/contrail_heat/resources";
       'clients_contrail/user': value => 'admin';
-      'clients_contrail/password': value => 'contrail123';
-      'clients_contrail/tenent': value => 'admin';
+      'clients_contrail/password': value => $heat_password;
+      'clients_contrail/tenant': value => 'admin';
       'clients_contrail/api_server': value => $contrail_api_server;
       'clients_contrail/api_base_url': value => '/';
+      'clients_contrail/auth_host_ip': value => $keystone_ip_to_use;
+      'clients_contrail/use_ssl': value => 'False';
   }
   ->
   # We use admin user so need to remove heat_stack_owner from trusts_delegated_roles
