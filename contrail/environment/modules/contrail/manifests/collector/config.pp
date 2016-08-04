@@ -73,7 +73,7 @@ class contrail::collector::config (
       'DEFAULTS/analytics_config_audit_ttl' : value => $analytics_config_audit_ttl;
       'DEFAULTS/analytics_statistics_ttl'   : value => $analytics_statistics_ttl;
       'DEFAULTS/analytics_flow_ttl' : value => $analytics_flow_ttl;
-      'DEFAULTS/aaa_mode' : value => 'cloud-admin-only';
+      'DEFAULTS/aaa_mode' : value => 'cloud-admin';
       'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port' : value => '5998';
       'REDIS/redis_server_port'    : value => '6379';
