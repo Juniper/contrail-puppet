@@ -658,7 +658,4 @@ ALLOWED_HOSTS = '*'
 COMPRESS_OFFLINE = True
 LOGOUT_URL='/horizon/auth/logout/'
 
-##TODO: remove the check for kilo once we have package available
-<%- if @package_sku !~ /^*:13\.0.*$/ -%>
 HORIZON_CONFIG['customization_module'] = 'contrail_openstack_dashboard.overrides'
-<%- end -%>
