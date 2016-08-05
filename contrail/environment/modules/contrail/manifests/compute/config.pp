@@ -11,6 +11,7 @@ class contrail::compute::config(
     $amqp_server_ip = $::contrail::params::amqp_server_ip,
     $openstack_mgmt_ip = $::contrail::params::openstack_mgmt_ip_list_to_use[0],
     $neutron_service_protocol = $::contrail::params::neutron_service_protocol,
+    $neutron_password = $::contrail::params::os_neutron_password,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_password = $::contrail::params::keystone_admin_password,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
@@ -205,18 +206,22 @@ class contrail::compute::config(
     }
 
     $nova_params = {
-      'neutron/admin_auth_url'=> {   value => "http://${keystone_ip_to_use}:35357/v2.0/" },
+      'neutron/admin_auth_url'    => { value => "http://${keystone_ip_to_use}:35357/v2.0/" },
       'neutron/admin_tenant_name' => { value => 'services', },
-      'neutron/admin_username' => { value => 'neutron', },
-      'neutron/admin_password'=>  {  value => "${keystone_admin_password}" },
-      'neutron/url' =>  {  value => "http://${config_ip_to_use}:9696" },
-      'neutron/url_timeout' =>  {  value => "300" },
-      'keystone_authtoken/admin_password'=> { value => "${keystone_admin_password}" },
-      'compute/compute_driver'=> { value => "libvirt.LibvirtDriver" },
-      'DEFAULT/rabbit_hosts' => {value => "${nova_compute_rabbit_hosts}"},
+      'neutron/project_name'      => { value => 'services', },
+      'neutron/admin_username'    => { value => 'neutron', },
+      'neutron/admin_password'    => { value => "${keystone_admin_password}" },
+      'neutron/url'               => { value => "http://${config_ip_to_use}:9696" },
+      'neutron/url_timeout'       => { value => "300" },
+      'neutron/password'          => { value => "${neutron_password}" },
+      'compute/compute_driver'    => { value => "libvirt.LibvirtDriver" },
+      'DEFAULT/rabbit_hosts'      => { value => "${nova_compute_rabbit_hosts}"},
+      'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
+      'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
       'DEFAULT/novncproxy_base_url' => { value => "http://${host_control_ip}:5999/vnc_auto.html" },
       'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
     }
+
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
       $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }
     }

@@ -123,12 +123,13 @@ class contrail::profile::openstack::nova(
     $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials,"/nova_api"],'')
     nova_config {
       'api_database/connection': value => $nova_api_db_conn;
-      'DEFAULT/use_neutron' : value => True;
-      'neutron/auth_type': value => 'password';
-      'neutron/project_name': value => 'services';
-      'neutron/auth_url': value => "http://${controller_mgmt_address}:35357";
-      'neutron/username': value => 'neutron';
-      'neutron/password': value => $neutron_password;
+      'DEFAULT/use_neutron'    : value => True;
+      'neutron/auth_type'      : value => 'password';
+      'neutron/project_name'   : value => 'services';
+      'neutron/auth_url'       : value => "http://${controller_mgmt_address}:35357";
+      'neutron/username'       : value => 'neutron';
+      'neutron/password'       : value => $neutron_password;
+      'oslo_messaging_rabbit/heartbeat_timeout_threshold' :  value => '0';
     }
   }
 

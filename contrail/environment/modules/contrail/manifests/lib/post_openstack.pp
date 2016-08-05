@@ -51,19 +51,27 @@ define contrail::lib::post_openstack(
       }
       nova_config {
         'DATABASE/connection'   : value => $nova_db_conn;
-      }
+      } -> Exec [ 'supervisor-openstack-restart']
+
     } elsif($keystone_ip != '') {
       # Temporary workaround because nova database_connection is getting removed for Central Keystone
       $database_credentials = join([$password, "@", $host_control_ip],'')
       $nova_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
       nova_config {
           'DATABASE/connection'   : value => $nova_db_conn;
-      } ->
-      exec { 'supervisor-openstack-restart':
-            command   => 'service supervisor-openstack restart ; service nova-compute restart',
-            provider  => shell,
-            logoutput => $contrail_logoutput,
-      }
+      } -> Exec [ 'supervisor-openstack-restart']
+    }
+
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+      $openstack_restart_command = "service openstack-nova-api restart && service openstack-nova-conductor restart && service openstack-nova-scheduler restart"
+    } else {
+      $openstack_restart_command = "service supervisor-openstack restart ; service nova-compute restart"
+    }
+
+    exec { 'supervisor-openstack-restart':
+      command   => $openstack_restart_command,
+      provider  => shell,
+      logoutput => $contrail_logoutput,
     }
   }
 }
