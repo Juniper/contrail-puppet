@@ -7,6 +7,7 @@ define contrail::lib::post_openstack(
     $contrail_logoutput = false,
     $keystone_ip = $::contrail::params::keystone_ip,
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+    $host_roles = $::contrail::params::host_roles,
 ) {
   if ($host_control_ip in $openstack_ip_list) {
     #Make ha-mon start later
@@ -64,15 +65,28 @@ define contrail::lib::post_openstack(
 
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
       $openstack_restart_command = "service openstack-nova-api restart && service openstack-nova-conductor restart && service openstack-nova-scheduler restart"
+      $nova_restart_cmd = "service nova-compute restart"
     } else {
-      $openstack_restart_command = "service supervisor-openstack restart ; service nova-compute restart"
+      $openstack_restart_command = "service supervisor-openstack restart"
+      $nova_restart_cmd = "service nova-compute restart"
     }
 
-    exec { 'supervisor-openstack-restart':
-      command   => $openstack_restart_command,
-      provider  => shell,
-      logoutput => $contrail_logoutput,
+    if 'openstack' in $host_roles {
+      exec { 'supervisor-openstack-restart':
+        command   => $openstack_restart_command,
+        provider  => shell,
+        logoutput => $contrail_logoutput,
+      }
     }
+
+    if 'compute' in $host_roles {
+      exec { 'nova-compute-restart':
+        command   => $nova_restart_cmd,
+        provider  => shell,
+        logoutput => $contrail_logoutput,
+      }
+    }
+
   }
 }
 #end of post-openstack
