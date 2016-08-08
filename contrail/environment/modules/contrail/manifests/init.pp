@@ -838,7 +838,7 @@ class contrail (
     os_controller_api_address => hiera(openstack::controller::address::api, $os_controller_api_address),
     os_keystone_admin_email   => hiera(openstack::keystone::admin_email, $keystone_admin_email),
     os_keystone_admin_token   => hiera(openstack::keystone::admin_token, $keystone_admin_token),
-    os_mongo_password         => hiera(openstack::ceilometer::mongo::password, $os_mongo_password),
+    os_mongo_password         => hiera(openstack::ceilometer::mongo, $os_mongo_password),
     os_metering_secret        => hiera(openstack::ceilometer::meteringsecret, $os_metering_secret),
     os_ceilometer_password    => hiera(openstack::ceilometer::password, $os_ceilometer_password),
 
