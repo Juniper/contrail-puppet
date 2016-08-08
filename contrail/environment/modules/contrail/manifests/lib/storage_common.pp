@@ -29,8 +29,6 @@ define contrail::lib::storage_common(
 
     contrail::lib::report_status { 'storage_started': state => 'storage_started' }
     ->
-    package { 'contrail-storage-packages' : ensure => present, }
-    ->
     package { 'contrail-storage' : ensure => present, }
     ->
     file { 'contrail-storage-rest-api.conf':
