@@ -37,8 +37,13 @@ class contrail::profile::openstack::ceilometer (
     ensure => file,
     content => template('contrail/pipeline.yaml.erb'),
   } ->
-  class { '::ceilometer::agent::central':}
-
+  class { '::ceilometer::agent::central':} ->
+  contrail::lib::augeas_conf_rm { "ceilometer_rpc_backend":
+        key => 'rpc_backend',
+        config_file => '/etc/ceilometer/ceilometer.conf',
+        lens_to_use => 'properties.lns',
+        match_value => 'ceilometer.openstack.common.rpc.impl_kombu',
+  }
   if $::osfamily != 'Debian' {
     class { '::ceilometer::alarm::notifier':
     }

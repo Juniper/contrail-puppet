@@ -70,7 +70,7 @@ openstack::neutron::password: 'c0ntrail123'
 openstack::neutron::shared_secret: 'by-sa-bo'
 
 ######## Ceilometer
-openstack::ceilometer::mongo::password: 'c0ntrail123'
+openstack::ceilometer::mongo: 'c0ntrail123'
 openstack::ceilometer::password: 'c0ntrail123'
 openstack::ceilometer::meteringsecret: 'ceilometersecretkey'
 
