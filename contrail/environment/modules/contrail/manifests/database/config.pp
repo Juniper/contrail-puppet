@@ -26,6 +26,12 @@ class contrail::database::config (
         }
     }
 
+    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+        $zk_myid_file = '/var/lib/zookeeper/myid'
+    } else {
+        $zk_myid_file = '/etc/zookeeper/conf/myid'
+    }
+
     # set database_index
     $tmp_index = inline_template('<%= @database_ip_list.index(@host_control_ip) %>')
     if ($tmp_index == undef) {
@@ -130,7 +136,8 @@ class contrail::database::config (
         content => template("${module_name}/zoo.cfg.erb"),
     } ->
     class {'::contrail::database::new_config_zk_files_setup':
-        database_index => $database_index
+        database_index => $database_index,
+        zk_myid_file   => $zk_myid_file
     } ->
     contrail_database_nodemgr_config {
       'DEFAULT/hostip': value => $host_control_ip;
@@ -164,7 +171,7 @@ class contrail::database::config (
             target  => '/lib/init/upstart-job',
         } ->
         File ['/etc/zookeeper/conf/log4j.properties'] -> File ['/etc/zookeeper/conf/environment'] ->
-        File ['/etc/zookeeper/conf/myid'] ~> Service['zookeeper']
+        File [$zk_myid_file] ~> Service['zookeeper']
     }
     contain ::contrail::database::config_cassandra
     contain ::contrail::database::new_config_zk_files_setup
