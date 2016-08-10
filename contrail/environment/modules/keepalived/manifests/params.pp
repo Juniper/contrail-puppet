@@ -2,13 +2,6 @@
 #
 class keepalived::params {
 
-
-  if ($lsbdistrelease == "14.04") {
-    $pkg_ensure         = '1.2.13-0~276~ubuntu14.04.1'
-  } else {
-    $pkg_ensure         = '1:1.2.13-1~bpo70+1'
-  }
-
   $service_enable     = true
   $service_ensure     = 'running'
   $service_manage     = true
