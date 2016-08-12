@@ -67,14 +67,24 @@ class contrail::profile::openstack::cinder(
       verbose         => $openstack_verbose,
       database_idle_timeout => '180',
     }
-    class { '::cinder::scheduler':
-      scheduler_driver => 'cinder.scheduler.simple.SimpleScheduler',
-    }
+    class { '::cinder::scheduler': }
+  }
+
+  contrail::lib::augeas_conf_rm { "cinder_rpc_backend":
+        key => 'rpc_backend',
+        config_file => '/etc/cinder/cinder.conf',
+        lens_to_use => 'properties.lns',
+        match_value => 'cinder.openstack.common.rpc.impl_kombu',
+  }
+
+  cinder_config {
+      'oslo_messaging_rabbit/heartbeat_timeout_threshold' :  value => '0';
   }
 
   class { '::cinder::glance':
     glance_api_servers => [ $glance_api_server ],
   }
+
   class { '::cinder::api':
     keystone_password => $cinder_password,
     auth_uri          => $auth_uri,
