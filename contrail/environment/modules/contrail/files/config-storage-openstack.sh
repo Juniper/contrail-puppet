@@ -48,11 +48,15 @@ openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_pool i
 openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_ceph_conf /etc/ceph/ceph.conf
 openstack-config --set /etc/glance/glance-api.conf glance_store stores glance.store.rbd.Store,glance.store.filesystem.Store,glance.store.http.Store
 ## configure ceph-rest-api 
+echo ${INTERNAL_VIP}
+
 if [ ${INTERNAL_VIP} != "" ]
 then
   sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5006)/" /usr/bin/ceph-rest-api
+  echo "editing 5006 port"
 else
   sed -i "s/app.run(host=app.ceph_addr, port=app.ceph_port)/app.run(host=app.ceph_addr, port=5005)/" /usr/bin/ceph-rest-api
+  echo "editing 5005 port"
 fi
 
 ## Check if "ceph -s" is returing or it is waiting for other monitors to be up

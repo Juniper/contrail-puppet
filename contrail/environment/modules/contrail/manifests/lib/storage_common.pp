@@ -141,24 +141,25 @@ define contrail::lib::storage_common(
         #notify { "Pool data: ${pool_data}":;}
         $contrail_pool_map = join($pool_data, "', '")
         $host_num_disk = size($contrail_storage_osd_disks)
-        ceph::pool {'internal': size => 1 }
-        -> file { 'compute_pool_config' :
-            path    => '/opt/contrail/bin/compute_pool_config.py',
-            content => template("${module_name}/compute-pool-config.erb"),
-            require => Package['contrail-storage']
-          }
-          ->
-          exec { 'setup_compute_pool_config' :
-            command   => 'python /opt/contrail/bin/compute_pool_config.py',
-            provider  => shell,
-            logoutput => $contrail_logoutput
-          }
-          -> Contrail::Lib::Report_status['storage-compute_completed']
+        ceph::pool {'internal': size => 1 } ->
+        file { 'compute_pool_config' :
+          path    => '/opt/contrail/bin/compute_pool_config.py',
+          content => template("${module_name}/compute-pool-config.erb"),
+          require => Package['contrail-storage']
+        }
+        ->
+        exec { 'setup_compute_pool_config' :
+          command   => 'python /opt/contrail/bin/compute_pool_config.py',
+          provider  => shell,
+          logoutput => $contrail_logoutput
+        }
+        -> Contrail::Lib::Report_status['storage-compute_completed']
       }
     }
 
     if 'openstack' in $contrail_host_roles {
         Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['setup-config-storage-openstack']
+        notify {"internal_vip => ${internal_vip}":;}
         file { 'config-storage-openstack.sh':
             ensure => present,
             path   => '/etc/contrail/contrail_setup_utils/config-storage-openstack.sh',
