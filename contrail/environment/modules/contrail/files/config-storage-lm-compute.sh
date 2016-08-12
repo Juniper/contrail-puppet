@@ -2,6 +2,34 @@
 
 set -x
 RESTART_SERVICES=0
+FILE_NAME=/etc/apparmor.d/usr.lib.libvirt.virt-aa-helper
+TEMP_FILE_NAME=/tmp/usr.lib.libvirt.virt-aa-helper
+
+## NOTE: ANY CHANGES FOR FOLLOWING CODE SHOULD BE DONE IN 
+## NOTE: config-storage-lm-compute.sh AS WELL.
+## NOTE: THIS IS TEMP FIX, AS FILE NEEDS TO BE RE-WRITTEN
+
+if [ -f ${FILE_NAME} ]
+then
+  grep -n "instances/global" ${FILE_NAME}
+  RETVAL=$?
+  if [ ${RETVAL} -eq 0 ]
+  then
+    echo "instance/global entry is there"
+  else
+    ##copy lines after instances/snapshots
+    echo "instances/global is not there"
+    snap_lineno=`grep -n "instances/snapshots" ${FILE_NAME} | cut -d ':' -f 1`
+    tail_lineno=`expr ${snap_lineno} + 1`
+    echo "instances/snapshots is at ${snap_lineno}"
+    head -n ${snap_lineno}  ${FILE_NAME} > ${TEMP_FILE_NAME}
+    echo "  /var/lib/nova/instances/global/_base/** r," >> ${TEMP_FILE_NAME}
+    echo "  /var/lib/nova/instances/global/snapshots/** r," >> ${TEMP_FILE_NAME}
+    tail -n ${tail_lineno}  ${FILE_NAME}     >> ${TEMP_FILE_NAME}
+    \mv -f ${TEMP_FILE_NAME} ${FILE_NAME}
+    apparmor_parser -r ${FILE_NAME}
+  fi
+fi
 ## Get the ip address of nova-host.
 ## NOTE: we already checked about the ip resolution. so awk must
 ## NOTE: give correct results
