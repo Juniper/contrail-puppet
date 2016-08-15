@@ -48,6 +48,7 @@
 #   Optional. $key and $keyring are mutually exclusive.
 #
 define ceph::mon (
+  $package_sku,
   $ensure = present,
   $public_addr = undef,
   $cluster = undef,
@@ -122,6 +123,9 @@ define ceph::mon (
       if $public_addr {
         $public_addr_option = "--public_addr ${public_addr}"
       }
+      if ( $package_sku =~ /^*:13\.0.*$/) {
+        $setuser_option = "--setuser ceph --setgroup ceph"
+      }
 
       Ceph_Config<||> ->
       exec { $ceph_mkfs:
@@ -132,7 +136,7 @@ if [ ! -d \$mon_data ] ; then
   mkdir -p \$mon_data
   chown -h ceph:ceph \$mon_data
   if ceph-mon ${cluster_option} \
-        --setuser ceph --setgroup ceph \
+        ${setuser_option} \
         ${public_addr_option} \
         --mkfs \
         --id ${id} \
