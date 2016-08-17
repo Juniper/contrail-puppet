@@ -65,7 +65,7 @@ define contrail::lib::post_openstack(
 
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
       $openstack_restart_command = "service openstack-nova-api restart && service openstack-nova-conductor restart && service openstack-nova-scheduler restart"
-      $nova_restart_cmd = "service nova-compute restart"
+      $nova_restart_cmd = "service openstack-nova-compute restart"
     } else {
       $openstack_restart_command = "service supervisor-openstack restart"
       $nova_restart_cmd = "service nova-compute restart"
