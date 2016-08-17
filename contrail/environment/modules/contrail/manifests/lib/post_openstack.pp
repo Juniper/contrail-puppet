@@ -69,11 +69,20 @@ define contrail::lib::post_openstack(
     } else {
       $openstack_restart_command = "service supervisor-openstack restart"
       $nova_restart_cmd = "service nova-compute restart"
+      $config_restart_cmd = "service supervisor-config restart"
     }
 
     if 'openstack' in $host_roles {
       exec { 'supervisor-openstack-restart':
         command   => $openstack_restart_command,
+        provider  => shell,
+        logoutput => $contrail_logoutput,
+      }
+    }
+
+    if 'config' in $host_roles {
+      exec { 'supervisor-config-restart':
+        command   => $config_restart_cmd,
         provider  => shell,
         logoutput => $contrail_logoutput,
       }
