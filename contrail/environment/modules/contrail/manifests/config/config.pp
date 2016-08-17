@@ -192,19 +192,18 @@ class contrail::config::config (
             'program:contrail-api/priority' : value => '440';
             'program:contrail-api/autostart' : value => 'true';
             'program:contrail-api/killasgroup' : value => 'true';
-            'program:contrail-api/stopsignal' : value => 'KILL';
+            'program:contrail-api/stopsignal' : value => 'TERM';
     } ->
     contrail_discovery_ini {
              'program:contrail-discovery/command'      : value => "$discovery_command_to_use";
              'program:contrail-discovery/numprocs'     : value => "$disc_nworkers";
-             'program:contrail-discovery/process_name' : value => '%(process_num)s';
              'program:contrail-discovery/redirect_stderr' : value => 'true';
              'program:contrail-discovery/stdout_logfile' : value => '/var/log/contrail/contrail-discovery-%(process_num)s.log';
              'program:contrail-discovery/stderr_logfile' : value => '/dev/null';
              'program:contrail-discovery/priority' : value => '430';
              'program:contrail-discovery/autostart' : value => 'true';
              'program:contrail-discovery/killasgroup' : value => 'true';
-             'program:contrail-discovery/stopsignal' : value => 'KILL';
+             'program:contrail-discovery/stopsignal' : value => 'TERM';
     } ->
     #set rpc backend in neutron.conf
     contrail::lib::augeas_conf_rm { "config_neutron_rpc_backend":
