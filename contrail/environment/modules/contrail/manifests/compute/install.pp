@@ -77,12 +77,6 @@ class contrail::compute::install(
         # Ensure all needed packages are latest
         package { [ $vrouter_pkg, 'contrail-openstack-vrouter'] : ensure => latest, notify => Service['supervisor-vrouter']}
 
-        # Install interface rename package for centos.
-        if (inline_template('<%= @operatingsystem.downcase %>') == 'centos') {
-            contrail::lib::contrail_rename_interface { 'centos-rename-interface' :
-            }
-        }
-
         if ($enable_lbaas == true) {
             Package[$vrouter_pkg, 'contrail-openstack-vrouter'] ->
             package{ ['haproxy', 'iproute'] : ensure => present,}

@@ -652,7 +652,7 @@ class contrail (
     $contrail_repo_name = undef,
     $contrail_repo_type = undef,
     $contrail_repo_ip = $serverip,
-    $kernel_upgrade = true,
+    $kernel_upgrade = false,
     $kernel_version = '',
     $redis_password = '',
     $storage_num_osd = '',
