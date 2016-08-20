@@ -97,6 +97,54 @@ define contrail::lib::storage_common(
         keyring         => '/etc/ceph/$cluster.$name.keyring',
         cluster_network => $contrail_storage_cluster_network,
     }
+
+    $contrail_ceph_params = {
+      'global/heartbeat_timeout'=> { value => '120' },
+      #'global/rbd_cache'        => { value => 'true' },
+      'global/debug_lockdep'    => { value => '0/0' },
+      'global/debug_context'    => { value => '0/0' },
+      'global/debug_crush'      => { value => '0/0' },
+      'global/debug_buffer'     => { value => '0/0' },
+      'global/debug_timer'      => { value => '0/0' },
+      'global/debug_filer'      => { value => '0/0' },
+      'global/debug_objecter'   => { value => '0/0' },
+      'global/debug_rados'      => { value => '0/0' },
+      'global/idebug_rbd'       => { value => '0/0' },
+      'global/debug_journaler'  => { value => '0/0' },
+      'global/debug_client'     => { value => '0/0' },
+      'global/debug_osd'        => { value => '0/0' },
+      'global/debug_optracker'  => { value => '0/0' },
+      'global/debug_objclass'   => { value => '0/0' },
+      'global/debug_filestore'  => { value => '0/0' },
+      'global/debug_journal'    => { value => '0/0' },
+      'global/debug_ms'         => { value => '0/0' },
+      'global/debug_monc'       => { value => '0/0' },
+      'global/debug_tp'         => { value => '0/0' },
+      'global/debug_auth'       => { value => '0/0' },
+      'global/debug_finisher'   => { value => '0/0' },
+      'global/debug_perfcounter'=> { value => '0/0' },
+      'global/debug_asok'       => { value => '0/0' },
+      'global/debug_throttle'   => { value => '0/0' },
+      'global/debug_mon'        => { value => '0/0' },
+      'global/debug_paxos'      => { value => '0/0' },
+      'global/debug_rgw'        => { value => '0/0' },
+      'global/debug_objectcatcher'=> { value => '0/0' },
+      'global/debug_heartbeatmap' => { value => '0/0' },
+      'global/throttler_perf_counter'=> { value => 'false' },
+      #'global/rbd_default_format' => { value => '2' },
+      'client/rbd_cache'        => { value => 'true' },
+      #'osd/osd_op_threads'      => { value => '4' },
+      #'osd/osd_disk_threads'    => { value => '2' },
+      'osd/osd_enable_op_tracker'    => { value => 'false' },
+      'osd/filestore_merge_threshold'=> { value => '40' },
+      'osd/filestore_split_multiple' => { value => '8' },
+    }
+
+    create_resources(ceph_config, $contrail_ceph_params, {} )
+    #class ceph::conf{'contrail_ceph_config':
+      #args => $contrail_ceph_params
+    #} -> Ceph::Key['client.admin']
+
     if ($contrail_host_ip in $contrail_ceph_monitors) {
         ceph::mon { $contrail_storage_hostname:
             key => $contrail_storage_mon_secret
@@ -311,7 +359,8 @@ define contrail::lib::storage_common(
 
         Exec['setup-config-storage-compute']-> Contrail::Lib::Report_status['storage-compute_completed']
 
-        if $contrail_live_migration_host != '' {
+        if ($contrail_live_migration_host =~ /(?i:enable)/ ) {
+          notify {"Value of contrail_live_migration_host => ${contrail_live_migration_host}":;}
           file { 'config-storage-lm-compute.sh':
               ensure => present,
               path   => '/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh',
@@ -338,9 +387,10 @@ define contrail::lib::storage_common(
               provider  => shell,
               timeout   => 0,
               logoutput => $contrail_logoutput
-          }
+          } ->
+          Contrail::Lib::Report_status['storage-compute_completed']
+
           Exec['setup-config-storage-compute'] -> Exec['setup-config-storage-compute-live-migration']
-          Exec['setup-config-storage-compute-live-migration']-> Contrail::Lib::Report_status['storage-compute_completed']
         }
     }
 
