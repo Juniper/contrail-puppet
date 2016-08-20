@@ -184,12 +184,6 @@ class contrail::compute::config(
         }
     }
 
-    # Install interface rename package for centos.
-    if (inline_template('<%= @operatingsystem.downcase %>') == 'centos') {
-        Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-        contrail::lib::contrail_rename_interface { 'centos-rename-interface' :
-        }
-    }
     # for storage
     ## Same condition as compute/service.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
