@@ -35,9 +35,11 @@ class contrail::config::neutron (
   $database_credentials = join([$service_password, "@", $neutron_mysql_ip],'')
   $keystone_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
 
-  if ( $package_sku =~ /^*:12\.0.*$/) {
+  # sku pattern for centos is 12.0.1-1.el7.noarch. while
+  # sku pattern for ubuntu is 2:12.0.1-0ubuntu1~cloud0.1contrail
+  if ( $package_sku =~ /12\.0./) {
     $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
-  } elsif ( $package_sku =~ /^*:13\.0.*$/) {
+  } elsif ( $package_sku =~ /13\.0./) {
     $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
   } else {
     $neutron_extensions = ""

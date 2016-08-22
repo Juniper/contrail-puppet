@@ -7,7 +7,6 @@ Facter.add(:contrail_roles) do
 
 	roles_array.each do |role| 
             service_str = "service supervisor-" + role + " status"
-            puts(service_str)
             is_service_running = system(service_str)
             if role == "analytics"
                 role = "collector"
