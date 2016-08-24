@@ -212,6 +212,12 @@ class contrail::ha_config (
                 try_sleep => 15,
             }
             ->
+            exec { 'haproxy_upstart_service_start' :
+                command   => "/etc/init.d/haproxy stop && service haproxy restart",
+                provider  => shell,
+                logoutput => true,
+            }
+            ->
             contrail::lib::report_status { 'pre_exec_vnc_galera_completed': }
         }
         if ($enable_post_exec_vnc_galera) {
