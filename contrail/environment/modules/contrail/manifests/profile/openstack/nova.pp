@@ -77,7 +77,6 @@ class contrail::profile::openstack::nova(
     database_idle_timeout => $database_idle_timeout
   }
 
-  notify { "openstack::common::nova - database_connection = $keystone_db_conn":; }
 
   if ($internal_vip != "" and $internal_vip != undef) {
     nova_config {
@@ -173,7 +172,6 @@ class contrail::profile::openstack::nova(
     vif_plugging_timeout   => '0',
   }
 
-  notify { "sriov = ${sriov}":; }
   if ($sriov_enable) {
     file_line_after {
       'scheduler_default_filters':

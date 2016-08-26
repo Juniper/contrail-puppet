@@ -15,6 +15,4 @@ class contrail::compute::setup_compute_server_setup (
             provider  => shell,
             logoutput => $contrail_logoutput
     }
-    ->
-    notify { "executed setup_compute_server_setup" :; }
 }

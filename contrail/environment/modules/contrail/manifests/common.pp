@@ -55,10 +55,6 @@ class contrail::common(
     create_resources(user, $contrail_users_details)
 
     # All Resources for this class are below.
-    notify { "**** ${module_name} - host_mgmt_ip = ${host_mgmt_ip}": ; } ->
-    notify { "**** ${module_name} - contrail_repo_name = ${contrail_repo_name}": ; } ->
-    notify { "**** ${module_name} - contrail_repo_ip = ${contrail_repo_ip}": ; } ->
-    notify { "**** ${module_name} - contrail_repo_type = ${contrail_repo_type}": ; } ->
     Group['nova', 'kvm', 'libvirtd'] ->
     User['nova', 'libvirt-qemu', 'libvirt-dnsmasq'] ->
     contrail::lib::contrail_upgrade{ 'contrail_upgrade':

@@ -915,12 +915,9 @@ class contrail::params (
     $contrail_neutron_public_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_api)
     $contrail_neutron_admin_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
     $contrail_neutron_internal_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
-    notify { "host_role = $host_roles and contrail_roles = $contrail_roles":; }
     $contrail_roles_present_hash = delete_values($contrail_roles, false)
     $contrail_roles_present_array = keys($contrail_roles_present_hash)
-    notify { "contrail_roles_present_hash = $contrail_roles_present_hash and  contrail_roles_present_array = $contrail_roles_present_array":; }
     $roles_to_delete = difference($contrail_roles_present_array , $host_roles)
-    notify { "roles_to_delete is $roles_to_delete":; }
     #copy of roles to delete as all run as a single manifest
     #TODO verify its a ref or a copy
     $cpy_roles_to_delete = $roles_to_delete

@@ -60,7 +60,6 @@ class contrail::profile::openstack_controller (
         $pkg_list = $pkg_list_a
     }
     contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
-    notify { "##### pkgs dependency are : ${pkg_list} ######" :; } ->
     package {'contrail-openstack' :
       ensure => latest,
       before => [ Class['::mysql::server'],
@@ -149,7 +148,6 @@ class contrail::profile::openstack_controller (
       Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Class['::contrail::profile::openstack::cinder']
     }
   } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
-    notify { 'uninstalling openstack':; }
     contain ::contrail::uninstall_openstack
   }
 }
