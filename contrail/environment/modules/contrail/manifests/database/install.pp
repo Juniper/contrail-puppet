@@ -20,7 +20,6 @@ class contrail::database::install (
           logoutput => $contrail_logoutput,
           before => Package['contrail-openstack-database'],
       } ->
-      notify { "executed contrail Upgrade Cassandra Command : ${cassandra_upgrade_cmd}":; } ->
       package {'cassandra':
                 ensure => latest,
                 configfiles => "replace",

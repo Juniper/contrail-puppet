@@ -19,7 +19,6 @@ class contrail::profile::keepalived (
     } elsif (((!('config' in $host_roles)) and ($contrail_roles['config'] == true)) or
              ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) 
             ) {
-        notify { 'uninstalling keepalived':; } ->
         contrail::lib::report_status { 'uinstall_keepalived_started': state => 'uninstall_keepalived_started' } ->
         Class['::contrail::uninstall_keepalived'] ->
         contrail::lib::report_status { 'uninstall_keepalived_completed': state => 'uninstall_keepalived_completed' }

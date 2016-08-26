@@ -9,7 +9,6 @@ class contrail::profile::mongodb {
       # Mongo DB Replset members are primary_db + slave_members below - All database nodes
       $mongo_slave_ip_list_str = inline_template('<%= @database_ip_list.delete_if {|x| x == @primary_db_ip }.join(";") %>')
       $mongo_slave_ip_list = split($mongo_slave_ip_list_str, ';')
-      notify { "contrail::profile::mongodb - mongo_slave_ip_list = ${mongo_slave_ip_list}":;}
       $ceilometer_mongo_password = hiera(openstack::ceilometer::mongo)
       $ceilometer_password = hiera(openstack::ceilometer::password)
       $ceilometer_meteringsecret = hiera(openstack::ceilometer::meteringsecret)
@@ -38,9 +37,7 @@ class contrail::profile::mongodb {
           ensure  => present,
           tries   => 20,
           require => Class['mongodb::server'],
-      } ->
-      notify { "contrail::profile::mongodb - mongodb_bind_address = ${mongodb_bind_address}":;} ->
-      notify { "contrail::profile::mongodb - {primary_db_ip} = ${primary_db_ip}":;}
+      }
 
       if($mongodb_bind_address == $primary_db_ip){
         Notify["contrail::profile::mongodb - {primary_db_ip} = ${primary_db_ip}"] ->

@@ -18,7 +18,5 @@ class contrail::database::config_zk_files_setup (
             provider  => shell,
             logoutput => $contrail_logoutput
     }
-    ->
-    notify { "executed contrail contrail_zk_exec_cmd : ${contrail_zk_exec_cmd}":; }
   }
 }

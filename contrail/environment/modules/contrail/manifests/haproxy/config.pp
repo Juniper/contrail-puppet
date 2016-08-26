@@ -22,7 +22,6 @@ class contrail::haproxy::config(
     $collector_name_list_shell = join($collector_name_list, ",")
     $contrail_exec_haproxy_gen = "python /opt/contrail/bin/generate_haproxy.py  && echo generate_ha_config >> /etc/contrail/contrail_openstack_exec.out"
 
-    notify { "haproxy cmd  $contrail_exec_haproxy_gen":;} ->
     file { '/opt/contrail/bin/generate_haproxy.py' :
         ensure => present,
         mode   => '0755',

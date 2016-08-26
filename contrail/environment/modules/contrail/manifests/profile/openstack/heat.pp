@@ -90,11 +90,4 @@ class contrail::profile::openstack::heat (
         config_file => '/etc/heat/heat.conf',
         lens_to_use => 'properties.lns',
   }
-
-  notify { "contrail::profile::openstack::heat - heat_api_bind_host = ${heat_api_bind_host}":; }
-  notify { "contrail::profile::openstack::heat - heat_api_bind_port = ${heat_api_bind_port}":; }
-  notify { "contrail::profile::openstack::heat - sql_connection = ${keystone_db_conn}":; }
-  notify { "contrail::profile::openstack::heat - rabbit_hosts = ${openstack_rabbit_servers}":; }
-  notify { "contrail::profile::openstack::heat - contrail_api_server = ${contrail_api_server}":; }
-  notify { "contrail::profile::openstack::heat - keystone_auth_public_url = ${::heat::keystone::auth::public_url}":; }
 }

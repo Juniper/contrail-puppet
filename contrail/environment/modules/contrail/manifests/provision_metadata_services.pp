@@ -10,7 +10,5 @@ class contrail::provision_metadata_services (
             provider  => shell,
             logoutput => $contrail_logoutput,
     }
-    ->
-    notify { "executed provision_metadata_services":; }
 }
 

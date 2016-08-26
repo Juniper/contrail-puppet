@@ -7,6 +7,4 @@ class contrail::compute::cp_ifcfg_file (
             provider  => 'shell',
             logoutput => $contrail_logoutput
     }
-    ->
-    notify { "executed cp_ifcfg_file" :; }
 }

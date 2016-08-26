@@ -8,7 +8,5 @@ class contrail::core_file_unlimited (
            provider  => shell,
            logoutput => $contrail_logoutput
     }
-    ->
-    notify { "executed core-file-unlimited" :; }
 }
 

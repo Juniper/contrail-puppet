@@ -15,7 +15,5 @@ class contrail::exec_create_ec2rc_file (
             provider  => shell,
             logoutput => $contrail_logoutput
     }
-    ->
-    notify { "executed exec_create_ec2rc_file" :; }
 }
 
