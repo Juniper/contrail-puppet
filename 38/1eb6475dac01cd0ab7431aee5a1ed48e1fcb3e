@@ -1,0 +1,8 @@
+Verified+2: Zuul <zuul@lists.opencontrail.org>
+Approved+1: kamlesh parmar <kparmar@juniper.net>
+Code-Review+2: kamlesh parmar <kparmar@juniper.net>
+Submitted-by: Zuul <zuul@lists.opencontrail.org>
+Submitted-at: Fri, 26 Aug 2016 12:30:24 -0700
+Reviewed-on: https://review.opencontrail.org/23582
+Project: Juniper/contrail-puppet
+Branch: refs/heads/master
