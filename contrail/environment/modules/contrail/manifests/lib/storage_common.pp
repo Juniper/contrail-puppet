@@ -1,196 +1,180 @@
 ##TODO: Document the class
 define contrail::lib::storage_common(
-        $contrail_storage_fsid,
-        $contrail_storage_num_osd,
-        $contrail_host_roles,
-        $contrail_num_storage_hosts,
-        $contrail_storage_mon_secret,
-        $contrail_storage_osd_bootstrap_key,
-        $contrail_storage_admin_key,
-        $contrail_openstack_ip,
-        $contrail_storage_virsh_uuid,
-        $contrail_storage_ip_list,
-        $contrail_storage_mon_hosts,
-        $contrail_storage_osd_disks,
-        $contrail_storage_hostname,
-        $contrail_live_migration_host,
-        $contrail_live_migration_ip,
-        $contrail_lm_storage_scope,
-        $contrail_storage_hostnames,
-        $contrail_storage_chassis_config,
-        $contrail_storage_cluster_network,
-        $contrail_host_ip,
-        $contrail_logoutput = false,
-        $storge_pool_config        = $contrail::params::storage_pool_config,
-        $storage_compute_name_list = $contrail::params::storage_compute_name_list,
-        $storage_master_name_list  = $contrail::params::storage_master_name_list,
-        $internal_vip = $contrail::params::internal_vip,
-        $package_sku       = $::contrail::params::package_sku,
-        ) {
+  $contrail_storage_fsid,
+  $contrail_storage_num_osd,
+  $contrail_host_roles,
+  $contrail_num_storage_hosts,
+  $contrail_storage_mon_secret,
+  $contrail_storage_osd_bootstrap_key,
+  $contrail_storage_admin_key,
+  $contrail_openstack_ip,
+  $contrail_storage_virsh_uuid,
+  $contrail_storage_ip_list,
+  $contrail_storage_mon_hosts,
+  $contrail_storage_osd_disks,
+  $contrail_storage_hostname,
+  $contrail_live_migration_host,
+  $contrail_live_migration_ip,
+  $contrail_lm_storage_scope,
+  $contrail_storage_hostnames,
+  $contrail_storage_chassis_config,
+  $contrail_storage_cluster_network,
+  $contrail_host_ip,
+  $contrail_logoutput = false,
+  $storge_pool_config        = $contrail::params::storage_pool_config,
+  $storage_compute_name_list = $contrail::params::storage_compute_name_list,
+  $storage_master_name_list  = $contrail::params::storage_master_name_list,
+  $internal_vip = $contrail::params::internal_vip,
+  $package_sku       = $::contrail::params::package_sku,
+) {
 
-    contrail::lib::report_status { 'storage_started': state => 'storage_started' }
-    ->
-    package { 'contrail-storage' : ensure => latest, }
-    ->
-    file { 'contrail-storage-rest-api.conf':
-        ensure => present,
-        path   => '/etc/init/ceph-rest-api.conf',
-        mode   => '0755',
-        owner  => root,
-        group  => root,
-        source => "puppet:///modules/${module_name}/config-storage-rest-api.conf",
-    }
-    ->
-    exec { 'ceph-rest-api' :
-        command  => 'service ceph-rest-api restart',
-        provider => shell,
-        require  => File['contrail-storage-rest-api.conf']
-    }
-    -> file { 'ceph-osd-setup-file':
-        ensure => present,
-        path   => '/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh',
-        mode   => '0755',
-        owner  => root,
-        group  => root,
-        source => "puppet:///modules/${module_name}/config-storage-add-osd.sh",
-    } ->
+  contrail::lib::report_status { 'storage_started': state => 'storage_started' }
+  ->
+  package { 'contrail-storage' : ensure => latest, }
+  ->
+  file { 'contrail-storage-rest-api.conf':
+    ensure => present,
+    path   => '/etc/init/ceph-rest-api.conf',
+    mode   => '0755',
+    owner  => root,
+    group  => root,
+    source => "puppet:///modules/${module_name}/config-storage-rest-api.conf",
+  } ->
+  exec { 'ceph-rest-api' :
+    command  => 'service ceph-rest-api restart',
+    provider => shell,
+    require  => File['contrail-storage-rest-api.conf']
+  } ->
+  file { 'ceph-osd-setup-file':
+    ensure => present,
+    path   => '/etc/contrail/contrail_setup_utils/config-storage-add-osd.sh',
+    mode   => '0755',
+    owner  => root,
+    group  => root,
+    source => "puppet:///modules/${module_name}/config-storage-add-osd.sh",
+  } ->
+  file { 'ceph-disk-clean-file':
+    ensure => present,
+    path   => '/etc/contrail/contrail_setup_utils/config-storage-disk-clean.sh',
+    mode   => '0755',
+    owner  => root,
+    group  => root,
+    source => "puppet:///modules/${module_name}/config-storage-disk-clean.sh",
+  } ->
+  file { 'ceph-log-rotate':
+    ensure  => present,
+    path    => '/etc/logrotate.d/ceph',
+    mode    => '0755',
+    owner   => root,
+    group   => root,
+    source  => "puppet:///modules/${module_name}/config-storage-ceph-log-rotate",
+    require => [Package['contrail-storage'], Package['ceph']]
+  } ->
+  cron { 'ceph-logrotate':
+    command  => '/usr/sbin/logrotate /etc/logrotate.d/ceph >/dev/null 2>&1',
+    user     => root,
+    minute   => '30',
+    hour     => 'absent',
+    month    => 'absent',
+    monthday => 'absent',
+    weekday  => 'absent',
+  }
 
-    file { 'ceph-disk-clean-file':
-        ensure => present,
-        path   => '/etc/contrail/contrail_setup_utils/config-storage-disk-clean.sh',
-        mode   => '0755',
-        owner  => root,
-        group  => root,
-        source => "puppet:///modules/${module_name}/config-storage-disk-clean.sh",
-    } ->
-    file { 'ceph-log-rotate':
-        ensure  => present,
-        path    => '/etc/logrotate.d/ceph',
-        mode    => '0755',
-        owner   => root,
-        group   => root,
-        source  => "puppet:///modules/${module_name}/config-storage-ceph-log-rotate",
-        require => [Package['contrail-storage'], Package['ceph']]
-    } ->
-    cron { 'ceph-logrotate':
-        command  => '/usr/sbin/logrotate /etc/logrotate.d/ceph >/dev/null 2>&1',
-        user     => root,
-        minute   => '30',
-        hour     => 'absent',
-        month    => 'absent',
-        monthday => 'absent',
-        weekday  => 'absent',
-    }
-    if size($contrail_storage_ip_list) > 10 {
-        $contrail_ceph_monitors = inline_template('<%= @contrail_storage_ip_list.first(10) %>')
-        $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.first(10).map{ |ip| "#{ip}" }.join(", ")  %>')
-    } else {
-        $contrail_ceph_monitors = $contrail_storage_ip_list
-        $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.map{ |ip| "#{ip}" }.join(", ")  %>')
-    }
-    notify {" monitors = ${contrail_ceph_monitors}":; }
-    notify {" monitors_map = ${contrail_ceph_monitors_map}":; }
+  $ceph_mon_hosts = join($contrail_storage_mon_hosts,",")
 
+  class { 'ceph' :
+    fsid            => $contrail_storage_fsid,
+    mon_host        => $ceph_mon_hosts,
+    keyring         => '/etc/ceph/$cluster.$name.keyring',
+    cluster_network => $contrail_storage_cluster_network,
+  }
 
-    class { 'ceph' :
-        fsid            => $contrail_storage_fsid,
-        mon_host        => $contrail_ceph_monitors_map,
-        keyring         => '/etc/ceph/$cluster.$name.keyring',
-        cluster_network => $contrail_storage_cluster_network,
+  $contrail_ceph_params = {
+    'global/heartbeat_timeout'=> { value => '120' },
+    #'global/rbd_cache'        => { value => 'true' },
+    'global/debug_lockdep'    => { value => '0/0' },
+    'global/debug_context'    => { value => '0/0' },
+    'global/debug_crush'      => { value => '0/0' },
+    'global/debug_buffer'     => { value => '0/0' },
+    'global/debug_timer'      => { value => '0/0' },
+    'global/debug_filer'      => { value => '0/0' },
+    'global/debug_objecter'   => { value => '0/0' },
+    'global/debug_rados'      => { value => '0/0' },
+    'global/idebug_rbd'       => { value => '0/0' },
+    'global/debug_journaler'  => { value => '0/0' },
+    'global/debug_client'     => { value => '0/0' },
+    'global/debug_osd'        => { value => '0/0' },
+    'global/debug_optracker'  => { value => '0/0' },
+    'global/debug_objclass'   => { value => '0/0' },
+    'global/debug_filestore'  => { value => '0/0' },
+    'global/debug_journal'    => { value => '0/0' },
+    'global/debug_ms'         => { value => '0/0' },
+    'global/debug_monc'       => { value => '0/0' },
+    'global/debug_tp'         => { value => '0/0' },
+    'global/debug_auth'       => { value => '0/0' },
+    'global/debug_finisher'   => { value => '0/0' },
+    'global/debug_perfcounter'=> { value => '0/0' },
+    'global/debug_asok'       => { value => '0/0' },
+    'global/debug_throttle'   => { value => '0/0' },
+    'global/debug_mon'        => { value => '0/0' },
+    'global/debug_paxos'      => { value => '0/0' },
+    'global/debug_rgw'        => { value => '0/0' },
+    'global/debug_objectcatcher'=> { value => '0/0' },
+    'global/debug_heartbeatmap' => { value => '0/0' },
+    'global/throttler_perf_counter'=> { value => 'false' },
+    #'global/rbd_default_format' => { value => '2' },
+    'client/rbd_cache'        => { value => 'true' },
+    #'osd/osd_op_threads'      => { value => '4' },
+    #'osd/osd_disk_threads'    => { value => '2' },
+    'osd/osd_enable_op_tracker'    => { value => 'false' },
+    'osd/filestore_merge_threshold'=> { value => '40' },
+    'osd/filestore_split_multiple' => { value => '8' },
+  }
+
+  create_resources(ceph_config, $contrail_ceph_params, {} )
+
+  if ($contrail_host_ip in $contrail_storage_mon_hosts) {
+    ceph::mon { $contrail_storage_hostname:
+      key => $contrail_storage_mon_secret,
+      package_sku => $package_sku
     }
-
-    $contrail_ceph_params = {
-      'global/heartbeat_timeout'=> { value => '120' },
-      #'global/rbd_cache'        => { value => 'true' },
-      'global/debug_lockdep'    => { value => '0/0' },
-      'global/debug_context'    => { value => '0/0' },
-      'global/debug_crush'      => { value => '0/0' },
-      'global/debug_buffer'     => { value => '0/0' },
-      'global/debug_timer'      => { value => '0/0' },
-      'global/debug_filer'      => { value => '0/0' },
-      'global/debug_objecter'   => { value => '0/0' },
-      'global/debug_rados'      => { value => '0/0' },
-      'global/idebug_rbd'       => { value => '0/0' },
-      'global/debug_journaler'  => { value => '0/0' },
-      'global/debug_client'     => { value => '0/0' },
-      'global/debug_osd'        => { value => '0/0' },
-      'global/debug_optracker'  => { value => '0/0' },
-      'global/debug_objclass'   => { value => '0/0' },
-      'global/debug_filestore'  => { value => '0/0' },
-      'global/debug_journal'    => { value => '0/0' },
-      'global/debug_ms'         => { value => '0/0' },
-      'global/debug_monc'       => { value => '0/0' },
-      'global/debug_tp'         => { value => '0/0' },
-      'global/debug_auth'       => { value => '0/0' },
-      'global/debug_finisher'   => { value => '0/0' },
-      'global/debug_perfcounter'=> { value => '0/0' },
-      'global/debug_asok'       => { value => '0/0' },
-      'global/debug_throttle'   => { value => '0/0' },
-      'global/debug_mon'        => { value => '0/0' },
-      'global/debug_paxos'      => { value => '0/0' },
-      'global/debug_rgw'        => { value => '0/0' },
-      'global/debug_objectcatcher'=> { value => '0/0' },
-      'global/debug_heartbeatmap' => { value => '0/0' },
-      'global/throttler_perf_counter'=> { value => 'false' },
-      #'global/rbd_default_format' => { value => '2' },
-      'client/rbd_cache'        => { value => 'true' },
-      #'osd/osd_op_threads'      => { value => '4' },
-      #'osd/osd_disk_threads'    => { value => '2' },
-      'osd/osd_enable_op_tracker'    => { value => 'false' },
-      'osd/filestore_merge_threshold'=> { value => '40' },
-      'osd/filestore_split_multiple' => { value => '8' },
+    $inject_keys = true
+  } else {
+    ceph::mon { $contrail_storage_hostname:
+      ensure => absent,
+      key    => $contrail_storage_mon_secret,
+      package_sku => $package_sku
     }
+    $inject_keys = false
+  }
 
-    create_resources(ceph_config, $contrail_ceph_params, {} )
-    #class ceph::conf{'contrail_ceph_config':
-      #args => $contrail_ceph_params
-    #} -> Ceph::Key['client.admin']
-
-    if ($contrail_host_ip in $contrail_ceph_monitors) {
-        ceph::mon { $contrail_storage_hostname:
-            key => $contrail_storage_mon_secret,
-            package_sku => $package_sku
-        }
-        ->
-        ceph::key{'client.admin':
-            secret         => $contrail_storage_admin_key,
-            cap_mon        => 'allow *',
-            cap_osd        => 'allow *',
-            inject_as_id   => 'mon.',
-            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
-            inject         => true,
-        }
-        ->
-        ceph::key{'client.bootstrap-osd':
-            secret         => $contrail_storage_osd_bootstrap_key,
-            keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
-            cap_mon        => 'allow profile bootstrap-osd',
-            inject_as_id   => 'mon.',
-            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
-            inject         => true,
-        }
-    } else {
-        ceph::key{'client.admin':
-            secret  => $contrail_storage_admin_key,
-            cap_mon => 'allow *',
-            cap_osd => 'allow *',
-        }
-        ->
-        ceph::key{'client.bootstrap-osd':
-            secret         => $contrail_storage_osd_bootstrap_key,
-            keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
-            cap_mon        => 'allow profile bootstrap-osd',
-        }
-    }
+  ceph::key{'client.admin':
+    secret         => $contrail_storage_admin_key,
+    cap_mon        => 'allow *',
+    cap_osd        => 'allow *',
+    inject_as_id   => 'mon.',
+    inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+    inject         => $inject_keys,
+  }
+  ->
+  ceph::key{'client.bootstrap-osd':
+    secret         => $contrail_storage_osd_bootstrap_key,
+    keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
+    cap_mon        => 'allow profile bootstrap-osd',
+    inject_as_id   => 'mon.',
+    inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+    inject         => $inject_keys,
+  }
 
     if 'storage-compute' in $contrail_host_roles {
       if $contrail_storage_osd_disks != '' {
         contrail::lib::storage_disk { $contrail_storage_osd_disks:}
         -> Contrail::Lib::Report_status['storage-compute_completed']
+
         $pool_data = prefix($contrail_storage_osd_disks, "$contrail_storage_hostname:")
-        #notify { "Pool data: ${pool_data}":;}
         $contrail_pool_map = join($pool_data, "', '")
         $host_num_disk = size($contrail_storage_osd_disks)
+
         ceph::pool {'internal': size => 1 } ->
         file { 'compute_pool_config' :
           path    => '/opt/contrail/bin/compute_pool_config.py',
@@ -209,7 +193,6 @@ define contrail::lib::storage_common(
 
     if 'openstack' in $contrail_host_roles {
         Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['setup-config-storage-openstack']
-        notify {"internal_vip => ${internal_vip}":;}
         file { 'config-storage-openstack.sh':
             ensure => present,
             path   => '/etc/contrail/contrail_setup_utils/config-storage-openstack.sh',
@@ -362,7 +345,6 @@ define contrail::lib::storage_common(
         Exec['setup-config-storage-compute']-> Contrail::Lib::Report_status['storage-compute_completed']
 
         if ($contrail_live_migration_host =~ /(?i:enable)/ ) {
-          notify {"Value of contrail_live_migration_host => ${contrail_live_migration_host}":;}
           file { 'config-storage-lm-compute.sh':
               ensure => present,
               path   => '/etc/contrail/contrail_setup_utils/config-storage-lm-compute.sh',

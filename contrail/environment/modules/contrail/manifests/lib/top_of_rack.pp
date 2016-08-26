@@ -22,8 +22,6 @@ define contrail::lib::top_of_rack(
     $tsn_ip,
     $host_control_ip) {
 
-    notify { "**** ${module_name} - ${name} =>  ${tunnel_ip_address}, ${ovs_port}, ${http_server_port} , ${ip_address}, ${id}, ${vendor_name}, ${ovs_protocol}, ${ovs_protocol}, ${switch_name}": ; }
-
     if ( $ovs_protocol == "pssl") {
         $ssl_enable = present
 

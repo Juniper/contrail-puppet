@@ -48,6 +48,5 @@ define contrail::lib::upgrade_kernel(
     } else {
         #TODO for other flavours do nothing
     }
-
 }
 #end of upgrade-kernel

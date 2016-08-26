@@ -24,5 +24,4 @@ define contrail::lib::augeas_conf_set(
                context => "/files${config_file}",
                changes => $change_set,
        }
-       notify {"change_set = ${change_set}":;}
 }
