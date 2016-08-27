@@ -24,7 +24,8 @@ define contrail::lib::storage_common(
         $storge_pool_config        = $contrail::params::storage_pool_config,
         $storage_compute_name_list = $contrail::params::storage_compute_name_list,
         $storage_master_name_list  = $contrail::params::storage_master_name_list,
-        $internal_vip = $contrail::params::internal_vip
+        $internal_vip = $contrail::params::internal_vip,
+        $package_sku       = $::contrail::params::package_sku,
         ) {
 
     contrail::lib::report_status { 'storage_started': state => 'storage_started' }
@@ -147,7 +148,8 @@ define contrail::lib::storage_common(
 
     if ($contrail_host_ip in $contrail_ceph_monitors) {
         ceph::mon { $contrail_storage_hostname:
-            key => $contrail_storage_mon_secret
+            key => $contrail_storage_mon_secret,
+            package_sku => $package_sku
         }
         ->
         ceph::key{'client.admin':
