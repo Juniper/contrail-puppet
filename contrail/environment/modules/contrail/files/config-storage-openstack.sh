@@ -16,10 +16,12 @@ INTERNAL_VIP=$4
 #sed -i "s/^bind-address/#bind-address/" /etc/mysql/my.cnf
 # configuration for cinder taken care by post_openstack.pp
 #openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
+ceph osd crush tunables optimal
+
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enabled_backends rbd-disk
 openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${openstack_ip}
 openstack-config --set /etc/cinder/cinder.conf DEFAULT rpc_backend rabbit
-openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v1_api true
+openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v1_api false
 openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v2_api true
 openstack-config --set /etc/cinder/cinder.conf DEFAULT auth_strategy keystone
 openstack-config --set /etc/cinder/cinder.conf DEFAULT glance_api_version 2
@@ -45,6 +47,7 @@ openstack-config --set /etc/glance/glance-api.conf DEFAULT known_stores glance.s
 openstack-config --set /etc/glance/glance-api.conf glance_store default_store rbd
 openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_chunk_size 8
 openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_pool images
+openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_user images
 openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_ceph_conf /etc/ceph/ceph.conf
 openstack-config --set /etc/glance/glance-api.conf glance_store stores glance.store.rbd.Store,glance.store.filesystem.Store,glance.store.http.Store
 ## configure ceph-rest-api 
