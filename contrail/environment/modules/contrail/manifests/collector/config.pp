@@ -30,6 +30,8 @@ class contrail::collector::config (
     $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
     $zk_ip_list = join($zookeeper_ip_port_list, ',')
 
+    $analytics_api_server_to_use = "${config_ip_to_use}:8082"
+
     $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
 
@@ -70,6 +72,7 @@ class contrail::collector::config (
       'DEFAULTS/analytics_config_audit_ttl' : value => $analytics_config_audit_ttl;
       'DEFAULTS/analytics_statistics_ttl'   : value => $analytics_statistics_ttl;
       'DEFAULTS/analytics_flow_ttl' : value => $analytics_flow_ttl;
+      'DEFAULTS/api_server' : value => $analytics_api_server_to_use;
       'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port' : value => '5998';
       'REDIS/redis_server_port'    : value => '6379';
