@@ -16,12 +16,11 @@ class contrail::collector::config (
     $config_ip_to_use = $::contrail::params::config_ip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
-    $redis_config_file = $::contrail::params::redis_config_file
+    $redis_config_file = $::contrail::params::redis_config_file,
+    $host_roles = $::contrail::params::host_roles,
 ) {
 
     $rest_api_port_to_use = $::contrail::params::rest_api_port_to_use
-    $discovery_ip_to_use =  $::contrail::params::discovery_ip_to_use
-
      ## Cassandra Port for Cql has been changed to 9042.
     $database_ip_port_list = suffix($database_ip_list, ":9042")
     $cassandra_server_list = join($database_ip_port_list, ' ' )
@@ -31,6 +30,8 @@ class contrail::collector::config (
 
     $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
     $zk_ip_list = join($zookeeper_ip_port_list, ',')
+
+    $analytics_api_server_to_use = "${config_ip_to_use}:8082"
 
     $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
     $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
@@ -74,6 +75,7 @@ class contrail::collector::config (
       'DEFAULTS/analytics_statistics_ttl'   : value => $analytics_statistics_ttl;
       'DEFAULTS/analytics_flow_ttl' : value => $analytics_flow_ttl;
       'DEFAULTS/aaa_mode' : value => 'cloud-admin';
+      'DEFAULTS/api_server' : value => $analytics_api_server_to_use;
       'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port' : value => '5998';
       'REDIS/redis_server_port'    : value => '6379';
@@ -122,12 +124,13 @@ class contrail::collector::config (
       'DEFAULTS/fast_scan_frequency': value => $snmp_fast_scan_frequency;
       'DEFAULTS/http_server_port'   : value => '5920';
       'DISCOVERY/disc_server_port' : value => '5998';
-      'DISCOVERY/disc_server_ip'   : value => $discovery_ip_to_use;
+      'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
     } ->
 
     contrail_analytics_nodemgr_config {
       'DEFAULT/server' : value => $config_ip_to_use;
       'DEFAULT/port'   : value => '5998';
+      'DISCOVERY/server': value => $config_ip_to_use;
     } ->
 
     contrail_alarm_gen_config {
@@ -234,5 +237,8 @@ class contrail::collector::config (
     } ->
     file { '/etc/snmp/snmp.conf':
       content => 'mibs +ALL'
+    }
+    if (!('config' in $host_roles)) {
+        contain ::contrail::keystone
     }
 }
