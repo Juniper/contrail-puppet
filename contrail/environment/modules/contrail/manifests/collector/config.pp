@@ -15,6 +15,7 @@ class contrail::collector::config (
     $redis_password = $::contrail::params::redis_password,
     $config_ip_to_use = $::contrail::params::config_ip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $host_roles = $::contrail::params::host_roles,
 ) {
 
     $rest_api_port_to_use = $::contrail::params::rest_api_port_to_use
@@ -216,5 +217,8 @@ class contrail::collector::config (
     } ->
     file { '/etc/snmp/snmp.conf':
       content => 'mibs +ALL'
+    }
+    if (!('config' in $host_roles)) {
+        contain ::contrail::keystone
     }
 }
