@@ -20,7 +20,7 @@ def main(args_str=None):
     config_name_list = config_name_list_str.split(",")
 
     for config_name, config_ip in zip(config_name_list, config_ip_list):
-        status, output = commands.getstatusoutput("echo '%s    %sctl' >> /etc/hosts" %(config_ip, config_name))
+        status, output = commands.getstatusoutput("echo '%s    %s %sctrl' >> /etc/hosts" %(config_ip, config_name, config_name))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
