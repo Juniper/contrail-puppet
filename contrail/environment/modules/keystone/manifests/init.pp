@@ -476,6 +476,7 @@ class keystone(
   $fernet_key_repository  = '/etc/keystone/fernet-keys',
   $fernet_max_active_keys = undef,
   $default_domain         = undef,
+  $enable_bootstrap = true,
   # DEPRECATED PARAMETERS
   $mysql_module           = undef,
   $compute_port           = undef,
@@ -937,6 +938,19 @@ class keystone(
     keystone_config {
         'fernet_tokens/max_active_keys':   ensure => absent;
     }
+  }
+
+
+  if $enable_bootstrap {
+    # this requires the database to be up and running and configured
+    # and is only run once, so we don't need to notify the service
+    exec { 'keystone-manage bootstrap':
+      command     => "keystone-manage bootstrap --bootstrap-password ${admin_token}",
+      path        => '/usr/bin',
+      tag         => 'keystone-exec',
+    }
+    Exec<| title == 'keystone-manage db_sync'|> ~> Exec<| title == 'keystone-manage bootstrap'|>
+    Exec['keystone-manage bootstrap'] ~> Service<| title == 'keystone' |>
   }
 
   if $default_domain {
