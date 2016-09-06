@@ -218,14 +218,6 @@ class contrail::ha_config (
                 logoutput => true,
             }
             ->
-            file { 'openstack-get-config':
-              ensure => present,
-              path   => '/etc/contrail/contrail_setup_utils/openstack-get-config',
-              mode   => '0755',
-              owner  => root,
-              group  => root,
-              source => "puppet:///modules/${module_name}/openstack-get-config"
-            } ->
             contrail::lib::report_status { 'pre_exec_vnc_galera_completed': }
         }
         if ($enable_post_exec_vnc_galera) {
@@ -257,22 +249,6 @@ class contrail::ha_config (
                     cwd       => '/opt/contrail/bin/',
                     provider  => shell,
                     logoutput => true,
-                } ->
-                file { 'sync_keystone_domain_file':
-                  ensure => present,
-                  path   => '/opt/contrail/bin/sync_keystone_domain.py',
-                  mode   => '0755',
-                  owner  => root,
-                  group  => root,
-                  source => "puppet:///modules/${module_name}/sync_keystone.py"
-                } ->
-                exec { 'sync_keystone_domain' :
-                  command   => "python /opt/contrail/bin/sync_keystone_domain.py  \
-                                ${openstack_mgmt_ip_list_shell} \
-                                ${openstack_user_list_shell} \
-                                ${openstack_passwd_list_shell} ",
-                  provider  => shell,
-                  logoutput => true,
                 }
             }
             #This will be skipped if there is an external nfs server
