@@ -351,7 +351,7 @@ class nova::api(
     Package<| title == $::nova::params::api_package_name |>    ~> Exec['nova-db-sync']
     Package<| title == $::nova::params::common_package_name |> ~> Exec['nova-db-sync']
 
-    if ( $package_sku =~ /^*:13\.0.*$/) {
+    if ( $package_sku =~ /13\.0/) {
       Package<| title == $::nova::params::api_package_name |>  ~> Exec['nova-api-db-sync']
       Package<| title == $::nova::params::common_package_name |> ~> Exec['nova-api-db-sync']
     }
@@ -361,7 +361,7 @@ class nova::api(
       refreshonly => true,
       subscribe   => Exec['post-nova_config'],
     }
-    if ( $package_sku =~ /^*:13\.0.*$/) {
+    if ( $package_sku =~ /13\.0/) {
       exec { 'nova-api-db-sync':
         command     => '/usr/bin/nova-manage api_db sync',
         refreshonly => true,

@@ -123,7 +123,7 @@ define ceph::mon (
       if $public_addr {
         $public_addr_option = "--public_addr ${public_addr}"
       }
-      if ( $package_sku =~ /^*:13\.0.*$/) {
+      if ( $package_sku =~ /13\.0/) {
         $setuser_option = "--setuser ceph --setgroup ceph"
       }
 

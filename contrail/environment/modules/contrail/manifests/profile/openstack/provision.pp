@@ -21,7 +21,7 @@ class contrail::profile::openstack::provision (
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
-  if ( $package_sku =~ /^*:13\.0.*$/) {
+  if ( $package_sku =~ /13\.0/) {
     $endpoint_version = "v2.1"
   } else {
     $endpoint_version = "v2"

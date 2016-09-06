@@ -11,6 +11,7 @@ class contrail::database::config (
   $ssd_data_dir = $::contrail::params::ssd_data_dir,
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $database_minimum_diskGB = $::contrail::params::database_minimum_diskGB,
+  $zookeeper_conf_dir = $::contrail::params::zookeeper_conf_dir,
 ) {
 
     # Main Class code
@@ -124,7 +125,7 @@ class contrail::database::config (
             settings_hash => $kafka_log4j_properties_config['kafka_log4j_properties'],
             lens_to_use => $kafka_log4j_augeas_lens_to_use,
     } ->
-    file { '/etc/zookeeper/conf/zoo.cfg':
+    file { "${zookeeper_conf_dir}/zoo.cfg":
         ensure  => present,
         content => template("${module_name}/zoo.cfg.erb"),
     } ->
@@ -158,12 +159,12 @@ class contrail::database::config (
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
     if ($::operatingsystem == 'Ubuntu') {
-        File['/etc/zookeeper/conf/zoo.cfg'] ->
+        File["${zookeeper_conf_dir}/zoo.cfg"] ->
         file { '/etc/init.d/supervisord-contrail-database':
             ensure  => link,
             target  => '/lib/init/upstart-job',
         } ->
-        File ['/etc/zookeeper/conf/log4j.properties'] -> File ['/etc/zookeeper/conf/environment'] ->
+        File ["${zookeeper_conf_dir}/log4j.properties"] -> File ["${zookeeper_conf_dir}/environment"] ->
         File [$zk_myid_file] ~> Service['zookeeper']
     }
     contain ::contrail::database::config_cassandra
