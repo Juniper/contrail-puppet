@@ -7,6 +7,7 @@ class contrail::keystone (
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
     $keystone_insecure_flag = $::contrail::params::keystone_insecure_flag,
     $multi_tenancy = $::contrail::params::multi_tenancy,
+    $host_roles = $::contrail::params::host_roles,
 ) {
   contrail_keystone_auth_config {
     'KEYSTONE/auth_host' : value => $keystone_ip_to_use;
@@ -17,7 +18,7 @@ class contrail::keystone (
     'KEYSTONE/admin_tenant_name' : value => $keystone_admin_tenant;
     'KEYSTONE/insecure' :  value => $keystone_insecure_flag;
   }
-  if $multi_tenancy == true {
+  if (($multi_tenancy == true) and ('config' in $host_roles)) {
     contrail_keystone_auth_config {
       'KEYSTONE/memcache_servers' : value => '127.0.0.1:11211'
     }
