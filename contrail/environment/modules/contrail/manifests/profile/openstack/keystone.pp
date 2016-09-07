@@ -26,7 +26,8 @@ class contrail::profile::openstack::keystone(
     allowed_hosts => $allowed_hosts,
   }
 
-  if ( $package_sku =~ /^*:13\.0.*$/) {
+  $paste_config =  ''
+  if ( $package_sku =~ /13\.0/) {
     $default_domain = 'default'
   } else {
     $default_domain = undef
@@ -43,6 +44,7 @@ class contrail::profile::openstack::keystone(
       public_port     => '6000',
       admin_port      => '35358',
       default_domain  => $default_domain,
+      paste_config    => $paste_config,
       database_idle_timeout => '180',
       rabbit_hosts    => $openstack_rabbit_servers,
       verbose         => $openstack_verbose,
@@ -66,6 +68,7 @@ class contrail::profile::openstack::keystone(
       admin_token     =>  $admin_token,
       database_connection => $keystone_db_conn,
       default_domain  => $default_domain,
+      paste_config    => $paste_config,
       enabled         => true,
       admin_bind_host => $admin_bind_host,
       sync_db         => true,

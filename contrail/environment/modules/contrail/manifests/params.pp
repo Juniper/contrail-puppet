@@ -951,5 +951,10 @@ class contrail::params (
         $redis_service = 'redis-server'
         $ssl_package='libssl0.9.8'
     }
+    if ( ($package_sku =~ /13\.0/) and ($::operatingsystem == 'Centos')) {
+      $zookeeper_conf_dir= "/etc/zookeeper"
+    } else {
+      $zookeeper_conf_dir= "/etc/zookeeper/conf"
+    }
 
 }

@@ -31,12 +31,16 @@ class contrail::profile::openstack::nova(
     allowed_hosts => $allowed_hosts,
   }
 
-  if ( $package_sku =~ /^*:13\.0.*$/) {
+  if ( $package_sku =~ /13\.0/) {
     ## TODO: Remove once we move to mitaka modules
     class {'::nova::db::mysql_api':
       password      => $service_password,
       allowed_hosts => $allowed_hosts,
     }
+    $enabled_apis = ['osapi_compute,metadata']
+  }
+  else {
+    $enabled_apis = ['ec2,osapi_compute,metadata']
   }
 
   $compute_ip_list = $::contrail::params::compute_ip_list
@@ -114,10 +118,11 @@ class contrail::profile::openstack::nova(
     #sync_db                             => $sync_db,
     sync_db                              => true,
     osapi_compute_workers                => $osapi_compute_workers,
-    package_sku                          => $package_sku
+    package_sku                          => $package_sku,
+    enabled_apis			 => $enabled_apis
   }
 
-  if ( $package_sku =~ /^*:13\.0.*$/) {
+  if ( $package_sku =~ /13\.0/) {
     ## TODO: Remove once we move to mitaka modules
     $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials,"/nova_api"],'')
     nova_config {
