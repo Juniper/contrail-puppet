@@ -565,6 +565,10 @@
 #    Path for Webui SSL Cert File
 #    (optional) - Defaults to '/etc/contrail/webui_ssl/cs-cert.pem'
 #
+# [*config_manage_db*]
+#     Flag to set for config to have separate db from collector
+#     (optional) - Defaults to false
+#
 class contrail::params (
     $host_ip,
     $uuid,
@@ -748,6 +752,7 @@ class contrail::params (
     $enable_global_controller,
     $nova_private_key,
     $nova_public_key,
+    $config_manage_db,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
