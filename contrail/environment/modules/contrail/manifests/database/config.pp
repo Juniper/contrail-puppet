@@ -1,4 +1,3 @@
-
 class contrail::database::config (
   $host_control_ip = $::contrail::params::host_ip,
   $config_ip = $::contrail::params::config_ip_to_use,
@@ -96,7 +95,7 @@ class contrail::database::config (
         owner   => cassandra,
         group   => cassandra,
     } ->
-    class {'::contrail::database::config_cassandra':
+    class {'::contrail::config_cassandra':
             cassandra_seeds => $cassandra_seeds,
             contrail_cassandra_dir => $contrail_cassandra_dir
     } ->
@@ -129,7 +128,7 @@ class contrail::database::config (
         ensure  => present,
         content => template("${module_name}/zoo.cfg.erb"),
     } ->
-    class {'::contrail::database::new_config_zk_files_setup':
+    class {'::contrail::config_zk_files_setup':
         database_index => $database_index,
         zk_myid_file   => $zk_myid_file
     } ->
@@ -167,8 +166,8 @@ class contrail::database::config (
         File ["${zookeeper_conf_dir}/log4j.properties"] -> File ["${zookeeper_conf_dir}/environment"] ->
         File [$zk_myid_file] ~> Service['zookeeper']
     }
-    contain ::contrail::database::config_cassandra
-    contain ::contrail::database::new_config_zk_files_setup
+    contain ::contrail::config_cassandra
+    contain ::contrail::config_zk_files_setup
 
     $database_sysctl_settings = {
       'fs.file-max' => { value => 165535 },

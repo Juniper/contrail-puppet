@@ -1,4 +1,4 @@
-class contrail::database::new_config_zk_files_setup (
+class contrail::config_zk_files_setup (
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $zookeeper_conf_dir = $::contrail::params::zookeeper_conf_dir,
   $database_index = 1,

@@ -1,7 +1,8 @@
-class contrail::database::config_cassandra (
+class contrail::config_cassandra (
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $host_control_ip = $::contrail::params::host_ip,
   $database_dir = $::contrail::params::database_dir,
+  $cassandra_cluster_name = "\'Contrail\'",
   $cassandra_seeds,
   $contrail_cassandra_dir,
 ) {
@@ -44,7 +45,7 @@ class contrail::database::config_cassandra (
       } ->
       file_line { 'Config Cassandra cluster_name':
           path => $cassandra_config_file,
-          line => 'cluster_name: \'Contrail\'',
+          line => "cluster_name: ${cassandra_cluster_name}",
           match   => '^cluster_name:.*$',
       } ->
       file_line { 'Config Cassandra compaction_throughput_mb_per_sec':

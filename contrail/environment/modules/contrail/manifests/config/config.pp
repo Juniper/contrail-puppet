@@ -43,12 +43,26 @@ class contrail::config::config (
     $vip = $::contrail::params::vip_to_use,
     $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
+    $host_roles = $::contrail::params::host_roles,
+    $config_manage_db = $::contrail::params::config_manage_db,
 ) {
     # Main code for class starts here
     if $use_certs == true {
       $ifmap_server_port = '8444'
     } else {
       $ifmap_server_port = '8443'
+    }
+
+    if (!('database' in $host_roles) and $config_manage_db == true) {
+        $database_ip_list_to_use = $config_ip_list
+        Class['::contrail::config::database_install'] ->
+        Class['::contrail::config::database'] ~>
+        Class['::contrail::config::database_service']
+        contain ::contrail::config::database_install
+        contain ::contrail::config::database
+        contain ::contrail::config::database_service
+    } else {
+        $database_ip_list_to_use = $database_ip_list
     }
 
     $analytics_api_port = '8081'
@@ -93,7 +107,7 @@ class contrail::config::config (
     $disc_nworkers = $api_nworkers
     $discovery_ip_to_use =  $::contrail::params::discovery_ip_to_use
 
-    $database_ip_port_list = suffix($database_ip_list, ":$database_ip_port")
+    $database_ip_port_list = suffix($database_ip_list_to_use, ":$database_ip_port")
     $cassandra_server_list = join($database_ip_port_list, ' ' )
 
     $zk_ip_port_to_use = suffix($zookeeper_ip_list, ":$zk_ip_port")
