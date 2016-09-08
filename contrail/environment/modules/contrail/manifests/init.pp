@@ -566,6 +566,10 @@
 #     The IP Address of an External Openstack server the Contrail cluster connects to
 #     (optional) - Defaults to undef
 #
+# [*config_manage_db*]
+#     Flag to set for config node to have separate cassandra database cluster from collector
+#     (optional) - Defaults to false
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -722,6 +726,7 @@ class contrail (
     $webui_key_file_path = '/etc/contrail/webui_ssl/cs-key.pem',
     $webui_cert_file_path = '/etc/contrail/webui_ssl/cs-cert.pem',
     $enable_global_controller = false,
+    $config_manage_db = false,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -856,6 +861,7 @@ class contrail (
 	contrail_plugin_location =>		hiera(contrail::config::contrail_plugin_location, hiera(contrail::params::contrail_plugin_location, $contrail_plugin_location)),
         contrail_amqp_ip_list =>                hiera(contrail::config::contrail_amqp_ip_list, hiera(contrail::params::contrail_amqp_ip_list, $contrail_amqp_ip_list)),
         contrail_amqp_port =>                   hiera(contrail::config::contrail_amqp_port, hiera(contrail::params::contrail_amqp_port, $contrail_amqp_port)),
+        config_manage_db =>                     hiera(contrail::config::config_manage_db, $config_manage_db),
         # webui Parameters
 	webui_ip_list =>			hiera(contrail::webui::webui_ip_list, hiera(contrail::params::webui_ip_list, $webui_ip_list)),
         # compute Parameters
