@@ -1,4 +1,4 @@
-class contrail::database::new_config_zk_files_setup (
+class contrail::config_zk_files_setup (
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $database_index = 1,
   $zk_myid_file = '/etc/zookeeper/conf/myid'
