@@ -9,6 +9,8 @@ class contrail::provision_complete(
 )
 {
     if ($enable_module) {
+        contrail::post_provision {'post_provision': } ->
+
         contrail::lib::post_openstack { 'post_openstack':
             host_control_ip    => $host_control_ip,
             openstack_ip_list  => $openstack_ip_list,

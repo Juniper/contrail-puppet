@@ -746,6 +746,8 @@ class contrail::params (
     $webui_key_file_path,
     $webui_cert_file_path,
     $enable_global_controller,
+    $nova_private_key,
+    $nova_public_key,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -942,5 +944,13 @@ class contrail::params (
         $upgrade_needed = 1
     } else {
         $upgrade_needed = 0
+    }
+
+
+    if ($nova_private_key != "" and $nova_public_key == "") or 
+          ($nova_public_key != ""  and $nova_private_key == "") {
+      notify {'nova public keys are empty':;}
+      contrail::lib::report_status { 'nova_public_missing': }
+      fail("One of the nova keys are not specified")
     }
 }

@@ -44,7 +44,7 @@ class contrail::common(
       'ceph'     => { gid => '496'}
     }
     $contrail_users_details = {
-      'nova'            => { ensure => present, uid => '499', gid => '499', home => '/var/lib/nova' , managehome => true},
+      'nova'            => { ensure => present, uid => '499', gid => '499', home => '/var/lib/nova' , managehome => true, shell => '/bin/bash'},
       'libvirt-qemu'    => { ensure => present, uid => '498', gid => '498', home => '/var/lib/libvirt',  managehome => true},
       'libvirt-dnsmasq' => { ensure => present, uid => '497', gid => '497', home => '/var/lib/libvirt/dnsmasq',  managehome => true},
       'ceph'            => { ensure => present, uid => '496', gid => '496', home => '/var/lib/ceph',  managehome => true},

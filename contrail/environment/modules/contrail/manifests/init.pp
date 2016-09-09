@@ -837,6 +837,8 @@ class contrail (
     os_metering_secret        => hiera(openstack::ceilometer::meteringsecret, $os_metering_secret),
     os_ceilometer_password    => hiera(openstack::ceilometer::password, $os_ceilometer_password),
 
+    nova_private_key          => hiera(openstack::nova::ssh_private_key, $nova_private_key),
+    nova_public_key           => hiera(openstack::nova::ssh_public_key, $nova_public_key),
         # Openstack HA Parameters
 	internal_vip =>				hiera(openstack::ha::internal_vip, hiera(contrail::params::internal_vip, $internal_vip)),
 	external_vip =>				hiera(openstack::ha::external_vip, hiera(contrail::params::external_vip, $external_vip)),
