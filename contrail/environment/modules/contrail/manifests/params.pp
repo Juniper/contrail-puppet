@@ -751,6 +751,8 @@ class contrail::params (
     $webui_cert_file_path,
     $enable_global_controller,
     $config_manage_db,
+    $nova_private_key,
+    $nova_public_key,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -962,4 +964,10 @@ class contrail::params (
       $zookeeper_conf_dir= "/etc/zookeeper/conf"
     }
 
+    if ($nova_private_key != "" and $nova_public_key == "") or 
+          ($nova_public_key != ""  and $nova_private_key == "") {
+      notify {'nova public keys are empty':;}
+      contrail::lib::report_status { 'nova_public_missing': }
+      fail("One of the nova keys are not specified")
+    }
 }
