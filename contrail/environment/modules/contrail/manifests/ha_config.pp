@@ -330,13 +330,6 @@ class contrail::ha_config (
                 source => "puppet:///modules/${module_name}/fix-cmon-params-and-add-ssh-keys.py"
             }
             ->
-            exec { 'fix-cmon-params-and-add-ssh-keys' :
-                command   => "python fix-cmon-params-and-add-ssh-keys.py ${compute_name_list_shell} ${config_name_list_shell} && echo fix-cmon-params-and-add-ssh-keys >> /etc/contrail/contrail_openstack_exec.out",
-                cwd       => '/opt/contrail/bin/',
-                provider  => shell,
-                logoutput => $contrail_logoutput,
-            }
-            ->
             file { '/opt/contrail/bin/transfer_keys.py':
                 ensure => present,
                 mode   => '0755',
@@ -352,6 +345,17 @@ class contrail::ha_config (
             } ->
             contrail::lib::report_status { 'post_exec_vnc_galera_completed':}
             #This wil be executed for all openstacks ,if there is an external nfs server
+
+            if (size($::contrail::params::compute_name_list) > 1 and size($::contrail::params::config_name_list) > 1) {
+                File['/opt/contrail/bin/fix-cmon-params-and-add-ssh-keys.py'] ->
+                exec { 'fix-cmon-params-and-add-ssh-keys' :
+                    command   => "python fix-cmon-params-and-add-ssh-keys.py ${compute_name_list_shell} ${config_name_list_shell} && echo fix-cmon-params-and-add-ssh-keys >> /etc/contrail/contrail_openstack_exec.out",
+                    cwd       => '/opt/contrail/bin/',
+                    provider  => shell,
+                    logoutput => $contrail_logoutput,
+                }
+                -> File['/opt/contrail/bin/transfer_keys.py']
+            }
 
             if (enable_sequence_provisioning == false) {
                 Exec['exec-transfer-keys']
