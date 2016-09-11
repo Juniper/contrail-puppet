@@ -96,7 +96,7 @@ define contrail::lib::storage_common(
         fsid            => $contrail_storage_fsid,
         mon_host        => $contrail_ceph_monitors_map,
         keyring         => '/etc/ceph/$cluster.$name.keyring',
-        cluster_network => $contrail_storage_cluster_network,
+        public_network  => $contrail_storage_cluster_network,
     }
 
     $contrail_ceph_params = {
