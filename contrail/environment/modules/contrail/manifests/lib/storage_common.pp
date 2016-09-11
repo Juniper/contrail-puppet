@@ -86,8 +86,13 @@ define contrail::lib::storage_common(
     fsid            => $contrail_storage_fsid,
     mon_host        => $ceph_mon_hosts,
     keyring         => '/etc/ceph/$cluster.$name.keyring',
-    cluster_network => $contrail_storage_cluster_network,
+    public_network  => $contrail_storage_cluster_network,
   }
+    class { 'ceph' :
+        fsid            => $contrail_storage_fsid,
+        mon_host        => $contrail_ceph_monitors_map,
+        keyring         => '/etc/ceph/$cluster.$name.keyring',
+    }
 
   $contrail_ceph_params = {
     'global/heartbeat_timeout'=> { value => '120' },
