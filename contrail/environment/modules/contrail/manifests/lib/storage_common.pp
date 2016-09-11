@@ -81,20 +81,11 @@ define contrail::lib::storage_common(
         monthday => 'absent',
         weekday  => 'absent',
     }
-    if size($contrail_storage_ip_list) > 10 {
-        $contrail_ceph_monitors = inline_template('<%= @contrail_storage_ip_list.first(10) %>')
-        $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.first(10).map{ |ip| "#{ip}" }.join(", ")  %>')
-    } else {
-        $contrail_ceph_monitors = $contrail_storage_ip_list
-        $contrail_ceph_monitors_map = inline_template('<%= @contrail_storage_ip_list.map{ |ip| "#{ip}" }.join(", ")  %>')
-    }
-    notify {" monitors = ${contrail_ceph_monitors}":; }
-    notify {" monitors_map = ${contrail_ceph_monitors_map}":; }
-
+    $ceph_mon_hosts = join($contrail_storage_mon_hosts,",")
 
     class { 'ceph' :
         fsid            => $contrail_storage_fsid,
-        mon_host        => $contrail_ceph_monitors_map,
+        mon_host        => $ceph_mon_hosts,
         keyring         => '/etc/ceph/$cluster.$name.keyring',
         cluster_network => $contrail_storage_cluster_network,
     }
@@ -142,45 +133,37 @@ define contrail::lib::storage_common(
     }
 
     create_resources(ceph_config, $contrail_ceph_params, {} )
-    #class ceph::conf{'contrail_ceph_config':
-      #args => $contrail_ceph_params
-    #} -> Ceph::Key['client.admin']
 
-    if ($contrail_host_ip in $contrail_ceph_monitors) {
+    if ($contrail_host_ip in $contrail_storage_mon_hosts) {
         ceph::mon { $contrail_storage_hostname:
             key => $contrail_storage_mon_secret,
             package_sku => $package_sku
         }
-        ->
-        ceph::key{'client.admin':
-            secret         => $contrail_storage_admin_key,
-            cap_mon        => 'allow *',
-            cap_osd        => 'allow *',
-            inject_as_id   => 'mon.',
-            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
-            inject         => true,
-        }
-        ->
-        ceph::key{'client.bootstrap-osd':
-            secret         => $contrail_storage_osd_bootstrap_key,
-            keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
-            cap_mon        => 'allow profile bootstrap-osd',
-            inject_as_id   => 'mon.',
-            inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
-            inject         => true,
-        }
+        $inject_keys = true
     } else {
-        ceph::key{'client.admin':
-            secret  => $contrail_storage_admin_key,
-            cap_mon => 'allow *',
-            cap_osd => 'allow *',
+        ceph::mon { $contrail_storage_hostname:
+            ensure => absent,
+            key => $contrail_storage_mon_secret,
+            package_sku => $package_sku
         }
-        ->
-        ceph::key{'client.bootstrap-osd':
-            secret         => $contrail_storage_osd_bootstrap_key,
-            keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
-            cap_mon        => 'allow profile bootstrap-osd',
-        }
+       $inject_keys = false
+    }
+    ceph::key{'client.admin':
+        secret  => $contrail_storage_admin_key,
+        cap_mon => 'allow *',
+        cap_osd => 'allow *',
+        inject_as_id   => 'mon.',
+        inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+        inject         => $inject_keys,
+    }
+    ->
+    ceph::key{'client.bootstrap-osd':
+        secret         => $contrail_storage_osd_bootstrap_key,
+        keyring_path   => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
+        cap_mon        => 'allow profile bootstrap-osd',
+        inject_as_id   => 'mon.',
+        inject_keyring => "/var/lib/ceph/mon/ceph-$hostname/keyring",
+        inject         => $inject_keys,
     }
 
     if 'storage-compute' in $contrail_host_roles {
