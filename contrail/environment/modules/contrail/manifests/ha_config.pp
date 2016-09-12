@@ -74,6 +74,7 @@ class contrail::ha_config (
     $enable_pre_exec_vnc_galera = $::contrail::params::enable_pre_exec_vnc_galera,
     $enable_post_exec_vnc_galera = $::contrail::params::enable_post_exec_vnc_galera,
     $enable_sequence_provisioning = $::contrail::params::enable_sequence_provisioning,
+    $is_storage_master = $::contrail::params::storage_enabled,
 )  {
     # Main code for class
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -252,7 +253,8 @@ class contrail::ha_config (
                 }
             }
             #This will be skipped if there is an external nfs server
-            if ($contrail_nfs_server == $host_control_ip) {
+            if $is_storage_master != true {
+              if ($contrail_nfs_server == $host_control_ip) {
                 Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
                 package { 'nfs-kernel-server':
                     ensure  => present,
@@ -265,8 +267,7 @@ class contrail::ha_config (
                     logoutput => $contrail_logoutput
                 } ->
                 Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
-            }
-            else {
+              } else {
                 Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
                 package { 'nfs-common':
                     ensure  => present,
@@ -284,6 +285,10 @@ class contrail::ha_config (
                     provider  => shell,
                     logoutput => $contrail_logoutput
                 } ->
+                Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
+              }
+            } else {
+                Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
                 Contrail::Lib::Report_status['post_exec_vnc_galera_completed']
             }
 
