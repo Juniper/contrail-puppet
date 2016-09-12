@@ -23,15 +23,12 @@ class contrail::storage (
     $contrail_logoutput = $::contrail::params::contrail_logoutput
 )  {
 
-    #$contrail_openstack_ip_use = $::contrail::params::contrail_openstack_ip_use
     if ($::contrail::params::internal_vip != '') {
         $contrail_openstack_ip_use = $::contrail::params::internal_vip
     } else {
         $contrail_openstack_ip_use = $::contrail::params::openstack_ip_list[0]
     }
-    #include contrail::lib::storage_common
     # Main resource declarations for the class
-    #notify { "disk-names => ${contrail_storage_osd_disks}" :;}
     if 'compute' in $contrail_host_roles {
         exec { 'do-reboot-server-storage' :
             command   => '/sbin/reboot && echo do-reboot-server >> /etc/contrail/contrail_common_exec.out',

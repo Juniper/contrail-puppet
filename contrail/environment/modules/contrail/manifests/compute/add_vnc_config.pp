@@ -27,6 +27,4 @@ class contrail::compute::add_vnc_config (
             provider  => shell,
             logoutput => $contrail_logoutput
     }
-    ->
-    notify { "Executed add_vnc_config":; }
 }

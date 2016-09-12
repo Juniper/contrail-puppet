@@ -89,13 +89,6 @@ class contrail::database::config (
     $kafka_log4j_augeas_lens_to_use = 'properties.lns'
 
     # Debug - Print all variables
-    notify { "Database - contrail cassandra dir is ${contrail_cassandra_dir}":; } ->
-    notify { "Database - host_control_ip = ${host_control_ip}":;} ->
-    notify { "Database - config_ip = ${config_ip}":;} ->
-    notify { "Database - internal_vip = ${internal_vip}":;} ->
-    notify { "Database - database_ip_list = ${database_ip_list}":;} ->
-    notify { "Database - zookeeper_ip_list = ${zookeeper_ip_list}":;} ->
-    notify { "Database - database_index = ${database_index}":;} ->
     notify { "Database - cassandra_seeds = ${cassandra_seeds}":;} ->
     file { $database_dir :
         ensure  => directory,

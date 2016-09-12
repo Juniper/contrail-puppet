@@ -12,8 +12,6 @@ class contrail::profile::openstack::keystone(
   $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_ip_list,
   $keystone_ip_to_use   = $::contrail::params::keystone_ip_to_use,
 ) {
-  notify { "SYNC_DB = $sync_db":; }
-  notify { "rabbit-servers => $openstack_rabbit_servers":;}
 
   if ($keystone_mysql_service_password != "") {
       $service_password_to_use = $keystone_mysql_service_password
@@ -22,8 +20,6 @@ class contrail::profile::openstack::keystone(
   }
 
   $database_credentials = join([$service_password_to_use, "@", $keystone_ip_to_use],'')
-
-  notify {"VALUES => ${admin_token}, ${keystone_db_conn}, ${admin_bind_host}, ${sync_db}, ${openstack_rabbit_servers}":;}
 
   class {'::keystone::db::mysql':
     password => $service_password,
@@ -38,7 +34,6 @@ class contrail::profile::openstack::keystone(
 
   if ($internal_vip != "" and $internal_vip != undef) {
     $keystone_db_conn = join(["mysql://keystone:",$database_credentials,":3306/keystone"],'')
-    notify {"KEYSTONE DB CONN => ${keystone_db_conn}":;}
     class { '::keystone':
       admin_token     =>  $admin_token,
       database_connection => $keystone_db_conn,
@@ -67,7 +62,6 @@ class contrail::profile::openstack::keystone(
 
   } else {
     $keystone_db_conn = join(["mysql://keystone:",$database_credentials,"/keystone"],'')
-    notify {"KEYSTONE DB CONN => ${keystone_db_conn}":;}
     class { '::keystone':
       admin_token     =>  $admin_token,
       database_connection => $keystone_db_conn,

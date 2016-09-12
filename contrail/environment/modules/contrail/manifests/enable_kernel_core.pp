@@ -21,7 +21,5 @@ class contrail::enable_kernel_core (
         provider  => shell,
         logoutput => $contrail_logoutput
     }
-    ->
-    notify { "executed enable-kernel-core": ; }
 }
 
