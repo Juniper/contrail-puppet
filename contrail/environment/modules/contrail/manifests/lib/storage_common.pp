@@ -193,6 +193,33 @@ define contrail::lib::storage_common(
 
     if 'openstack' in $contrail_host_roles {
         Ceph::Key<| title == 'client.bootstrap-osd' |> -> Exec['setup-config-storage-openstack']
+        notify {"internal_vip => ${internal_vip}":;} ->
+        cinder_config {
+          'DEFAULT/enabled_backends'  : value => 'rbd-disk';
+          'DEFAULT/rabbit_host'       : value => 'rbd-disk';
+          'DEFAULT/rpc_backend'       : value => 'rabbit';
+          'DEFAULT/enable_v1_api'     : value => 'false';
+          'DEFAULT/enable_v2_api'     : value => 'true';
+          'DEFAULT/auth_strategy'     : value => 'keystone';
+          'DEFAULT/glance_api_version'     : value => '2';
+          'keystone_authtoken/auth_uri'    : value => "http://${contrail_openstack_ip}:5000/v2.0";
+          'keystone_authtoken/identity_uri': value => "http://${contrail_openstack_ip}:35357";
+          'rbd-disk/volume_backend_name'   : value => 'RBD';
+          'rbd-disk/rbd_pool'         : value => 'volumes';
+          'rbd-disk/rbd_user'         : value => 'volumes';
+          'rbd-disk/rbd_secret_uuid'  : value => $contrail_storage_virsh_uuid;
+          'rbd-disk/volume_driver'    : value => 'cinder.volume.drivers.rbd.RBDDriver';
+        } ->
+        glance_api_config{
+          'DEFAULT/workers'                  : value => '120';
+          'DEFAULT/show_image_direct_url'    : value => 'True';
+          'glance_store/default_store'       : value => 'rbd';
+          'glance_store/rbd_store_ceph_conf' : value => '/etc/ceph/ceph.conf';
+          'glance_store/rbd_store_user'      : value => 'images';
+          'glance_store/rbd_store_pool'      : value => 'images';
+          'glance_store/rbd_store_chunk_size': value => '8';
+          'glance_store/stores'              : value => 'glance.store.rbd.Store,glance.store.filesystem.Store,glance.store.http.Store';
+        } ->
         file { 'config-storage-openstack.sh':
             ensure => present,
             path   => '/etc/contrail/contrail_setup_utils/config-storage-openstack.sh',
