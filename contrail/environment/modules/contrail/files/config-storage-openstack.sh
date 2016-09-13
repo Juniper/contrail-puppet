@@ -18,38 +18,6 @@ INTERNAL_VIP=$4
 #openstack-config --set /etc/cinder/cinder.conf DEFAULT sql_connection mysql://cinder:cinder@127.0.0.1/cinder
 ceph osd crush tunables optimal
 
-openstack-config --set /etc/cinder/cinder.conf DEFAULT enabled_backends rbd-disk
-openstack-config --set /etc/cinder/cinder.conf DEFAULT rabbit_host  ${openstack_ip}
-openstack-config --set /etc/cinder/cinder.conf DEFAULT rpc_backend rabbit
-openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v1_api false
-openstack-config --set /etc/cinder/cinder.conf DEFAULT enable_v2_api true
-openstack-config --set /etc/cinder/cinder.conf DEFAULT auth_strategy keystone
-openstack-config --set /etc/cinder/cinder.conf DEFAULT glance_api_version 2
-
-openstack-config --set /etc/cinder/cinder.conf keystone_authtoken auth_uri http://${openstack_ip}:5000/v2.0
-openstack-config --set /etc/cinder/cinder.conf keystone_authtoken identity_uri http://${openstack_ip}:35357
-
-
-openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_pool volumes
-openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_user volumes
-openstack-config --set /etc/cinder/cinder.conf rbd-disk rbd_secret_uuid $virsh_secret
-openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_backend_name RBD
-openstack-config --set /etc/cinder/cinder.conf rbd-disk volume_driver cinder.volume.drivers.rbd.RBDDriver
-openstack-config --set /etc/glance/glance-api.conf DEFAULT default_store rbd
-openstack-config --set /etc/glance/glance-api.conf DEFAULT show_image_direct_url True
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_user images
-openstack-config --set /etc/glance/glance-api.conf DEFAULT workers 120
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_chunk_size 8
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_pool images
-openstack-config --set /etc/glance/glance-api.conf DEFAULT rbd_store_ceph_conf /etc/ceph/ceph.conf
-openstack-config --set /etc/glance/glance-api.conf DEFAULT known_stores glance.store.rbd.Store,glance.store.http.Store,glance.store.filesystem.Store
-
-openstack-config --set /etc/glance/glance-api.conf glance_store default_store rbd
-openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_chunk_size 8
-openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_pool images
-openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_user images
-openstack-config --set /etc/glance/glance-api.conf glance_store rbd_store_ceph_conf /etc/ceph/ceph.conf
-openstack-config --set /etc/glance/glance-api.conf glance_store stores glance.store.rbd.Store,glance.store.filesystem.Store,glance.store.http.Store
 ## configure ceph-rest-api 
 echo ${INTERNAL_VIP}
 
