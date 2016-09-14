@@ -382,11 +382,6 @@ class contrail::config::config (
         'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
         'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
     } ->
-    # initd script wrapper for contrail-api
-    file { '/etc/init.d/contrail-api' :
-        mode    => '0777',
-        content => template("${module_name}/contrail-api.svc.erb"),
-    } ->
     # contrail plugin for opencontrail
     opencontrail_plugin_ini {
         'APISERVER/api_server_ip'   : value => "$config_ip";
@@ -409,26 +404,19 @@ class contrail::config::config (
 
     #Class['::contrail::config::config_neutron_server'] ->
 
-    # initd script wrapper for contrail-discovery
-    file { '/etc/init.d/contrail-discovery' :
-        mode    => '0777',
-        content => template("${module_name}/contrail-discovery.svc.erb"),
-    } ->
-
     file { '/usr/bin/nodejs':
         ensure => link,
         target => '/usr/bin/node',
     } ->
-
     Sysctl::Value['net.ipv4.tcp_keepalive_time']
     if (! defined(Class['::contrail::rabbitmq'])){
         contain ::contrail::rabbitmq
-        File['/etc/init.d/contrail-discovery']->Class['::contrail::rabbitmq']->File['/usr/bin/nodejs']
+        Contrail::Lib::Augeas_conf_set['NEUTRON_PLUGIN_CONFIG']->Class['::contrail::rabbitmq']->File['/usr/bin/nodejs']
     }
     # run setup-pki.sh script
     if $use_certs == true {
          contain ::contrail::config::setup_pki
-         File['/etc/init.d/contrail-discovery']->Class['::contrail::config::setup_pki']->File['/usr/bin/nodejs']
+         Contrail::Lib::Augeas_conf_set['NEUTRON_PLUGIN_CONFIG']->Class['::contrail::config::setup_pki']->File['/usr/bin/nodejs']
     }
     contain ::contrail::openstackrc
     contain ::contrail::keystone
