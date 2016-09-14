@@ -40,7 +40,6 @@ class contrail::profile::mongodb {
       }
 
       if($mongodb_bind_address == $primary_db_ip){
-        Notify["contrail::profile::mongodb - {primary_db_ip} = ${primary_db_ip}"] ->
         # Check Mongodb conection
         exec { 'exec_mongo_connection':
             command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'db = db.getSiblingDB(\"ceilometer\")\'",
