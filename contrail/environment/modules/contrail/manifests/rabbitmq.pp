@@ -43,6 +43,15 @@ class contrail::rabbitmq (
         $amqp_name_list_shell = join($amqp_name_list, ",")
         $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctrl\n"
 
+        if ($::operatingsystem == 'Ubuntu') { 
+          file {'/etc/default/rabbitmq-server':
+              ensure => present,
+          } ->
+          file_line { 'RABBITMQ-SERVER-ULIMIT':
+            path => '/etc/default/rabbitmq-server',
+            line => 'ulimit -n 10240',
+          } ~> Service['rabbitmq-server']
+        } 
         if !defined(Service['rabbitmq-server']) {
             service { 'rabbitmq-server':
                 ensure => running,

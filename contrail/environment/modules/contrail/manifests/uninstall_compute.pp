@@ -25,10 +25,28 @@ class contrail::uninstall_compute (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_host_roles = $::contrail::params::host_roles,
     $enable_lbaas =  $::contrail::params::enable_lbaas,
+    $enable_dpdk = $::contrail::params::enable_dpdk,
 ) inherits ::contrail::params {
 
     #Determine vrouter package to be installed based on the kernel
     #TODO add DPDK support here
+    if ($enable_dpdk) {
+      mount { '/hugepages':
+        ensure => absent,
+      } ->
+      contrail::lib::augeas_conf_rm { "max_map_count_value_removed":
+        key => 'vm.max_map_count',
+        config_file => '/etc/sysctl.conf',
+        lens_to_use => 'properties.lns',
+      } ->
+      file_line {'fstab_hugetlbfs':
+        ensure  => absent,
+        path    => '/etc/fstab',
+        line    => 'hugetlbfs    /hugepages    hugetlbfs defaults,pagesize=1G       0       0',
+        match   => '^*hugetlbfs.*hugetlbfs.*$',
+        match_for_absence => true,
+      }
+    }
     if ($operatingsystem == 'Ubuntu'){
 
         if ($lsbdistrelease == '14.04') {
