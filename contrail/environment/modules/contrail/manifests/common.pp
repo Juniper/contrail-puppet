@@ -142,7 +142,27 @@ class contrail::common(
         Sysctl::Value['kernel.core_pattern']
         contain ::contrail::disable_ufw
         contain ::contrail::core_file_unlimited
+       
+        if ("openstack" in $host_roles) {
+          file {'/etc/default/rabbitmq-server':
+            ensure => present,
+          } ->
+          file_line { 'RABBITMQ-SERVER-ULIMIT':
+            path => '/etc/default/rabbitmq-server',
+            line => 'ulimit -n 10240',
+          }
+        }
     }
     contain ::contrail::flush_iptables
     contain ::contrail::enable_kernel_core
+    if (("config" in $host_roles) or ("database" in $host_roles) or ("control" in $host_roles) or ("controller" in $host_roles)) {
+      contrail::lib::augeas_security_limits_conf_set { 
+          "root-soft": title => "root-soft", domain => root, type => soft, item => nofile, value =>  65535;
+          "root-hard": title => "root-hard", domain => root, type => hard, item => nofile, value =>  65535;
+          "*-hard-nofile": title => "*-hard-nofile", domain => "*", type => hard, item => nofile, value =>  65535;
+          "*-soft-nofile": title => "*-soft-nofile", domain => "*", type => soft, item => nofile, value =>  65535;
+          "*-hard-nproc": title => "*-hard-nproc", domain => "*", type => hard, item => nproc, value =>  65535;
+          "*-soft-nofile-2": title => "*-soft-nofile-2", domain => "*", type => soft, item => nofile, value =>  65535;
+       }
+    }
 }
