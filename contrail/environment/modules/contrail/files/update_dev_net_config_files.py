@@ -176,7 +176,7 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
 							host_non_mgmt_ip):
 
     result,status = commands.getstatusoutput('grep \"iface vhost0\" /etc/network/interfaces')
-    if status == 0 :
+    if result == 0 :
         print "Interface vhost0 is already present in /etc/network/interfaces"
         print "Skipping rewrite of this file"
         return
@@ -263,6 +263,7 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
         commands.getstatusoutput("echo -n '    dns-nameservers' >> %s" %(temp_intf_file))
         for dns in dns_list:
             commands.getstatusoutput("echo -n ' %s' >> %s" %(dns, temp_intf_file))
+    commands.getstatusoutput("echo '\n    post-up ip link set vhost0 address %s' >> %s" % (mac,temp_intf_file))
     commands.getstatusoutput("echo '\n' >> %s" %(temp_intf_file))
 
     # move it to right place
