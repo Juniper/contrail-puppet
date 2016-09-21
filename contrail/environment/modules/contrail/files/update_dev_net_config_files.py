@@ -176,7 +176,7 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
 							host_non_mgmt_ip):
 
     result,status = commands.getstatusoutput('grep \"iface vhost0\" /etc/network/interfaces')
-    if status == 0 :
+    if result == 0 :
         print "Interface vhost0 is already present in /etc/network/interfaces"
         print "Skipping rewrite of this file"
         return
@@ -236,8 +236,10 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
         commands.getstatusoutput("echo '' >> %s" %(temp_intf_file))
     else:
         #remove ip address and gateway
-        commands.getstatusoutput("sed -i '/iface %s inet static/, +2d' %s" % (dev, temp_intf_file))
-        commands.getstatusoutput("sed -i '/auto %s/ a\iface %s inet manual\\n    pre-up ifconfig %s up\\n    post-down ifconfig %s down\' %s"% (dev, dev, dev, dev, temp_intf_file))
+        commands.getstatusoutput("sudo sed -i '/^auto %s/d' %s" %(dev,temp_intf_file))
+        commands.getstatusoutput("sudo sed -i '/^iface %s inet manual/d' %s" %(dev,temp_intf_file))
+        commands.getstatusoutput("sudo sed -i '/^    pre-up ifconfig %s up/d' %s" %(dev,temp_intf_file))
+        commands.getstatusoutput("sudo sed -i '/^    post-down ifconfig %s down/d' %s" %(dev,temp_intf_file))
 
     # populte vhost0 as static
     commands.getstatusoutput("echo '' >> %s" %(temp_intf_file))
