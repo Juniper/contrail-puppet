@@ -18,13 +18,17 @@ class contrail::profile::openstack::ceilometer (
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
-
+  $database_ip_to_use = $database_ip_list[0]
   $mongo_connection = join([ "mongodb://ceilometer:", $mongo_password, "@", join($database_ip_list,':27017,') ,":27017/ceilometer?replicaSet=rs-ceilometer" ],'')
-
   $auth_url = "http://${keystone_ip_to_use}:5000/v2.0"
   $auth_password = $ceilometer_password
   $auth_tenant_name = 'services'
   $auth_username = 'ceilometer'
+  if (internal_vip!='') {
+    $coordination_url = join(["kazoo://", $database_ip_to_use, ':2181'])
+  } else {
+    $coordination_url = undef
+  }
 
   class { '::ceilometer':
     metering_secret => $metering_secret,
@@ -32,12 +36,13 @@ class contrail::profile::openstack::ceilometer (
     verbose         => $openstack_debug,
     rabbit_hosts    => $openstack_rabbit_servers,
   } ->
-
   file { '/etc/ceilometer/pipeline.yaml':
     ensure => file,
     content => template('contrail/pipeline.yaml.erb'),
   } ->
-  class { '::ceilometer::agent::central':} ->
+  class { '::ceilometer::agent::central':
+    coordination_url => $coordination_url
+  } ->
   contrail::lib::augeas_conf_rm { "ceilometer_rpc_backend":
         key => 'rpc_backend',
         config_file => '/etc/ceilometer/ceilometer.conf',
@@ -46,23 +51,34 @@ class contrail::profile::openstack::ceilometer (
   }
   if $::osfamily != 'Debian' {
     class { '::ceilometer::alarm::notifier':
-    }
-
+    } ->
     class { '::ceilometer::alarm::evaluator':
+      coordination_url => $coordination_url
     }
   }
-
-  class { '::ceilometer::collector': }
-
+  if (internal_vip!='') {
+      $ceilometer_ha_properties = { 'ceilometer_ha_config' => {
+         'notification/workload_partitioning' => 'True',
+         'compute/workload_partitioning' => 'True',
+        }
+      }
+      Contrail::Lib::Augeas_conf_rm['ceilometer_rpc_backend']->
+      contrail::lib::augeas_conf_set{ "ceilometer_ha":
+        settings_hash => $ceilometer_ha_properties['ceilometer_ha_config'],
+        config_file => '/etc/ceilometer/ceilometer.conf',
+        lens_to_use => 'properties.lns'
+      }
+  }
+  class { '::ceilometer::collector': } ->
   class { '::ceilometer::agent::auth':
     auth_url         => $auth_url,
     auth_password    => $auth_password,
     auth_tenant_name => $auth_tenant_name,
     auth_user        => $auth_username,
-  }
+  } ->
   class { '::ceilometer::db':
     database_connection => $mongo_connection
-  }
+  } ->
   class { '::ceilometer::api':
     enabled           => true,
     keystone_host     => $controller_mgmt_address,
