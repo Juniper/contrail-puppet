@@ -236,14 +236,8 @@ def _rewrite_net_interfaces_file(temp_dir_name, dev, mac, vhost_ip, netmask, gat
         commands.getstatusoutput("echo '' >> %s" %(temp_intf_file))
     else:
         #remove ip address and gateway
-        manual_status,result = commands.getstatusoutput("sudo sed -i '/^iface %s inet manual/d' %s" %(dev,temp_intf_file))
-        if manual_status:
-            commands.getstatusoutput("sudo sed -i '/^auto %s/d' %s" %(dev,temp_intf_file))
-            commands.getstatusoutput("sudo sed -i '/^    pre-up ifconfig %s up/d' %s" %(dev,temp_intf_file))
-            commands.getstatusoutput("sudo sed -i '/^    post-down ifconfig %s down/d' %s" %(dev,temp_intf_file))
-        elif 'bond' in dev.lower():
-            commands.getstatusoutput("sed -i '/iface %s inet static/, +2d' %s" % (dev, temp_intf_file))
-            commands.getstatusoutput("sed -i '/auto %s/ a\iface %s inet manual\\n    pre-up ifconfig %s up\\n    post-down ifconfig %s down\' %s"% (dev, dev, dev, dev, temp_intf_file))
+        commands.getstatusoutput("sed -i '/iface %s inet static/, +2d' %s" % (dev, temp_intf_file))
+        commands.getstatusoutput("sed -i '/auto %s/ a\iface %s inet manual\\n    pre-up ifconfig %s up\\n    post-down ifconfig %s down\' %s"% (dev, dev, dev, dev, temp_intf_file))
 
     # populte vhost0 as static
     commands.getstatusoutput("echo '' >> %s" %(temp_intf_file))
