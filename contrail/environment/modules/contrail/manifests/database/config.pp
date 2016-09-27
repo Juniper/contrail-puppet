@@ -93,6 +93,12 @@ class contrail::database::config (
     notify { "Database - zookeeper_ip_list = ${zookeeper_ip_list}":;} ->
     notify { "Database - database_index = ${database_index}":;} ->
     notify { "Database - cassandra_seeds = ${cassandra_seeds}":;} ->
+    exec {'Create database dir':
+        command   => "mkdir -p ${database_dir}",
+        unless    => "test -d ${database_dir}",
+        provider  => shell,
+        logoutput => $contrail_logoutput
+    } ->
     file { $database_dir :
         ensure  => directory,
         owner   => cassandra,
