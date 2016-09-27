@@ -91,6 +91,12 @@ class contrail::database::config (
 
     # Debug - Print all variables
     notify { "Database - cassandra_seeds = ${cassandra_seeds}":;} ->
+    exec {'Create database dir':
+        command   => "mkdir -p ${database_dir}",
+        unless    => "test -d ${database_dir}",
+        provider  => shell,
+        logoutput => $contrail_logoutput
+    } ->
     file { $database_dir :
         ensure  => directory,
         owner   => cassandra,
