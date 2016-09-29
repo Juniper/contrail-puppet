@@ -345,7 +345,7 @@ class openstack (
       neutron_type_drivers          => hiera(openstack::neutron::neutron_type_drivers, $neutron_type_drivers),
       neutron_mechanism_drivers     => hiera(openstack::neutron::neutron_mechanism_drivers, $neutron_mechanism_drivers),
       neutron_tunnel_id_ranges      => hiera(openstack::neutron::neutron_tunnel_id_ranges, $neutron_tunnel_id_ranges),
-      ceilometer_mongo_password     => hiera(openstack::ceilometer::mongo::password),
+      ceilometer_mongo_password     => hiera(openstack::ceilometer::mongo),
       ceilometer_password           => hiera(openstack::ceilometer::password),
       ceilometer_meteringsecret     => hiera(openstack::ceilometer::meteringsecret),
       heat_password                 => hiera(openstack::heat::password),
