@@ -10,10 +10,10 @@ class contrail::profile::mongodb {
       $mongo_slave_ip_list_str = inline_template('<%= @database_ip_list.delete_if {|x| x == @primary_db_ip }.join(";") %>')
       $mongo_slave_ip_list = split($mongo_slave_ip_list_str, ';')
       notify { "contrail::profile::mongodb - mongo_slave_ip_list = ${mongo_slave_ip_list}":;}
-      $ceilometer_mongo_password = hiera(openstack::ceilometer::mongo::password)
+      $ceilometer_mongo_password = hiera(openstack::ceilometer::mongo)
       $ceilometer_password = hiera(openstack::ceilometer::password)
       $ceilometer_meteringsecret = hiera(openstack::ceilometer::meteringsecret)
-      $mongodb_bind_address = $contrail::params::host_non_mgmt_ip
+      $mongodb_bind_address = $::contrail::params::host_ip
       $port = ':27017'
       $contrail_logoutput = $::contrail::params::contrail_logoutput
 
