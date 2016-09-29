@@ -15,12 +15,14 @@ class contrail::profile::openstack::heat (
       $heat_api_bind_port = '8005'
       $heat_api_cfn_bind_host = '0.0.0.0'
       $heat_api_cfn_bind_port = '8001'
-    }
-    else {
+      $database_idle_timeout = "180"
+    } else {
       $heat_api_bind_host = $::openstack::config::controller_address_api
       $heat_api_bind_port = '8004'
       $heat_api_cfn_bind_host = $::openstack::config::controller_address_api
       $heat_api_cfn_bind_port = '8000'
+      # Default value from heat/manifest/init.pp
+      $database_idle_timeout = "3600"
     }
 
     class { '::heat::keystone::auth':
@@ -41,6 +43,7 @@ class contrail::profile::openstack::heat (
 
     class { '::heat':
       sql_connection    => $::openstack::resources::connectors::heat,
+      database_idle_timeout => $database_idle_timeout,
       rabbit_hosts       => $openstack_rabbit_servers,
       rabbit_userid     => $::openstack::config::rabbitmq_user,
       rabbit_password   => $::openstack::config::rabbitmq_password,
@@ -74,6 +77,24 @@ class contrail::profile::openstack::heat (
       'clients_contrail/tenent': value => 'admin';
       'clients_contrail/api_server': value => $contrail_api_server;
       'clients_contrail/api_base_url': value => '/';
+    }
+    if ($internal_vip != '' and $internal_vip != undef) {
+      heat_config {
+        'database/min_pool_size'        :  value => "100";
+        'database/max_pool_size'        :  value => "350";
+        'database/max_overflow'         :  value => "700";
+        'database/retry_interval'       :  value => "5";
+        'database/max_retries'          :  value => "-1";
+        'database/db_max_retries'       :  value => "3";
+        'database/db_retry_interval'    :  value => "1";
+        'database/connection_debug'     :  value => "10";
+        'database/pool_timeout'         :  value => "120";
+        'DEFAULT/rabbit_retry_interval' :  value => "10";
+        'DEFAULT/rabbit_retry_backoff'  :  value => "5";
+        'DEFAULT/rabbit_max_retries'    :  value => "0";
+        #'database/idle_timeout'         :  value => "180";
+        #'DEFAULT/rabbit_ha_queues'      :  value => "True";
+      }
     }
 
     notify { "contrail::profile::openstack::heat - heat_api_bind_host = ${heat_api_bind_host}":; }
