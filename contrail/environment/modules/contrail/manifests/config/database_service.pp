@@ -4,4 +4,9 @@ class contrail::config::database_service {
         enable => true,
         subscribe => File['/etc/zookeeper/conf/zoo.cfg'],
     }
+    ->
+    service { 'contrail-database' :
+        ensure    => running,
+        enable    => true
+    }
 }
