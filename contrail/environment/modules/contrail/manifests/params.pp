@@ -753,6 +753,14 @@ class contrail::params (
     $nova_private_key,
     $nova_public_key,
     $config_manage_db,
+    $user_nova_config,
+    $user_glance_config,
+    $user_cinder_config,
+    $user_keystone_config,
+    $user_neutron_config,
+    $user_heat_config,
+    $user_ceilometer_config,
+    $user_ceph_config,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
