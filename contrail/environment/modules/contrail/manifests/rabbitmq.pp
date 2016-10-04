@@ -53,14 +53,9 @@ class contrail::rabbitmq (
           } ~> Service['rabbitmq-server']
         } 
         if !defined(Service['rabbitmq-server']) {
-            if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-                $svc_en = false
-            } else {
-                $svc_en = true
-            }
             service { 'rabbitmq-server':
                 ensure => running,
-                enable => $svc_en
+                enable => true
             }
         }
 
