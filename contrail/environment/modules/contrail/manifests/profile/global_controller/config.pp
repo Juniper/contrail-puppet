@@ -5,7 +5,7 @@
 
 class contrail::profile::global_controller::config (
     $database_ip_list =  $::contrail::params::database_ip_list,
-    $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+    $keystone_mgmt_ip = $::contrail::params::keystone_mgmt_ip,
     $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
     $keystone_admin_user = $::contrail::params::keystone_admin_user,
     $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
