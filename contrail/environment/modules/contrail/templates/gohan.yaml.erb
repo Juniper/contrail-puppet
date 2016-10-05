@@ -37,7 +37,7 @@ tls:
 keystone:
     use_keystone: true
     fake: false
-    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_ip_to_use %>:5000/v2.0/"
+    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_mgmt_ip %>:5000/v2.0/"
     user_name: "<%= @keystone_admin_user %>"
     tenant_name: "<%= @keystone_admin_tenant %>"
     password: "<%= @keystone_admin_password %>"
@@ -64,4 +64,4 @@ extension:
 webui_config:
     enabled: true
     tls: false
-    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_ip_to_use %>:5000/v2.0/"
+    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_mgmt_ip %>:5000/v2.0/"
