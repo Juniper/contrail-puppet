@@ -40,6 +40,14 @@ class contrail::profile::openstack_controller (
   $processor_count_str = "${::processorcount}"
 
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
+    if ($enable_ceilometer) {
+      $ceilometer_packages = ['ceilometer-common',
+                              'ceilometer-backend-package',
+                              'ceilometer-agent-central',
+                              'ceilometer-api']
+    } else {
+      $ceilometer_packages = []
+    }
     $pkg_list_a = ["${keystone::params::package_name}",
                           "${glance::params::api_package_name}",
                           "${glance::params::registry_package_name}",
@@ -52,7 +60,8 @@ class contrail::profile::openstack_controller (
                           "${nova::params::numpy_package_name}",
                           "${mysql::params::python_package_name}",
                           "python-nova", "pm-utils",
-                          "python-keystone", "python-cinderclient"]
+                          "python-keystone", "python-cinderclient",
+                          $ceilometer_packages]
     # api_package is false in case of Centos
     if $::cinder::params::api_package {
         $pkg_list = [$pkg_list_a, "${cinder::params::api_package}"]

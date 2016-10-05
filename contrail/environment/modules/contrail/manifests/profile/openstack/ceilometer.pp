@@ -42,12 +42,6 @@ class contrail::profile::openstack::ceilometer (
   } ->
   class { '::ceilometer::agent::central':
     coordination_url => $coordination_url
-  } ->
-  contrail::lib::augeas_conf_rm { "ceilometer_rpc_backend":
-        key => 'rpc_backend',
-        config_file => '/etc/ceilometer/ceilometer.conf',
-        lens_to_use => 'properties.lns',
-        match_value => 'ceilometer.openstack.common.rpc.impl_kombu',
   }
   if $::osfamily != 'Debian' {
     class { '::ceilometer::alarm::notifier':
@@ -57,32 +51,32 @@ class contrail::profile::openstack::ceilometer (
     }
   }
   if (internal_vip!='') {
-      $ceilometer_ha_properties = { 'ceilometer_ha_config' => {
-         'notification/workload_partitioning' => 'True',
-         'compute/workload_partitioning' => 'True',
-        }
-      }
-      Contrail::Lib::Augeas_conf_rm['ceilometer_rpc_backend']->
-      contrail::lib::augeas_conf_set{ "ceilometer_ha":
-        settings_hash => $ceilometer_ha_properties['ceilometer_ha_config'],
-        config_file => '/etc/ceilometer/ceilometer.conf',
-        lens_to_use => 'properties.lns'
-      }
+     Contrail::Lib::Augeas_conf_rm['ceilometer_rpc_backend']->
+     ceilometer_config {
+      'notification/workload_partitioning' : value => 'True';
+      'compute/workload_partitioning'      : value => 'True';
+     }
   }
-  class { '::ceilometer::collector': } ->
   class { '::ceilometer::agent::auth':
     auth_url         => $auth_url,
     auth_password    => $auth_password,
     auth_tenant_name => $auth_tenant_name,
     auth_user        => $auth_username,
-  } ->
+  }
   class { '::ceilometer::db':
     database_connection => $mongo_connection
-  } ->
+  }
   class { '::ceilometer::api':
     enabled           => true,
     keystone_host     => $controller_mgmt_address,
     keystone_password => $ceilometer_password,
   }
+  class { '::ceilometer::collector': }
 
+  contrail::lib::augeas_conf_rm { "ceilometer_rpc_backend":
+        key => 'rpc_backend',
+        config_file => '/etc/ceilometer/ceilometer.conf',
+        lens_to_use => 'properties.lns',
+        match_value => 'ceilometer.openstack.common.rpc.impl_kombu',
+  }
 }
