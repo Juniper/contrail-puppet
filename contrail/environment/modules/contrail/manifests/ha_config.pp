@@ -56,7 +56,6 @@
 class contrail::ha_config (
     $host_control_ip = $::contrail::params::host_ip,
     $openstack_ip_list = $::contrail::params::openstack_ip_list,
-    $zookeeper_ip_list = $::contrail::params::database_ip_list,
     $compute_name_list = $::contrail::params::compute_name_list,
     $config_name_list = $::contrail::params::config_name_list,
     $compute_name_list = $::contrail::params::compute_name_list,
@@ -104,6 +103,13 @@ class contrail::ha_config (
             $contrail_nfs_glance_path = $nfs_glance_path
         } else {
             $contrail_nfs_glance_path = '/var/lib/glance/images'
+        }
+        if (size($::contrail::params::database_ip_list) < 1 and $internal_vip != '') {
+            $zookeeper_ip_list = $::contrail::params::openstack_ip_list
+            notify { "Zookeeper_ip_list = $zookeeper_ip_list":;}
+        } else {
+            $zookeeper_ip_list = $::contrail::params::database_ip_list
+            notify { "Zookeeper_ip_list = $zookeeper_ip_list":;}
         }
 
         $cmon_db_user = "cmon"
