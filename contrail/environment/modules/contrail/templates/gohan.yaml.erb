@@ -26,7 +26,7 @@ extension:
 asn: 65000
 
 # listen address for gohan
-address: ":9500"
+address: ":<%= @global_controller_port %>"
 tls:
     # browsers need to add exception as long as we use self-signed certificates
     # so lets leave it disabled for now
@@ -37,7 +37,7 @@ tls:
 keystone:
     use_keystone: true
     fake: false
-    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_ip_to_use %>:5000/v2.0/"
+    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_mgmt_ip %>:5000/v2.0/"
     user_name: "<%= @keystone_admin_user %>"
     tenant_name: "<%= @keystone_admin_tenant %>"
     password: "<%= @keystone_admin_password %>"
@@ -60,8 +60,11 @@ extension:
     - gohanscript
     - go
 
+document_root: /opt/ukai/public
+
 # Generate webui config
 webui_config:
     enabled: true
     tls: false
-    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_ip_to_use %>:5000/v2.0/"
+    address: ":9500"
+    auth_url: "<%= @keystone_auth_protocol %>://<%= @keystone_mgmt_ip %>:5000/v2.0/"
