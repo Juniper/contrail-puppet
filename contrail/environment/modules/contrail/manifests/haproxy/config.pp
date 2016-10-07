@@ -5,6 +5,8 @@ class contrail::haproxy::config(
     $openstack_name_list =  $::contrail::params::openstack_name_list,
     $collector_ip_list = $::contrail::params::collector_ip_list,
     $collector_name_list =  $::contrail::params::collector_name_list,
+    $global_controller_name_list =  $::contrail::params::global_controller_name_list,
+    $global_controller_ip_list =  $::contrail::params::global_controller_ip_list,
     $contrail_internal_vip =  $::contrail::params::contrail_internal_vip,
     $internal_vip =  $::contrail::params::internal_vip,
     $host_ip = $::contrail::params::host_ip,
@@ -20,6 +22,8 @@ class contrail::haproxy::config(
     $config_name_list_shell = join($config_name_list, ",")
     $collector_ip_list_shell   = join($collector_ip_list, ",")
     $collector_name_list_shell = join($collector_name_list, ",")
+    $global_controller_ip_list_shell = join($global_controller_ip_list, ",")
+    $global_controller_name_list_shell = join($global_controller_name_list, ",")
     $contrail_exec_haproxy_gen = "python /opt/contrail/bin/generate_haproxy.py  && echo generate_ha_config >> /etc/contrail/contrail_openstack_exec.out"
 
     file { '/opt/contrail/bin/generate_haproxy.py' :
