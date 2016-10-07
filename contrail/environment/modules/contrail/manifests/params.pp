@@ -753,6 +753,16 @@ class contrail::params (
     $nova_private_key,
     $nova_public_key,
     $config_manage_db,
+    $user_nova_config,
+    $user_glance_config,
+    $user_cinder_config,
+    $user_keystone_config,
+    $user_neutron_config,
+    $user_heat_config,
+    $user_ceilometer_config,
+    $user_ceph_config,
+    $global_controller_ip_list,
+    $global_controller_name_list,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -831,9 +841,11 @@ class contrail::params (
     if ($internal_vip != '') {
         $openstack_ip_to_use = $internal_vip
         $discovery_ip_to_use = $internal_vip
+        $global_controller_port = '9501'
     } else {
         $openstack_ip_to_use = $openstack_ip_list[0]
         $discovery_ip_to_use = $config_ip_list[0]
+        $global_controller_port = '9500'
     }
 
     ## NOTE: if openstack role is there, use self ip for mysql
@@ -919,6 +931,7 @@ class contrail::params (
         $multi_tenancy_options = ""
     }
 
+    $keystone_mgmt_ip = pick($::contrail::params::keystone_ip, $::contrail::params::external_openstack_ip, $::contrail::params::external_vip, $::contrail::params::openstack_mgmt_ip_list_to_use[0])
     $contrail_neutron_public_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_api)
     $contrail_neutron_admin_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
     $contrail_neutron_internal_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
