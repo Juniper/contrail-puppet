@@ -3,7 +3,7 @@
 # Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
 #
 import string
-import sys 
+import sys
 import platform
 
 (pdist, pdistversion, pdistrelease) = platform.dist()
@@ -64,6 +64,10 @@ $__openstack_ha_proxy
 #contrail-config-marker-start
 $__config_ha_proxy
 #contrail-config-marker-end
+
+#contrail-global-controller-marker-start
+$__global_controller_ha_proxy
+#contrail-global-controller-marker-end
 
 #toragent-config-marker-start
 $__toragent_ha_proxy
@@ -311,13 +315,13 @@ listen memcached 0.0.0.0:11222
    mode tcp
    balance roundrobin
    option tcplog
-   maxconn 10000                                                                                   
-   balance roundrobin                                                                              
-   option tcpka                                                                                    
-   option nolinger                                                                                 
-   timeout connect 5s                                                                              
-   timeout client 48h                                                                              
-   timeout server 48h 
+   maxconn 10000
+   balance roundrobin
+   option tcpka
+   option nolinger
+   timeout connect 5s
+   timeout client 48h
+   timeout server 48h
 $__memcached_servers__
 
 listen  mysql 0.0.0.0:33306
@@ -377,17 +381,32 @@ $__contrail_disc_backend_servers__
 #contrail-config-marker-end
 """)
 
-
+global_controller_ha_template = string.Template("""
+#contrail-global-controller-marker-start
+listen contrail-global-controller-stats :5938
+   mode http
+   stats enable
+   stats uri /
+   stats auth $__contrail_hap_user__:$__contrail_hap_passwd__
+frontend global-controller-server *:9500
+    default_backend    global-controller-server-backend
+backend global-controller-server-backend
+    option nolinger
+    balance     roundrobin
+$__servers__
+#contrail-global-controller-marker
+""")
 
 def main(args_str=None):
     config_stanza = ""
+    global_controller_stanza = ""
     collector_stanza = ""
     openstack_stanza = ""
 
     host_ip = "<%=@host_ip%>"
     internal_vip = "<%=@ha_internal_vip%>"
     contrail_internal_vip = "<%=@ha_contrail_internal_vip%>"
-    
+
     config_host_list_str = "<%=@config_name_list_shell%>"
     config_ip_list_str = "<%=@config_ip_list_shell%>"
 
@@ -396,6 +415,9 @@ def main(args_str=None):
 
     collector_host_list_str = "<%=@collector_name_list_shell%>"
     collector_ip_list_str = "<%=@collector_ip_list_shell%>"
+
+    global_controller_host_list_str = "<%=@global_controller_name_list_shell%>"
+    global_controller_ip_list_str = "<%=@global_controller_ip_list_shell%>"
 
     tor_details_str = '<%=@tor_ha_proxy_config%>'
 
@@ -410,6 +432,8 @@ def main(args_str=None):
     collector_host_list = collector_host_list_str.split(",")
     collector_ip_list = collector_ip_list_str.split(",")
 
+    global_controller_host_list = global_controller_host_list_str.split(",")
+    global_controller_ip_list = global_controller_ip_list_str.split(",")
 
     toragent_stanza = tor_agent_ha_config(tor_details)
     if host_ip in config_ip_list:
@@ -421,9 +445,13 @@ def main(args_str=None):
     if (internal_vip != "none") and (host_ip in openstack_ip_list):
         openstack_stanza = generate_openstack_ha_config(openstack_ip_list, host_ip)
 
+    if host_ip in global_controller_ip_list:
+        global_controller_stanza = generate_global_controller_ha_config(global_controller_ip_list)
+
     haproxy_config = haproxy_template.safe_substitute({
         '__collector_ha_proxy' : collector_stanza,
         '__config_ha_proxy' : config_stanza,
+        '__global_controller_ha_proxy' : global_controller_stanza,
         '__openstack_ha_proxy' : openstack_stanza,
         '__toragent_ha_proxy' : toragent_stanza,
         })
@@ -503,7 +531,7 @@ def tor_agent_ha_config(tor_details_str):
             if tsn1 < tsn2:
                 key = tsn1 + "-" + tsn2
             else:
-                key = tsn2 + "-" + tsn1 
+                key = tsn2 + "-" + tsn1
 
         if not key in master_ha_proxy:
             master_ha_proxy[key] = []
@@ -529,7 +557,7 @@ def tor_agent_ha_config(tor_details_str):
              #if tsn1 < tsn2:
                  #key = tsn1 + "-" + tsn2
              #else:
-                 #key = tsn2 + "-" + tsn1 
+                 #key = tsn2 + "-" + tsn1
 #
          #if not key in master_ha_proxy:
              #master_ha_proxy[key] = []
@@ -595,6 +623,24 @@ def generate_config_ha_config(config_ip_list, openstack_ip_list, mgmt_ip, intern
 	'__contrail_quantum_servers__': q_server_lines,
 	'__contrail_api_backend_servers__': api_server_lines,
 	'__contrail_disc_backend_servers__': disc_server_lines,
+	'__contrail_hap_user__': 'haproxy',
+	'__contrail_hap_passwd__': 'contrail123'
+        })
+
+    return haproxy_config
+
+def generate_global_controller_ha_config(global_controller_ip_list):
+    listen_port = 9501
+    server_lines = ''
+    nworkers = 1
+    space = ' ' * 3
+    for server_index, host_ip in enumerate(global_controller_ip_list):
+        server_lines = server_lines + \
+        '    server %s %s:%s check inter 2000 rise 2 fall 3\n' \
+                    %(host_ip, host_ip, str(listen_port))
+
+    haproxy_config = global_controller_ha_template.safe_substitute({
+	'__servers__': server_lines,
 	'__contrail_hap_user__': 'haproxy',
 	'__contrail_hap_passwd__': 'contrail123'
         })
@@ -678,7 +724,7 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
 	'__contrail_hap_user__': 'haproxy',
 	'__contrail_hap_passwd__': 'contrail123',
 	})
-    
+
     return haproxy_config
 
 if __name__ == "__main__":
