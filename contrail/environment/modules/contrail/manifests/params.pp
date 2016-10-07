@@ -789,12 +789,16 @@ class contrail::params (
     # Set keystone IP to be used.
     if ($keystone_ip != '') {
         $keystone_ip_to_use = $keystone_ip
+        $keystone_mgmt_ip = $keystone_ip
     } elsif ($external_openstack_ip != '') {
         $keystone_ip_to_use = $external_openstack_ip
+        $keystone_mgmt_ip = $external_openstack_ip
     } elsif ($internal_vip != '') {
         $keystone_ip_to_use = $internal_vip
+        $keystone_mgmt_ip = $internal_vip
     } else {
         $keystone_ip_to_use = $openstack_ip_list[0]
+        $keystone_mgmt_ip = $openstack_mgmt_ip_list_to_use[0]
     }
 
     #vip_to_use
