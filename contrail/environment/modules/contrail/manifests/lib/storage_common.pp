@@ -196,7 +196,6 @@ define contrail::lib::storage_common(
         notify {"internal_vip => ${internal_vip}":;} ->
         cinder_config {
           'DEFAULT/enabled_backends'  : value => 'rbd-disk';
-          'DEFAULT/rabbit_host'       : value => 'rbd-disk';
           'DEFAULT/rpc_backend'       : value => 'rabbit';
           'DEFAULT/enable_v1_api'     : value => 'false';
           'DEFAULT/enable_v2_api'     : value => 'true';
@@ -210,7 +209,7 @@ define contrail::lib::storage_common(
           'rbd-disk/rbd_secret_uuid'  : value => $contrail_storage_virsh_uuid;
           'rbd-disk/volume_driver'    : value => 'cinder.volume.drivers.rbd.RBDDriver';
         } ->
-        glance_api_config{
+        glance_api_config {
           'DEFAULT/workers'                  : value => '120';
           'DEFAULT/show_image_direct_url'    : value => 'True';
           'glance_store/default_store'       : value => 'rbd';
