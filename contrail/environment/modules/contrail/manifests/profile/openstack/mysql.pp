@@ -35,6 +35,5 @@ class contrail::profile::openstack::mysql(
 
   class { '::mysql::bindings':
     python_enable => true,
-    #ruby_enable   => true,
   }
 }

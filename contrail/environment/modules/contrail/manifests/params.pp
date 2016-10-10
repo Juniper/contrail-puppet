@@ -961,16 +961,6 @@ class contrail::params (
         $upgrade_needed = 0
     }
 
-    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        $redis_config_file = '/etc/redis.conf'
-        $redis_service = 'redis'
-        $ssl_package='openssl'
-    }
-    if ($::operatingsystem == 'Ubuntu') {
-        $redis_config_file = '/etc/redis/redis.conf'
-        $redis_service = 'redis-server'
-        $ssl_package='libssl0.9.8'
-    }
     if ( ($package_sku =~ /13\.0/) and ($::operatingsystem == 'Centos')) {
       $zookeeper_conf_dir= "/etc/zookeeper"
     } else {
@@ -982,5 +972,21 @@ class contrail::params (
       notify {'nova public keys are empty':;}
       contrail::lib::report_status { 'nova_public_missing': }
       fail("One of the nova keys are not specified")
+    }
+
+    case $::operatingsystem {
+      'Ubuntu': {
+        $neutron_pkg_name  = 'neutron-common'
+        $redis_config_file = '/etc/redis/redis.conf'
+        $redis_service     = 'redis-server'
+        $ssl_package       = 'libssl0.9.8'
+      }
+
+      'Centos', 'Fedora': {
+        $neutron_pkg_name  = 'openstack-neutron'
+        $redis_config_file = '/etc/redis.conf'
+        $redis_service     = 'redis'
+        $ssl_package       = 'openssl'
+      }
     }
 }
