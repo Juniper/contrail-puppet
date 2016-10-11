@@ -2,6 +2,7 @@ class contrail::config_cassandra (
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
   $host_control_ip = $::contrail::params::host_ip,
   $database_dir = $::contrail::params::database_dir,
+  $cassandra_commitlog_dir = $::contrail::params::cassandra_commitlog_dir,
   $cassandra_cluster_name = "\'Contrail\'",
   $cassandra_seeds,
   $contrail_cassandra_dir,
@@ -60,7 +61,7 @@ class contrail::config_cassandra (
       } ->
       file_line { 'Config Cassandra commitlog_dir':
           path => $cassandra_config_file,
-          line => "commitlog_directory: ${database_dir}/commitlog",
+          line => "commitlog_directory: ${cassandra_commitlog_dir}/commitlog",
           match   => '^commitlog_directory:.*$',
       } ->
       file_line { 'Removing Cassandra initial_token':
