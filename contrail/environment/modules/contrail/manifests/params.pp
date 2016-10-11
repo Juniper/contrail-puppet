@@ -931,6 +931,7 @@ class contrail::params (
         $multi_tenancy_options = ""
     }
 
+    $cassandra_commitlog_dir = pick($::contrail::params::ssd_data_dir, $::contrail::params::database_dir)
     $contrail_neutron_public_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_api)
     $contrail_neutron_admin_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
     $contrail_neutron_internal_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
