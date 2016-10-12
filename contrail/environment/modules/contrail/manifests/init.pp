@@ -570,6 +570,14 @@
 #     Flag to set for config node to have separate cassandra database cluster from collector
 #     (optional) - Defaults to false
 #
+# [*global_controller_ip_list*]
+#     List of interface IP addresses of all the servers in cluster
+#     configured to be provisioned with global controller package.
+#
+# [*global_controller_name_list*]
+#     List of host names of all the servers in cluster configured to
+#     be provisioned with global controller package.
+#
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -735,6 +743,8 @@ class contrail (
     $webui_cert_file_path = '/etc/contrail/webui_ssl/cs-cert.pem',
     $enable_global_controller = false,
     $config_manage_db = false,
+    $global_controller_ip_list = undef,
+    $global_controller_name_list = undef,
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -792,6 +802,9 @@ class contrail (
 	encap_priority =>			hiera(contrail::control::encapsulation_priority, hiera(contrail::params::encap_priority, $encap_priority)),
 	router_asn =>				hiera(contrail::control::router_asn, hiera(contrail::params::router_asn, $router_asn)),
 	external_bgp =>				hiera(contrail::control::external_bgp, hiera(contrail::params::external_bgp, $external_bgp)),
+        #Global Controller Parameters
+        global_controller_ip_list =>            hiera(contrail::global_controller::global_controller_ip_list, $global_controller_ip_list),
+        global_controller_name_list =>          hiera(contrail::global_controller::global_controller_name_list, $global_controller_name_list),
         # Openstack Parameters
 	openstack_controller_address_api =>     hiera(openstack::controller::address::api, hiera(contrail::params::openstack_controller_address_api, $openstack_controller_address_api)),
 	openstack_controller_address_management => hiera(openstack::controller::address::management, hiera(contrail::params::openstack_controller_address_management, $openstack_controller_address_management)),
