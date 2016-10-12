@@ -53,13 +53,14 @@ class contrail::common(
 
     create_resources(group, $contrail_group_details)
     create_resources(user, $contrail_users_details)
+    Contrail::Lib::Contrail_setup_repo <||> -> Package<||>
 
     # All Resources for this class are below.
     Group['nova', 'kvm', 'libvirtd'] ->
     User['nova', 'libvirt-qemu', 'libvirt-dnsmasq'] ->
     contrail::lib::contrail_upgrade{ 'contrail_upgrade':
-        contrail_upgrade   => $contrail_upgrade,
-        contrail_logoutput => $contrail_logoutput
+      contrail_upgrade   => $contrail_upgrade,
+      contrail_logoutput => $contrail_logoutput
     }
     if 'Ubuntu' == $::operatingsystem {
         apt::pin { 'debian_repo_preferences':
@@ -73,20 +74,20 @@ class contrail::common(
     }
     # Create repository config on target.
     contrail::lib::contrail_setup_repo{ $contrail_repo_name:
-        contrail_repo_ip   => $contrail_repo_ip,
-        contrail_logoutput => $contrail_logoutput
+      contrail_repo_ip   => $contrail_repo_ip,
+      contrail_logoutput => $contrail_logoutput
     } ->
     contrail::lib::contrail_install_repo{ "contrail_install_repo":
-        contrail_logoutput => $contrail_logoutput
+      contrail_logoutput => $contrail_logoutput
     } ->
     contrail::lib::upgrade_kernel{ 'kernel_upgrade':
-        contrail_kernel_upgrade => $::contrail::params::kernel_upgrade,
-        contrail_logoutput      => $contrail_logoutput
+      contrail_kernel_upgrade => $::contrail::params::kernel_upgrade,
+      contrail_logoutput      => $contrail_logoutput
     } ->
     # Ensure /etc/hosts has an entry for self to map dns name to ip address
     host { $::hostname :
-        ensure => present,
-        ip     => $host_mgmt_ip
+      ensure => present,
+      ip     => $host_mgmt_ip
     } ->
     package { $ssl_package : ensure => present,} ->
     sysctl::value { 'kernel.core_pattern':
