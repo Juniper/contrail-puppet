@@ -3,18 +3,17 @@
 #
 #
 class contrail::profile::mongodb {
-      $controller_address_management = hiera(openstack::controller::address::management)
-      $database_ip_list = $::contrail::params::database_ip_list
-      $primary_db_ip = $::contrail::params::database_ip_list[0]
+      $controller_address_management = $::contrail::params::controller_address_management
+      $database_ip_list          = $::contrail::params::database_ip_list
+      $primary_db_ip             = $::contrail::params::database_ip_list[0]
       # Mongo DB Replset members are primary_db + slave_members below - All database nodes
-      $mongo_slave_ip_list_str = inline_template('<%= @database_ip_list.delete_if {|x| x == @primary_db_ip }.join(";") %>')
-      $mongo_slave_ip_list = split($mongo_slave_ip_list_str, ';')
-      $ceilometer_mongo_password = hiera(openstack::ceilometer::mongo)
-      $ceilometer_password = hiera(openstack::ceilometer::password)
-      $ceilometer_meteringsecret = hiera(openstack::ceilometer::meteringsecret)
-      $mongodb_bind_address = $::contrail::params::host_non_mgmt_ip
-      $port = ':27017'
-      $contrail_logoutput = $::contrail::params::contrail_logoutput
+      $mongo_slave_ip_list_str   = inline_template('<%= @database_ip_list.delete_if {|x| x == @primary_db_ip }.join(";") %>')
+      $mongo_slave_ip_list       = split($mongo_slave_ip_list_str, ';')
+      $ceilometer_mongo_password = $::contrail::params::os_mongo_password
+      $ceilometer_password       = $::contrail::params::os_ceilometer_password
+      $ceilometer_meteringsecret = $::contrail::params::os_metering_secret
+      $mongodb_bind_address      = $::contrail::params::host_ip
+      $contrail_logoutput        = $::contrail::params::contrail_logoutput
 
       # TODO: Document the function
       define add_rs_members ($primary_db_ip) {
