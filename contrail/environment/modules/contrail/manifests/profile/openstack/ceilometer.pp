@@ -13,6 +13,7 @@ class contrail::profile::openstack::ceilometer (
   $analytics_node_ip = $::contrail::params::collector_ip_to_use,
   $service_password  = $::contrail::params::os_mysql_service_password,
   $allowed_hosts     = $::contrail::params::os_mysql_allowed_hosts,
+  $package_sku        = $::contrail::params::package_sku,
   $ceilometer_password        = $::contrail::params::os_ceilometer_password,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
@@ -66,10 +67,22 @@ class contrail::profile::openstack::ceilometer (
   class { '::ceilometer::db':
     database_connection => $mongo_connection
   }
-  class { '::ceilometer::api':
-    enabled           => true,
-    keystone_host     => $controller_mgmt_address,
-    keystone_password => $ceilometer_password,
+  case $package_sku {
+    /13\.0/: {
+      class { '::ceilometer::api':
+        enabled           => true,
+        keystone_auth_uri => $auth_url,
+        keystone_password => $ceilometer_password,
+      }
+    }
+
+    default: {
+      class { '::ceilometer::api':
+        enabled           => true,
+        keystone_host     => $controller_mgmt_address,
+        keystone_password => $ceilometer_password,
+      }
+    }
   }
   class { '::ceilometer::collector': }
 

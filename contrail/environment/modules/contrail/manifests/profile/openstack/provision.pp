@@ -16,16 +16,18 @@ class contrail::profile::openstack::provision (
   $controller_address_management = $::contrail::params::controller_address_management,
   $address_api       = $::contrail::params::address_api,
   $config_ip_to_use  = $::contrail::params::config_ip_to_use,
+  $package_sku       = $::contrail::params::package_sku,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
 ) {
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
   if ( $package_sku =~ /13\.0/) {
-    $endpoint_version = "v2.1"
+    $tenant_id = ""
   } else {
-    $endpoint_version = "v2"
+    $tenant_id = "/%(tenant_id)s"
   }
+    $endpoint_version = "v2"
 
   class { 'keystone::endpoint':
     public_url   => "http://${keystone_ip_to_use}:5000",
@@ -39,32 +41,31 @@ class contrail::profile::openstack::provision (
     admin_tenant => 'admin',
   } ->
   class { '::cinder::keystone::auth':
-    password         => $cinder_password,
-    public_address   => $address_api,
-    admin_address    => $controller_address_management,
-    internal_address => $controller_address_management,
-    region           => $region_name,
+    password     => $cinder_password,
+    public_url   => "http://${address_api}:8776/v1/%(tenant_id)s",
+    admin_url    => "http://${controller_address_management}:8776/v1/%(tenant_id)s",
+    internal_url => "http://${controller_address_management}:8776/v1/%(tenant_id)s",
+    region       => $region_name,
   } ->
   class  { '::glance::keystone::auth':
-    password         => $glance_password,
-    public_address   => $address_api,
-    admin_address    => $controller_address_management,
-    internal_address => $controller_address_management,
-    region           => $region_name,
+    password     => $glance_password,
+    public_url   => "http://${address_api}:9292",
+    admin_url    => "http://${controller_address_management}:9292",
+    internal_url => "http://${controller_address_management}:9292",
+    region       => $region_name,
   } ->
   class { '::nova::keystone::auth':
     password         => $nova_password,
-    public_address   => $address_api,
-    admin_address    => $controller_address_management,
-    internal_address => $controller_address_management,
+    public_url       => "http://${address_api}:8774/${endpoint_version}${tenant_id}",
+    admin_url        => "http://${controller_address_management}:8774/${endpoint_version}${tenant_id}",
+    internal_url     => "http://${controller_address_management}:8774/${endpoint_version}${tenant_id}",
     ec2_public_url   => "http://${controller_address_management}:8773/services/Cloud",
     ec2_admin_url    => "http://${controller_address_management}:8773/services/Admin",
-    ec2_internal_url  => "http://${controller_address_management}:8773/services/Cloud",
-    public_url_v3   => "http://${controller_address_management}:8774/v3",
-    admin_url_v3    => "http://${controller_address_management}:8774/v3",
-    internal_url_v3 => "http://${controller_address_management}:8774/v3",
+    ec2_internal_url => "http://${controller_address_management}:8773/services/Cloud",
+    public_url_v3    => "http://${controller_address_management}:8774/v3",
+    admin_url_v3     => "http://${controller_address_management}:8774/v3",
+    internal_url_v3  => "http://${controller_address_management}:8774/v3",
     region           => $region_name,
-    compute_version  => $endpoint_version
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,

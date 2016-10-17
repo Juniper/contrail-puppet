@@ -1,8 +1,8 @@
 class contrail::config::install(
- $contrail_host_roles = $::contrail::params::host_roles,
+ $contrail_host_roles   = $::contrail::params::host_roles,
  $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
- $internal_vip = $::contrail::params::internal_vip,
- $upgrade_needed = $::contrail::params::upgrade_needed,
+ $internal_vip          = $::contrail::params::internal_vip,
+ $upgrade_needed        = $::contrail::params::upgrade_needed,
 ) {
   # Install a specific version of keepalived in non-ha
   # case also, to support upgrade of contrail software.
@@ -12,9 +12,9 @@ class contrail::config::install(
 
       if ($::operatingsystem == 'Ubuntu') {
           if ($lsbdistrelease == "14.04") {
-              $keepalived_pkg         = '1.2.13-0~276~ubuntu14.04.1'
+              $keepalived_pkg = '1.2.13-0~276~ubuntu14.04.1'
           } else {
-              $keepalived_pkg         = '1:1.2.13-1~bpo70+1'
+              $keepalived_pkg = '1:1.2.13-1~bpo70+1'
           }
 
           package { 'keepalived' :
@@ -25,6 +25,7 @@ class contrail::config::install(
           enable => false,
           ensure => stopped,
       }
+
       if defined(Package['keepalived']) {
           Package['keepalived'] -> Package['contrail-openstack-config']
       }
@@ -58,5 +59,5 @@ class contrail::config::install(
     ensure => latest,
     configfiles => "replace",
     notify => Service['supervisor-config']
-  }
+  } -> Package['neutron-server']
 }

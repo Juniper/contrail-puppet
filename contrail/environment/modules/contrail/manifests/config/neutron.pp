@@ -29,8 +29,8 @@ class contrail::config::neutron (
 
   # Neutron needs to authenticate with keystone but doesn't need keystone installed
   # keystone_authtoken params
-  $keystone_auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/v2.0/"
-  $keystone_identity_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000"
+  $keystone_identity_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/"
+  $keystone_auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000"
 
   $database_credentials = join([$service_password, "@", $neutron_mysql_ip],'')
   $keystone_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
@@ -59,14 +59,43 @@ class contrail::config::neutron (
     service_plugins       => ['neutron_plugin_contrail.plugins.opencontrail.loadbalancer.plugin.LoadBalancerPlugin'],
   }
 
-  class { '::neutron::server':
-    auth_password       => $neutron_password,
-    #auth_uri            => $keystone_auth_uri,
-    #identity_uri        => $keystone_identity_uri,
-    database_connection => $keystone_db_conn,
-    auth_protocol       => $::contrail::params::keystone_auth_protocol,
-    auth_host           => $controller
+  case $package_sku {
+    /13\.0/: {
+      class { '::neutron::server':
+        auth_password       => $neutron_password,
+        auth_uri            => $keystone_auth_uri,
+        identity_uri        => $keystone_identity_uri,
+        database_connection => $keystone_db_conn,
+        service_providers   => ['LOADBALANCER:Opencontrail:neutron_plugin_contrail.plugins.opencontrail.loadbalancer.driver.OpencontrailLoadbalancerDriver:default']
+      }
+      neutron_config {
+        'keystone_authtoken/auth_host'    : value => "$keystone_ip_to_use";
+        'keystone_authtoken/auth_port'    : value => "35357";
+        'keystone_authtoken/auth_protocol': value => "http";
+      }
+    }
+
+    default: {
+      class { '::neutron::server':
+        auth_password       => $neutron_password,
+        auth_uri            => $keystone_auth_uri,
+        #identity_uri        => $keystone_identity_uri,
+        database_connection => $keystone_db_conn,
+        auth_host           =>"$keystone_ip_to_use",
+        auth_protocol       => "http",
+        auth_port           => "35357"
+      }
+
+      neutron_config {
+        #'keystone_authtoken/auth_host'    : value => "$keystone_ip_to_use";
+        #'keystone_authtoken/auth_port'    : value => "35357";
+        #'keystone_authtoken/auth_protocol': value => "http";
+        'DEFAULT/rpc_response_timeout'    : value => '60';
+        'service_providers/service_provider': value => 'LOADBALANCER:Opencontrail:neutron_plugin_contrail.plugins.opencontrail.loadbalancer.driver.OpencontrailLoadbalancerDriver:default';
+      }
+    }
   }
+
   class { '::neutron::server::notifications':
     nova_url            => "http://${controller_mgmt_address}:8774/v2/",
     nova_admin_auth_url => "http://${keystone_ip_to_use}:35357/v2.0/",
@@ -77,24 +106,14 @@ class contrail::config::neutron (
 
   # Contrail specific neutron config
   $neutron_contrail_params = {
-      #'keystone_authtoken/identity_uri' => {value => $keystone_identity_uri},
-      #'keystone_authtoken/auth_protocol' => {value => $::contrail::params::keystone_auth_protocol'},
-      #'keystone_authtoken/auth_port' => {value => '35357'},
-      #'keystone_authtoken/auth_host' => {value => $controller },
-      'quotas/quota_driver' => {value => 'neutron_plugin_contrail.plugins.opencontrail.quota.driver.QuotaDriver'},
+      'quotas/quota_driver'  => {value => 'neutron_plugin_contrail.plugins.opencontrail.quota.driver.QuotaDriver'},
       'quotas/quota_network' => {value => '-1'},
-      'quotas/quota_subnet' => {value => '-1'},
-      'quotas/quota_port' => {value => '-1'},
-      'service_providers/service_provider' => {value => 'LOADBALANCER:Opencontrail:neutron_plugin_contrail.plugins.opencontrail.loadbalancer.driver.OpencontrailLoadbalancerDriver:default'},
-      'DEFAULT/log_format' => {value => '%(asctime)s.%(msecs)d %(levelname)8s [%(name)s] %(message)s'},
-  }
-  contrail::lib::augeas_conf_rm { "config_rm_service_provider":
-      key => 'service_provider',
-      config_file => '/etc/neutron/neutron.conf',
-      lens_to_use => 'properties.lns',
+      'quotas/quota_subnet'  => {value => '-1'},
+      'quotas/quota_port'    => {value => '-1'},
+      'DEFAULT/log_format'   => {value => '%(asctime)s.%(msecs)d %(levelname)8s [%(name)s] %(message)s'},
   }
   create_resources(neutron_config, $neutron_contrail_params, {} )
-  Contrail::Lib::Augeas_conf_rm['config_rm_service_provider'] -> Neutron_config['service_providers/service_provider']
+
   # Openstack HA specific config
   if (($internal_vip != '')) {
       $neutron_ha_params = {
@@ -103,7 +122,6 @@ class contrail::config::neutron (
           'DEFAULT/rabbit_max_retries' => { value => '0'},
           'DEFAULT/rpc_cast_timeout' => {value => '30'},
           'DEFAULT/rpc_conn_pool_size' => {value => '40'},
-          'DEFAULT/rpc_response_timeout' => { value => '60'},
           'DEFAULT/rpc_thread_pool_size' => {value => '70'}
       }
       create_resources(neutron_config, $neutron_ha_params, {} )
