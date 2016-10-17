@@ -68,7 +68,7 @@ class contrail::profile::openstack::heat (
     $contrail_api_server = $::contrail::params::config_ip_to_use
 
     heat_config {
-      'DEFAULT/plugin_dirs': value => '${::python_dist}/vnc_api/gen/heat/resources,${::python_dist}/contrail_heat/resources';
+      'DEFAULT/plugin_dirs': value => "${::python_dist}/vnc_api/gen/heat/resources,${::python_dist}/contrail_heat/resources";
       'clients_contrail/user': value => 'admin';
       'clients_contrail/password': value => 'contrail123';
       'clients_contrail/tenent': value => 'admin';
