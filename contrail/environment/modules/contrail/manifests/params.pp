@@ -932,6 +932,7 @@ class contrail::params (
     }
 
     $keystone_mgmt_ip = pick($::contrail::params::keystone_ip, $::contrail::params::external_openstack_ip, $::contrail::params::external_vip, $::contrail::params::openstack_mgmt_ip_list_to_use[0])
+    $cassandra_commitlog_dir = pick($::contrail::params::ssd_data_dir, $::contrail::params::database_dir)
     $contrail_neutron_public_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_api)
     $contrail_neutron_admin_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
     $contrail_neutron_internal_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
