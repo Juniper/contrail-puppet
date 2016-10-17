@@ -153,6 +153,17 @@ class contrail::database::config (
     if ($analytics_data_dir != '') {
         Notify["Database - cassandra_seeds = ${cassandra_seeds}"] ->
         # Make dir ContrailAnalytics in cassandra database folder
+        exec {'Create analytics database dir':
+            command   => "mkdir -p ${analytics_data_dir}",
+            unless    => "test -d ${analytics_data_dir}",
+            provider  => shell,
+            logoutput => $contrail_logoutput
+        } ->
+        file { $analytics_data_dir :
+            ensure  => directory,
+            owner   => cassandra,
+            group   => cassandra,
+        }->
         file { "${database_dir}/ContrailAnalytics":
             ensure  => link,
             target  => "${analytics_data_dir}/ContrailAnalyticsCql",
@@ -161,7 +172,20 @@ class contrail::database::config (
             group   => cassandra,
         }
     }
-
+    if ($ssd_data_dir != '') {
+        Notify["Database - cassandra_seeds = ${cassandra_seeds}"] ->
+        exec {'Create analytics ssd database dir':
+            command   => "mkdir -p ${ssd_data_dir}",
+            unless    => "test -d ${ssd_data_dir}",
+            provider  => shell,
+            logoutput => $contrail_logoutput
+        }->
+        file { $ssd_data_dir :
+            ensure  => directory,
+            owner   => cassandra,
+            group   => cassandra,
+        }
+    }
     # Below is temporary to work-around in Ubuntu as Service resource fails
     # as upstart is not correctly linked to /etc/init.d/service-name
     if ($::operatingsystem == 'Ubuntu') {
