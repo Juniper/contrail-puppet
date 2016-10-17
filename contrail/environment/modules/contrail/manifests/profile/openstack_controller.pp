@@ -142,17 +142,20 @@ class contrail::profile::openstack_controller (
       Class ['::contrail::profile::openstack::provision'] ->
       Class ['::contrail::profile::openstack::auth_file']
 
-      Class['keystone::endpoint'] ->
-      Contrail::Lib::Report_status['openstack_completed']
+      Class['keystone::endpoint'] -> Contrail::Lib::Report_status['openstack_completed']
+      Keystone_role['admin'] -> Contrail::Lib::Report_status['openstack_completed']
 
-      Keystone_role['admin'] ->
-      Contrail::Lib::Report_status['openstack_completed']
+      Keystone_endpoint <||>  -> Contrail::Lib::Report_status['openstack_completed']
+      Keystone_user <||>  -> Contrail::Lib::Report_status['openstack_completed']
+      Mysql_grant <||>  -> Contrail::Lib::Report_status['openstack_completed']
+
       contain ::contrail::profile::openstack::provision
     }
+
     contain ::contrail::profile::openstack::auth_file
     contain ::contrail::contrail_openstack
 
-    if ($openstack_manage_amqp and !  defined(Class['::contrail::rabbitmq']) ) {
+    if ($openstack_manage_amqp and !defined(Class['::contrail::rabbitmq']) ) {
       contain ::contrail::rabbitmq
       Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Class['::contrail::profile::openstack::cinder']
     }
