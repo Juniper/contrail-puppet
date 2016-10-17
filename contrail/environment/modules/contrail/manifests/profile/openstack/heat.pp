@@ -16,6 +16,7 @@ class contrail::profile::openstack::heat (
   $address_api       = $::contrail::params::os_controller_api_address ,
   $heat_password     = $::contrail::params::os_heat_password,
   $encryption_key    = $::contrail::params::os_heat_encryption_key,
+  $package_sku       = $::contrail::params::package_sku,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
@@ -46,16 +47,33 @@ class contrail::profile::openstack::heat (
     allowed_hosts => $allowed_hosts,
   }
 
-  class { '::heat':
-    database_connection => $keystone_db_conn,
-    rabbit_hosts       => $openstack_rabbit_servers,
-    rabbit_userid      => $rabbitmq_user,
-    rabbit_password    => $rabbitmq_password,
-    verbose            => $openstack_verbose,
-    debug              => $openstack_debug,
-    keystone_host     => $controller_mgmt_address,
-    keystone_password => $heat_password,
-    auth_uri          => $auth_uri,
+  case $package_sku {
+    /13\.0/: {
+      class { '::heat':
+        database_connection => $keystone_db_conn,
+        rabbit_hosts       => $openstack_rabbit_servers,
+        rabbit_userid      => $rabbitmq_user,
+        rabbit_password    => $rabbitmq_password,
+        verbose            => $openstack_verbose,
+        debug              => $openstack_debug,
+        keystone_password => $heat_password,
+        auth_uri          => $auth_uri,
+      }
+    }
+
+    default:{
+      class { '::heat':
+        database_connection => $keystone_db_conn,
+        rabbit_hosts       => $openstack_rabbit_servers,
+        rabbit_userid      => $rabbitmq_user,
+        rabbit_password    => $rabbitmq_password,
+        verbose            => $openstack_verbose,
+        debug              => $openstack_debug,
+        keystone_host     => $controller_mgmt_address,
+        keystone_password => $heat_password,
+        auth_uri          => $auth_uri,
+      }
+    }
   }
 
   class { '::heat::api':

@@ -13,6 +13,7 @@ class contrail::profile::openstack::cinder(
   $service_password   = $::contrail::params::os_mysql_service_password,
   $storage_server     = $::contrail::params::os_glance_api_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $package_sku        = $::contrail::params::package_sku,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_auth_host         = $::contrail::params::os_controller_mgmt_address,
   $glance_management_address  = $::contrail::params::os_glance_mgmt_address,
@@ -35,27 +36,58 @@ class contrail::profile::openstack::cinder(
     allowed_hosts => $allowed_hosts,
   }
 
-  class { '::cinder':
-    database_connection    => $keystone_db_conn,
-    rabbit_hosts           => $openstack_rabbit_servers,
-    rabbit_userid          => $rabbitmq_user,
-    rabbit_password        => $rabbitmq_password,
-    debug                  => $openstack_debug,
-    verbose                => $openstack_verbose,
-    database_idle_timeout  => '180',
-    database_min_pool_size => '100',
-    database_max_pool_size => '700',
-    database_max_retries   => '-1',
-    database_retry_interval=> "5",
-    database_max_overflow  => "1080"
-  }
+  case $package_sku {
+    /13\.0/: {
+      class { '::cinder':
+        database_connection    => $keystone_db_conn,
+        rabbit_hosts           => $openstack_rabbit_servers,
+        rabbit_userid          => $rabbitmq_user,
+        rabbit_password        => $rabbitmq_password,
+        debug                  => $openstack_debug,
+        verbose                => $openstack_verbose,
+        database_idle_timeout  => '180',
+        database_min_pool_size => '100',
+        database_max_pool_size => '700',
+        database_max_retries   => '-1',
+        database_retry_interval=> "5",
+        database_max_overflow  => "1080"
+      }
 
-  cinder_config {
-    'DEFAULT/osapi_volume_listen_port':  value => '9776';
-    'database/db_max_retries':           value => "3";
-    'database/db_retry_interval':        value => "1";
-    'database/connection_debug':         value => "10";
-    'database/pool_timeout':             value => "120";
+      cinder_config {
+        'DEFAULT/osapi_volume_listen_port':  value => '9776';
+        'database/db_max_retries':           value => "3";
+        'database/db_retry_interval':        value => "1";
+        'database/connection_debug':         value => "10";
+        'database/pool_timeout':             value => "120";
+      }
+    }
+    default: {
+      class { '::cinder':
+        database_connection    => $keystone_db_conn,
+        rabbit_hosts           => $openstack_rabbit_servers,
+        rabbit_userid          => $rabbitmq_user,
+        rabbit_password        => $rabbitmq_password,
+        debug                  => $openstack_debug,
+        verbose                => $openstack_verbose,
+        database_idle_timeout  => '180',
+        database_min_pool_size => '100',
+        database_max_pool_size => '700',
+        database_max_retries   => '-1',
+        database_retry_interval=> "5",
+        database_max_overflow  => "1080"
+      }
+
+      cinder_config {
+        'DEFAULT/osapi_volume_listen_port':  value => '9776';
+        'database/db_max_retries':           value => "3";
+        'database/db_retry_interval':        value => "1";
+        'database/connection_debug':         value => "10";
+        'database/pool_timeout':             value => "120";
+      }
+      cinder_config {
+        'oslo_messaging_rabbit/heartbeat_timeout_threshold' :  value => '0';
+      }
+    }
   }
 
   class { '::cinder::scheduler': }
@@ -67,9 +99,6 @@ class contrail::profile::openstack::cinder(
     match_value => 'cinder.openstack.common.rpc.impl_kombu',
   }
 
-  cinder_config {
-    'oslo_messaging_rabbit/heartbeat_timeout_threshold' :  value => '0';
-  }
 
   class { '::cinder::glance':
     glance_api_servers => [ $glance_api_server ],
