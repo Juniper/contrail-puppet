@@ -163,7 +163,7 @@ config.files.download_path = '/tmp';
 
 /* Cassandra Server */
 config.cassandra = {};
-config.cassandra.server_ips = [<%= @database_ip_list.map{ |ip| "\"#{ip}\"" }.join(',') %>];
+config.cassandra.server_ips = [<%= @config_ip_list.map{ |ip| "\"#{ip}\"" }.join(',') %>];
 config.cassandra.server_port = '9042';
 config.cassandra.enable_edit = false;
 

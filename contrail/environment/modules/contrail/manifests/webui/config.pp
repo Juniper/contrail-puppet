@@ -1,5 +1,6 @@
 class contrail::webui::config(
     $database_ip_list =  $::contrail::params::database_ip_list,
+    $config_ip_list =  $::contrail::params::config_ip_list,
     $is_storage_master = $::contrail::params::storage_enabled,
     $redis_password = $::contrail::params::redis_password,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
