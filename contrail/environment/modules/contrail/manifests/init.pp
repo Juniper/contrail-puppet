@@ -742,7 +742,7 @@ class contrail (
     $webui_key_file_path = '/etc/contrail/webui_ssl/cs-key.pem',
     $webui_cert_file_path = '/etc/contrail/webui_ssl/cs-cert.pem',
     $enable_global_controller = false,
-    $config_manage_db = false,
+    $config_manage_db = true,
     $global_controller_ip_list = undef,
     $global_controller_name_list = undef,
 ) {
