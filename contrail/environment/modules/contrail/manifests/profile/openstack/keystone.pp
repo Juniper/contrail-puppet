@@ -38,34 +38,50 @@ class contrail::profile::openstack::keystone(
   $keystone_db_conn = join(["mysql://keystone:",$database_credentials, $mysql_port_url],'')
 
   $paste_config =  ''
-  if ( $package_sku =~ /13\.0/) {
-    $bootstrap_keystone = true
-  } else {
-    $bootstrap_keystone = false
-  }
 
-  class { '::keystone':
-    database_connection => $keystone_db_conn,
-    enable_bootstrap    => $bootstrap_keystone,
-    admin_token     => $admin_token,
-    paste_config    => $paste_config,
-    admin_bind_host => $admin_bind_host,
-    public_port     => $keystone_public_port,
-    admin_port      => $keystone_admin_port,
-    rabbit_hosts    => $openstack_rabbit_servers,
-    verbose         => $openstack_verbose,
-    debug           => $openstack_debug,
-  }
-  keystone_config {
-    'database/min_pool_size'     : value => "100";
-    'database/max_pool_size'     : value => "700";
-    'database/max_overflow'      : value => "100";
-    'database/retry_interval'    : value => "5";
-    'database/max_retries'       : value => "-1";
-    'database/db_max_retries'    : value => "-1";
-    'database/db_retry_interval' : value => "1";
-    'database/connection_debug'  : value => "10";
-    'database/pool_timeout'      : value => "120";
-  }
+  case $package_sku {
+    /13\.0/: {
+      class { '::keystone':
+        database_connection => $keystone_db_conn,
+        admin_token     =>  $admin_token,
+        public_port     => $keystone_public_port,
+        admin_port      => $keystone_admin_port,
+        rabbit_hosts    => $openstack_rabbit_servers,
+        verbose         => $openstack_verbose,
+        debug           => $openstack_debug,
+        database_idle_timeout   => '180',
+        database_min_pool_size  => "100",
+        database_max_pool_size  => "700",
+        database_max_overflow   => "100",
+        database_retry_interval => "-1",
+        database_max_retries    => "-1",
+      }
+    }
 
+    default: {
+      class { '::keystone':
+        database_connection => $keystone_db_conn,
+        enable_bootstrap    => false,
+        admin_token     => $admin_token,
+        paste_config    => $paste_config,
+        admin_bind_host => $admin_bind_host,
+        public_port     => $keystone_public_port,
+        admin_port      => $keystone_admin_port,
+        rabbit_hosts    => $openstack_rabbit_servers,
+        verbose         => $openstack_verbose,
+        debug           => $openstack_debug,
+      }
+      keystone_config {
+        'database/min_pool_size'     : value => "100";
+        'database/max_pool_size'     : value => "700";
+        'database/max_overflow'      : value => "100";
+        'database/retry_interval'    : value => "5";
+        'database/max_retries'       : value => "-1";
+        'database/db_max_retries'    : value => "-1";
+        'database/db_retry_interval' : value => "1";
+        'database/connection_debug'  : value => "10";
+        'database/pool_timeout'      : value => "120";
+      }
+    }
+  }
 }

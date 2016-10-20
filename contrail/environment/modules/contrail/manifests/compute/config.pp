@@ -187,16 +187,16 @@ class contrail::compute::config(
     # for storage
     ## Same condition as compute/service.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
-        contain ::contrail::compute::create_nfs
-        Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->Class['::contrail::compute::create_nfs']->Nova_config['neutron/admin_auth_url']
+      contain ::contrail::compute::create_nfs
+      Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->Class['::contrail::compute::create_nfs']->Nova_config['neutron/admin_auth_url']
     }
 
     if ($openstack_manage_amqp or $openstack_amqp_ip_list) {
-        $nova_compute_rabbit_hosts = $openstack_rabbit_servers
+      $nova_compute_rabbit_hosts = $openstack_rabbit_servers
     } elsif ($nova_rabbit_hosts){
-        $nova_compute_rabbit_hosts = $nova_rabbit_hosts
+      $nova_compute_rabbit_hosts = $nova_rabbit_hosts
     } else {
-        $nova_compute_rabbit_hosts = $contrail_rabbit_servers
+      $nova_compute_rabbit_hosts = $contrail_rabbit_servers
     }
 
     $nova_params = {
@@ -204,6 +204,8 @@ class contrail::compute::config(
       'neutron/admin_tenant_name' => { value => 'services', },
       'neutron/project_name'      => { value => 'services', },
       'neutron/admin_username'    => { value => 'neutron', },
+      'neutron/auth_strategy'     => { value => 'keystone', },
+      'neutron/auth_type'         => { value => 'password', },
       'neutron/admin_password'    => { value => "${keystone_admin_password}" },
       'neutron/url'               => { value => "http://${config_ip_to_use}:9696" },
       'neutron/url_timeout'       => { value => "300" },
