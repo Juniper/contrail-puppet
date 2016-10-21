@@ -553,8 +553,8 @@
 #     AMQP IP list to use for Nova when using an external openstack
 #     (optional) - Defaults to undef
 #
-# [*neutron_ip_to_use*]
-#     Neutron IP to use for Nova when using an external openstack
+# [*nova_neutron_ip*]
+#     Neutron IP to use for Nova when using an external openstack/ISSU
 #     (optional) - Defaults to undef
 #
 # [*webui_key_file_path*]
@@ -639,7 +639,7 @@ class contrail::params (
     $vmware_vswitch,
     $mysql_root_password,
     $nova_rabbit_hosts,
-    $neutron_ip_to_use,
+    $nova_neutron_ip,
     $openstack_mgmt_ip_list,
     $encap_priority,
     $router_asn,
@@ -933,12 +933,10 @@ class contrail::params (
 
     $keystone_mgmt_ip = pick($::contrail::params::keystone_ip, $::contrail::params::external_openstack_ip, $::contrail::params::external_vip, $::contrail::params::openstack_mgmt_ip_list_to_use[0])
     $cassandra_commitlog_dir = pick($::contrail::params::ssd_data_dir, $::contrail::params::database_dir)
-    $contrail_neutron_public_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_api)
-    $contrail_neutron_admin_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
-    $contrail_neutron_internal_address = pick($::contrail::params::neutron_ip_to_use, $contrail_controller_address_management)
     $contrail_roles_present_hash = delete_values($contrail_roles, false)
     $contrail_roles_present_array = keys($contrail_roles_present_hash)
     $roles_to_delete = difference($contrail_roles_present_array , $host_roles)
+    $neutron_ip_to_use = pick($::contrail::params::nova_neutron_ip, $config_ip_to_use)
     #copy of roles to delete as all run as a single manifest
     #TODO verify its a ref or a copy
     $cpy_roles_to_delete = $roles_to_delete

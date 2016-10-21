@@ -18,7 +18,6 @@ class contrail::profile::openstack_controller (
   $host_roles = $::contrail::params::host_roles,
   $package_sku = $::contrail::params::package_sku,
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
-  $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use,
   $openstack_ip_list = $::contrail::params::openstack_ip_list,
   $host_control_ip = $::contrail::params::host_ip
 ) {
