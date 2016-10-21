@@ -126,8 +126,6 @@ class contrail::config::config (
     $cfgm_ip_list_shell = join($config_ip_list,",")
     $cfgm_name_list_shell = join($config_name_list, ",")
 
-    $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctrl\n"
-
     case $::operatingsystem {
         Ubuntu: {
             $api_command_to_use = $contrail_api_ubuntu_command
