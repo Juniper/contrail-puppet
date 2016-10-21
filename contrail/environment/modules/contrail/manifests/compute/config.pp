@@ -47,6 +47,7 @@ class contrail::compute::config(
     $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
     $glance_management_address = $::contrail::params::os_glance_mgmt_address,
     $host_roles = $::contrail::params::host_roles,
+    $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use,
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -207,7 +208,7 @@ class contrail::compute::config(
       'neutron/auth_strategy'     => { value => 'keystone', },
       'neutron/auth_type'         => { value => 'password', },
       'neutron/admin_password'    => { value => "${keystone_admin_password}" },
-      'neutron/url'               => { value => "http://${config_ip_to_use}:9696" },
+      'neutron/url'               => { value => "http://${neutron_ip_to_use}:9696" },
       'neutron/url_timeout'       => { value => "300" },
       'neutron/password'          => { value => "${neutron_password}" },
       'compute/compute_driver'    => { value => "libvirt.LibvirtDriver" },
