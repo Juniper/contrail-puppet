@@ -24,7 +24,12 @@ class contrail::profile::compute (
         if ($enable_ceilometer) {
             contain ::openstack::profile::ceilometer::agent
             contain ::contrail::ceilometer::agent::auth
-            Class['::openstack::profile::ceilometer::agent']->Class['::contrail::ceilometer::agent::auth']->Class['::openstack::profile::firewall']
+            Class['::openstack::profile::ceilometer::agent']->Class['::contrail::ceilometer::agent::auth']->Class['::openstack::profile::firewall']->
+            contrail::lib::augeas_conf_rm { "ceilometer_rpc_backend":
+                key => 'rpc_backend',
+                config_file => '/etc/ceilometer/ceilometer.conf',
+                lens_to_use => 'properties.lns'
+            }
         }
     } elsif ((!("compute" in $host_roles)) and ($contrail_roles["compute"] == true)) {
         notify { "uninstalling compute":; }
