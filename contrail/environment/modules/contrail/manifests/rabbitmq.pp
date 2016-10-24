@@ -14,15 +14,16 @@ class contrail::rabbitmq (
   $openstack_manage_amqp   = $::contrail::params::openstack_manage_amqp,
   $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
   $contrail_logoutput      = $::contrail::params::contrail_logoutput,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
 ) {
-    # Check to see if amqp_ip_list was passed by user. If yes, rabbitmq provisioning can be skipped
-    if (!$contrail_amqp_ip_list or ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) ) {
+  # Check to see if amqp_ip_list was passed by user. If yes, rabbitmq provisioning can be skipped
+  if (!$contrail_amqp_ip_list or ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) ) {
       if ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) {
         $amqp_ip_list = $openstack_ip_list
         $amqp_name_list = $openstack_name_list
     } else {
-      $amqp_ip_list = $config_ip_list
-      $amqp_name_list = $config_name_list
+        $amqp_ip_list = $config_ip_list
+        $amqp_name_list = $config_name_list
     }
 
     # Set number of amqp nodes
@@ -37,6 +38,29 @@ class contrail::rabbitmq (
     $amqp_ip_list_shell = join($amqp_ip_list,",")
     $amqp_name_list_shell = join($amqp_name_list, ",")
     $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctrl\n"
+
+    if ($rabbit_use_ssl) {
+      file {['/etc/rabbitmq','/etc/rabbitmq/ssl']:
+        ensure  => directory,
+        owner   => rabbitmq,
+        group   => rabbitmq,
+      } ->
+      file { '/etc/rabbitmq/ssl/server.pem' :
+        owner   => rabbitmq,
+        group   => rabbitmq,
+        source => "puppet:///ssl_certs/$hostname.pem"
+      } ->
+      file { '/etc/rabbitmq/ssl/server-privkey.pem' :
+        owner   => rabbitmq,
+        group   => rabbitmq,
+        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+      } ->
+      file { '/etc/rabbitmq/ssl/ca-cert.pem' :
+        owner   => rabbitmq,
+        group   => rabbitmq,
+        source => "puppet:///ssl_certs/ca-cert.pem"
+      }
+    }
 
     if ($::operatingsystem == 'Ubuntu') {
       file {'/etc/default/rabbitmq-server':

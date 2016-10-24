@@ -745,6 +745,7 @@ class contrail (
     $config_manage_db = true,
     $global_controller_ip_list = undef,
     $global_controller_name_list = undef,
+    $rabbit_ssl_support = false
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -837,6 +838,7 @@ class contrail (
 	amqp_server_ip =>			hiera(openstack::amqp::server_ip, hiera(contrail::params::amqp_server_ip, $amqp_server_ip)),
         openstack_amqp_ip_list =>               hiera(openstack::amqp::ip_list, hiera(contrail::params::openstack_amqp_ip_list, $openstack_amqp_ip_list)),
         openstack_amqp_port =>                  hiera(openstack::amqp::port, hiera(contrail::params::openstack_amqp_port, $openstack_amqp_port)),
+        rabbit_ssl_support  =>     hiera(openstack::amqp::ssl_enable, $rabbit_ssl_support),
 
     os_verbose                => hiera(openstack::verbose, $openstack_verbose),
     os_debug                  => hiera(openstack::debug, $openstack_debug),

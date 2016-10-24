@@ -763,6 +763,7 @@ class contrail::params (
     $user_ceph_config,
     $global_controller_ip_list,
     $global_controller_name_list,
+    $rabbit_ssl_support
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -891,10 +892,22 @@ class contrail::params (
         $openstack_rabbit_port = '5672'
     }
 
-    $contrail_rabbit_hosts = suffix($contrail_rabbit_ip_list, ":$openstack_rabbit_port")
+    if ($rabbit_ssl_support) {
+      $rabbit_port_real = "5671"
+      $kombu_ssl_ca_certs = "/etc/rabbitmq/ssl/ca-cert.pem"
+      $kombu_ssl_certfile = "/etc/rabbitmq/ssl/server.pem"
+      $kombu_ssl_keyfile  = "/etc/rabbitmq/ssl/server-privkey.pem"
+    } else {
+      $rabbit_port_real = $openstack_rabbit_port
+      $kombu_ssl_ca_certs = undef
+      $kombu_ssl_certfile = undef
+      $kombu_ssl_keyfile  = undef
+    }
+
+    $contrail_rabbit_hosts = suffix($contrail_rabbit_ip_list, ":$rabbit_port_real")
     $contrail_rabbit_servers = join($contrail_rabbit_hosts,",")
 
-    $openstack_rabbit_hosts = suffix($openstack_rabbit_ip_list, ":$openstack_rabbit_port")
+    $openstack_rabbit_hosts = suffix($openstack_rabbit_ip_list, ":$rabbit_port_real")
     $openstack_rabbit_servers = join($openstack_rabbit_hosts,",")
 
     # Set amqp_server_ip

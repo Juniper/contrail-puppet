@@ -17,6 +17,10 @@ class contrail::profile::openstack::cinder(
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_auth_host         = $::contrail::params::os_controller_mgmt_address,
   $glance_management_address  = $::contrail::params::os_glance_mgmt_address,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -50,7 +54,11 @@ class contrail::profile::openstack::cinder(
         database_max_pool_size => '700',
         database_max_retries   => '-1',
         database_retry_interval=> "5",
-        database_max_overflow  => "1080"
+        database_max_overflow  => "1080",
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
 
       cinder_config {
@@ -74,7 +82,11 @@ class contrail::profile::openstack::cinder(
         database_max_pool_size => '700',
         database_max_retries   => '-1',
         database_retry_interval=> "5",
-        database_max_overflow  => "1080"
+        database_max_overflow  => "1080",
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
 
       cinder_config {

@@ -18,6 +18,10 @@ class contrail::profile::openstack::glance(
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
   $keystone_ip_to_use   = $::contrail::params::keystone_ip_to_use,
   $keystone_region_name = $::contrail::params::keystone_region_name,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
 
   $auth_uri = "http://${keystone_ip_to_use}:5000/"
@@ -146,5 +150,9 @@ class contrail::profile::openstack::glance(
     rabbit_userid    => $rabbitmq_user,
     rabbit_password  => $rabbitmq_password,
     rabbit_hosts     => $openstack_rabbit_servers,
+    rabbit_use_ssl     => $rabbit_use_ssl,
+    kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+    kombu_ssl_certfile => $kombu_ssl_certfile,
+    kombu_ssl_keyfile  => $kombu_ssl_keyfile
   }
 }
