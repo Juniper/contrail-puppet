@@ -9,6 +9,10 @@ class contrail::profile::openstack::keystone(
   $allowed_hosts      = $::contrail::params::os_mysql_allowed_hosts,
   $admin_token        = $::contrail::params::os_keystone_admin_token,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $openstack_rabbit_servers        = $::contrail::params::openstack_rabbit_ip_list,
   $keystone_mysql_service_password = $::contrail::params::keystone_mysql_service_password,
 ) {
@@ -55,6 +59,10 @@ class contrail::profile::openstack::keystone(
         database_max_overflow   => "100",
         database_retry_interval => "-1",
         database_max_retries    => "-1",
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
     }
 
@@ -70,6 +78,10 @@ class contrail::profile::openstack::keystone(
         rabbit_hosts    => $openstack_rabbit_servers,
         verbose         => $openstack_verbose,
         debug           => $openstack_debug,
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
       keystone_config {
         'database/min_pool_size'     : value => "100";

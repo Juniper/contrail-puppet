@@ -17,6 +17,10 @@ class contrail::config::neutron (
   $controller        = $::contrail::params::keystone_ip_to_use,
   $contrail_host_roles     = $::contrail::params::host_roles,
   $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_hosts,
+  $rabbit_use_ssl          = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs      = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile      = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile       = $::contrail::params::kombu_ssl_keyfile,
   $keystone_auth_protocol  = $::contrail::params::keystone_auth_protocol,
   $keystone_admin_token    = $::contrail::params::os_keystone_admin_token,
   $controller_mgmt_address = $::contrail::params::os_controller_mgmt_address,
@@ -46,7 +50,11 @@ class contrail::config::neutron (
   }
 
   class { '::neutron':
-    rabbit_hosts           => $contrail_rabbit_servers,
+    rabbit_hosts          => $contrail_rabbit_servers,
+    rabbit_use_ssl        => $rabbit_use_ssl,
+    kombu_ssl_ca_certs    => $kombu_ssl_ca_certs,
+    kombu_ssl_certfile    => $kombu_ssl_certfile,
+    kombu_ssl_keyfile     => $kombu_ssl_keyfile,
     bind_port             => $::contrail::params::quantum_port,
     auth_strategy         => 'keystone',
     core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',

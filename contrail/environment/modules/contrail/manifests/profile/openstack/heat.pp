@@ -20,6 +20,10 @@ class contrail::profile::openstack::heat (
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -58,6 +62,10 @@ class contrail::profile::openstack::heat (
         debug              => $openstack_debug,
         keystone_password => $heat_password,
         auth_uri          => $auth_uri,
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
     }
 
@@ -72,6 +80,10 @@ class contrail::profile::openstack::heat (
         keystone_host     => $controller_mgmt_address,
         keystone_password => $heat_password,
         auth_uri          => $auth_uri,
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
     }
   }
