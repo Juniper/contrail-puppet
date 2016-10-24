@@ -11,7 +11,7 @@ class openstack::common::ceilometer {
   $internal_vip = $::contrail::params::internal_vip
   $analytics_node_ip = $::contrail::params::collector_ip_to_use
 
-  $ceilometer_mongo_password = hiera(openstack::ceilometer::mongo::password)
+  $ceilometer_mongo_password = hiera(openstack::ceilometer::mongo)
   $ceilometer_password = hiera(openstack::ceilometer::password)
   $ceilometer_meteringsecret = hiera(openstack::ceilometer::meteringsecret)
 
