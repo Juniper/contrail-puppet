@@ -18,6 +18,10 @@ class contrail::profile::openstack::ceilometer (
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
   $database_ip_to_use = $database_ip_list[0]
   $mongo_connection = join([ "mongodb://ceilometer:", $mongo_password, "@", join($database_ip_list,':27017,') ,":27017/ceilometer?replicaSet=rs-ceilometer" ],'')
@@ -36,6 +40,10 @@ class contrail::profile::openstack::ceilometer (
     debug           => $openstack_verbose,
     verbose         => $openstack_debug,
     rabbit_hosts    => $openstack_rabbit_servers,
+    rabbit_use_ssl     => $rabbit_use_ssl,
+    kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+    kombu_ssl_certfile => $kombu_ssl_certfile,
+    kombu_ssl_keyfile  => $kombu_ssl_keyfile
   } ->
   file { '/etc/ceilometer/pipeline.yaml':
     ensure => file,

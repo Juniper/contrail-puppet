@@ -1,54 +1,58 @@
 class contrail::compute::config(
-    $host_control_ip = $::contrail::params::host_ip,
-    $config_ip = $::contrail::params::config_ip_list[0],
-    $openstack_ip = $::contrail::params::openstack_ip_list[0],
-    $control_ip_list = $::contrail::params::control_ip_list,
-    $compute_ip_list = $::contrail::params::compute_ip_list,
-    $keystone_ip = $::contrail::params::keystone_ip,
-    $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
-    $keystone_auth_port = $::contrail::params::keystone_auth_port,
-    $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
-    $amqp_server_ip = $::contrail::params::amqp_server_ip,
-    $openstack_mgmt_ip = $::contrail::params::openstack_mgmt_ip_list_to_use[0],
-    $neutron_service_protocol = $::contrail::params::neutron_service_protocol,
-    $neutron_password = $::contrail::params::os_neutron_password,
-    $keystone_admin_user = $::contrail::params::keystone_admin_user,
-    $keystone_admin_password = $::contrail::params::keystone_admin_password,
-    $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
-    $haproxy = $::contrail::params::haproxy,
-    $host_non_mgmt_ip = $::contrail::params::host_non_mgmt_ip,
-    $host_non_mgmt_gateway = $::contrail::params::host_non_mgmt_gateway,
-    $metadata_secret = $::contrail::params::metadata_secret,
-    $quantum_port = $::contrail::params::quantum_port,
-    $quantum_service_protocol = $::contrail::params::quantum_service_protocol,
-    $internal_vip = $::contrail::params::internal_vip,
-    $external_vip = $::contrail::params::external_vip,
-    $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
-    $vmware_ip = $::contrail::params::vmware_ip,
-    $vmware_username = $::contrail::params::vmware_username,
-    $vmware_password = $::contrail::params::vmware_password,
-    $vmware_vswitch = $::contrail::params::vmware_vswitch,
-    $vgw_public_subnet = $::contrail::params::vgw_public_subnet,
-    $vgw_public_vn_name = $::contrail::params::vgw_public_vn_name,
-    $vgw_interface = $::contrail::params::vgw_interface,
-    $vgw_gateway_routes = $::contrail::params::vgw_gateway_routes,
-    $nfs_server = $::contrail::params::nfs_server,
-    $orchestrator = $::contrail::params::orchestrator,
-    $contrail_logoutput = $::contrail::params::contrail_logoutput,
-    $contrail_host_roles = $::contrail::params::host_roles,
-    $enable_lbaas =  $::contrail::params::enable_lbaas,
-    $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
-    $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
-    $enable_dpdk=  $::contrail::params::enable_dpdk,
-    $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
-    $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers,
-    $openstack_amqp_ip_list = $::contrail::params::openstack_amqp_ip_list,
-    $sriov = $::contrail::params::sriov,
-    $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
-    $glance_management_address = $::contrail::params::os_glance_mgmt_address,
-    $host_roles = $::contrail::params::host_roles,
-    $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use,
-)  {
+  $host_control_ip = $::contrail::params::host_ip,
+  $config_ip = $::contrail::params::config_ip_list[0],
+  $openstack_ip = $::contrail::params::openstack_ip_list[0],
+  $control_ip_list = $::contrail::params::control_ip_list,
+  $compute_ip_list = $::contrail::params::compute_ip_list,
+  $keystone_ip = $::contrail::params::keystone_ip,
+  $keystone_auth_protocol = $::contrail::params::keystone_auth_protocol,
+  $keystone_auth_port = $::contrail::params::keystone_auth_port,
+  $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
+  $amqp_server_ip = $::contrail::params::amqp_server_ip,
+  $openstack_mgmt_ip = $::contrail::params::openstack_mgmt_ip_list_to_use[0],
+  $neutron_service_protocol = $::contrail::params::neutron_service_protocol,
+  $neutron_password = $::contrail::params::os_neutron_password,
+  $keystone_admin_user = $::contrail::params::keystone_admin_user,
+  $keystone_admin_password = $::contrail::params::keystone_admin_password,
+  $keystone_admin_tenant = $::contrail::params::keystone_admin_tenant,
+  $haproxy = $::contrail::params::haproxy,
+  $host_non_mgmt_ip = $::contrail::params::host_non_mgmt_ip,
+  $host_non_mgmt_gateway = $::contrail::params::host_non_mgmt_gateway,
+  $metadata_secret = $::contrail::params::metadata_secret,
+  $quantum_port = $::contrail::params::quantum_port,
+  $quantum_service_protocol = $::contrail::params::quantum_service_protocol,
+  $internal_vip = $::contrail::params::internal_vip,
+  $external_vip = $::contrail::params::external_vip,
+  $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
+  $vmware_ip = $::contrail::params::vmware_ip,
+  $vmware_username = $::contrail::params::vmware_username,
+  $vmware_password = $::contrail::params::vmware_password,
+  $vmware_vswitch = $::contrail::params::vmware_vswitch,
+  $vgw_public_subnet = $::contrail::params::vgw_public_subnet,
+  $vgw_public_vn_name = $::contrail::params::vgw_public_vn_name,
+  $vgw_interface = $::contrail::params::vgw_interface,
+  $vgw_gateway_routes = $::contrail::params::vgw_gateway_routes,
+  $nfs_server = $::contrail::params::nfs_server,
+  $orchestrator = $::contrail::params::orchestrator,
+  $contrail_logoutput = $::contrail::params::contrail_logoutput,
+  $contrail_host_roles = $::contrail::params::host_roles,
+  $enable_lbaas =  $::contrail::params::enable_lbaas,
+  $xmpp_auth_enable =  $::contrail::params::xmpp_auth_enable,
+  $xmpp_dns_auth_enable =  $::contrail::params::xmpp_dns_auth_enable,
+  $enable_dpdk=  $::contrail::params::enable_dpdk,
+  $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
+  $openstack_rabbit_servers = $::contrail::params::openstack_rabbit_servers,
+  $openstack_amqp_ip_list = $::contrail::params::openstack_amqp_ip_list,
+  $sriov = $::contrail::params::sriov,
+  $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
+  $glance_management_address = $::contrail::params::os_glance_mgmt_address,
+  $host_roles = $::contrail::params::host_roles,
+  $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+){
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
     $amqp_server_ip_to_use = $::contrail::params::amqp_server_ip_to_use
@@ -96,31 +100,31 @@ class contrail::compute::config(
         }
 
     } else {
-        #when compute provision runs the second time
-        #vhost is already setup
-        #in case of non dpdk setup old interface still exists
-        #and details can de derived from that
-        #in case of dpdk,actual physical inerface is taken away from the kernel
-        #so get the details with the help of the facts
+      #when compute provision runs the second time
+      #vhost is already setup
+      #in case of non dpdk setup old interface still exists
+      #and details can de derived from that
+      #in case of dpdk,actual physical inerface is taken away from the kernel
+      #so get the details with the help of the facts
 
-        $contrail_dev_mac = inline_template("<%= scope.lookupvar('macaddress_' + @physical_dev) %>")
-        if ($enable_dpdk == false) {
-            $contrail_dev = get_device_name_by_mac($contrail_dev_mac)
-        } else {
-            if ($contrail_dpdk_bind_if == "" or $contrail_dpdk_bind_if == undef) {
-                fail('dpdk interface is not setup properly')
-            }
-            if ($contrail_dpdk_bind_pci_address == "" or $contrail_dpdk_bind_pci_address == undef) {
-                fail('dpdk interface is not setup properly')
-            }
-
-            $contrail_dev = $contrail_dpdk_bind_if
-            $pci_address = $contrail_dpdk_bind_pci_address
+      $contrail_dev_mac = inline_template("<%= scope.lookupvar('macaddress_' + @physical_dev) %>")
+      if ($enable_dpdk == false) {
+        $contrail_dev = get_device_name_by_mac($contrail_dev_mac)
+      } else {
+        if ($contrail_dpdk_bind_if == "" or $contrail_dpdk_bind_if == undef) {
+          fail('dpdk interface is not setup properly')
         }
+        if ($contrail_dpdk_bind_pci_address == "" or $contrail_dpdk_bind_pci_address == undef) {
+          fail('dpdk interface is not setup properly')
+        }
+
+        $contrail_dev = $contrail_dpdk_bind_if
+        $pci_address = $contrail_dpdk_bind_pci_address
+      }
     }
 
     if ($physical_dev == undef) {
-        fail('contrail device is not found')
+      fail('contrail device is not found')
     }
 
     # Get Mac, netmask and gway
@@ -129,67 +133,63 @@ class contrail::compute::config(
     $contrail_cidr = convert_netmask_to_cidr($contrail_netmask)
 
     if ($haproxy == true) {
-        $quantum_ip = '127.0.0.1'
-        $discovery_ip = '127.0.0.1'
+      $quantum_ip = '127.0.0.1'
+      $discovery_ip = '127.0.0.1'
     } else {
-        $quantum_ip = $config_ip_to_use
-        $discovery_ip = $config_ip_to_use
+      $quantum_ip = $config_ip_to_use
+      $discovery_ip = $config_ip_to_use
     }
 
     $vmware_physical_intf = 'eth1'
     if ( $vmware_ip != '' ) {
-        $hypervisor_type = 'vmware'
+      $hypervisor_type = 'vmware'
     } else {
-        $hypervisor_type = 'kvm'
+      $hypervisor_type = 'kvm'
     }
 
     if 'tsn' in $contrail_host_roles {
-        $contrail_agent_mode = 'tsn'
-        $contrail_router_type = '--router_type tor-service-node'
-        $nova_compute_status = 'false'
+      $contrail_agent_mode = 'tsn'
+      $contrail_router_type = '--router_type tor-service-node'
+      $nova_compute_status = 'false'
     } else {
-        $contrail_agent_mode = ""
-        $contrail_router_type = ''
-        $nova_compute_status = 'true'
+      $contrail_agent_mode = ""
+      $contrail_router_type = ''
+      $nova_compute_status = 'true'
     }
 
     #variables used in templates for vrouter_agent.conf
     if ($enable_dpdk) {
-        $contrail_work_mode = "dpdk"
+      $contrail_work_mode = "dpdk"
     } else {
-        $contrail_work_mode = "default"
+      $contrail_work_mode = "default"
     }
 
     if ($operatingsystem == "Ubuntu"){
-        if 'tsn' in $contrail_host_roles {
-            Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-            file { "/etc/init/nova-compute.override":
-                ensure => present,
-                content => "manual",
-            }
+      if 'tsn' in $contrail_host_roles {
+        Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
+        file { "/etc/init/nova-compute.override":
+          ensure => present,
+          content => "manual",
         }
-        if ($enable_dpdk == true) {
-            #Looks like this is still seen as re-declaration by puppet
-            /*
-            Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-	    file { 'remove_supervisor_vrouter_override':
-		path => "/etc/init/supervisor-vrouter.override",
-		ensure => absent,
-	    }->
-            */
-            exec { 'remove_supervisor_override':
-                command => "rm -rf /etc/init/supervisor-vrouter.override",
-                provider => shell,
-                logoutput => $contrail_logoutput,
-            }
+      }
+      if ($enable_dpdk == true) {
+        #Looks like this is still seen as re-declaration by puppet
+        exec { 'remove_supervisor_override':
+          command => "rm -rf /etc/init/supervisor-vrouter.override",
+          provider => shell,
+          logoutput => $contrail_logoutput,
         }
+      }
     }
 
     # for storage
     ## Same condition as compute/service.pp
     if ($nfs_server == 'xxx' and $host_control_ip == $compute_ip_list[0] ) {
       contain ::contrail::compute::create_nfs
-      Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->Class['::contrail::compute::create_nfs']->Nova_config['neutron/admin_auth_url']
+
+      Notify["vmware_physical_intf = ${vmware_physical_intf}"]
+      -> Class['::contrail::compute::create_nfs']
+      -> Nova_config['neutron/admin_auth_url']
     }
 
     if ($openstack_manage_amqp or $openstack_amqp_ip_list) {
@@ -214,13 +214,32 @@ class contrail::compute::config(
       'compute/compute_driver'    => { value => "libvirt.LibvirtDriver" },
       'DEFAULT/rabbit_hosts'      => { value => "${nova_compute_rabbit_hosts}"},
       'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
-      'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
       'DEFAULT/novncproxy_base_url' => { value => "http://${host_control_ip}:5999/vnc_auto.html" },
       'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
     }
 
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
       $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }
+    }
+
+    if ($rabbit_use_ssl) {
+      file {['/etc/rabbitmq','/etc/rabbitmq/ssl']:
+        ensure  => directory,
+      } ->
+      file { '/etc/rabbitmq/ssl/server.pem' :
+        source => "puppet:///ssl_certs/$hostname.pem"
+      } ->
+      file { '/etc/rabbitmq/ssl/server-privkey.pem' :
+        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+      } ->
+      file { '/etc/rabbitmq/ssl/ca-cert.pem' :
+        source => "puppet:///ssl_certs/ca-cert.pem"
+      }
+      $nova_params['oslo_messaging_rabbit/kombu_ssl_ca_certs'] = {value => $kombu_ssl_ca_certs }
+      $nova_params['oslo_messaging_rabbit/rabbit_use_ssl']     = {value => $rabbit_use_ssl}
+      $nova_params['oslo_messaging_rabbit/kombu_ssl_certfile'] = {value => $kombu_ssl_certfile}
+      $nova_params['oslo_messaging_rabbit/kombu_ssl_keyfile']  = {value => $kombu_ssl_keyfile}
+      $nova_params['oslo_messaging_rabbit/kombu_ssl_version']  = {value => 'TLSv1'}
     }
 
     if (!('openstack' in $host_roles)){
@@ -230,25 +249,36 @@ class contrail::compute::config(
 
     # Update modprobe.conf
     if inline_template('<%= @operatingsystem.downcase %>') == 'centos' {
-        # Ensure modprobe.conf file is present with right content.
-        $modprobe_conf_file = '/etc/modprobe.conf'
-        Contrail::Lib::Augeas_conf_rm["compute_rm_rabbit_port"] ->
-        contrail::lib::augeas_conf_set { 'alias':
+      # Ensure modprobe.conf file is present with right content.
+      $modprobe_conf_file = '/etc/modprobe.conf'
+      Contrail::Lib::Augeas_conf_rm["compute_rm_rabbit_port"] ->
+      contrail::lib::augeas_conf_set { 'alias':
                 config_file => $modprobe_conf_file,
                 settings_hash => {'alias' => 'bridge off',},
                 lens_to_use => 'spacevars.lns',
-        } ->
-        Class['::contrail::compute::add_dev_tun_in_cgroup_device_acl']
+      } ->
+      Class['::contrail::compute::add_dev_tun_in_cgroup_device_acl']
     }
 
     if ($physical_dev != undef and $physical_dev != 'vhost0') {
-        $update_dev_net_cmd = "/bin/bash -c \"python /etc/contrail/contrail_setup_utils/update_dev_net_config_files.py --vhost_ip ${vhost_ip} ${multinet_opt} --dev \'${physical_dev}\' --compute_dev \'${contrail_compute_dev}\' --netmask \'${contrail_netmask}\' --gateway \'${contrail_gway}\' --cidr \'${contrail_cidr}\' --host_non_mgmt_ip \'${host_non_mgmt_ip}\' --mac ${contrail_macaddr} && echo update-dev-net-config >> /etc/contrail/contrail_compute_exec.out\""
+      $update_dev_net_cmd = "/bin/bash -c \
+          \"python /etc/contrail/contrail_setup_utils/update_dev_net_config_files.py \
+          --vhost_ip ${vhost_ip} \
+          ${multinet_opt} \
+          --dev \'${physical_dev}\' \
+          --compute_dev \'${contrail_compute_dev}\' \
+          --netmask \'${contrail_netmask}\' \
+          --gateway \'${contrail_gway}\' \
+          --cidr \'${contrail_cidr}\' \
+          --host_non_mgmt_ip \'${host_non_mgmt_ip}\' \
+          --mac ${contrail_macaddr} \
+          && echo update-dev-net-config >> /etc/contrail/contrail_compute_exec.out\""
 
-        class { '::contrail::compute::update_dev_net_config':
-            update_dev_net_cmd => $update_dev_net_cmd
-        } ->
-        File['/etc/contrail/agent_param']
-        contain ::contrail::compute::update_dev_net_config
+      class { '::contrail::compute::update_dev_net_config':
+        update_dev_net_cmd => $update_dev_net_cmd
+      } ->
+      File['/etc/contrail/agent_param']
+      contain ::contrail::compute::update_dev_net_config
     }
     if ! defined(File['/etc/contrail/vnc_api_lib.ini']) {
         File['/etc/contrail/agent_param'] ->
@@ -268,30 +298,31 @@ class contrail::compute::config(
     notify {"vmware_physical_intf = ${vmware_physical_intf}":; } ->
 
     # set rpc backend in neutron.conf
-    contrail::lib::augeas_conf_rm { "compute_neutron_rpc_backend":
-        key => 'rpc_backend',
-        config_file => '/etc/neutron/neutron.conf',
-        lens_to_use => 'properties.lns',
-        match_value => 'neutron.openstack.common.rpc.impl_qpid',
-    } ->
-    #set rpc backend in nova.conf
-    contrail::lib::augeas_conf_rm { "compute_nova_rpc_backend":
-        key => 'rpc_backend',
-        config_file => '/etc/nova/nova.conf',
-        lens_to_use => 'properties.lns',
-        match_value => 'nova.openstack.common.rpc.impl_qpid',
-    } ->
-    # Remove rabbit host and port from nova.conf
-    contrail::lib::augeas_conf_rm { "compute_rm_rabbit_host":
-        key => 'rabbit_host',
-        config_file => '/etc/nova/nova.conf',
-        lens_to_use => 'properties.lns',
-    } ->
-    contrail::lib::augeas_conf_rm { "compute_rm_rabbit_port":
-        key => 'rabbit_port',
-        config_file => '/etc/nova/nova.conf',
-        lens_to_use => 'properties.lns',
-    } ->
+    #contrail::lib::augeas_conf_rm { "compute_neutron_rpc_backend":
+        #key => 'rpc_backend',
+        #config_file => '/etc/neutron/neutron.conf',
+        #lens_to_use => 'properties.lns',
+        #match_value => 'neutron.openstack.common.rpc.impl_qpid',
+    #} ->
+    ##set rpc backend in nova.conf
+    #contrail::lib::augeas_conf_rm { "compute_nova_rpc_backend":
+        #key => 'rpc_backend',
+        #config_file => '/etc/nova/nova.conf',
+        #lens_to_use => 'properties.lns',
+        #match_value => 'nova.openstack.common.rpc.impl_qpid',
+    #} ->
+    ## Remove rabbit host and port from nova.conf
+    #contrail::lib::augeas_conf_rm { "compute_rm_rabbit_host":
+        ##key => 'rabbit_host',
+        #config_file => '/etc/nova/nova.conf',
+        #lens_to_use => 'properties.lns',
+    #} ->
+    #contrail::lib::augeas_conf_rm { "compute_rm_rabbit_port":
+        ##key => 'rabbit_port',
+        #config_file => '/etc/nova/nova.conf',
+        #lens_to_use => 'properties.lns',
+    #} ->
+
     Class['::contrail::compute::add_dev_tun_in_cgroup_device_acl'] ->
 
     file { '/etc/contrail/vrouter_nodemgr_param' :
