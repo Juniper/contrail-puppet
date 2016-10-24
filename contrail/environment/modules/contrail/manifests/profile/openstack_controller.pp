@@ -19,7 +19,11 @@ class contrail::profile::openstack_controller (
   $package_sku = $::contrail::params::package_sku,
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
   $openstack_ip_list = $::contrail::params::openstack_ip_list,
-  $host_control_ip = $::contrail::params::host_ip
+  $host_control_ip = $::contrail::params::host_ip,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
 
   include ::keystone::params
@@ -110,10 +114,30 @@ class contrail::profile::openstack_controller (
     contain ::contrail::profile::openstack::neutron
     contain ::contrail::profile::openstack::heat
 
-    if ($::operatingsystem == 'Ubuntu') {
-        service { 'supervisor-openstack': enable => true, ensure => running }
-        Class['::contrail::profile::openstack::cinder'] -> Service['supervisor-openstack'] -> Class['::contrail::profile::openstack::nova']
+    if ($rabbit_use_ssl) {
+      Package ['contrail-openstack']
+      -> file {['/etc/rabbitmq','/etc/rabbitmq/ssl']:
+        ensure  => directory,
+      } ->
+      file { '/etc/rabbitmq/ssl/server.pem' :
+        source => "puppet:///ssl_certs/$hostname.pem"
+      } ->
+      file { '/etc/rabbitmq/ssl/server-privkey.pem' :
+        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+      } ->
+      file { '/etc/rabbitmq/ssl/ca-cert.pem' :
+        source => "puppet:///ssl_certs/ca-cert.pem"
+      } ->
+      Contrail::Lib::Report_status['openstack_completed']
     }
+
+    if ($::operatingsystem == 'Ubuntu') {
+      service { 'supervisor-openstack': enable => true, ensure => running }
+      Class['::contrail::profile::openstack::cinder']
+      -> Service['supervisor-openstack']
+      -> Class['::contrail::profile::openstack::nova']
+    }
+
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
       class {'::contrail::rabbitmq' :
         require => Class['::contrail::profile::openstack::mysql'],
