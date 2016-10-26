@@ -88,8 +88,9 @@ if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
       sys.exit (2)
 
   #ceph_pool_list=['volumes_hdd_Pool_b', 'volumes_hdd_Pool_a', 'volumes_hdd_Pool_c']
+  #ceph_pool_list={'ceph_tier_list': [], 'ceph_pool_list': ['volumes_hdd_Pool_a', 'volumes_hdd_Pool_b', 'volumes_hdd_Pool_c', 'volumes_hdd_Pool_d']}
   pool_details = {}
-  for pool_name in ceph_pool_list:
+  for pool_name in ceph_pool_list['ceph_pool_list']:
     # Run local for storage-master for HDD/SSD pools
     ceph_setup_utils.exec_local('sudo ceph auth get-or-create client.%s mon \
 				\'allow r\' osd \
