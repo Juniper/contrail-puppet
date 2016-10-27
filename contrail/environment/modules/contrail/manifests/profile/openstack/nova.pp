@@ -22,7 +22,11 @@ class contrail::profile::openstack::nova(
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use         = $::contrail::params::keystone_ip_to_use,
   $keystone_admin_password    = $::contrail::params::keystone_admin_password,
-  $config_ip_to_use           = $::contrail::params::config_ip_to_use
+  $config_ip_to_use           = $::contrail::params::config_ip_to_use,
+  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+  $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+  $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -94,7 +98,12 @@ class contrail::profile::openstack::nova(
         database_max_overflow   => "700",
         database_retry_interval => "5",
         database_max_retries    => "-1",
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
+
       class { '::nova::api':
         osapi_compute_listen_port            => $nova_api_port,
         metadata_listen_port                 => $metadata_port,
@@ -150,6 +159,10 @@ class contrail::profile::openstack::nova(
         debug               => $openstack_debug,
         notification_driver => "nova.openstack.common.notifier.rpc_notifier",
         database_idle_timeout => $database_idle_timeout,
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
       class { '::nova::api':
         admin_password                       => $nova_password,
