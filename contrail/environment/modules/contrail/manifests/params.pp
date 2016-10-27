@@ -866,16 +866,8 @@ class contrail::params (
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
 
-    if ($contrail_amqp_ip_list != '') {
-        $contrail_rabbit_ip_list = $contrail_amqp_ip_list
-    } else {
-        $contrail_rabbit_ip_list = $config_ip_list
-    }
-    if ($contrail_amqp_port != '') {
-        $contrail_rabbit_port = $contrail_amqp_port
-    } else {
-        $contrail_rabbit_port = '5672'
-    }
+    $contrail_rabbit_ip_list = pick($contrail_amqp_ip_list, $config_ip_list)
+    $contrail_rabbit_port =    pick($contrail_amqp_port, "5672")
 
     if ($openstack_manage_amqp) {
         $openstack_rabbit_ip_list = $openstack_ip_list
@@ -886,11 +878,8 @@ class contrail::params (
     } else {
         $openstack_rabbit_ip_list = $config_ip_list
     }
-    if ($openstack_amqp_port != '') {
-        $openstack_rabbit_port = $openstack_amqp_port
-    } else {
-        $openstack_rabbit_port = '5672'
-    }
+
+    $openstack_rabbit_port = pick($openstack_amqp_port, "5672")
 
     if ($rabbit_ssl_support) {
       $rabbit_port_real = "5671"

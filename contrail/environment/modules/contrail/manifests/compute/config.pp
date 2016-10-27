@@ -190,13 +190,9 @@ class contrail::compute::config(
     -> Nova_config['neutron/admin_auth_url']
   }
 
-  if ($openstack_manage_amqp or $openstack_amqp_ip_list) {
-    $nova_compute_rabbit_hosts = $openstack_rabbit_servers
-  } elsif ($nova_rabbit_hosts){
-    $nova_compute_rabbit_hosts = $nova_rabbit_hosts
-  } else {
-    $nova_compute_rabbit_hosts = $contrail_rabbit_servers
-  }
+  $nova_compute_rabbit_hosts = pick($nova_rabbit_hosts,
+                                    $openstack_rabbit_servers,
+                                    $contrail_rabbit_servers)
 
   $nova_params = {
     'neutron/admin_auth_url'    => { value => "http://${keystone_ip_to_use}:35357/v2.0/" },
@@ -212,7 +208,7 @@ class contrail::compute::config(
     'compute/compute_driver'    => { value => "libvirt.LibvirtDriver" },
     'DEFAULT/rabbit_hosts'      => { value => "${nova_compute_rabbit_hosts}"},
     'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
-    'DEFAULT/novncproxy_base_url' => { value => "http://${host_control_ip}:5999/vnc_auto.html" },
+    'DEFAULT/novncproxy_base_url' => { value => "http://${openstack_mgmt_ip}:5999/vnc_auto.html" },
     'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
   }
 
@@ -249,7 +245,6 @@ class contrail::compute::config(
   if inline_template('<%= @operatingsystem.downcase %>') == 'centos' {
     # Ensure modprobe.conf file is present with right content.
     $modprobe_conf_file = '/etc/modprobe.conf'
-    Contrail::Lib::Augeas_conf_rm["compute_rm_rabbit_port"] ->
     contrail::lib::augeas_conf_set { 'alias':
        config_file => $modprobe_conf_file,
        settings_hash => {'alias' => 'bridge off',},
@@ -294,32 +289,6 @@ class contrail::compute::config(
   }
 
   notify {"vmware_physical_intf = ${vmware_physical_intf}":; } ->
-
-  # set rpc backend in neutron.conf
-  #contrail::lib::augeas_conf_rm { "compute_neutron_rpc_backend":
-      #key => 'rpc_backend',
-      #config_file => '/etc/neutron/neutron.conf',
-      #lens_to_use => 'properties.lns',
-      #match_value => 'neutron.openstack.common.rpc.impl_qpid',
-  #} ->
-  ##set rpc backend in nova.conf
-  #contrail::lib::augeas_conf_rm { "compute_nova_rpc_backend":
-      #key => 'rpc_backend',
-      #config_file => '/etc/nova/nova.conf',
-      #lens_to_use => 'properties.lns',
-      #match_value => 'nova.openstack.common.rpc.impl_qpid',
-  #} ->
-  ## Remove rabbit host and port from nova.conf
-  #contrail::lib::augeas_conf_rm { "compute_rm_rabbit_host":
-      ##key => 'rabbit_host',
-      #config_file => '/etc/nova/nova.conf',
-      #lens_to_use => 'properties.lns',
-  #} ->
-  #contrail::lib::augeas_conf_rm { "compute_rm_rabbit_port":
-      ##key => 'rabbit_port',
-      #config_file => '/etc/nova/nova.conf',
-      #lens_to_use => 'properties.lns',
-  #} ->
 
   Class['::contrail::compute::add_dev_tun_in_cgroup_device_acl'] ->
 
@@ -429,10 +398,9 @@ class contrail::compute::config(
     contain ::contrail::xmpp_cert_files
   }
 
-  if ! defined(File['/opt/contrail/bin/set_rabbit_tcp_params.py']) {
-    Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-    Class['::contrail::compute::exec_set_rabbitmq_tcp_params'] ->
-    Nova_config['neutron/admin_auth_url']
-    contain ::contrail::compute::exec_set_rabbitmq_tcp_params
+  sysctl::value {
+    'net.ipv4.tcp_keepalive_time':    value => "5";
+    'net.ipv4.tcp_keepalive_probes':  value => "5";
+    'net.ipv4.tcp_keepalive_intvl':   value => "1";
   }
 }
