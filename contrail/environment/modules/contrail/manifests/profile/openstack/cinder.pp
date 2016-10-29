@@ -17,7 +17,7 @@ class contrail::profile::openstack::cinder(
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_auth_host         = $::contrail::params::os_controller_mgmt_address,
   $glance_management_address  = $::contrail::params::os_glance_mgmt_address,
-  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,

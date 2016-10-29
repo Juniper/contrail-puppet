@@ -9,7 +9,7 @@ class contrail::profile::openstack::keystone(
   $allowed_hosts      = $::contrail::params::os_mysql_allowed_hosts,
   $admin_token        = $::contrail::params::os_keystone_admin_token,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
-  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,

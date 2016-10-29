@@ -763,7 +763,9 @@ class contrail::params (
     $user_ceph_config,
     $global_controller_ip_list,
     $global_controller_name_list,
-    $rabbit_ssl_support
+    $rabbit_ssl_support,
+    $config_amqp_ssl,
+    $openstack_amqp_ssl,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
@@ -866,20 +868,37 @@ class contrail::params (
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
 
-    $contrail_rabbit_ip_list = pick($contrail_amqp_ip_list, $config_ip_list)
-    $contrail_rabbit_port =    pick($contrail_amqp_port, "5672")
-
-    if ($openstack_manage_amqp) {
-        $openstack_rabbit_ip_list = $openstack_ip_list
-    } elsif ($openstack_amqp_ip_list != '') {
-        $openstack_rabbit_ip_list = $openstack_amqp_ip_list
-    } elsif ($contrail_amqp_ip_list != '') {
-        $openstack_rabbit_ip_list = $contrail_amqp_ip_list
+    if (size($contrail_amqp_ip_list) > 0) {
+      $contrail_rabbit_ip_list = $contrail_amqp_ip_list
     } else {
-        $openstack_rabbit_ip_list = $config_ip_list
+      $contrail_rabbit_ip_list = $config_ip_list
     }
 
-    $openstack_rabbit_port = pick($openstack_amqp_port, "5672")
+    $contrail_amqp_ssl = pick($config_amqp_ssl, $rabbit_ssl_support)
+    if $contrail_amqp_ssl {
+      $contrail_amqp_ssl_port = "5671"
+    }
+    $contrail_rabbit_port = pick($contrail_amqp_port,
+                                 $contrail_amqp_ssl_port,
+                                 "5672")
+
+    if ($openstack_manage_amqp) {
+      $openstack_rabbit_ip_list = $openstack_ip_list
+    } elsif (size($openstack_amqp_ip_list) > 0 ) {
+      $openstack_rabbit_ip_list = $openstack_amqp_ip_list
+    } elsif (size($contrail_amqp_ip_list) > 0) {
+      $openstack_rabbit_ip_list = $contrail_amqp_ip_list
+    } else {
+      $openstack_rabbit_ip_list = $config_ip_list
+    }
+
+    $os_amqp_ssl = pick($openstack_amqp_ssl, $rabbit_ssl_support)
+    if $os_amqp_ssl {
+      $os_amqp_ssl_port = "5671"
+    }
+    $openstack_rabbit_port = pick($openstack_amqp_port,
+                                  $os_amqp_ssl_port,
+                                  "5672")
 
     if ($rabbit_ssl_support) {
       $rabbit_port_real = "5671"

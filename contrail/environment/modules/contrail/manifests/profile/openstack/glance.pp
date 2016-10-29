@@ -18,7 +18,7 @@ class contrail::profile::openstack::glance(
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
   $keystone_ip_to_use   = $::contrail::params::keystone_ip_to_use,
   $keystone_region_name = $::contrail::params::keystone_region_name,
-  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,

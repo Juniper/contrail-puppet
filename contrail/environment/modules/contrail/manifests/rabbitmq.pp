@@ -14,16 +14,19 @@ class contrail::rabbitmq (
   $openstack_manage_amqp   = $::contrail::params::openstack_manage_amqp,
   $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
   $contrail_logoutput      = $::contrail::params::contrail_logoutput,
-  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $contrail_amqp_ssl       = $::contrail::params::contrail_amqp_ssl,
+  $os_amqp_ssl             = $::contrail::params::os_amqp_ssl,
 ) {
   # Check to see if amqp_ip_list was passed by user. If yes, rabbitmq provisioning can be skipped
-  if (!$contrail_amqp_ip_list or ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) ) {
-      if ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) {
-        $amqp_ip_list = $openstack_ip_list
-        $amqp_name_list = $openstack_name_list
+  if ((size($contrail_amqp_ip_list) == 0) or ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) ) {
+    if ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) {
+      $amqp_ip_list = $openstack_ip_list
+      $amqp_name_list = $openstack_name_list
+      $rabbit_use_ssl = $os_amqp_ssl
     } else {
-        $amqp_ip_list = $config_ip_list
-        $amqp_name_list = $config_name_list
+      $amqp_ip_list = $config_ip_list
+      $amqp_name_list = $config_name_list
+      $rabbit_use_ssl = $contrail_amqp_ssl
     }
 
     # Set number of amqp nodes
@@ -39,28 +42,7 @@ class contrail::rabbitmq (
     $amqp_name_list_shell = join($amqp_name_list, ",")
     $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctrl\n"
 
-    if ($rabbit_use_ssl) {
-      file {['/etc/rabbitmq','/etc/rabbitmq/ssl']:
-        ensure  => directory,
-        owner   => rabbitmq,
-        group   => rabbitmq,
-      } ->
-      file { '/etc/rabbitmq/ssl/server.pem' :
-        owner   => rabbitmq,
-        group   => rabbitmq,
-        source => "puppet:///ssl_certs/$hostname.pem"
-      } ->
-      file { '/etc/rabbitmq/ssl/server-privkey.pem' :
-        owner   => rabbitmq,
-        group   => rabbitmq,
-        source => "puppet:///ssl_certs/$hostname-privkey.pem"
-      } ->
-      file { '/etc/rabbitmq/ssl/ca-cert.pem' :
-        owner   => rabbitmq,
-        group   => rabbitmq,
-        source => "puppet:///ssl_certs/ca-cert.pem"
-      }
-    }
+    contrail::lib::rabbitmq_ssl{'rabbit_setup':rabbit_use_ssl => $rabbit_use_ssl}
 
     if ($::operatingsystem == 'Ubuntu') {
       file {'/etc/default/rabbitmq-server':
@@ -70,13 +52,6 @@ class contrail::rabbitmq (
         path => '/etc/default/rabbitmq-server',
         line => 'ulimit -n 10240',
       } ~> Service['rabbitmq-server']
-    }
-
-    if !defined(Service['rabbitmq-server']) {
-      service { 'rabbitmq-server':
-        ensure => running,
-        enable => true
-      }
     }
 
     if !defined(Service['rabbitmq-server']) {
@@ -115,6 +90,7 @@ class contrail::rabbitmq (
     }
     contain ::contrail::verify_rabbitmq
     contain ::contrail::add_etc_hosts
+  } else {
+    contrail::lib::rabbitmq_ssl{'rabbit_setup_config':rabbit_use_ssl => $contrail_amqp_ssl}
   }
 }
-
