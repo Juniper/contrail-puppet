@@ -20,7 +20,7 @@ class contrail::profile::openstack_controller (
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
   $openstack_ip_list = $::contrail::params::openstack_ip_list,
   $host_control_ip = $::contrail::params::host_ip,
-  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
@@ -114,22 +114,10 @@ class contrail::profile::openstack_controller (
     contain ::contrail::profile::openstack::neutron
     contain ::contrail::profile::openstack::heat
 
-    if ($rabbit_use_ssl) {
-      Package ['contrail-openstack']
-      -> file {['/etc/rabbitmq','/etc/rabbitmq/ssl']:
-        ensure  => directory,
-      } ->
-      file { '/etc/rabbitmq/ssl/server.pem' :
-        source => "puppet:///ssl_certs/$hostname.pem"
-      } ->
-      file { '/etc/rabbitmq/ssl/server-privkey.pem' :
-        source => "puppet:///ssl_certs/$hostname-privkey.pem"
-      } ->
-      file { '/etc/rabbitmq/ssl/ca-cert.pem' :
-        source => "puppet:///ssl_certs/ca-cert.pem"
-      } ->
-      Contrail::Lib::Report_status['openstack_completed']
-    }
+    Package ['contrail-openstack']
+    -> contrail::lib::rabbitmq_ssl{'openstack_rabbitmq':
+         rabbit_use_ssl => $rabbit_use_ssl }
+    -> Contrail::Lib::Report_status['openstack_completed']
 
     if ($::operatingsystem == 'Ubuntu') {
       service { 'supervisor-openstack': enable => true, ensure => running }

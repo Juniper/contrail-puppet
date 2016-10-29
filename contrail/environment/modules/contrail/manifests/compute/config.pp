@@ -48,7 +48,7 @@ class contrail::compute::config(
   $glance_management_address = $::contrail::params::os_glance_mgmt_address,
   $host_roles = $::contrail::params::host_roles,
   $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use,
-  $rabbit_use_ssl     = $::contrail::params::rabbit_ssl_support,
+  $rabbit_use_ssl     = $::contrail::params::contrail_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
@@ -217,18 +217,8 @@ class contrail::compute::config(
   }
 
   if ($rabbit_use_ssl) {
-    file {['/etc/rabbitmq','/etc/rabbitmq/ssl']:
-      ensure  => directory,
-    } ->
-    file { '/etc/rabbitmq/ssl/server.pem' :
-      source => "puppet:///ssl_certs/$hostname.pem"
-    } ->
-    file { '/etc/rabbitmq/ssl/server-privkey.pem' :
-      source => "puppet:///ssl_certs/$hostname-privkey.pem"
-    } ->
-    file { '/etc/rabbitmq/ssl/ca-cert.pem' :
-      source => "puppet:///ssl_certs/ca-cert.pem"
-    }
+    contrail::lib::rabbitmq_ssl{'compute_rabbitmq':rabbit_use_ssl => $rabbit_use_ssl}
+
     $nova_params['oslo_messaging_rabbit/kombu_ssl_ca_certs'] = {value => $kombu_ssl_ca_certs }
     $nova_params['oslo_messaging_rabbit/rabbit_use_ssl']     = {value => $rabbit_use_ssl}
     $nova_params['oslo_messaging_rabbit/kombu_ssl_certfile'] = {value => $kombu_ssl_certfile}
