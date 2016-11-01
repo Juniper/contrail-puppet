@@ -15,6 +15,7 @@ class contrail::profile::openstack::nova(
   $sriov_enable      = $::contrail::params::sriov_enable,
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
   $package_sku       = $::contrail::params::package_sku,
+  $host_roles        = $::contrail::params::host_roles,
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $neutron_shared_secret      = $::contrail::params::os_neutron_shared_secret,
@@ -147,20 +148,22 @@ class contrail::profile::openstack::nova(
     enabled => 'true',
   }
 
-  # TODO: it's important to set up the vnc properly
-  class { '::nova::compute':
-    enabled                       => $contrail_is_compute,
-    vnc_enabled                   => true,
-    vncserver_proxyclient_address => $management_address,
-    vncproxy_host                 => $address_api,
-    instance_usage_audit          => $instance_usage_audit,
-    instance_usage_audit_period   => $instance_usage_audit_period
-  }
+  if ('compute' in $host_roles) {
+    # TODO: it's important to set up the vnc properly
+    class { '::nova::compute':
+      enabled                       => $contrail_is_compute,
+      vnc_enabled                   => true,
+      vncserver_proxyclient_address => $management_address,
+      vncproxy_host                 => $address_api,
+      instance_usage_audit          => $instance_usage_audit,
+      instance_usage_audit_period   => $instance_usage_audit_period
+    }
 
-  #TODO make sure we have vif package
+    #TODO make sure we have vif package
 
-  class { '::nova::compute::neutron':
-    libvirt_vif_driver => "nova_contrail_vif.contrailvif.VRouterVIFDriver"
+    class { '::nova::compute::neutron':
+      libvirt_vif_driver => "nova_contrail_vif.contrailvif.VRouterVIFDriver"
+    }
   }
 
   class { '::nova::network::neutron':
