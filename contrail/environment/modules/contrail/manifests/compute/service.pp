@@ -4,6 +4,7 @@ class contrail::compute::service(
   $compute_ip_list = $::contrail::params::compute_ip_list,
   $nfs_server = $::contrail::params::nfs_server,
   $contrail_logoutput = $::contrail::params::contrail_logoutput,
+  $upgrade_needed = $::contrail::params::upgrade_needed,
 ) {
     if !('toragent' in $contrail::params::host_roles) {
         service { 'supervisor-vrouter':
@@ -34,5 +35,12 @@ class contrail::compute::service(
          ensure => running,
          enable => true
        }
+    }
+    if ($upgrade_needed == 1) {
+        exec { 'upgrade-vrouter-restart' :
+            command => "rmmod vrouter && service supervisor-vrouter restart",
+            provider => shell,
+            logoutput => $contrail_logoutput,
+        }
     }
 }

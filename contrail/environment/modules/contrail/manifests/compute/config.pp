@@ -52,6 +52,7 @@ class contrail::compute::config(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $upgrade_needed = $::contrail::params::upgrade_needed,
 ){
   $config_ip_to_use = $::contrail::params::config_ip_to_use
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -348,11 +349,13 @@ class contrail::compute::config(
   }
   ->
   class {'::contrail::compute::setup_compute_server_setup':}
-  ->
-  reboot { 'compute':
-    apply => "immediately",
-    subscribe       => Exec ["setup-compute-server-setup"],
-    timeout => 0,
+  if ($upgrade_needed != 1) {
+      Class ['::contrail::compute::setup_compute_server_setup'] ->
+      reboot { 'compute':
+        apply => "immediately",
+        subscribe       => Exec ["setup-compute-server-setup"],
+        timeout => 0,
+      }
   }
 
   Class['::contrail::compute::setup_compute_server_setup'] -> Nova_config <||>
