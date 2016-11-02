@@ -29,6 +29,7 @@ class contrail::profile::openstack::heat (
       $heat_api_cfn_bind_host = '0.0.0.0'
       $heat_api_cfn_bind_port = '8001'
       $heat_server_ip = $internal_vip
+      $database_idle_timeout = "180"
       $keystone_db_conn = join(["mysql://heat:",$database_credentials,":33306/heat"],'')
   } else {
       $heat_api_bind_host = '0.0.0.0'
@@ -36,6 +37,7 @@ class contrail::profile::openstack::heat (
       $heat_api_cfn_bind_host = '0.0.0.0'
       $heat_api_cfn_bind_port = '8000'
       $heat_server_ip = $host_control_ip
+      $database_idle_timeout = "3600"
       $keystone_db_conn = join(["mysql://heat:",$database_credentials,"/heat"],'')
   }
 
@@ -46,6 +48,7 @@ class contrail::profile::openstack::heat (
 
   class { '::heat':
       database_connection => $keystone_db_conn,
+      database_idle_timeout => $database_idle_timeout,
       rabbit_hosts       => $openstack_rabbit_servers,
       rabbit_userid      => $rabbitmq_user,
       rabbit_password    => $rabbitmq_password,
@@ -89,5 +92,22 @@ class contrail::profile::openstack::heat (
         key => 'trusts_delegated_roles',
         config_file => '/etc/heat/heat.conf',
         lens_to_use => 'properties.lns',
+  }
+
+  if ($internal_vip != '' and $internal_vip != undef) {
+    heat_config {
+      'database/min_pool_size'        :  value => "100";
+      'database/max_pool_size'        :  value => "350";
+      'database/max_overflow'         :  value => "700";
+      'database/retry_interval'       :  value => "5";
+      'database/max_retries'          :  value => "-1";
+      'database/db_max_retries'       :  value => "3";
+      'database/db_retry_interval'    :  value => "1";
+      'database/connection_debug'     :  value => "10";
+      'database/pool_timeout'         :  value => "120";
+      'DEFAULT/rabbit_retry_interval' :  value => "10";
+      'DEFAULT/rabbit_retry_backoff'  :  value => "5";
+      'DEFAULT/rabbit_max_retries'    :  value => "0";
+    }
   }
 }
