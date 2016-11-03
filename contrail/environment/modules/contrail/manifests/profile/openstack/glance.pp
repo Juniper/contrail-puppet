@@ -28,7 +28,7 @@ class contrail::profile::openstack::glance(
 
   if ($internal_vip != '' and $internal_vip != undef) {
 
-    $keystone_db_conn = join(["mysql://glance:",$database_credentials,":33306/glance"],'')
+    $keystone_db_conn = join(["mysql://glance:",$service_password, "@", $internal_vip,":33306/glance"],'')
     class { '::glance::api':
       keystone_password => $glance_password,
       keystone_tenant   => 'services',

@@ -28,7 +28,7 @@ class contrail::profile::openstack::cinder(
   }
 
   if ($internal_vip != '' and $internal_vip != undef) {
-    $keystone_db_conn = join(["mysql://cinder:",$database_credentials,":33306/cinder"],'')
+    $keystone_db_conn = join(["mysql://cinder:",$service_password, "@", $internal_vip,":33306/cinder"],'')
     $auth_uri = "http://${keystone_ip_to_use}:5000/"
     $glance_api_server = "${internal_vip}:9292"
 

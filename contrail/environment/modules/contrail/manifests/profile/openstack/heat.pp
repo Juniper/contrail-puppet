@@ -30,7 +30,7 @@ class contrail::profile::openstack::heat (
       $heat_api_cfn_bind_port = '8001'
       $heat_server_ip = $internal_vip
       $database_idle_timeout = "180"
-      $keystone_db_conn = join(["mysql://heat:",$database_credentials,":33306/heat"],'')
+      $keystone_db_conn = join(["mysql://heat:",$service_password, "@", $internal_vip,":33306/heat"],'')
   } else {
       $heat_api_bind_host = '0.0.0.0'
       $heat_api_bind_port = '8004'

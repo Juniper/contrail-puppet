@@ -26,13 +26,13 @@ define contrail::lib::post_openstack(
       # If mysql connection string is setup to local_ip while provisoning openstack.
       # openstack 2,3 provision will fail as db-sync is done only on 1,
       # and they dont find the tables.
-      $keystone_database_credentials = join([$password, "@", $keystone_ip_to_use],'')
+      $keystone_database_credentials = join([$password, "@", $keystone_ip_to_use, ":33306"],'')
       $database_credentials = join([$password, "@", $host_control_ip],'')
-      $keystone_db_conn = join(["mysql://keystone:",$keystone_database_credentials,"/keystone"],'')
-      $cinder_db_conn = join(["mysql://cinder:",$database_credentials,"/cinder"],'')
-      $glance_db_conn = join(["mysql://glance:",$database_credentials,"/glance"],'')
-      $neutron_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
-      $nova_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
+      $keystone_db_conn = join(["mysql://keystone:",$database_credentials,"/keystone"],'')
+      $cinder_db_conn = join(["mysql://cinder:",$keystone_database_credentials,"/cinder"],'')
+      $glance_db_conn = join(["mysql://glance:",$keystone_database_credentials,"/glance"],'')
+      $neutron_db_conn = join(["mysql://neutron:",$keystone_database_credentials,"/neutron"],'')
+      $nova_db_conn = join(["mysql://nova:",$keystone_database_credentials,"/nova"],'')
 
       keystone_config {
         'DATABASE/connection'   : value => $keystone_db_conn;
@@ -96,7 +96,6 @@ define contrail::lib::post_openstack(
         logoutput => $contrail_logoutput,
       }
     }
-
   }
 }
 #end of post-openstack

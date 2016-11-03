@@ -865,7 +865,7 @@ class contrail::params (
     #rabbit host has same logic as config_ip
     $contrail_rabbit_host = $config_ip_to_use
 
-    if ($contrail_amqp_ip_list != '') {
+    if (size($contrail_amqp_ip_list) > 0) {
         $contrail_rabbit_ip_list = $contrail_amqp_ip_list
     } else {
         $contrail_rabbit_ip_list = $config_ip_list
@@ -878,9 +878,9 @@ class contrail::params (
 
     if ($openstack_manage_amqp) {
         $openstack_rabbit_ip_list = $openstack_ip_list
-    } elsif ($openstack_amqp_ip_list != '') {
+    } elsif (size($openstack_amqp_ip_list) > 0) {
         $openstack_rabbit_ip_list = $openstack_amqp_ip_list
-    } elsif ($contrail_amqp_ip_list != '') {
+    } elsif (size($contrail_amqp_ip_list) > 0 ) {
         $openstack_rabbit_ip_list = $contrail_amqp_ip_list
     } else {
         $openstack_rabbit_ip_list = $config_ip_list
@@ -962,6 +962,16 @@ class contrail::params (
         $upgrade_needed = 0
     }
 
+  if ($internal_vip != "" and $internal_vip != undef) {
+    $vncproxy_port = '6999'
+    $vncproxy_host = $internal_vip
+    $base_url_port = "6080"
+  } else {
+    $vncproxy_port = '5999'
+    $base_url_port = "5999"
+    $vncproxy_host = $openstack_mgmt_ip_list_to_use[0]
+  }
+  $vncproxy_base_url = "http://${vncproxy_host}:${base_url_port}/vnc_auto.html"
 
     if ($nova_private_key != "" and $nova_public_key == "") or 
           ($nova_public_key != ""  and $nova_private_key == "") {

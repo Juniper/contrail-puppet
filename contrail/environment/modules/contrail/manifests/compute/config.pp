@@ -46,7 +46,8 @@ class contrail::compute::config(
     $sriov = $::contrail::params::sriov,
     $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
     $glance_management_address = $::contrail::params::os_glance_mgmt_address,
-    $host_roles = $::contrail::params::host_roles,
+    $host_roles    = $::contrail::params::host_roles,
+    $vncproxy_url = $::contrail::params::vncproxy_base_url
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -191,7 +192,7 @@ class contrail::compute::config(
         Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->Class['::contrail::compute::create_nfs']->Nova_config['neutron/admin_auth_url']
     }
 
-    if ($openstack_manage_amqp or $openstack_amqp_ip_list) {
+    if ($openstack_manage_amqp or size($openstack_amqp_ip_list) > 0) {
         $nova_compute_rabbit_hosts = $openstack_rabbit_servers
     } elsif ($nova_rabbit_hosts){
         $nova_compute_rabbit_hosts = $nova_rabbit_hosts
@@ -212,7 +213,7 @@ class contrail::compute::config(
       'DEFAULT/rabbit_hosts'      => { value => "${nova_compute_rabbit_hosts}"},
       'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
       'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
-      'DEFAULT/novncproxy_base_url' => { value => "http://${host_control_ip}:5999/vnc_auto.html" },
+      'DEFAULT/novncproxy_base_url' => { value => "${vncproxy_url}" },
     }
 
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
