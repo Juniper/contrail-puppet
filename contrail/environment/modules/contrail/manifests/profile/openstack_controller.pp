@@ -57,7 +57,7 @@ class contrail::profile::openstack_controller (
                           "${nova::params::common_package_name}",
                           "${nova::params::numpy_package_name}",
                           "${mysql::params::python_package_name}",
-                          "python-nova", "pm-utils",
+                          "python-nova",
                           "python-keystone", "python-cinderclient",
                           $ceilometer_packages]
     # api_package is false in case of Centos
