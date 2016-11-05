@@ -31,15 +31,10 @@ class contrail::profile::compute (
                 debug           => $openstack_verbose,
                 verbose         => $openstack_debug,
                 rabbit_hosts    => $openstack_rabbit_servers,
+                rpc_backend     => 'rabbit',
               }
             }
             class { '::ceilometer::agent::compute': }
-            ->
-            contrail::lib::augeas_conf_rm { "ceilometer_compute_rpc_backend":
-                key => 'rpc_backend',
-                config_file => '/etc/ceilometer/ceilometer.conf',
-                lens_to_use => 'properties.lns'
-            }
         }
     } elsif ((!("compute" in $host_roles)) and ($contrail_roles["compute"] == true)) {
         notify { "uninstalling compute":; }
