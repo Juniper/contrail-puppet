@@ -31,6 +31,11 @@ class contrail::profile::openstack::ceilometer (
   $auth_username = 'ceilometer'
   if (internal_vip!='') {
     $coordination_url = join(["kazoo://", $database_ip_to_use, ':2181'])
+    Class['::ceilometer']->
+    ceilometer_config {
+      'notification/workload_partitioning' : value => 'True';
+      'compute/workload_partitioning'      : value => 'True';
+    }
   } else {
     $coordination_url = undef
   }
@@ -43,37 +48,26 @@ class contrail::profile::openstack::ceilometer (
     rabbit_use_ssl     => $rabbit_use_ssl,
     kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
     kombu_ssl_certfile => $kombu_ssl_certfile,
-    kombu_ssl_keyfile  => $kombu_ssl_keyfile
+    kombu_ssl_keyfile  => $kombu_ssl_keyfile,
+    rpc_backend        => 'rabbit'
   } ->
-  file { '/etc/ceilometer/pipeline.yaml':
-    ensure => file,
-    content => template('contrail/pipeline.yaml.erb'),
-  } ->
-  class { '::ceilometer::agent::central':
-    coordination_url => $coordination_url
-  }
-  if $::osfamily != 'Debian' {
-    class { '::ceilometer::alarm::notifier':
-    } ->
-    class { '::ceilometer::alarm::evaluator':
-      coordination_url => $coordination_url
-    }
-  }
-  if (internal_vip!='') {
-     Contrail::Lib::Augeas_conf_rm['ceilometer_rpc_backend']->
-     ceilometer_config {
-      'notification/workload_partitioning' : value => 'True';
-      'compute/workload_partitioning'      : value => 'True';
-     }
-  }
+  class { '::ceilometer::db':
+    database_connection => $mongo_connection
+  }->
   class { '::ceilometer::agent::auth':
     auth_url         => $auth_url,
     auth_password    => $auth_password,
     auth_tenant_name => $auth_tenant_name,
     auth_user        => $auth_username,
   }
-  class { '::ceilometer::db':
-    database_connection => $mongo_connection
+  ->
+  class { '::ceilometer::collector': } ->
+  file { '/etc/ceilometer/pipeline.yaml':
+    ensure => file,
+    content => template('contrail/pipeline.yaml.erb'),
+  } ->
+  class { '::ceilometer::agent::central':
+    coordination_url => $coordination_url
   }
   case $package_sku {
     /13\.0/: {
@@ -92,12 +86,12 @@ class contrail::profile::openstack::ceilometer (
       }
     }
   }
-  class { '::ceilometer::collector': }
-
-  contrail::lib::augeas_conf_rm { "ceilometer_rpc_backend":
-        key => 'rpc_backend',
-        config_file => '/etc/ceilometer/ceilometer.conf',
-        lens_to_use => 'properties.lns',
-        match_value => 'ceilometer.openstack.common.rpc.impl_kombu',
+  if $::osfamily != 'Debian' {
+    class { '::ceilometer::alarm::notifier':
+    } ->
+    class { '::ceilometer::alarm::evaluator':
+      coordination_url => $coordination_url
+    }
   }
+
 }
