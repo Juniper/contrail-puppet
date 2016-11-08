@@ -6,7 +6,7 @@ class contrail::profile::openstack::glance(
   $internal_vip      = $::contrail::params::internal_vip,
   $openstack_verbose = $::contrail::params::os_verbose,
   $openstack_debug   = $::contrail::params::os_debug,
-  $sync_db           = $::contrail::params::sync_db,
+  $sync_db           = $::contrail::params::os_sync_db,
   $service_password  = $::contrail::params::os_mysql_service_password,
   $glance_password   = $::contrail::params::os_glance_password,
   $allowed_hosts     = $::contrail::params::os_mysql_allowed_hosts,
@@ -74,8 +74,7 @@ class contrail::profile::openstack::glance(
       verbose               => $openstack_verbose,
       debug                 => $openstack_debug,
       database_idle_timeout => '180',
-      #sync_db               => $sync_db
-      sync_db               => true,
+      sync_db               => $sync_db,
       auth_uri              => $auth_uri,
       auth_host             => $keystone_ip_to_use,
     }
@@ -101,8 +100,7 @@ class contrail::profile::openstack::glance(
       keystone_user     => 'glance',
       verbose           => $openstack_verbose,
       debug             => $openstack_debug,
-      #sync_db           => $sync_db,
-      sync_db           => true,
+      sync_db           => $sync_db,
       auth_uri          => $auth_uri,
       auth_host         => $keystone_ip_to_use,
     }

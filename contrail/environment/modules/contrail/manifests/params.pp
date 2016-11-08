@@ -684,7 +684,6 @@ class contrail::params (
     $compute_passwd_list,
     $host_roles,
     $external_bgp,
-    $sync_db,
     $contrail_plugin_location,
     $contrail_logoutput,
     $contrail_upgrade,
@@ -979,4 +978,10 @@ class contrail::params (
       contrail::lib::report_status { 'nova_public_missing': }
       fail("One of the nova keys are not specified")
     }
+
+  if ($host_ip == $openstack_ip_list[0]) {
+    $os_sync_db = true
+  } else {
+    $os_sync_db = false
+  }
 }

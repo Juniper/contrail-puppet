@@ -13,6 +13,7 @@ class contrail::profile::openstack::ceilometer (
   $analytics_node_ip = $::contrail::params::collector_ip_to_use,
   $service_password  = $::contrail::params::os_mysql_service_password,
   $allowed_hosts     = $::contrail::params::os_mysql_allowed_hosts,
+  $sync_db           = $::contrail::params::os_sync_db,
   $ceilometer_password        = $::contrail::params::os_ceilometer_password,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
@@ -37,6 +38,10 @@ class contrail::profile::openstack::ceilometer (
   } else {
       $coordination_url = undef
   }
+  class { '::ceilometer::db':
+    database_connection => $mongo_connection,
+    sync_db             => $sync_db
+  }
 
   class { '::ceilometer':
     metering_secret => $metering_secret,
@@ -45,23 +50,21 @@ class contrail::profile::openstack::ceilometer (
     rabbit_hosts    => $openstack_rabbit_servers,
     rpc_backend     => 'rabbit',
   } ->
-  class { '::ceilometer::db':
-    database_connection => $mongo_connection
-  }->
   class { '::ceilometer::agent::auth':
     auth_url         => $auth_url,
     auth_password    => $auth_password,
     auth_tenant_name => $auth_tenant_name,
     auth_user        => $auth_username,
+  } ->
+  class { '::ceilometer::agent::central':
+    coordination_url => $coordination_url
   }
-  ->
+
+  # NOTE: Added a ordering here, creates dependcy cycle for HA case.
   class { '::ceilometer::collector': } ->
   file { '/etc/ceilometer/pipeline.yaml':
     ensure => file,
     content => template('contrail/pipeline.yaml.erb'),
-  } ->
-  class { '::ceilometer::agent::central':
-    coordination_url => $coordination_url
   }
 
   class { '::ceilometer::api':
