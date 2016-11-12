@@ -837,7 +837,11 @@ class contrail::params (
     }
 
     # Set openstack_ip to be used to internal_vip, if internal_vip is not "".
-    if ($internal_vip != '') {
+    if ($external_openstack_ip != '') {
+        $openstack_ip_to_use = $external_openstack_ip
+        $discovery_ip_to_use = $external_openstack_ip
+        $global_controller_port = '9501'
+    } elsif ($internal_vip != '') {
         $openstack_ip_to_use = $internal_vip
         $discovery_ip_to_use = $internal_vip
         $global_controller_port = '9501'

@@ -51,6 +51,7 @@ class contrail::compute::config(
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
+    $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use
     $amqp_server_ip_to_use = $::contrail::params::amqp_server_ip_to_use
 
     # set number of control nodes.
@@ -220,7 +221,7 @@ class contrail::compute::config(
       $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }
     }
     if (!('openstack' in $host_roles)){
-      nova_config { 'glance/api_servers': value => "http://${glance_management_address}:9292"}
+      nova_config { 'glance/api_servers': value => "http://${openstack_ip_to_use}:9292"}
     }
     create_resources(nova_config, $nova_params, {} )
 

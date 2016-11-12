@@ -69,7 +69,7 @@ class contrail::profile::openstack::ceilometer (
 
   class { '::ceilometer::api':
     enabled           => true,
-    keystone_host     => $controller_mgmt_address,
+    keystone_host     => $keystone_ip_to_use,
     keystone_password => $ceilometer_password,
   }
 

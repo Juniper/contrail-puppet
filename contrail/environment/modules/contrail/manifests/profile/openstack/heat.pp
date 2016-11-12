@@ -19,6 +19,7 @@ class contrail::profile::openstack::heat (
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -55,7 +56,7 @@ class contrail::profile::openstack::heat (
       verbose            => $openstack_verbose,
       debug              => $openstack_debug,
       sync_db            => $sync_db,
-      keystone_host     => $controller_mgmt_address,
+      keystone_host     => $openstack_ip_to_use,
       keystone_password => $heat_password,
       auth_uri          => $auth_uri,
   }

@@ -23,6 +23,7 @@ class contrail::profile::openstack::nova(
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
   $vncproxy_port      = $::contrail::params::vncproxy_port
 ) {
 
@@ -52,14 +53,14 @@ class contrail::profile::openstack::nova(
   }
 
   if ($internal_vip != "" and $internal_vip != undef) {
-    $neutron_ip_address = $controller_mgmt_address
+    $neutron_ip_address = $openstack_ip_to_use
     $vncproxy_host = $host_control_ip
     $keystone_db_conn = join(["mysql://nova:",$service_password, "@", $internal_vip, ":33306", "/nova"],'')
     $osapi_compute_workers = '40'
     $database_idle_timeout = '180'
   } else {
     $neutron_ip_address = $::contrail::params::config_ip_list[0]
-    $vncproxy_host = $address_api
+    $vncproxy_host = $openstack_ip_to_use
     $keystone_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
     $osapi_compute_workers = $::processorcount
     $database_idle_timeout = '3600'
@@ -69,7 +70,7 @@ class contrail::profile::openstack::nova(
 
   class { '::nova':
     database_connection => $keystone_db_conn,
-    glance_api_servers  => "http://${storage_management_address}:9292",
+    glance_api_servers  => "http://${openstack_ip_to_use}:9292",
     memcached_servers   => $memcache_ip_ports,
     rabbit_hosts        => $openstack_rabbit_servers,
     rabbit_userid       => $rabbitmq_user,
@@ -132,7 +133,7 @@ class contrail::profile::openstack::nova(
       'DEFAULT/use_neutron'    : value => True;
       'neutron/auth_type'      : value => 'password';
       'neutron/project_name'   : value => 'services';
-      'neutron/auth_url'       : value => "http://${controller_mgmt_address}:35357";
+      'neutron/auth_url'       : value => "http://${openstack_ip_to_use}:35357";
       'neutron/username'       : value => 'neutron';
       'neutron/password'       : value => $neutron_password;
       'oslo_messaging_rabbit/heartbeat_timeout_threshold' :  value => '0';
@@ -160,7 +161,7 @@ class contrail::profile::openstack::nova(
       enabled                       => $contrail_is_compute,
       vnc_enabled                   => true,
       vncserver_proxyclient_address => $management_address,
-      vncproxy_host                 => $address_api,
+      vncproxy_host                 => $openstack_ip_to_use,
       instance_usage_audit          => $instance_usage_audit,
       instance_usage_audit_period   => $instance_usage_audit_period
     }

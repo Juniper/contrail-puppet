@@ -16,6 +16,7 @@ class contrail::profile::openstack::glance(
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $storage_management_address = $::contrail::params::os_glance_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
   $keystone_region_name = $::contrail::params::keystone_region_name,
 ) {
 
@@ -34,7 +35,7 @@ class contrail::profile::openstack::glance(
       keystone_tenant   => 'services',
       keystone_user     => 'glance',
       database_connection  => $keystone_db_conn,
-      registry_host     => $storage_address_management,
+      registry_host     => $openstack_ip_to_use,
       verbose           => $openstack_verbose,
       debug             => $openstack_debug,
       enabled           => true,
@@ -85,7 +86,7 @@ class contrail::profile::openstack::glance(
       keystone_tenant   => 'services',
       keystone_user     => 'glance',
       database_connection    => $keystone_db_conn,
-      registry_host     => $storage_address_management,
+      registry_host     => $openstack_ip_to_use,
       verbose           => $openstack_verbose,
       debug             => $openstack_debug,
       enabled           => true,

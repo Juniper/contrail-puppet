@@ -16,6 +16,7 @@ class contrail::profile::openstack::cinder(
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_auth_host         = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
   $glance_management_address = $::contrail::params::os_glance_mgmt_address,
 ) {
   #$api_network = $::openstack::config::network_api
@@ -31,7 +32,7 @@ class contrail::profile::openstack::cinder(
   if ($internal_vip != '' and $internal_vip != undef) {
     $keystone_db_conn = join(["mysql://cinder:",$service_password, "@", $internal_vip,":33306/cinder"],'')
     $auth_uri = "http://${keystone_ip_to_use}:5000/"
-    $glance_api_server = "${internal_vip}:9292"
+    $glance_api_server = "${openstack_ip_to_use}:9292"
 
     class { '::cinder':
       database_connection  => $keystone_db_conn,
@@ -57,7 +58,7 @@ class contrail::profile::openstack::cinder(
   } else {
     $keystone_db_conn = join(["mysql://cinder:",$database_credentials,"/cinder"],'')
     $auth_uri = "http://${keystone_ip_to_use}:5000/"
-    $glance_api_server = "${glance_management_address}:9292"
+    $glance_api_server = "${openstack_ip_to_use}:9292"
 
     class { '::cinder':
       database_connection  => $keystone_db_conn,
