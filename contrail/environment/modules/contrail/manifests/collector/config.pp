@@ -15,8 +15,6 @@ class contrail::collector::config (
     $redis_password = $::contrail::params::redis_password,
     $config_ip_to_use = $::contrail::params::config_ip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-    $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
-    $redis_config_file = $::contrail::params::redis_config_file,
     $host_roles = $::contrail::params::host_roles,
 ) {
 
