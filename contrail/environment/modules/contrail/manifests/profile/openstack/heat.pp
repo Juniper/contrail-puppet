@@ -26,7 +26,6 @@ class contrail::profile::openstack::heat (
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
 
-  $database_credentials = join([$service_password, "@", $host_control_ip],'')
   if ($internal_vip != '' and $internal_vip != undef) {
     $heat_api_bind_host = '0.0.0.0'
     $heat_api_bind_port = '8005'
@@ -34,6 +33,7 @@ class contrail::profile::openstack::heat (
     $heat_api_cfn_bind_port = '8001'
     $heat_server_ip = $internal_vip
     $mysql_port_url = ":33306/heat"
+    $mysql_ip_address  = $internal_vip
   } else {
     $heat_api_bind_host = '0.0.0.0'
     $heat_api_bind_port = '8004'
@@ -41,9 +41,11 @@ class contrail::profile::openstack::heat (
     $heat_api_cfn_bind_port = '8000'
     $heat_server_ip = $host_control_ip
     $mysql_port_url = "/heat"
+    $mysql_ip_address  = $host_control_ip
   }
 
   $auth_uri = "http://${keystone_ip_to_use}:5000/v2.0"
+  $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://heat:",$database_credentials,$mysql_port_url],'')
 
   class {'::heat::db::mysql':
