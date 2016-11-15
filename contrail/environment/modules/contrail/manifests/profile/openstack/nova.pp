@@ -16,6 +16,7 @@ class contrail::profile::openstack::nova(
   $enable_ceilometer = $::contrail::params::enable_ceilometer,
   $package_sku       = $::contrail::params::package_sku,
   $host_roles        = $::contrail::params::host_roles,
+  $openstack_ip_list = $::contrail::params::openstack_ip_list,
   $contrail_internal_vip      = $::contrail::params::contrail_internal_vip,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $neutron_shared_secret      = $::contrail::params::os_neutron_shared_secret,
@@ -28,9 +29,9 @@ class contrail::profile::openstack::nova(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $vncproxy_port      = $::contrail::params::vncproxy_port
 ) {
 
-  $database_credentials = join([$service_password, "@", $host_control_ip],'')
   $auth_uri = "http://${keystone_ip_to_use}:5000/"
 
   class {'::nova::db::mysql':
@@ -59,33 +60,39 @@ class contrail::profile::openstack::nova(
     $contrail_is_compute = false
   }
 
+  $memcache_ip_ports = suffix($openstack_ip_list, ":11211")
+
   if ($internal_vip != "" and $internal_vip != undef) {
     $neutron_ip_address = $controller_mgmt_address
-    $vncproxy_port = '6999'
     $vncproxy_host = $host_control_ip
-    $keystone_db_conn = join(["mysql://nova:",$database_credentials, ":33306", "/nova"],'')
     $osapi_compute_workers = '40'
     $database_idle_timeout = '180'
     $nova_api_port         = '9774'
     $metadata_port         = '9775'
+    $mysql_ip_address      = $internal_vip
+    $mysql_port_url        = ":33306/nova"
+    $mysql_port_url_api    = ":33306/nova_api"
   } else {
     $neutron_ip_address = $::contrail::params::config_ip_list[0]
-    $vncproxy_port = '5999'
     $vncproxy_host = $address_api
-    $keystone_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
     $osapi_compute_workers = $::processorcount
     $database_idle_timeout = '3600'
     $nova_api_port         = '8774'
     $metadata_port         = '8775'
+    $mysql_ip_address      = $host_control_ip
+    $mysql_port_url        = "/nova"
+    $mysql_port_url_api    = "/nova_api"
   }
+  $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
+  $keystone_db_conn = join(["mysql://nova:",$database_credentials,$mysql_port_url],'')
 
   case $package_sku {
     /13\.0/: {
-      $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials,"/nova_api"],'')
+      $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials, $mysql_port_url_api],'')
       class { '::nova':
         database_connection => $keystone_db_conn,
         glance_api_servers  => "http://${storage_management_address}:9292",
-        memcached_servers   => ["${controller_mgmt_address}:11211"],
+        memcached_servers   => [$memcache_ip_ports],
         rabbit_hosts        => $openstack_rabbit_servers,
         rabbit_userid       => $rabbitmq_user,
         rabbit_password     => $rabbitmq_password,
@@ -152,7 +159,7 @@ class contrail::profile::openstack::nova(
       class { '::nova':
         database_connection => $keystone_db_conn,
         glance_api_servers  => "http://${storage_management_address}:9292",
-        memcached_servers   => ["${controller_mgmt_address}:11211"],
+        memcached_servers   => [$memcache_ip_ports],
         rabbit_hosts        => $openstack_rabbit_servers,
         rabbit_userid       => $rabbitmq_user,
         rabbit_password     => $rabbitmq_password,

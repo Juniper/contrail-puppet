@@ -53,6 +53,7 @@ class contrail::compute::config(
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $upgrade_needed = $::contrail::params::upgrade_needed,
+  $vncproxy_url = $::contrail::params::vncproxy_base_url
 ){
   $config_ip_to_use = $::contrail::params::config_ip_to_use
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -209,7 +210,7 @@ class contrail::compute::config(
     'compute/compute_driver'    => { value => "libvirt.LibvirtDriver" },
     'DEFAULT/rabbit_hosts'      => { value => "${nova_compute_rabbit_hosts}"},
     'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
-    'DEFAULT/novncproxy_base_url' => { value => "http://${openstack_mgmt_ip}:5999/vnc_auto.html" },
+    'DEFAULT/novncproxy_base_url' => { value => "${vncproxy_url}" },
     'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
   }
 

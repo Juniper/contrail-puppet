@@ -23,16 +23,18 @@ class contrail::profile::openstack::cinder(
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
 ) {
 
-  $database_credentials = join([$service_password, "@", $host_control_ip],'')
 
   if ($internal_vip != '' and $internal_vip != undef) {
-    $mysql_port_url = ":3306/cinder"
+    $mysql_port_url = ":33306/cinder"
     $glance_api_server = "${internal_vip}:9292"
+    $mysql_ip_address  = $internal_vip
   } else {
     $mysql_port_url = "/cinder"
     $glance_api_server = "${glance_management_address}:9292"
+    $mysql_ip_address  = $host_control_ip
   }
 
+  $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://cinder:",$database_credentials, $mysql_port_url],'')
 
   class {'::cinder::db::mysql':

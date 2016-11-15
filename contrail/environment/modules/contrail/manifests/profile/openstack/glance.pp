@@ -32,14 +32,16 @@ class contrail::profile::openstack::glance(
   }
 
   if ($internal_vip != '' and $internal_vip != undef) {
-    $mysql_port_url = ":3306/glance"
+    $mysql_port_url = ":33306/glance"
     $bind_port      = "9393"
+    $mysql_ip_address  = $internal_vip
   } else {
     $mysql_port_url = "/glance"
     $bind_port      = "9292"
+    $mysql_ip_address  = $host_control_ip
   }
 
-  $database_credentials = join([$service_password, "@", $host_control_ip],'')
+  $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://glance:",$database_credentials, $mysql_port_url],'')
 
   case $package_sku {

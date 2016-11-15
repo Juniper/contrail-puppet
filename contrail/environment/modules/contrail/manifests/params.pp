@@ -981,6 +981,17 @@ class contrail::params (
         $upgrade_needed = 0
     }
 
+    if ($internal_vip != "" and $internal_vip != undef) {
+      $vncproxy_port = '6999'
+      $vncproxy_host = $internal_vip
+      $base_url_port = "6080"
+    } else {
+      $vncproxy_port = '5999'
+      $base_url_port = "5999"
+      $vncproxy_host = $openstack_mgmt_ip_list_to_use[0]
+    }
+    $vncproxy_base_url = "http://${vncproxy_host}:${base_url_port}/vnc_auto.html"
+
     if ( ($package_sku =~ /13\.0/) and ($::operatingsystem == 'Centos')) {
       $zookeeper_conf_dir= "/etc/zookeeper"
     } else {
