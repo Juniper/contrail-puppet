@@ -20,8 +20,8 @@ class ExecControlProvisioner(object):
             args_str = ' '.join(sys.argv[1:])
         self._parse_args(args_str)
 
-        api_server_port="8082"
-        contrail_config_ip='127.0.0.1'
+        api_server_port = self._args.api_server_port
+        contrail_config_ip = self._args.api_server_ip
         host_ip_list= self._args.host_ip_list.split(",")
         host_name_list= self._args.host_name_list.split(",")
         if  self._args.mt_options != "None":
