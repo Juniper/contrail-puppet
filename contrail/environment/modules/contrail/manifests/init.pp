@@ -768,7 +768,6 @@ class contrail (
 	enable_lbaas =>				hiera(contrail::enable_lbaas, hiera(contrail::params::enable_lbaas, $enable_lbaas)),
 	xmpp_auth_enable =>			hiera(contrail::xmpp_auth_enable, hiera(contrail::params::xmpp_auth_enable, $xmpp_auth_enable)),
 	xmpp_dns_auth_enable =>			hiera(contrail::xmpp_dns_auth_enable, hiera(contrail::params::xmpp_dns_auth_enable, $xmpp_dns_auth_enable)),
-	sync_db =>				hiera(contrail::sync_db, hiera(contrail::params::sync_db, $sync_db)),
         package_sku =>        hiera(contrail::package_sku, $package_sku),
         # HA Parameters
 	haproxy_flag =>				hiera(contrail::ha::haproxy_enable, hiera(contrail::params::haproxy_flag, $haproxy_flag)),
