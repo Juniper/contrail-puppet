@@ -9,7 +9,7 @@ class contrail::profile::openstack::nova(
   $allowed_hosts     = $::contrail::params::os_mysql_allowed_hosts,
   $rabbitmq_user     = $::contrail::params::os_rabbitmq_user,
   $rabbitmq_password = $::contrail::params::os_rabbitmq_password,
-  $sync_db           = $::contrail::params::sync_db,
+  $sync_db           = $::contrail::params::os_sync_db,
   $service_password  = $::contrail::params::os_mysql_service_password,
   $address_api       = $::contrail::params::os_controller_api_address ,
   $sriov_enable      = $::contrail::params::sriov_enable,
@@ -112,7 +112,7 @@ class contrail::profile::openstack::nova(
         auth_uri                             => $auth_uri,
         enabled                              => 'true',
         neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
-        sync_db                              => true,
+        sync_db                              => $sync_db,
         osapi_compute_workers                => $osapi_compute_workers,
         enabled_apis                         => $enabled_apis
       }
@@ -171,7 +171,7 @@ class contrail::profile::openstack::nova(
         auth_uri                             => $auth_uri,
         enabled                              => 'true',
         neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
-        sync_db                              => true,
+        sync_db                              => $sync_db,
         osapi_compute_workers                => $osapi_compute_workers,
         enabled_apis                         => $enabled_apis
       }
