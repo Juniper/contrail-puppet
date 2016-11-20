@@ -25,6 +25,7 @@ class contrail::profile::openstack::nova(
   $keystone_ip_to_use         = $::contrail::params::keystone_ip_to_use,
   $keystone_admin_password    = $::contrail::params::keystone_admin_password,
   $config_ip_to_use           = $::contrail::params::config_ip_to_use,
+  $openstack_ip_to_use        = $::contrail::params::openstack_ip_to_use,
   $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
@@ -63,7 +64,7 @@ class contrail::profile::openstack::nova(
   $memcache_ip_ports = suffix($openstack_ip_list, ":11211")
 
   if ($internal_vip != "" and $internal_vip != undef) {
-    $neutron_ip_address = $controller_mgmt_address
+    $neutron_ip_address = $openstack_ip_to_use
     $vncproxy_host = $host_control_ip
     $osapi_compute_workers = '40'
     $database_idle_timeout = '180'
@@ -74,7 +75,7 @@ class contrail::profile::openstack::nova(
     $mysql_port_url_api    = ":33306/nova_api"
   } else {
     $neutron_ip_address = $::contrail::params::config_ip_list[0]
-    $vncproxy_host = $address_api
+    $vncproxy_host = $openstack_ip_to_use
     $osapi_compute_workers = $::processorcount
     $database_idle_timeout = '3600'
     $nova_api_port         = '8774'
@@ -91,7 +92,7 @@ class contrail::profile::openstack::nova(
       $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials, $mysql_port_url_api],'')
       class { '::nova':
         database_connection => $keystone_db_conn,
-        glance_api_servers  => "http://${storage_management_address}:9292",
+        glance_api_servers  => "http://${openstack_ip_to_use}:9292",
         memcached_servers   => [$memcache_ip_ports],
         rabbit_hosts        => $openstack_rabbit_servers,
         rabbit_userid       => $rabbitmq_user,
@@ -158,7 +159,7 @@ class contrail::profile::openstack::nova(
     default: {
       class { '::nova':
         database_connection => $keystone_db_conn,
-        glance_api_servers  => "http://${storage_management_address}:9292",
+        glance_api_servers  => "http://${openstack_ip_to_use}:9292",
         memcached_servers   => [$memcache_ip_ports],
         rabbit_hosts        => $openstack_rabbit_servers,
         rabbit_userid       => $rabbitmq_user,
@@ -240,7 +241,7 @@ class contrail::profile::openstack::nova(
       enabled                       => $contrail_is_compute,
       vnc_enabled                   => true,
       vncserver_proxyclient_address => $management_address,
-      vncproxy_host                 => $address_api,
+      vncproxy_host                 => $openstack_ip_to_use,
       instance_usage_audit          => $instance_usage_audit,
       instance_usage_audit_period   => $instance_usage_audit_period
     }

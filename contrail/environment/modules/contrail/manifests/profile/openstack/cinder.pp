@@ -22,16 +22,15 @@ class contrail::profile::openstack::cinder(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
 ) {
-
-
   if ($internal_vip != '' and $internal_vip != undef) {
     $mysql_port_url = ":33306/cinder"
-    $glance_api_server = "${internal_vip}:9292"
-    $mysql_ip_address  = $internal_vip
+    $glance_api_server = "${openstack_ip_to_use}:9292"
+    $mysql_ip_address  = $openstack_ip_to_use
   } else {
     $mysql_port_url = "/cinder"
-    $glance_api_server = "${glance_management_address}:9292"
+    $glance_api_server = "${openstack_ip_to_use}:9292"
     $mysql_ip_address  = $host_control_ip
   }
 
