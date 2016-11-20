@@ -18,6 +18,7 @@ class contrail::profile::openstack::provision (
   $config_ip_to_use  = $::contrail::params::config_ip_to_use,
   $package_sku       = $::contrail::params::package_sku,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
 ) {
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
@@ -42,29 +43,29 @@ class contrail::profile::openstack::provision (
   } ->
   class { '::cinder::keystone::auth':
     password     => $cinder_password,
-    public_url   => "http://${address_api}:8776/v1/%(tenant_id)s",
-    admin_url    => "http://${controller_address_management}:8776/v1/%(tenant_id)s",
-    internal_url => "http://${controller_address_management}:8776/v1/%(tenant_id)s",
+    public_url   => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+    admin_url    => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+    internal_url => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
     region       => $region_name,
   } ->
   class  { '::glance::keystone::auth':
     password     => $glance_password,
-    public_url   => "http://${address_api}:9292",
-    admin_url    => "http://${controller_address_management}:9292",
-    internal_url => "http://${controller_address_management}:9292",
+    public_url   => "http://${openstack_ip_to_use}:9292",
+    admin_url    => "http://${openstack_ip_to_use}:9292",
+    internal_url => "http://${openstack_ip_to_use}:9292",
     region       => $region_name,
   } ->
   class { '::nova::keystone::auth':
     password         => $nova_password,
-    public_url       => "http://${address_api}:8774/${endpoint_version}${tenant_id}",
-    admin_url        => "http://${controller_address_management}:8774/${endpoint_version}${tenant_id}",
-    internal_url     => "http://${controller_address_management}:8774/${endpoint_version}${tenant_id}",
-    ec2_public_url   => "http://${controller_address_management}:8773/services/Cloud",
-    ec2_admin_url    => "http://${controller_address_management}:8773/services/Admin",
-    ec2_internal_url => "http://${controller_address_management}:8773/services/Cloud",
-    public_url_v3    => "http://${controller_address_management}:8774/v3",
-    admin_url_v3     => "http://${controller_address_management}:8774/v3",
-    internal_url_v3  => "http://${controller_address_management}:8774/v3",
+    public_url       => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
+    admin_url        => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
+    internal_url     => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
+    ec2_public_url   => "http://${openstack_ip_to_use}:8773/services/Cloud",
+    ec2_admin_url    => "http://${openstack_ip_to_use}:8773/services/Admin",
+    ec2_internal_url => "http://${openstack_ip_to_use}:8773/services/Cloud",
+    public_url_v3    => "http://${openstack_ip_to_use}:8774/v3",
+    admin_url_v3     => "http://${openstack_ip_to_use}:8774/v3",
+    internal_url_v3  => "http://${openstack_ip_to_use}:8774/v3",
     region           => $region_name,
   } ->
   class { '::neutron::keystone::auth':
@@ -76,23 +77,23 @@ class contrail::profile::openstack::provision (
   } ->
   class { '::ceilometer::keystone::auth':
     password         => $ceilometer_password,
-    public_address   => $contrail_controller_address_api,
-    admin_address    => $contrail_controller_address_management,
-    internal_address => $contrail_controller_address_management,
+    public_address   => $openstack_ip_to_use,
+    admin_address    => $openstack_ip_to_use,
+    internal_address => $openstack_ip_to_use,
     region           => $region_name,
   } ->
   class { '::heat::keystone::auth':
     password         => $heat_password,
-    public_address   => $contrail_controller_address_api,
-    admin_address    => $contrail_controller_address_management,
-    internal_address => $contrail_controller_address_management,
+    public_address   => $openstack_ip_to_use,
+    admin_address    => $openstack_ip_to_use,
+    internal_address => $openstack_ip_to_use,
     region           => $region_name,
   } ->
   class { '::heat::keystone::auth_cfn':
     password         => $heat_password,
-    public_address   => $contrail_controller_address_api,
-    admin_address    => $contrail_controller_address_management,
-    internal_address => $contrail_controller_address_management,
+    public_address   => $openstack_ip_to_use,
+    admin_address    => $openstack_ip_to_use,
+    internal_address => $openstack_ip_to_use,
     region           => $region_name,
   }
 }
