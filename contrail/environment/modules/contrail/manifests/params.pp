@@ -783,10 +783,10 @@ class contrail::params (
         $zk_ip_list_to_use = $zookeeper_ip_list
     }
 
-    if ($openstack_mgmt_ip_list == undef) {
-        $openstack_mgmt_ip_list_to_use = $openstack_ip_list
-    } else {
+    if (size($openstack_mgmt_ip_list) > 0) {
         $openstack_mgmt_ip_list_to_use = $openstack_mgmt_ip_list
+    } else {
+        $openstack_mgmt_ip_list_to_use = $openstack_ip_list
     }
 
     # Set keystone IP to be used.
