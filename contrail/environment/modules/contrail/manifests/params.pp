@@ -765,6 +765,7 @@ class contrail::params (
     $rabbit_ssl_support,
     $config_amqp_ssl,
     $openstack_amqp_ssl,
+    $hostnames,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
