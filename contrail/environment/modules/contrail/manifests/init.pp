@@ -736,6 +736,7 @@ class contrail (
     $openstack_debug ='false',
     $openstack_mysql_allowed_hosts = '127.0.0.1',
     $sriov = {},
+    $qos = {},
     $sriov_enable = false,
     $keystone_mysql_service_password = undef,
     $external_openstack_ip = undef,
@@ -901,6 +902,8 @@ class contrail (
         sriov     =>                            hiera(contrail::compute::sriov,hiera(contrail::params::sriov, $sriov)),
         sriov_enable              => hiera(contrail::openstack::sriov::enable, hiera(contrail::params::sriov_enable, $sriov_enable)),
 
+        # QoS Parameters
+	qos =>					hiera(contrail::qos, $qos),
         # VMWare Parameters
 	vmware_ip =>				hiera(contrail::vmware::ip, hiera(contrail::params::vmware_ip, $vmware_ip)),
 	vmware_username =>			hiera(contrail::vmware::username, hiera(contrail::params::vmware_username, $vmware_username)),
