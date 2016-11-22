@@ -28,10 +28,12 @@ class contrail::profile::openstack::cinder(
     $mysql_port_url = ":33306/cinder"
     $glance_api_server = "${openstack_ip_to_use}:9292"
     $mysql_ip_address  = $openstack_ip_to_use
+    $osapi_volume_port = "9776"
   } else {
     $mysql_port_url = "/cinder"
     $glance_api_server = "${openstack_ip_to_use}:9292"
     $mysql_ip_address  = $host_control_ip
+    $osapi_volume_port = "8776"
   }
 
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
@@ -64,7 +66,7 @@ class contrail::profile::openstack::cinder(
       }
 
       cinder_config {
-        'DEFAULT/osapi_volume_listen_port':  value => '9776';
+        'DEFAULT/osapi_volume_listen_port':  value => $osapi_volume_port;
         'database/db_max_retries':           value => "3";
         'database/db_retry_interval':        value => "1";
         'database/connection_debug':         value => "10";
@@ -92,7 +94,7 @@ class contrail::profile::openstack::cinder(
       }
 
       cinder_config {
-        'DEFAULT/osapi_volume_listen_port':  value => '9776';
+        'DEFAULT/osapi_volume_listen_port':  value => $osapi_volume_port;
         'database/db_max_retries':           value => "3";
         'database/db_retry_interval':        value => "1";
         'database/connection_debug':         value => "10";
