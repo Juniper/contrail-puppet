@@ -748,6 +748,7 @@ class contrail (
     $rabbit_ssl_support = false,
     $config_amqp_use_ssl = undef,
     $os_amqp_use_ssl = undef,
+    $config_hostnames = {'hostnames' => {}}
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -966,5 +967,6 @@ class contrail (
         user_heat_config       => hiera(openstack::heat::override_config, $heat_override_config),
         user_ceilometer_config => hiera(openstack::ceilometer::override_config, $ceilometer_override_config),
         user_ceph_config       => hiera(openstack::ceph::override_config, $ceph_override_config),
+        hostnames              => hiera(contrail::system, $config_hostnames)
     }
 }

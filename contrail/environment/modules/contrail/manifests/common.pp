@@ -37,6 +37,7 @@ class contrail::common(
     $upgrade_needed = $::contrail::params::upgrade_needed,
     $ssl_package    = $::contrail::params::ssl_package,
     $enable_dpdk    = $::contrail::params::enable_dpdk,
+    $contrail_hostnames   = $::contrail::params::hostnames['hostnames'],
 ) {
     include ::contrail
     $contrail_group_details = {
@@ -54,6 +55,7 @@ class contrail::common(
 
     create_resources(group, $contrail_group_details)
     create_resources(user, $contrail_users_details)
+    create_resources(host, $contrail_hostnames)
     Contrail::Lib::Contrail_setup_repo <||> -> Package<||>
     if ($::operatingsystem == 'Ubuntu'){
       if ($::lsbdistrelease == '14.04') {
@@ -91,11 +93,6 @@ class contrail::common(
     contrail::lib::upgrade_kernel{ 'kernel_upgrade':
       contrail_kernel_upgrade => $::contrail::params::kernel_upgrade,
       contrail_logoutput      => $contrail_logoutput
-    } ->
-    # Ensure /etc/hosts has an entry for self to map dns name to ip address
-    host { $::hostname :
-      ensure => present,
-      ip     => $host_mgmt_ip
     } ->
     package { $ssl_package : ensure => present,} ->
     sysctl::value { 
