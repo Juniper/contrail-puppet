@@ -39,10 +39,13 @@ class contrail::config::neutron (
   # sku pattern for ubuntu is 2:12.0.1-0ubuntu1~cloud0.1contrail
   if ( $package_sku =~ /12\.0./) {
     $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+    $lbaas_plugin = 'neutron_plugin_contrail.plugins.opencontrail.loadbalancer.v2.plugin.LoadBalancerPluginV2'
   } elsif ( $package_sku =~ /13\.0./) {
     $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+    $lbaas_plugin = 'neutron_plugin_contrail.plugins.opencontrail.loadbalancer.v2.plugin.LoadBalancerPluginV2'
   } else {
     $neutron_extensions = ""
+    $lbaas_plugin = 'neutron_plugin_contrail.plugins.opencontrail.loadbalancer.plugin.LoadBalancerPlugin'
   }
 
   class { '::neutron':
@@ -56,7 +59,7 @@ class contrail::config::neutron (
     verbose               => $openstack_verbose,
     debug                 => $openstack_debug,
     api_extensions_path   => "extensions:${::python_dist}/neutron_plugin_contrail/extensions${neutron_extensions}",
-    service_plugins       => ['neutron_plugin_contrail.plugins.opencontrail.loadbalancer.plugin.LoadBalancerPlugin'],
+    service_plugins       => [$lbaas_plugin],
   }
 
   class { '::neutron::server':
