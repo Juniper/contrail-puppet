@@ -133,13 +133,8 @@ class contrail::compute::config(
   $contrail_netmask = inline_template("<%= scope.lookupvar('netmask_' + @physical_dev) %>")
   $contrail_cidr = convert_netmask_to_cidr($contrail_netmask)
 
-  if ($haproxy == true) {
-    $quantum_ip = '127.0.0.1'
-    $discovery_ip = '127.0.0.1'
-  } else {
-    $quantum_ip = $config_ip_to_use
-    $discovery_ip = $config_ip_to_use
-  }
+  $quantum_ip = $config_ip_to_use
+  $discovery_ip = $config_ip_to_use
 
   $vmware_physical_intf = 'eth1'
   if ( $vmware_ip != '' ) {
