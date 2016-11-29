@@ -814,7 +814,14 @@ class contrail::params (
         $rest_api_port_to_use = '9081'
     } elsif $internal_vip != '' {
         $vip_to_use = $internal_vip
-        $config_ip_to_use = $internal_vip
+        #openstack and config nodes are on same nodes
+        $diff_array = difference($config_ip_list, $openstack_ip_list)
+        if size($diff_array) > 0 {
+          $config_ip_to_use = $config_ip_list[0]
+        } else {
+          #if config and openstack nodes are same, then we use internal_vip
+          $config_ip_to_use = $internal_vip
+        }
         $collector_ip_to_use = $internal_vip
         $contrail_controller_address_api = $internal_vip
         $contrail_controller_address_management = $internal_vip

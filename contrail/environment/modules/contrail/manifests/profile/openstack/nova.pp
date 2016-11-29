@@ -64,7 +64,6 @@ class contrail::profile::openstack::nova(
   $memcache_ip_ports = suffix($openstack_ip_list, ":11211")
 
   if ($internal_vip != "" and $internal_vip != undef) {
-    $neutron_ip_address = $openstack_ip_to_use
     $vncproxy_host = $host_control_ip
     $osapi_compute_workers = '40'
     $database_idle_timeout = '180'
@@ -74,7 +73,6 @@ class contrail::profile::openstack::nova(
     $mysql_port_url        = ":33306/nova"
     $mysql_port_url_api    = ":33306/nova_api"
   } else {
-    $neutron_ip_address = $::contrail::params::config_ip_list[0]
     $vncproxy_host = $openstack_ip_to_use
     $osapi_compute_workers = $::processorcount
     $database_idle_timeout = '3600'
@@ -84,6 +82,7 @@ class contrail::profile::openstack::nova(
     $mysql_port_url        = "/nova"
     $mysql_port_url_api    = "/nova_api"
   }
+  $neutron_ip_address   = $config_ip_to_use
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://nova:",$database_credentials,$mysql_port_url],'')
 
