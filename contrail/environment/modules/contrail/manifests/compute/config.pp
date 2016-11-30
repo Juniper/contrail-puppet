@@ -53,6 +53,7 @@ class contrail::compute::config(
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $upgrade_needed = $::contrail::params::upgrade_needed,
+  $qos = $::contrail::params::qos,
   $vncproxy_url = $::contrail::params::vncproxy_base_url
 ){
   $config_ip_to_use = $::contrail::params::config_ip_to_use
@@ -299,6 +300,14 @@ class contrail::compute::config(
     contrail::lib::setup_sriov_wrapper {$sriov_keys:
       intf_hash => $sriov,
       enable_dpdk => $enable_dpdk,
+    }
+  }
+
+  notify {"qos = ${qos}":;}
+  $qos_queue_ids = keys($qos)
+  if (!empty($qos)) {
+    contrail::lib::setup_qos {$qos_queue_ids:
+      qos_hash => $qos,
     }
   }
 

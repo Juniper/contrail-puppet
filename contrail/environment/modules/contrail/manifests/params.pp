@@ -743,6 +743,7 @@ class contrail::params (
     $os_ceilometer_password,
     $sriov,
     $sriov_enable,
+    $qos,
     $openstack_controller_address_management,
     $openstack_controller_address_api,
     $external_openstack_ip,
