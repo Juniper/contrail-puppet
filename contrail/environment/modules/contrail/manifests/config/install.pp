@@ -59,5 +59,8 @@ class contrail::config::install(
     ensure => latest,
     configfiles => "replace",
     notify => Service['supervisor-config']
-  } -> Package['neutron-server']
+  }
+  if ($::operatingsystem == 'Ubuntu') {
+    Package['contrail-config-openstack'] -> Package['neutron-server']
+  }
 }
