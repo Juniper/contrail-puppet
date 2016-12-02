@@ -275,3 +275,12 @@ module.exports = config;
 config.server_options = {};
 config.server_options.key_file = '<%= @webui_key_file_path %>';
 config.server_options.cert_file = '<%= @webui_cert_file_path %>';
+
+/* Parameters for global controller */
+<% if @global_controller_ip != "" -%>
+config.serviceEndPointFromConfig = false;
+config.regionsFromConfig = true;
+config.gohan = {};
+config.gohan.url = "http://<%= @global_controller_ip %>:<%= @global_controller_port %>";
+<% end -%>
+

@@ -10,6 +10,8 @@ class contrail::webui::config(
     $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
     $webui_key_file_path = $::contrail::params::webui_key_file_path,
     $webui_cert_file_path = $::contrail::params::webui_cert_file_path,
+    $global_controller_ip = $::contrail::params::global_controller_ip,
+    $global_controller_port = $::contrail::params::global_controller_port,
 ) {
 
     if ($is_storage_master) {
