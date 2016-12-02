@@ -578,6 +578,11 @@
 #     List of host names of all the servers in cluster configured to
 #     be provisioned with global controller package.
 #
+# [*global_controller_ip*]
+#     ip address of the global controller that will control this region/cluster
+#
+# [*global_controller_port*]
+#     global controller port
 class contrail (
     $host_ip = undef,
     $uuid = undef,
@@ -746,6 +751,8 @@ class contrail (
     $config_manage_db = true,
     $global_controller_ip_list = undef,
     $global_controller_name_list = undef,
+    $global_controller_ip = undef,
+    $global_controller_port = undef,
     $rabbit_ssl_support = false,
     $config_amqp_use_ssl = undef,
     $os_amqp_use_ssl = undef,
@@ -809,6 +816,8 @@ class contrail (
         #Global Controller Parameters
         global_controller_ip_list =>            hiera(contrail::global_controller::global_controller_ip_list, $global_controller_ip_list),
         global_controller_name_list =>          hiera(contrail::global_controller::global_controller_name_list, $global_controller_name_list),
+        global_controller_ip =>                 hiera(contrail::global_controller::global_controller_ip, hiera(contrail::params::global_controller_ip, $global_controller_ip)),
+        global_controller_port =>               hiera(contrail::global_controller::global_controller_port, hiera(contrail::params::global_controller_port, $global_controller_port)),
         # Openstack Parameters
 	openstack_controller_address_api =>     hiera(openstack::controller::address::api, hiera(contrail::params::openstack_controller_address_api, $openstack_controller_address_api)),
 	openstack_controller_address_management => hiera(openstack::controller::address::management, hiera(contrail::params::openstack_controller_address_management, $openstack_controller_address_management)),
