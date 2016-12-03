@@ -54,6 +54,7 @@ class contrail::compute::config(
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $upgrade_needed = $::contrail::params::upgrade_needed,
   $qos = $::contrail::params::qos,
+  $core_mask= $::contrail::params::core_mask,
   $vncproxy_url = $::contrail::params::vncproxy_base_url
 ){
   $config_ip_to_use = $::contrail::params::config_ip_to_use
@@ -213,6 +214,10 @@ class contrail::compute::config(
 
   if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
     $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }
+  }
+
+  if ($core_mask != '') {
+    $nova_params['DEFAULT/vcpu_pin_set'] = { value => build_vcpu_pin_list($core_mask) }
   }
 
   if ($rabbit_use_ssl) {
