@@ -311,6 +311,14 @@ class contrail::compute::config(
     }
   }
 
+  if ! defined(Class['::contrail::xmpp_cert_files']) {
+    Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
+    Class['::contrail::xmpp_cert_files'] ->
+    Reboot['compute']
+
+    contain ::contrail::xmpp_cert_files
+  }
+
   contrail_vrouter_agent_config {
     'DEFAULT/xmpp_auth_enable' : value => "$xmpp_auth_enable";
     'DEFAULT/xmpp_server_cert' : value => "/etc/contrail/ssl/certs/server.pem";
@@ -390,12 +398,6 @@ class contrail::compute::config(
     Class['::contrail::ctrl_details'] ->
     Nova_config['neutron/admin_auth_url']
     contain ::contrail::ctrl_details
-  }
-  if ! defined(Class['::contrail::xmpp_cert_files']) {
-    Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-    Class['::contrail::xmpp_cert_files'] ->
-    Nova_config['neutron/admin_auth_url']
-    contain ::contrail::xmpp_cert_files
   }
 
   sysctl::value {
