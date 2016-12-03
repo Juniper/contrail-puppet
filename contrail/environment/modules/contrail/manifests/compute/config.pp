@@ -47,6 +47,7 @@ class contrail::compute::config(
     $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
     $glance_management_address = $::contrail::params::os_glance_mgmt_address,
     $host_roles    = $::contrail::params::host_roles,
+    $core_mask= $::contrail::params::core_mask,
     $vncproxy_url = $::contrail::params::vncproxy_base_url
 )  {
     $config_ip_to_use = $::contrail::params::config_ip_to_use
@@ -221,6 +222,11 @@ class contrail::compute::config(
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
       $nova_params['keystone_authtoken/password'] = { value =>"${keystone_admin_password}" }
     }
+
+    if ($core_mask != '') {
+      $nova_params['DEFAULT/vcpu_pin_set'] = { value => build_vcpu_pin_list($core_mask) }
+    }
+
     if (!('openstack' in $host_roles)){
       nova_config { 'glance/api_servers': value => "http://${openstack_ip_to_use}:9292"}
     }
