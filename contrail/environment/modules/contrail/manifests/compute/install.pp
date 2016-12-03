@@ -41,9 +41,8 @@ class contrail::compute::install(
             if ($::lsbdistrelease == '14.04') {
                 notify {"compute_notify_6": name => "enable_dpdk = ${enable_dpdk}"; }
                 if ($enable_dpdk == true ) {
+                    $vrouter_pkg = 'contrail-vrouter-dpdk-init'
                     Notify["compute_notify_2"]->
-                    notify {"compute_notify_7": name => "settting up DPDK"; } -> 
-                    contrail::lib::setup_dpdk_depends{ 'dpdk_depends':} ->
                     #Might be temporary
                     #create the override and remove it
                     #create an overrride so that supervisor-vrouter doesnt start
@@ -57,7 +56,6 @@ class contrail::compute::install(
                     } ->
                     Package[$vrouter_pkg, 'contrail-openstack-vrouter']
 
-                    $vrouter_pkg = 'contrail-vrouter-dpdk-init'
                 } elsif ($::kernelrelease == '3.13.0-85-generic') {
                     $vrouter_pkg = 'contrail-vrouter-3.13.0-85-generic'
                 } else {
