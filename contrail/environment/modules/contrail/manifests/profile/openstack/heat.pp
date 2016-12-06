@@ -45,7 +45,7 @@ class contrail::profile::openstack::heat (
     $mysql_ip_address  = $host_control_ip
   }
 
-  $auth_uri = "http://${keystone_ip_to_use}:5000/v2.0"
+  $auth_uri = "http://${keystone_ip_to_use}:5000/"
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://heat:",$database_credentials,$mysql_port_url],'')
 

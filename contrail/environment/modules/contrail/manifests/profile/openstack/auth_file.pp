@@ -6,6 +6,7 @@ class contrail::profile::openstack::auth_file(
   $admin_user               = 'admin',
   $admin_tenant             = 'admin',
   $region_name              = $::contrail::params::os_region,
+  $keystone_version         = $::contrail::params::keystone_version,
   $use_no_cache             = true,
   $cinder_endpoint_type     = 'publicURL',
   $glance_endpoint_type     = 'publicURL',
