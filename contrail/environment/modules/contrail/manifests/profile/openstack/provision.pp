@@ -9,6 +9,7 @@ class contrail::profile::openstack::provision (
   $ceilometer_password       = $::contrail::params::os_ceilometer_password,
   $controller_mgmt_address   = $::contrail::params::os_controller_mgmt_address,
   $controller_api_address    = $::contrail::params::os_controller_api_address,
+  $keystone_version          = $::contrail::params::keystone_version,
   $keystone_admin_email      = $::contrail::params::os_keystone_admin_email,
   $keystone_admin_password   = $::contrail::params::keystone_admin_password,
   $contrail_controller_address_api = $::contrail::params::contrail_controller_address_api,
@@ -28,7 +29,13 @@ class contrail::profile::openstack::provision (
   } else {
     $tenant_id = "/%(tenant_id)s"
   }
-    $endpoint_version = "v2"
+  $endpoint_version = "v2"
+
+  if ($keystone_version == "v3" ) {
+    $config_admin_user = false
+  } else {
+    $config_admin_user = true
+  }
 
   class { 'keystone::endpoint':
     public_url   => "http://${keystone_ip_to_use}:5000",
@@ -39,8 +46,24 @@ class contrail::profile::openstack::provision (
   class { '::keystone::roles::admin':
     email        => $keystone_admin_email,
     password     => $keystone_admin_password,
+    configure_user => $config_admin_user,
+    configure_user_role => $config_admin_user,
     admin_tenant => 'admin',
-  } ->
+  }
+
+  if ($keystone_version == "v3" ) {
+    ensure_resource('keystone_user', "admin::Default", {
+      'ensure'   => 'present',
+      'enabled'  => true,
+      'email'    => $keystone_admin_email,
+      'password' => $keystone_admin_password,
+    })
+
+    ensure_resource('keystone_user_role', "admin::Default@::Default", {
+      'roles' => ['admin'],
+    })
+  }
+
   class { '::cinder::keystone::auth':
     password     => $cinder_password,
     public_url   => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",

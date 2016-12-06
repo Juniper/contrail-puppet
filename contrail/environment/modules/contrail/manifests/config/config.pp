@@ -49,6 +49,7 @@ class contrail::config::config (
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $keystone_version   = $::contrail::params::keystone_version,
 ) {
   # Main code for class starts here
   if $use_certs == true {
@@ -86,6 +87,12 @@ class contrail::config::config (
     $mt_options = 'None'
   }
 
+  if ($keystone_version == "v3" ) {
+    $authn_url = "/v3/auth/tokens"
+  } else {
+    $authn_url = "/v2.0/tokens"
+  }
+
   # Set params based on internval VIP being set
 
   if ($internal_vip != '') {
@@ -118,7 +125,7 @@ class contrail::config::config (
   $zk_ip_port_list = join($zk_ip_port_to_use, ',')
   $zk_ip_list = join($zookeeper_ip_list, ',')
 
-  $keystone_auth_url = join([$keystone_auth_protocol,"://",$keystone_ip_to_use,":",$keystone_auth_port,"/v2.0"],'')
+  $keystone_auth_url = join([$keystone_auth_protocol,"://",$keystone_ip_to_use,":",$keystone_auth_port,"/", $keystone_version],'')
 
   # Set number of config nodes
   $cfgm_number = size($config_ip_list)
@@ -384,7 +391,7 @@ class contrail::config::config (
     'auth/AUTHN_PROTOCOL'           : value => "$keystone_auth_protocol";
     'auth/AUTHN_SERVER'             : value => "$keystone_auth_server";
     'auth/AUTHN_PORT'               : value => '35357';
-    'auth/AUTHN_URL'                : value => '/v2.0/tokens';
+    'auth/AUTHN_URL'                : value => $authn_url;
   } ->
   contrail_plugin_ini {
     'APISERVER/api_server_ip'   : value => "$config_ip";

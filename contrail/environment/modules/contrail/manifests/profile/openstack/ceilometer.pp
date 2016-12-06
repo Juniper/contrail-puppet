@@ -23,10 +23,11 @@ class contrail::profile::openstack::ceilometer (
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $keystone_version   = $::contrail::params::keystone_version
 ) {
   $database_ip_to_use = $database_ip_list[0]
   $mongo_connection = join([ "mongodb://ceilometer:", $mongo_password, "@", join($database_ip_list,':27017,') ,":27017/ceilometer?replicaSet=rs-ceilometer" ],'')
-  $auth_url = "http://${keystone_ip_to_use}:5000/v2.0"
+  $auth_url = "http://${keystone_ip_to_use}:5000/${keystone_version}"
   $auth_password = $ceilometer_password
   $auth_tenant_name = 'services'
   $auth_username = 'ceilometer'

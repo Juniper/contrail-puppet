@@ -13,6 +13,7 @@ class contrail::profile::openstack::keystone(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $keystone_version   = $::contrail::params::keystone_version,
   $openstack_rabbit_servers        = $::contrail::params::openstack_rabbit_ip_list,
   $keystone_mysql_service_password = $::contrail::params::keystone_mysql_service_password,
 ) {
@@ -26,6 +27,13 @@ class contrail::profile::openstack::keystone(
   class {'::keystone::db::mysql':
     password => $service_password,
     allowed_hosts => $allowed_hosts,
+  }
+
+  if ($keystone_version == "v3") {
+    file { '/etc/keystone/policy.v3cloudsample.json' :
+      ensure  => present,
+      content => template("${module_name}/policy.v3cloudsample.json"),
+    }
   }
 
   if ($internal_vip != "" and $internal_vip != undef) {
@@ -64,6 +72,12 @@ class contrail::profile::openstack::keystone(
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
         kombu_ssl_keyfile  => $kombu_ssl_keyfile
+      }
+
+      if ($keystone_version == "v3") {
+        keystone_config {
+          'oslo_policy/policy_file' : value => "policy.v3cloudsample.json";
+        }
       }
     }
 
