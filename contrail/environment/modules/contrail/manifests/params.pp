@@ -618,6 +618,7 @@ class contrail::params (
     $keystone_admin_tenant,
     $keystone_service_tenant,
     $keystone_region_name,
+    $keystone_version,
     $multi_tenancy,
     $zookeeper_ip_list,
     $quantum_port,

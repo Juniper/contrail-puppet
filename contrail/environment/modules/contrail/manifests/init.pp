@@ -199,6 +199,11 @@
 #     Name for region in keystone..
 #     (optional) - Defaults to "RegionOne". UI parameter.
 #
+# [*keystone_version*]
+#     keystone version to support
+#     (optional) valid values : v2.0 and v3
+#     Defaults to v2.0
+#
 # [*multi_tenancy*]
 #     Flag to indicate if multi tenancy is enabled for openstack.
 #     (optional) - Defaults to true.
@@ -626,6 +631,7 @@ class contrail (
     $keystone_admin_tenant = 'admin',
     $keystone_service_tenant = 'services',
     $keystone_region_name = 'RegionOne',
+    $keystone_version = "v2.0",
     $multi_tenancy = true,
     $zookeeper_ip_list = undef,
     $quantum_port = 9697,
@@ -822,6 +828,7 @@ class contrail (
 	metadata_secret =>			hiera(openstack::metadata_secret, hiera(contrail::params::metadata_secret, $metadata_secret)),
 	openstack_manage_amqp =>		hiera(openstack::openstack_manage_amqp, hiera(contrail::params::openstack_manage_amqp, $openstack_manage_amqp)),
 	keystone_region_name =>			hiera(openstack::region, hiera(contrail::params::keystone_region_name, $keystone_region_name)),
+	keystone_version =>                     hiera(openstack::keystone::version, $keystone_version),
 	keystone_ip =>				hiera(openstack::keystone::ip, hiera(contrail::params::keystone_ip, $keystone_ip)),
 	external_openstack_ip =>		hiera(openstack::external_openstack_ip, hiera(contrail::params::external_openstack_ip, $external_openstack_ip)),
 	keystone_mysql_service_password =>	hiera(openstack::keystone::mysql_service_password, hiera(contrail::params::keystone_mysql_service_password, $keystone_mysql_service_password)),
