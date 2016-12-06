@@ -317,9 +317,15 @@ class contrail::compute::config(
   }
 
   if ! defined(Class['::contrail::xmpp_cert_files']) {
-    Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
-    Class['::contrail::xmpp_cert_files'] ->
-    Reboot['compute']
+    if ($upgrade_needed != 1) {
+      Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
+      Class['::contrail::xmpp_cert_files'] ->
+      Reboot['compute']
+    } else {
+      Notify["vmware_physical_intf = ${vmware_physical_intf}"] ->
+      Class['::contrail::xmpp_cert_files'] ->
+      Nova_config['neutron/admin_auth_url']
+    }
 
     contain ::contrail::xmpp_cert_files
   }
