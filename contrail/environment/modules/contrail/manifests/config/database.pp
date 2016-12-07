@@ -12,6 +12,7 @@ class contrail::config::database (
   $database_minimum_diskGB = $::contrail::params::database_minimum_diskGB,
   $host_roles = $::contrail::params::host_roles,
   $config_manage_db = $::contrail::params::config_manage_db,
+  $zookeeper_conf_dir = $::contrail::params::zookeeper_conf_dir,
 ) {
     if (!('database' in $host_roles) and $config_manage_db == true) {
            $database_ip_list_to_use = $config_ip_list
@@ -31,7 +32,7 @@ class contrail::config::database (
             if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
             $zk_myid_file = '/var/lib/zookeeper/myid'
             } else {
-            $zk_myid_file = '/etc/zookeeper/conf/myid'
+            $zk_myid_file = "${zookeeper_conf_dir}/myid"
             }
 
             # set database_index
@@ -85,7 +86,7 @@ class contrail::config::database (
                 contrail_cassandra_dir => $contrail_cassandra_dir,
                     cassandra_cluster_name => "\'ConfigContrail\'"
             } ->
-            file { '/etc/zookeeper/conf/zoo.cfg':
+            file { "${zookeeper_conf_dir}/zoo.cfg":
             ensure  => present,
             content => template("${module_name}/zoo.cfg.erb"),
             } ->
@@ -143,12 +144,12 @@ class contrail::config::database (
             # Below is temporary to work-around in Ubuntu as Service resource fails
             # as upstart is not correctly linked to /etc/init.d/service-name
             if ($::operatingsystem == 'Ubuntu') {
-            File['/etc/zookeeper/conf/zoo.cfg'] ->
+            File["${zookeeper_conf_dir}/zoo.cfg"] ->
             file { '/etc/init.d/supervisord-contrail-database':
                 ensure  => link,
                 target  => '/lib/init/upstart-job',
             } ->
-            File ['/etc/zookeeper/conf/log4j.properties'] -> File ['/etc/zookeeper/conf/environment'] ->
+            File ["${zookeeper_conf_dir}/log4j.properties"] -> File ["${zookeeper_conf_dir}/environment"] ->
             File [$zk_myid_file] ~> Service['zookeeper']
             }
             contain ::contrail::config_cassandra
