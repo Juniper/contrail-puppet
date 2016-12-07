@@ -215,6 +215,7 @@ class contrail::compute::config(
       'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
       'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
       'DEFAULT/novncproxy_base_url' => { value => "${vncproxy_url}" },
+      'DEFAULT/my_ip'             => { value => "$host_control_ip" },
     }
 
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
