@@ -210,6 +210,7 @@ class contrail::compute::config(
     'DEFAULT/rabbit_hosts'      => { value => "${nova_compute_rabbit_hosts}"},
     'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
     'DEFAULT/novncproxy_base_url' => { value => "${vncproxy_url}" },
+    'DEFAULT/my_ip'             => { value => "$host_control_ip" },
     'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
   }
 
