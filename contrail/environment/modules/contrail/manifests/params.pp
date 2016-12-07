@@ -764,6 +764,8 @@ class contrail::params (
     $user_ceph_config,
     $global_controller_ip_list,
     $global_controller_name_list,
+    $ext_global_controller_ip,
+    $ext_global_controller_port,
     $rabbit_ssl_support,
     $config_amqp_ssl,
     $openstack_amqp_ssl,

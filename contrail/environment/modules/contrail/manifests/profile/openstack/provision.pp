@@ -119,4 +119,12 @@ class contrail::profile::openstack::provision (
     internal_address => $openstack_ip_to_use,
     region           => $region_name,
   }
+  # if cluster has global-controller referenced provision these endpoints
+  $cgc_ip = $::contrail::params::ext_global_controller_ip
+  $cgc_port = $::contrail::params::ext_global_controller_port 
+  if (($cgc_ip != '') and ($cgc_port != '')) {
+    contain ::contrail::profile::global_controller::keystone::auth
+    Class['::heat::keystone::auth_cfn'] ->
+    Class['::contrail::profile::global_controller::keystone::auth']
+  }
 }
