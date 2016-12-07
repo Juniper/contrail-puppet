@@ -52,10 +52,11 @@ class contrail::compute::config(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
-  $upgrade_needed = $::contrail::params::upgrade_needed,
-  $qos = $::contrail::params::qos,
-  $core_mask= $::contrail::params::core_mask,
-  $vncproxy_url = $::contrail::params::vncproxy_base_url
+  $upgrade_needed     = $::contrail::params::upgrade_needed,
+  $qos                = $::contrail::params::qos,
+  $core_mask          = $::contrail::params::core_mask,
+  $vncproxy_url       = $::contrail::params::vncproxy_base_url,
+  $keystone_version   = $::contrail::params::keystone_version,
 ){
   $config_ip_to_use = $::contrail::params::config_ip_to_use
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -195,7 +196,7 @@ class contrail::compute::config(
                                     $contrail_rabbit_servers)
 
   $nova_params = {
-    'neutron/admin_auth_url'    => { value => "http://${keystone_ip_to_use}:35357/v2.0/" },
+    'neutron/admin_auth_url'    => { value => "http://${keystone_ip_to_use}:35357/${keystone_version}" },
     'neutron/admin_tenant_name' => { value => 'services', },
     'neutron/project_name'      => { value => 'services', },
     'neutron/admin_username'    => { value => 'neutron', },

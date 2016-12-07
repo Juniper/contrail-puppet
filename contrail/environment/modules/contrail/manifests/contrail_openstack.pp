@@ -74,6 +74,7 @@ class contrail::contrail_openstack (
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_control_ip = $::contrail::params::host_ip,
     $enable_ceilometer = $::contrail::params::enable_ceilometer,
+    $keystone_version  = $::contrail::params::keystone_version,
 )  {
     # Main code for class
 
