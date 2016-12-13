@@ -20,6 +20,8 @@ class contrail::profile::openstack_controller (
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
   $openstack_ip_list = $::contrail::params::openstack_ip_list,
   $host_control_ip = $::contrail::params::host_ip,
+  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $keystone_version   = $::contrail::params::keystone_version,
   $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
@@ -106,6 +108,18 @@ class contrail::profile::openstack_controller (
       #require => [Class['keystone::endpoint'], Keystone_role['admin']]
     }
 
+    if $keystone_version == "v3" {
+      # setting new variable to reuse same json for keystone and horizon
+      $horizon_v3_changes = "v3"
+      Package['openstack-dashboard'] ->
+      file { '/usr/share/openstack-dashboard/openstack_dashboard/conf/keystone_policy.json':
+        ensure => present,
+        mode   => '0755',
+        group  => root,
+        content => template("${module_name}/policy.v3cloudsample.json")
+      } ->
+      Contrail::Lib::Report_status['openstack_completed']
+    }
     contain ::contrail::profile::openstack::mysql
     contain ::contrail::profile::openstack::keystone
     contain ::contrail::profile::openstack::glance
