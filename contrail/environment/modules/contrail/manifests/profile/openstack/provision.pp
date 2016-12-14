@@ -18,11 +18,17 @@ class contrail::profile::openstack::provision (
   $address_api       = $::contrail::params::address_api,
   $config_ip_to_use  = $::contrail::params::config_ip_to_use,
   $package_sku       = $::contrail::params::package_sku,
-  $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
+  $keystone_ip_to_use  = $::contrail::params::keystone_ip_to_use,
   $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
+  $manage__neutron     = $::contrail::params::neutron_ip
 ) {
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
+  if ($manage_neutron == true) {
+    $neutron_ip   = $::contrail::params::config_ip_to_use
+  } else {
+    $neutron_ip   = $::contrail::params::openstack_ip_to_use
+  }
 
   if ( $package_sku =~ /13\.0/) {
     $tenant_id = ""
@@ -97,9 +103,9 @@ class contrail::profile::openstack::provision (
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,
-    public_address   => $config_ip_to_use,
-    admin_address    => $config_ip_to_use,
-    internal_address => $config_ip_to_use,
+    public_address   => $neutron_ip,
+    admin_address    => $neutron_ip,
+    internal_address => $neutron_ip,
     region           => $region_name,
   } ->
   class { '::ceilometer::keystone::auth':
