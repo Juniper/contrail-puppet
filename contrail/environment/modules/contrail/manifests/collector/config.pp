@@ -142,7 +142,7 @@ class contrail::collector::config (
       'DEFAULTS/zk_list'            : value => "$zk_ip_list";
       'DEFAULTS/kafka_broker_list'  : value => "$kafka_broker_list";
       'DEFAULTS/rabbitmq_server_list' : value => "$contrail_rabbit_servers";
-      'DEFAULTS/rabbit_use_ssl'     : value => $rabbit_use_ssl;
+      'DEFAULTS/rabbitmq_use_ssl'     : value => $rabbit_use_ssl;
       'DEFAULTS/kombu_ssl_ca_certs' : value => $kombu_ssl_ca_certs;
       'DEFAULTS/kombu_ssl_certfile' : value => $kombu_ssl_certfile;
       'DEFAULTS/kombu_ssl_keyfile'  : value => $kombu_ssl_keyfile;
