@@ -93,9 +93,9 @@ class contrail::profile::openstack::provision (
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,
-    public_address   => $config_ip_to_use,
-    admin_address    => $config_ip_to_use,
-    internal_address => $config_ip_to_use,
+    public_address   => $openstack_ip_to_use,
+    admin_address    => $openstack_ip_to_use,
+    internal_address => $openstack_ip_to_use,
     region           => $region_name,
   } ->
   class { '::ceilometer::keystone::auth':
