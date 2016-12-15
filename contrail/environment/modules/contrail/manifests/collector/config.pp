@@ -16,6 +16,11 @@ class contrail::collector::config (
     $config_ip_to_use = $::contrail::params::config_ip_to_use,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $contrail_rabbit_servers= $::contrail::params::contrail_rabbit_servers,
+    $rabbit_use_ssl = $::contrail::params::rabbit_ssl_support,
+    $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
+    $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
+    $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+    $redis_config_file = $::contrail::params::redis_config_file,
     $host_roles = $::contrail::params::host_roles,
 ) {
 
@@ -143,6 +148,10 @@ class contrail::collector::config (
       'DEFAULTS/zk_list'            : value => "$zk_ip_list";
       'DEFAULTS/kafka_broker_list'  : value => "$kafka_broker_list";
       'DEFAULTS/rabbitmq_server_list' : value => "$contrail_rabbit_servers";
+      'DEFAULTS/rabbitmq_use_ssl'     : value => $rabbit_use_ssl;
+      'DEFAULTS/kombu_ssl_ca_certs' : value => $kombu_ssl_ca_certs;
+      'DEFAULTS/kombu_ssl_certfile' : value => $kombu_ssl_certfile;
+      'DEFAULTS/kombu_ssl_keyfile'  : value => $kombu_ssl_keyfile;
       'DEFAULTS/http_server_port'   : value => '5995';
       'DEFAULTS/log_local'          : value => '1';
       'DEFAULTS/log_level'          : value => 'SYS_NOTICE';
