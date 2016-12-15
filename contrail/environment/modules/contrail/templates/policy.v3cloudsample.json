@@ -1,6 +1,11 @@
 {
     "admin_required": "role:admin",
+<%- if @horizon_v3_changes == "v3" -%>
+    "cloud_admin": "role:admin and domain_id:default",
+<%- else -%>
     "cloud_admin": "role:admin and (token.is_admin_project:True or domain_id:default)",
+<%- end -%>
+
     "service_role": "role:service",
     "service_or_admin": "rule:admin_required or rule:service_role",
     "owner" : "user_id:%(user_id)s or user_id:%(target.token.user_id)s",
