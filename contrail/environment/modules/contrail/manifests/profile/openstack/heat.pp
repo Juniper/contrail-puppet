@@ -25,6 +25,7 @@ class contrail::profile::openstack::heat (
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $keystone_version   = $::contrail::params::keystone_version
 ) {
 
   if ($internal_vip != '' and $internal_vip != undef) {
@@ -45,7 +46,7 @@ class contrail::profile::openstack::heat (
     $mysql_ip_address  = $host_control_ip
   }
 
-  $auth_uri = "http://${keystone_ip_to_use}:5000/"
+  $auth_uri = "http://${keystone_ip_to_use}:5000/${keystone_version}"
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://heat:",$database_credentials,$mysql_port_url],'')
 
