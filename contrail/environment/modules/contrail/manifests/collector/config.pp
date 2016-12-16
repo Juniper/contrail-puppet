@@ -2,6 +2,7 @@ class contrail::collector::config (
     $host_control_ip = $::contrail::params::host_ip,
     $database_ip_list = $::contrail::params::database_ip_list,
     $database_ip_port = $::contrail::params::database_ip_port,
+    $collector_ip_list = $::contrail::params::collector_ip_list,
     $analytics_data_ttl = $::contrail::params::analytics_data_ttl,
     $analytics_config_audit_ttl = $::contrail::params::analytics_config_audit_ttl,
     $analytics_statistics_ttl = $::contrail::params::analytics_statistics_ttl,
@@ -28,6 +29,9 @@ class contrail::collector::config (
      ## Cassandra Port for Cql has been changed to 9042.
     $database_ip_port_list = suffix($database_ip_list, ":9042")
     $cassandra_server_list = join($database_ip_port_list, ' ' )
+
+    $redis_ip_port_list = suffix($collector_ip_list, ":6379")
+    $redis_server_list = join($redis_ip_port_list, ' ')
 
     $kafka_broker_port_list = suffix($database_ip_list, ':9092')
     $kafka_broker_list =  join($kafka_broker_port_list, ' ')
@@ -80,10 +84,11 @@ class contrail::collector::config (
       'DEFAULTS/analytics_flow_ttl' : value => $analytics_flow_ttl;
       'DEFAULTS/aaa_mode' : value => 'cloud-admin';
       'DEFAULTS/api_server' : value => $analytics_api_server_to_use;
+      'DEFAULTS/zk_list'           : value => $zk_ip_list;
       'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port' : value => '5998';
-      'REDIS/redis_server_port'    : value => '6379';
       'REDIS/redis_query_port'     : value => '6379';
+      'REDIS/redis_uve_list'       : value => $redis_server_list;
     } ->
 
     contrail_query_engine_config {
@@ -152,6 +157,7 @@ class contrail::collector::config (
       'DEFAULTS/log_file'           : value => '/var/log/contrail/contrail-alarm-gen.log';
       'DISCOVERY/disc_server_port' : value => '5998';
       'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
+      'REDIS/redis_uve_list'       : value => $redis_server_list;
     } ->
 
     contrail_topology_config {
