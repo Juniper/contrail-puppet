@@ -29,6 +29,11 @@ define contrail::lib::storage_common(
 ) {
 
   contrail::lib::report_status { 'storage_started': state => 'storage_started' }
+  -> file {'/var/run/ceph':
+    ensure  => directory,
+    owner  => ceph, 
+    group  => ceph,
+  }
   ->
   package { 'contrail-storage' : ensure => latest, }
   ->
