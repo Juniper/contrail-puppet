@@ -745,6 +745,7 @@ class contrail (
     $config_manage_db = true,
     $global_controller_ip_list = undef,
     $global_controller_name_list = undef,
+    $config_hostnames = {'hostnames' => {}}
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -960,5 +961,6 @@ class contrail (
         user_heat_config       => hiera(openstack::heat::override_config, $heat_override_config),
         user_ceilometer_config => hiera(openstack::ceilometer::override_config, $ceilometer_override_config),
         user_ceph_config       => hiera(openstack::ceph::override_config, $ceph_override_config),
+        hostnames              => hiera(contrail::system, $config_hostnames)
     }
 }
