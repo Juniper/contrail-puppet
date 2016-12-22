@@ -762,6 +762,7 @@ class contrail::params (
     $user_ceph_config,
     $global_controller_ip_list,
     $global_controller_name_list,
+    $hostnames,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
