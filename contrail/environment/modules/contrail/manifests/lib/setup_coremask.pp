@@ -24,6 +24,7 @@ define contrail::lib::setup_coremask(
      #lines and not on wordS
      exec { 'change_supervisor' :
        command   => "sed -i \"s/command=/command=taskset${taskset_params} ${core_mask} /g\" ${vrouter_file}",
+       unless    => "grep -q \"command=taskset${taskset_params} ${core_mask}\" ${vrouter_file}",
        provider  => 'shell',
        logoutput => $contrail_logoutput
      }
