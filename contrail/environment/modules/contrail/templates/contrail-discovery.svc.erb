@@ -4,5 +4,8 @@
 # description: Juniper Network Virtualization API
 
 <% for worker_id in (0..disc_nworkers.to_i-1) %>
-supervisorctl -s unix:///tmp/supervisord_config.sock ${1} `basename ${0}:<%= worker_id %>`
+if [ -e /tmp/supervisord_config.sock ]; then
+    supervisorctl -s unix:///tmp/supervisord_config.sock ${1} `basename ${0}:<%= worker_id %>`
+else
+    supervisorctl -s unix:///var/run/supervisord_config.sock ${1} `basename ${0}:<%= worker_id %>`
 <% end %>
