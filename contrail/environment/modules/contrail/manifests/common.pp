@@ -35,6 +35,7 @@ class contrail::common(
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
     $host_roles = $::contrail::params::host_roles,
     $upgrade_needed = $::contrail::params::upgrade_needed,
+    $enable_dpdk    = $::contrail::params::enable_dpdk,
     $contrail_hostnames   = $::contrail::params::hostnames['hostnames'],
 ) {
     include ::contrail
@@ -55,6 +56,14 @@ class contrail::common(
     create_resources(user, $contrail_users_details)
     create_resources(host, $contrail_hostnames)
     Contrail::Lib::Contrail_setup_repo <||> -> Package<||>
+
+    if ($::operatingsystem == 'Ubuntu'){
+      if ($::lsbdistrelease == '14.04') {
+        if ($enable_dpdk == true ) {
+          contrail::lib::setup_dpdk_depends{ 'dpdk_depends':}
+        }
+      }
+    }
 
     # All Resources for this class are below.
     Group['nova', 'kvm', 'libvirtd'] ->
