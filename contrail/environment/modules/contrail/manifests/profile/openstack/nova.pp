@@ -24,7 +24,8 @@ class contrail::profile::openstack::nova(
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
   $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
-  $vncproxy_port      = $::contrail::params::vncproxy_port
+  $vncproxy_port      = $::contrail::params::vncproxy_port,
+  $config_ip_to_use   = $::contrail::params::config_ip_to_use,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -53,19 +54,18 @@ class contrail::profile::openstack::nova(
   }
 
   if ($internal_vip != "" and $internal_vip != undef) {
-    $neutron_ip_address = $openstack_ip_to_use
     $vncproxy_host = $host_control_ip
     $keystone_db_conn = join(["mysql://nova:",$service_password, "@", $internal_vip, ":33306", "/nova"],'')
     $osapi_compute_workers = '40'
     $database_idle_timeout = '180'
   } else {
-    $neutron_ip_address = $::contrail::params::config_ip_list[0]
     $vncproxy_host = $openstack_ip_to_use
     $keystone_db_conn = join(["mysql://nova:",$database_credentials,"/nova"],'')
     $osapi_compute_workers = $::processorcount
     $database_idle_timeout = '3600'
   }
 
+  $neutron_ip_address   = $config_ip_to_use
   $memcache_ip_ports = suffix($openstack_ip_list, ":11211")
 
   class { '::nova':
