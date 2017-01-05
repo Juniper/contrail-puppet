@@ -774,7 +774,13 @@ class contrail::params (
     }
 
     if ($zookeeper_ip_list == undef) {
-        $zk_ip_list_to_use = $database_ip_list
+        if (!('database' in $host_roles) and ('config' in $host_roles) and $config_manage_db == true) {
+            $zk_ip_list_to_use = $config_ip_list
+        } elsif (!('config' in $host_roles) and ('database' in $host_roles) and $config_manage_db == true) {
+            $zk_ip_list_to_use = $config_ip_list
+        } else {
+            $zk_ip_list_to_use = $database_ip_list
+        }
     }
     else {
         $zk_ip_list_to_use = $zookeeper_ip_list
