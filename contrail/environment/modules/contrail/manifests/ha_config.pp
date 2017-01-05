@@ -74,6 +74,8 @@ class contrail::ha_config (
     $enable_post_exec_vnc_galera = $::contrail::params::enable_post_exec_vnc_galera,
     $enable_sequence_provisioning = $::contrail::params::enable_sequence_provisioning,
     $is_storage_master = $::contrail::params::storage_enabled,
+    $host_roles = $::contrail::params::host_roles,
+    $config_manage_db = $::contrail::params::config_manage_db,
 )  {
     # Main code for class
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -104,12 +106,12 @@ class contrail::ha_config (
         } else {
             $contrail_nfs_glance_path = '/var/lib/glance/images'
         }
-        if (size($::contrail::params::database_ip_list) < 1 and $internal_vip != '') {
+        if ('config' in $host_roles and $config_manage_db == true) {
+            $zookeeper_ip_list = $::contrail::params::config_ip_list
+        } elsif (size($::contrail::params::database_ip_list) < 1) {
             $zookeeper_ip_list = $::contrail::params::openstack_ip_list
-            notify { "Zookeeper_ip_list = $zookeeper_ip_list":;}
         } else {
             $zookeeper_ip_list = $::contrail::params::database_ip_list
-            notify { "Zookeeper_ip_list = $zookeeper_ip_list":;}
         }
 
         $cmon_db_user = "cmon"
