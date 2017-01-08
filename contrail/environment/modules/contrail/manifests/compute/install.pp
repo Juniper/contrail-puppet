@@ -1,5 +1,6 @@
 class contrail::compute::install(
   $opencontrail_only = false,
+  $default_trusty_kernel = $::contrail::params::default_trusty_kernel,
   $enable_lbaas =  $::contrail::params::enable_lbaas,
   $enable_dpdk=  $::contrail::params::enable_dpdk,
 ) {
@@ -56,8 +57,8 @@ class contrail::compute::install(
                     } ->
                     Package[$vrouter_pkg, 'contrail-openstack-vrouter']
 
-                } elsif ($::kernelrelease == '3.13.0-85-generic') {
-                    $vrouter_pkg = 'contrail-vrouter-3.13.0-85-generic'
+                } elsif ($::kernelrelease == '${default_trusty_kernel}-generic') {
+                    $vrouter_pkg = 'contrail-vrouter-${default_trusty_kernel}-generic'
                 } else {
                     $vrouter_pkg = 'contrail-vrouter-dkms'
                 }
