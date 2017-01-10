@@ -78,7 +78,7 @@ class contrail::profile::openstack::neutron(
       kombu_ssl_ca_certs    => $kombu_ssl_ca_certs,
       kombu_ssl_certfile    => $kombu_ssl_certfile,
       kombu_ssl_keyfile     => $kombu_ssl_keyfile,
-      bind_port             => $::contrail::params::quantum_port,
+      bind_port             => '9696',
       auth_strategy         => 'keystone',
       core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',
       allow_overlapping_ips => true,
