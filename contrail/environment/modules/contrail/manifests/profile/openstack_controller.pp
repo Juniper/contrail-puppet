@@ -12,20 +12,21 @@
 #     (optional) - Defaults to false.
 #
 class contrail::profile::openstack_controller (
-  $enable_module = $::contrail::params::enable_openstack,
-  $enable_ceilometer = $::contrail::params::enable_ceilometer,
+  $enable_module      = $::contrail::params::enable_openstack,
+  $enable_ceilometer  = $::contrail::params::enable_ceilometer,
   $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
-  $host_roles = $::contrail::params::host_roles,
-  $package_sku = $::contrail::params::package_sku,
+  $host_roles         = $::contrail::params::host_roles,
+  $package_sku        = $::contrail::params::package_sku,
   $openstack_manage_amqp = $::contrail::params::openstack_manage_amqp,
-  $openstack_ip_list = $::contrail::params::openstack_ip_list,
-  $host_control_ip = $::contrail::params::host_ip,
+  $openstack_ip_list  = $::contrail::params::openstack_ip_list,
+  $host_control_ip    = $::contrail::params::host_ip,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
   $keystone_version   = $::contrail::params::keystone_version,
   $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $manage_neutron     = $::contrail::params::manage_neutron
 ) {
 
   include ::keystone::params
@@ -45,6 +46,12 @@ class contrail::profile::openstack_controller (
   $processor_count_str = "${::processorcount}"
 
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
+    if ($manage_neutron == false) {
+      $neutron_packages = ['neutron-server']
+    } else {
+      $neutron_packages = []
+    }
+
     if ($enable_ceilometer) {
       $ceilometer_packages = ['ceilometer-common',
                               'ceilometer-backend-package',
@@ -66,7 +73,8 @@ class contrail::profile::openstack_controller (
                           "${mysql::params::python_package_name}",
                           "python-nova",
                           "python-keystone", "python-cinderclient",
-                          $ceilometer_packages]
+                          $ceilometer_packages,
+                          $neutron_packages ]
     # api_package is false in case of Centos
     if $::cinder::params::api_package {
         $pkg_list = [$pkg_list_a, "${cinder::params::api_package}"]

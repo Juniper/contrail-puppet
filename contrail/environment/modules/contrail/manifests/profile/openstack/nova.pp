@@ -30,7 +30,8 @@ class contrail::profile::openstack::nova(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
-  $vncproxy_port      = $::contrail::params::vncproxy_port
+  $vncproxy_port      = $::contrail::params::vncproxy_port,
+  $neutron_ip_to_use  = $::contrail::params::neutron_ip_to_use
 ) {
 
   $auth_uri = "http://${keystone_ip_to_use}:5000/"
@@ -82,7 +83,7 @@ class contrail::profile::openstack::nova(
     $mysql_port_url        = "/nova"
     $mysql_port_url_api    = "/nova_api"
   }
-  $neutron_ip_address   = $config_ip_to_use
+
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://nova:",$database_credentials,$mysql_port_url],'')
 
@@ -128,7 +129,7 @@ class contrail::profile::openstack::nova(
         neutron_admin_password => $neutron_password,
         neutron_region_name    => $region_name,
         neutron_admin_auth_url => "http://${keystone_ip_to_use}:35357/",
-        neutron_url            => "http://${neutron_ip_address}:9696",
+        neutron_url            => "http://${neutron_ip_to_use}:9696",
         vif_plugging_is_fatal  => false,
         vif_plugging_timeout   => '0',
       }
@@ -187,7 +188,7 @@ class contrail::profile::openstack::nova(
         neutron_admin_password => $neutron_password,
         neutron_region_name    => $region_name,
         neutron_admin_auth_url => "http://${keystone_ip_to_use}:35357/v2.0",
-        neutron_url            => "http://${neutron_ip_address}:9696",
+        neutron_url            => "http://${neutron_ip_to_use}:9696",
         vif_plugging_is_fatal  => false,
         vif_plugging_timeout   => '0',
       }

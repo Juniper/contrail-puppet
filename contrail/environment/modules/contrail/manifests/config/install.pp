@@ -3,6 +3,7 @@ class contrail::config::install(
  $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
  $internal_vip          = $::contrail::params::internal_vip,
  $upgrade_needed        = $::contrail::params::upgrade_needed,
+ $manage_neutron        = $::contrail::params::manage_neutron
 ) {
   # Install a specific version of keepalived in non-ha
   # case also, to support upgrade of contrail software.
@@ -60,7 +61,9 @@ class contrail::config::install(
     configfiles => "replace",
     notify => Service['supervisor-config']
   }
-  if ($::operatingsystem == 'Ubuntu') {
-    Package['contrail-config-openstack'] -> Package['neutron-server']
+  if ( $manage_neutron == true ) {
+    if ($::operatingsystem == 'Ubuntu') {
+      Package['contrail-config-openstack'] -> Package['neutron-server']
+    }
   }
 }

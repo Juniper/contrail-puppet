@@ -978,7 +978,13 @@ class contrail::params (
     $contrail_roles_present_hash = delete_values($contrail_roles, false)
     $contrail_roles_present_array = keys($contrail_roles_present_hash)
     $roles_to_delete = difference($contrail_roles_present_array , $host_roles)
-    $neutron_ip_to_use = pick($::contrail::params::nova_neutron_ip, $config_ip_to_use, '127.0.0.1')
+
+    if ($manage_neutron == true) {
+      $neutron_ip_to_use = pick($::contrail::params::nova_neutron_ip, $config_ip_to_use, '127.0.0.1')
+    } else {
+      $neutron_ip_to_use   = $::contrail::params::openstack_ip_to_use
+    }
+
     #copy of roles to delete as all run as a single manifest
     #TODO verify its a ref or a copy
     $cpy_roles_to_delete = $roles_to_delete
