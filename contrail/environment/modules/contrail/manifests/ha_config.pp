@@ -177,6 +177,11 @@ class contrail::ha_config (
             # GALERA
             contrail::lib::report_status { 'pre_exec_vnc_galera_started': }
             ->
+            exec { 'initd_haproxy_stop' :
+                command   => "/etc/init.d/haproxy stop ",
+                provider  => shell,
+                logoutput => true,
+            }->
             package { 'contrail-openstack-ha':
                 ensure  => latest,
             }
@@ -220,7 +225,7 @@ class contrail::ha_config (
             }
             ->
             exec { 'haproxy_upstart_service_start' :
-                command   => "/etc/init.d/haproxy stop && service haproxy restart",
+                command   => "service haproxy restart",
                 provider  => shell,
                 logoutput => true,
             }
