@@ -184,6 +184,7 @@ class contrail::ha_config (
             exec { 'initd_haproxy_stop' :
                 command   => "/etc/init.d/haproxy stop ",
                 provider  => shell,
+                returns => [ "0", "1", ],
                 logoutput => true,
             }->
             package { 'contrail-openstack-ha':

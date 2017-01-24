@@ -1,5 +1,6 @@
 class contrail::profile::openstack::keystone(
   $internal_vip      = $::contrail::params::internal_vip,
+  $openstack_ip_list = $::contrail::params::openstack_ip_list,
   $host_control_ip   = $::contrail::params::host_ip,
   $sync_db           = $::contrail::params::os_sync_db,
   $package_sku       = $::contrail::params::package_sku,
@@ -19,7 +20,8 @@ class contrail::profile::openstack::keystone(
       $service_password_to_use = $service_password
   }
 
-  $database_credentials = join([$service_password_to_use, "@", $keystone_ip_to_use],'')
+  # keystone must use local mysql ipaddress
+  $database_credentials = join([$service_password_to_use, "@", $host_control_ip],'')
 
   class {'::keystone::db::mysql':
     password => $service_password,
@@ -27,7 +29,16 @@ class contrail::profile::openstack::keystone(
   }
 
   if ( $package_sku =~ /^*:13\.0.*$/) {
-    $bootstrap_keystone = true
+    $tmp_index = inline_template('<%= @openstack_ip_list.index(@host_control_ip) %>')
+    if ($tmp_index != nil) {
+      $openstack_index = $tmp_index + 1
+    }
+    # only first node should bootstrap the keystone
+    if($openstack_index == '1' ) {
+      $bootstrap_keystone = true
+    } else {
+      $bootstrap_keystone = false
+    }
   } else {
     $bootstrap_keystone = false
   }
