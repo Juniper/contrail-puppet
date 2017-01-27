@@ -118,19 +118,22 @@ if int(NUM_CURR_OSD) == NUM_TARGET_OSD:
       
       if virsh_secret != "":
         print virsh_secret
-        #pdb.set_trace()
-        cmd = 'virsh secret-dumpxml '+ virsh_secret + ' |  grep -w "client.' +  pool_name +'" | wc -l'
+        #match the secret with pool-name
 
-        print cmd
-        secret_present = subprocess.check_output([cmd], shell=True)
-        #secret_present = ceph_setup_utils.exec_local('virsh secret-dumpxml %s |  grep -w "client.%s" | wc -l'
-					#%(virsh_secret.rstrip('\n'), pool_name))
-	if secret_present != '0':
-	   break
-        else:
+        secret_present = ceph_setup_utils.exec_local('sudo virsh secret-dumpxml %s 2>/dev/null |  grep  -w client.%s | wc -l'
+					%(virsh_secret.rstrip('\n'), pool_name))
+        print secret_present
+        if secret_present.rstrip('\n') != '0':
+           #pdb.set_trace()
+           print "BREAKING" + secret_present
            break
-        line_num += 1
+      else:
+        # no virsh_secret now, so break and generate it or just exit
+        break
 
+      line_num += 1
+
+    #pdb.set_trace()
     # If secret is not present, create new secret
     # Set the secret with the keyring
     if secret_present.rstrip('\n') == '0':
