@@ -196,7 +196,7 @@ class contrail::compute::config(
                                     $contrail_rabbit_servers)
 
   $nova_params = {
-    'neutron/admin_auth_url'    => { value => "http://${keystone_ip_to_use}:35357/${keystone_version}" },
+    'neutron/admin_auth_url'    => { value => "http://${keystone_ip_to_use}:35357/" },
     'neutron/admin_tenant_name' => { value => 'services', },
     'neutron/project_name'      => { value => 'services', },
     'neutron/admin_username'    => { value => 'neutron', },
