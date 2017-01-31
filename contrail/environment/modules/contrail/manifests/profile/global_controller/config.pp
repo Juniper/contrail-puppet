@@ -31,8 +31,4 @@ class contrail::profile::global_controller::config (
       path    => '/etc/ukai/gohan.yaml',
       content => template("${module_name}/gohan.yaml.erb"),
   }
-  ->
-  keystone_config {
-      'cors/allowed_origin'   : value => "*";
-  }
 }

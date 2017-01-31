@@ -16,6 +16,7 @@ class contrail::profile::openstack::keystone(
   $keystone_version   = $::contrail::params::keystone_version,
   $openstack_rabbit_servers        = $::contrail::params::openstack_rabbit_ip_list,
   $keystone_mysql_service_password = $::contrail::params::keystone_mysql_service_password,
+  $global_controller_ip_list       = $::contrail::params::global_controller_ip_list
 ) {
 
   if ($keystone_mysql_service_password != "") {
@@ -110,6 +111,12 @@ class contrail::profile::openstack::keystone(
         'database/connection_debug'  : value => "10";
         'database/pool_timeout'      : value => "120";
       }
+    }
+  }
+
+  if (size($::contrail::params::global_controller_ip_list) > 0) {
+    keystone_config {
+        'cors/allowed_origin'   : value => "*";
     }
   }
 }
