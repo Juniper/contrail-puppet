@@ -202,7 +202,7 @@ class contrail::compute::config(
     'neutron/admin_username'    => { value => 'neutron', },
     'neutron/auth_strategy'     => { value => 'keystone', },
     'neutron/auth_type'         => { value => 'password', },
-    'neutron/admin_password'    => { value => "${keystone_admin_password}" },
+    'neutron/admin_password'    => { value => "${neutron_password}" },
     'neutron/url'               => { value => "http://${neutron_ip_to_use}:9696" },
     'neutron/url_timeout'       => { value => "300" },
     'neutron/password'          => { value => "${neutron_password}" },
