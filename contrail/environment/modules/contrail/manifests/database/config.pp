@@ -141,8 +141,8 @@ class contrail::database::config (
         zk_myid_file   => $zk_myid_file
     } ->
     contrail_database_nodemgr_config {
-      'DEFAULT/hostip': value => $host_control_ip;
-      'DEFAULT/minimum_diskGB' : value => $database_minimum_diskGB;
+      'DEFAULTS/hostip': value => $host_control_ip;
+      'DEFAULTS/minimum_diskGB' : value => $database_minimum_diskGB;
       'DISCOVERY/server' : value => $config_ip;
       'DISCOVERY/port' : value => '5998';
     } ->
