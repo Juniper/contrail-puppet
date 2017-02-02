@@ -55,6 +55,7 @@ class contrail::compute::config(
   $upgrade_needed     = $::contrail::params::upgrade_needed,
   $qos                = $::contrail::params::qos,
   $core_mask          = $::contrail::params::core_mask,
+  $uio_driver         = $::contrail::params::uio_driver,
   $vncproxy_url       = $::contrail::params::vncproxy_base_url,
   $keystone_version   = $::contrail::params::keystone_version,
 ){
@@ -340,6 +341,7 @@ class contrail::compute::config(
     'DEFAULT/platform' : value => "$contrail_work_mode";
     'DEFAULT/physical_interface_address' : value => "$pci_address";
     'DEFAULT/physical_interface_mac' : value => "$contrail_macaddr";
+    'DEFAULT/physical_uio_driver' : value => "$uio_driver";
     'DEFAULT/xmpp_dns_auth_enable' : value => "$xmpp_dns_auth_enable";
     'DISCOVERY/server' : value => "$discovery_ip";
     'DISCOVERY/max_control_nodes' : value => "$number_control_nodes";

@@ -740,6 +740,7 @@ class contrail (
     $package_sku = "juno",
     $core_mask = '',
     $huge_pages = '',
+    $uio_driver = 'uio_pci_generic',
     $contrail_amqp_ip_list = undef,
     $contrail_amqp_port = '',
     $openstack_amqp_ip_list = undef,
@@ -918,6 +919,7 @@ class contrail (
 	compute_passwd_list =>			hiera(contrail::compute::compute_passwd_list, hiera(contrail::params::compute_passwd_list, $compute_passwd_list)),
         huge_pages =>                           hiera(contrail::compute::dpdk::huge_pages, hiera(contrail::params::huge_pages, $huge_pages)),
         core_mask => 	                        hiera(contrail::compute::dpdk::core_mask, hiera(contrail::params::core_mask, $core_mask)),
+        uio_driver => 	                        hiera(contrail::compute::dpdk::uio_driver,  $uio_driver),
         sriov     =>                            hiera(contrail::compute::sriov,hiera(contrail::params::sriov, $sriov)),
         sriov_enable              => hiera(contrail::openstack::sriov::enable, hiera(contrail::params::sriov_enable, $sriov_enable)),
 
