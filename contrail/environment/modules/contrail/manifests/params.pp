@@ -714,6 +714,7 @@ class contrail::params (
     $xmpp_dns_auth_enable,
     $huge_pages,
     $core_mask,
+    $uio_driver,
     $package_sku,
     $contrail_amqp_ip_list,
     $contrail_amqp_port,
