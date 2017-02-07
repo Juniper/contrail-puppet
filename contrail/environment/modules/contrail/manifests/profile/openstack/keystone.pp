@@ -1,5 +1,6 @@
 class contrail::profile::openstack::keystone(
   $internal_vip       = $::contrail::params::internal_vip,
+  $openstack_ip_list  = $::contrail::params::openstack_ip_list,
   $host_control_ip    = $::contrail::params::host_ip,
   $sync_db            = $::contrail::params::os_sync_db,
   $package_sku        = $::contrail::params::package_sku,
@@ -47,16 +48,27 @@ class contrail::profile::openstack::keystone(
     $keystone_admin_port = "35357"
   }
 
-  $database_credentials = join([$service_password_to_use, "@", $keystone_ip_to_use],'')
+  $database_credentials = join([$service_password_to_use, "@", $host_control_ip],'')
   $keystone_db_conn = join(["mysql://keystone:",$database_credentials, $mysql_port_url],'')
 
+  #bootstrap is only for mitaka. kilo is always false
+  $tmp_index = inline_template('<%= @openstack_ip_list.index(@host_control_ip) %>')
+  if ($tmp_index != nil) {
+    $openstack_index = $tmp_index + 1
+  }
+  # only first node should bootstrap the keystone
+  if($openstack_index == '1' ) {
+    $bootstrap_keystone = true
+  } else {
+    $bootstrap_keystone = false
+  }
   $paste_config =  ''
 
   case $package_sku {
     /13\.0/: {
       class { '::keystone':
         database_connection => $keystone_db_conn,
-        admin_token     =>  $admin_token,
+        admin_token     => $admin_token,
         public_port     => $keystone_public_port,
         admin_port      => $keystone_admin_port,
         rabbit_hosts    => $openstack_rabbit_servers,
@@ -72,7 +84,8 @@ class contrail::profile::openstack::keystone(
         rabbit_use_ssl     => $rabbit_use_ssl,
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
-        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile,
+        enable_bootstrap   => $bootstrap_keystone
       }
 
       if ($keystone_version == "v3") {
