@@ -75,18 +75,6 @@ class contrail::profile::openstack::ceilometer (
     'database/time_to_live'      : value => '7200';
     'publisher/telemetry_secret' : value => $metering_secret;
     'DEFAULT/auth_strategy'      : value => 'keystone';
-    'service_credentials/os_auth_url' : value => $auth_url;
-    'service_credentials/os_username' : value => $auth_username;
-    'service_credentials/os_password' : value => $auth_password;
-    'service_credentials/os_tenant_name' : value => $auth_tenant_name;
-  } ->
-  class { '::ceilometer::agent::auth':
-    auth_url         => $auth_url,
-    auth_password    => $auth_password,
-    auth_tenant_name => $auth_tenant_name,
-    auth_user        => $auth_username,
-    auth_project_domain_name => $domain_name,
-    auth_user_domain_name => $domain_name
   } ->
   class { '::ceilometer::agent::central':
     coordination_url => $coordination_url
@@ -109,16 +97,36 @@ class contrail::profile::openstack::ceilometer (
         keystone_password => $ceilometer_password,
         keystone_tenant   => $auth_tenant_name,
       }
+  class { '::ceilometer::agent::auth':
+    auth_url         => $auth_url,
+    auth_password    => $auth_password,
+    auth_tenant_name => $auth_tenant_name,
+    auth_user        => $auth_username,
+    auth_project_domain_name => $domain_name,
+    auth_user_domain_name => $domain_name
+  }
+  ceilometer_config {
+    'service_credentials/os_auth_url' : value => $auth_url;
+    'service_credentials/os_username' : value => $auth_username;
+    'service_credentials/os_password' : value => $auth_password;
+    'service_credentials/os_tenant_name' : value => $auth_tenant_name;
+  }
     }
 
     default: {
       class { '::ceilometer::api':
         enabled           => true,
-        auth_uri          => $auth_uri,
+        keystone_auth_uri => $auth_uri,
         keystone_host     => $keystone_ip_to_use,
         keystone_password => $ceilometer_password,
         keystone_tenant   => $auth_tenant_name,
       }
+  class { '::ceilometer::agent::auth':
+    auth_url         => $auth_url,
+    auth_password    => $auth_password,
+    auth_tenant_name => $auth_tenant_name,
+    auth_user        => $auth_username,
+  }
     }
   }
   if $::osfamily != 'Debian' {
