@@ -105,7 +105,7 @@ class contrail::profile::openstack::neutron(
           'keystone_authtoken/auth_protocol': value => "http";
         }
         contrail_plugin_ini {
-          'APISERVER/api_server_ip'   : value => "$config_ip";
+          'APISERVER/api_server_ip'   : value => "$keystone_ip_to_use";
           'APISERVER/api_server_port' : value => '8082';
           'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
           'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None,service-interface:None,vf-binding:None';
@@ -117,7 +117,7 @@ class contrail::profile::openstack::neutron(
         } ->
         # contrail plugin for opencontrail
         opencontrail_plugin_ini {
-          'APISERVER/api_server_ip'   : value => "$config_ip";
+          'APISERVER/api_server_ip'   : value => "$keystone_ip_to_use";
           'APISERVER/api_server_port' : value => '8082';
           'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
           'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None';
