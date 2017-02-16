@@ -586,6 +586,7 @@ class contrail::params (
     $database_name_list,
     $collector_name_list,
     $openstack_name_list,
+    $ansible_provision,
     $tsn_name_list,
     $internal_vip,
     $external_vip,

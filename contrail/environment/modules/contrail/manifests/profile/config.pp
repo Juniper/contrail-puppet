@@ -12,6 +12,7 @@ class contrail::profile::config (
   $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
   $host_roles     = $::contrail::params::host_roles,
   $manage_neutron = $::contrail::params::manage_neutron,
+  $ansible_provision = $::contrail::params::ansible_provision,
 ) {
 
   if ($enable_module and 'config' in $host_roles and $is_there_roles_to_delete == false) {
@@ -21,7 +22,7 @@ class contrail::profile::config (
       contain ::contrail::profile::neutron_server
       Class['::contrail::config']->Class['::contrail::profile::neutron_server']
     }
-  } elsif ((!('config' in $host_roles)) and ($contrail_roles['config'] == true)) {
+  } elsif ((!('config' in $host_roles)) and ($contrail_roles['config'] == true) and ($ansible_provision == false)) {
     notify { 'uninstalling config':; }
     contain ::contrail::uninstall_config
     Notify['uninstalling config']->Class['::contrail::uninstall_config']

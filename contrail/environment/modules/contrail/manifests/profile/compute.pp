@@ -20,6 +20,7 @@ class contrail::profile::compute (
   $openstack_debug   = $::contrail::params::os_debug,
   $is_there_roles_to_delete   = $::contrail::params::is_there_roles_to_delete,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
+  $ansible_provision = $::contrail::params::ansible_provision,
 ) {
     if ($enable_module and "compute" in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::profile::nova::compute
@@ -36,7 +37,7 @@ class contrail::profile::compute (
             }
             class { '::ceilometer::agent::compute': }
         }
-    } elsif ((!("compute" in $host_roles)) and ($contrail_roles["compute"] == true)) {
+    } elsif ((!("compute" in $host_roles)) and ($contrail_roles["compute"] == true) and ($ansible_provision == false) ) {
         notify { "uninstalling compute":; }
         contain ::contrail::uninstall_compute
         Notify["uninstalling compute"]->Class['::contrail::uninstall_compute']

@@ -87,11 +87,6 @@ class contrail::uninstall_compute (
 	ensure => stopped,
     }
     ->
-    file { '/etc/network/interfaces':
-          ensure => present,
-          source => '/etc/network/interfaces.orig',
-    }
-    ->
    # Main code for class starts here
     # Ensure all needed packages are latest
     package { [$vrouter_pkg, 'contrail-openstack-vrouter'] :
@@ -129,16 +124,11 @@ class contrail::uninstall_compute (
       apply => "immediately",
       subscribe       => Class['::contrail::clear_compute'],
       timeout => 0,
-    } ->
-    class {'::contrail::do_reboot_server':
-        reboot_flag => 'uninstall_compute_reboot',
     }
     contain ::contrail::delete_vnc_config
     contain ::contrail::clear_compute
-    contain ::contrail::do_reboot_server
 
     if ($enable_lbaas == true) {
-        File['/etc/network/interfaces']->
         package{['haproxy', 'iproute']:
             ensure => purged,
             notify => ['Exec[apt_auto_remove_compute]']
