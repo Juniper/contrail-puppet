@@ -47,6 +47,7 @@ class contrail::compute::config(
   $nova_rabbit_hosts = $::contrail::params::nova_rabbit_hosts,
   $glance_management_address = $::contrail::params::os_glance_mgmt_address,
   $host_roles = $::contrail::params::host_roles,
+  $enable_ceilometer = $::contrail::params::enable_ceilometer,
   $neutron_ip_to_use = $::contrail::params::neutron_ip_to_use,
   $rabbit_use_ssl     = $::contrail::params::contrail_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
@@ -221,6 +222,13 @@ class contrail::compute::config(
 
   if ($core_mask != '') {
     $nova_params['DEFAULT/vcpu_pin_set'] = { value => build_vcpu_pin_list($core_mask) }
+  }
+
+  if ($enable_ceilometer) {
+    $nova_params['DEFAULT/instance_usage_audit'] = {        value => 'True'}
+    $nova_params['DEFAULT/instance_usage_audit_period'] = { value => 'hour'}
+    $nova_params['DEFAULT/notify_on_state_change'] = { value => 'vm_and_task_state'}
+    $nova_params['DEFAULT/notification_driver'] = { value => "nova.openstack.common.notifier.rpc_notifier,ceilometer.compute.nova_notifier" }
   }
 
   if ($rabbit_use_ssl) {

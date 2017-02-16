@@ -1,10 +1,11 @@
 class contrail::compute::service(
   $nova_compute_status = $::contrail::compute::config::nova_compute_status,
-  $host_control_ip = $::contrail::params::host_ip,
-  $compute_ip_list = $::contrail::params::compute_ip_list,
-  $nfs_server = $::contrail::params::nfs_server,
-  $contrail_logoutput = $::contrail::params::contrail_logoutput,
-  $upgrade_needed = $::contrail::params::upgrade_needed,
+  $host_control_ip     = $::contrail::params::host_ip,
+  $compute_ip_list     = $::contrail::params::compute_ip_list,
+  $nfs_server          = $::contrail::params::nfs_server,
+  $contrail_logoutput  = $::contrail::params::contrail_logoutput,
+  $upgrade_needed      = $::contrail::params::upgrade_needed,
+  $enable_ceilometer   = $::contrail::params::enable_ceilometer,
 ) {
     if !('toragent' in $contrail::params::host_roles) {
         service { 'supervisor-vrouter':
