@@ -46,10 +46,18 @@ class contrail::profile::openstack_controller (
 
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
     if ($enable_ceilometer) {
+      if ('compute' in $host_roles) {
+        $ceilometer_compute = 'ceilometer-agent-compute'
+      } else {
+        $ceilometer_compute = ""
+      }
       $ceilometer_packages = ['ceilometer-common',
                               'ceilometer-backend-package',
+                              'ceilometer-collector',
+                              'ceilometer-agent-notification',
                               'ceilometer-agent-central',
-                              'ceilometer-api']
+                              'ceilometer-api',
+                              $ceilometer_compute ]
     } else {
       $ceilometer_packages = []
     }
@@ -57,6 +65,7 @@ class contrail::profile::openstack_controller (
                           "${glance::params::api_package_name}",
                           "${glance::params::registry_package_name}",
                           "${cinder::params::package_name}",
+                          "${cinder::params::scheduler_package}",
                           "${heat::params::api_package_name}",
                           "${heat::params::engine_package_name}",
                           "${heat::params::common_package_name}",
@@ -65,7 +74,8 @@ class contrail::profile::openstack_controller (
                           "${nova::params::numpy_package_name}",
                           "${mysql::params::python_package_name}",
                           "python-nova",
-                          "python-keystone", "python-cinderclient",
+                          "python-keystone",
+                          "python-cinderclient",
                           $ceilometer_packages]
     # api_package is false in case of Centos
     if $::cinder::params::api_package {
