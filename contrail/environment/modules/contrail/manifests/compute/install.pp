@@ -58,8 +58,8 @@ class contrail::compute::install(
                     } ->
                     Package[$vrouter_pkg, 'contrail-openstack-vrouter']
 
-                } elsif ($::kernelrelease == '${default_trusty_kernel}-generic') {
-                    $vrouter_pkg = 'contrail-vrouter-${default_trusty_kernel}-generic'
+                } elsif ($::kernelrelease == "${default_trusty_kernel}-generic") {
+                    $vrouter_pkg = "contrail-vrouter-${default_trusty_kernel}-generic"
                 } else {
                     $vrouter_pkg = 'contrail-vrouter-dkms'
                 }
