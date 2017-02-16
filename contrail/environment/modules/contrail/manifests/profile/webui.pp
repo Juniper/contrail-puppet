@@ -10,12 +10,13 @@
 class contrail::profile::webui (
     $enable_module = $::contrail::params::enable_webui,
     $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
+    $ansible_provision = $::contrail::params::ansible_provision,
     $host_roles = $::contrail::params::host_roles
 ) {
 
     if ($enable_module and 'webui' in $host_roles and $is_there_roles_to_delete == false) {
         contain ::contrail::webui
-    } elsif ((!('webui' in $host_roles)) and ($contrail_roles['webui'] == true)) {
+    } elsif ((!('webui' in $host_roles)) and ($contrail_roles['webui'] == true) and ($ansible_provision == false)) {
         notify { 'uninstalling webui':; }
         contain ::contrail::uninstall_webui
         Notify['uninstalling webui']->Class['::contrail::uninstall_webui']
