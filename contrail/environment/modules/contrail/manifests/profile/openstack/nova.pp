@@ -203,6 +203,10 @@ class contrail::profile::openstack::nova(
         'DEFAULT/rabbit_max_retries':            value => '0';
         'DEFAULT/rabbit_interval':               value => '15';
         'DEFAULT/pool_timeout':                  value => '120';
+        'neutron/username':                      value => 'neutron';
+        'neutron/password':                      value => $neutron_password;
+        'neutron/auth_plugin':                   value => 'password';
+        'neutron/auth_url':                      value => "http://${keystone_ip_to_use}:5000/";
         'database/min_pool_size':                value => '100';
         'database/max_pool_size':                value => '350';
         'database/max_overflow':                 value => '700';
