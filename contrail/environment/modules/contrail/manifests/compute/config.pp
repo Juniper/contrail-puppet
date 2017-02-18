@@ -2,6 +2,7 @@ class contrail::compute::config(
   $host_control_ip = $::contrail::params::host_ip,
   $config_ip = $::contrail::params::config_ip_list[0],
   $openstack_ip = $::contrail::params::openstack_ip_list[0],
+  $collector_ip_port_list = $::contrail::params::collector_ip_port_list,
   $control_ip_list = $::contrail::params::control_ip_list,
   $compute_ip_list = $::contrail::params::compute_ip_list,
   $keystone_ip = $::contrail::params::keystone_ip,
@@ -283,7 +284,7 @@ class contrail::compute::config(
   if $contrail_agent_mode == 'tsn' {
     Contrail_vrouter_agent_config['VIRTUAL-HOST-INTERFACE/compute_node_address'] ->
     contrail_vrouter_agent_config { 'DEFAULT/agent_mode' : value => "tsn"; } ->
-    Contrail_vrouter_nodemgr_config['DISCOVERY/server']
+    Contrail_vrouter_nodemgr_config['COLLECTOR/server_list']
   }
 
   notify {"vmware_physical_intf = ${vmware_physical_intf}":; } ->
@@ -343,8 +344,7 @@ class contrail::compute::config(
     'DEFAULT/physical_interface_mac' : value => "$contrail_macaddr";
     'DEFAULT/physical_uio_driver' : value => "$uio_driver";
     'DEFAULT/xmpp_dns_auth_enable' : value => "$xmpp_dns_auth_enable";
-    'DISCOVERY/server' : value => "$discovery_ip";
-    'DISCOVERY/max_control_nodes' : value => "$number_control_nodes";
+    'DEFAULT/collectors'           : value => "$collector_ip_port_list";
     'HYPERVISOR/type' : value => "$hypervisor_type";
     'HYPERVISOR/vmware_physical_interface' : value => "$vmware_physical_intf";
     'NETWORKS/control_network_ip' : value => "$host_control_ip";
@@ -359,8 +359,7 @@ class contrail::compute::config(
   } ->
 
   contrail_vrouter_nodemgr_config {
-    'DISCOVERY/server' : value => "$discovery_ip";
-    'DISCOVERY/port' : value => '5998';
+    'COLLECTOR/server_list': value => $collector_ip_port_list;
   } ->
   class {'::contrail::compute::add_vnc_config':
     host_control_ip => $host_control_ip,

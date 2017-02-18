@@ -1051,6 +1051,8 @@ class contrail::params (
       }
     }
 
+    collector_ip_port_list = join(suffix($collector_ip_list, ":8086"), " ")
+
      if ($host_ip == $openstack_ip_list[0]) {
        $os_sync_db = true
      } else {
