@@ -1,6 +1,7 @@
 class contrail::config::config (
   $host_control_ip = $::contrail::params::host_ip,
   $collector_ip = $::contrail::params::collector_ip_list[0],
+  $collector_ip_port_list = $::contrail::params::collector_ip_port_list,
   $database_ip_list = $::contrail::params::database_ip_list,
   $control_ip_list = $::contrail::params::control_ip_list,
   $openstack_ip = $::contrail::params::openstack_ip_list[0],
@@ -297,8 +298,7 @@ class contrail::config::config (
     'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
   } ->
   contrail_config_nodemgr_config {
-    'DISCOVERY/server'     : value => "$config_ip";
-    'DISCOVERY/port'     : value => '5998';
+    'COLLECTOR/server_list': value => $collector_ip_port_list;
   } ->
   contrail_schema_config {
     'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
