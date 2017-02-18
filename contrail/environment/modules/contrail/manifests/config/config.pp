@@ -1,6 +1,7 @@
 class contrail::config::config (
   $host_control_ip = $::contrail::params::host_ip,
   $collector_ip = $::contrail::params::collector_ip_list[0],
+  $collector_ip_port_list = $::contrail::params::collector_ip_port_list,
   $database_ip_list = $::contrail::params::database_ip_list,
   $control_ip_list = $::contrail::params::control_ip_list,
   $openstack_ip = $::contrail::params::openstack_ip_list[0],
@@ -283,22 +284,20 @@ class contrail::config::config (
     'DEFAULTS/log_file'             : value => '/var/log/contrail/api.log';
     'DEFAULTS/log_local'            : value => '1';
     'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
-    'DEFAULTS/disc_server_ip'       : value => "$config_ip";
-    'DEFAULTS/disc_server_port'     : value => '5998';
     'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
     'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
     'DEFAULTS/rabbit_use_ssl'       : value => $rabbit_use_ssl;
     'DEFAULTS/kombu_ssl_ca_certs'   : value => $kombu_ssl_ca_certs;
-    'DEFAULTS/kombu_ssl_certfile'    : value => $kombu_ssl_certfile;
+    'DEFAULTS/kombu_ssl_certfile'   : value => $kombu_ssl_certfile;
     'DEFAULTS/kombu_ssl_keyfile'    : value => $kombu_ssl_keyfile;
+    'DEFAULTS/collectors'           : value => $collector_ip_port_list;
     'SECURITY/use_certs'            : value => "$use_certs";
     'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/apiserver_key.pem';
     'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/apiserver.pem';
     'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
   } ->
   contrail_config_nodemgr_config {
-    'DISCOVERY/server'     : value => "$config_ip";
-    'DISCOVERY/port'     : value => '5998';
+    'COLLECTOR/server_list': value => $collector_ip_port_list;
   } ->
   contrail_schema_config {
     'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
@@ -310,8 +309,6 @@ class contrail::config::config (
     'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
     'DEFAULTS/log_file'             : value => '/var/log/contrail/schema.log';
     'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
-    'DEFAULTS/disc_server_ip'       : value => "$config_ip";
-    'DEFAULTS/disc_server_port'     : value => '5998';
     'DEFAULTS/log_local'            : value => '1';
     'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
     'DEFAULTS/rabbit_server'        : value => "$contrail_rabbit_servers";
@@ -319,6 +316,7 @@ class contrail::config::config (
     'DEFAULTS/kombu_ssl_ca_certs'   : value => $kombu_ssl_ca_certs;
     'DEFAULTS/kombu_ssl_certfile'   : value => $kombu_ssl_certfile;
     'DEFAULTS/kombu_ssl_keyfile'    : value => $kombu_ssl_keyfile;
+    'DEFAULTS/collectors'           : value => $collector_ip_port_list;
     'SECURITY/use_certs'            : value => "$use_certs";
     'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/schema_xfer_key.pem';
     'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/schema_xfer.pem';
@@ -334,8 +332,6 @@ class contrail::config::config (
     'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
     'DEFAULTS/log_file'             : value => '/var/log/contrail/svc-monitor.log';
     'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
-    'DEFAULTS/disc_server_ip'       : value => "$config_ip";
-    'DEFAULTS/disc_server_port'     : value => '5998';
     'DEFAULTS/region_name'          : value => "$keystone_region_name";
     'DEFAULTS/log_local'            : value => '1';
     'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
@@ -344,6 +340,7 @@ class contrail::config::config (
     'DEFAULTS/kombu_ssl_ca_certs'   : value => $kombu_ssl_ca_certs;
     'DEFAULTS/kombu_ssl_certfile'   : value => $kombu_ssl_certfile;
     'DEFAULTS/kombu_ssl_keyfile'    : value => $kombu_ssl_keyfile;
+    'DEFAULTS/collectors'           : value => $collector_ip_port_list;
     'SECURITY/use_certs'            : value => "$use_certs";
     'SECURITY/keyfile'              : value => '/etc/contrail/ssl/private_keys/svc_monitor_key.pem';
     'SECURITY/certfile'             : value => '/etc/contrail/ssl/certs/svc_monitor.pem';
@@ -358,14 +355,12 @@ class contrail::config::config (
     'DEFAULTS/kombu_ssl_certfile'   : value => $kombu_ssl_certfile;
     'DEFAULTS/kombu_ssl_keyfile'    : value => $kombu_ssl_keyfile;
     'DEFAULTS/api_server_ip'        : value => "$config_ip";
-    'DEFAULTS/disc_server_ip'       : value => "$config_ip";
-    'DEFAULTS/api_server_port'      : value => '8082';
     'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
     'DEFAULTS/log_file'             : value => '/var/log/contrail/contrail-device-manager.log';
     'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
-    'DEFAULTS/disc_server_port'     : value => '5998';
     'DEFAULTS/log_local'            : value => '1';
     'DEFAULTS/log_level'            : value => 'SYS_NOTICE';
+    'DEFAULTS/collectors'           : value => "$collector_ip_port_list";
   } ->
   contrail_discovery_config {
     'DEFAULTS/zk_server_ip'         : value => "$zk_ip_list";
@@ -381,6 +376,7 @@ class contrail::config::config (
     'DEFAULTS/hc_interval'          : value => "$hc_interval";
     'DEFAULTS/hc_max_miss'          : value => '3';
     'DEFAULTS/ttl_short'            : value => '1';
+    'DEFAULTS/collectors'           : value => $collector_ip_port_list;
     'DNS-SERVER/policy'             : value => 'fixed';
   } ->
   contrail_vnc_api_config {
