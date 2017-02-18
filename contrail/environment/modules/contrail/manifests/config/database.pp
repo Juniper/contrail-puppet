@@ -2,6 +2,7 @@ class contrail::config::database (
   $host_control_ip = $::contrail::params::host_ip,
   $config_ip = $::contrail::params::config_ip_to_use,
   $config_ip_list = $::contrail::params::config_ip_list,
+  $collector_ip_port_list = $::contrail::params::collector_ip_port_list,
   $internal_vip = $::contrail::params::internal_vip,
   $zookeeper_ip_list = $::contrail::params::config_ip_list,
   $database_initial_token = $::contrail::params::database_initial_token,
@@ -95,10 +96,9 @@ class contrail::config::database (
             zk_myid_file   => $zk_myid_file
             } ->
             contrail_database_nodemgr_config {
-              'DEFAULT/hostip': value => $host_control_ip;
-              'DEFAULT/minimum_diskGB' : value => $database_minimum_diskGB;
-              'DISCOVERY/server' : value => $config_ip;
-              'DISCOVERY/port' : value => '5998';
+              'DEFAULTS/hostip'         : value => $host_control_ip;
+              'DEFAULTS/minimum_diskGB' : value => $database_minimum_diskGB;
+              'COLLECTOR/server_list'   : value => $collector_ip_port_list;
             } ->
             file { '/etc/contrail/database_nodemgr_param' :
             ensure  => present,

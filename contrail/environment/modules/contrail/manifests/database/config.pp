@@ -1,6 +1,7 @@
 class contrail::database::config (
   $host_control_ip = $::contrail::params::host_ip,
   $config_ip = $::contrail::params::config_ip_to_use,
+  $collector_ip_port_list = $::contrail::params::collector_ip_port_list,
   $database_ip_list = $::contrail::params::database_ip_list,
   $internal_vip = $::contrail::params::internal_vip,
   $zookeeper_ip_list = $::contrail::params::database_ip_list,
@@ -143,8 +144,7 @@ class contrail::database::config (
     contrail_database_nodemgr_config {
       'DEFAULTS/hostip': value => $host_control_ip;
       'DEFAULTS/minimum_diskGB' : value => $database_minimum_diskGB;
-      'DISCOVERY/server' : value => $config_ip;
-      'DISCOVERY/port' : value => '5998';
+      'COLLECTOR/server_list': value => $collector_ip_port_list;
     } ->
     file { '/etc/contrail/database_nodemgr_param' :
         ensure  => present,
