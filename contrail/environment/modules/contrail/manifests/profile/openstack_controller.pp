@@ -49,7 +49,7 @@ class contrail::profile::openstack_controller (
       if ('compute' in $host_roles) {
         $ceilometer_compute = 'ceilometer-agent-compute'
       } else {
-        $ceilometer_compute = ""
+        $ceilometer_compute = []
       }
       $ceilometer_packages = ['ceilometer-common',
                               'ceilometer-backend-package',
