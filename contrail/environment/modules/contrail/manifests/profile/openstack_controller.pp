@@ -47,25 +47,24 @@ class contrail::profile::openstack_controller (
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
     if ($enable_ceilometer) {
       if ('compute' in $host_roles) {
-        $ceilometer_compute = 'ceilometer-agent-compute'
+        $ceilometer_compute = "ceilometer-agent-compute"
       } else {
-        $ceilometer_compute = ""
+        $ceilometer_compute = []
       }
-      $ceilometer_packages = ['ceilometer-common',
-                              'ceilometer-backend-package',
-                              'ceilometer-collector',
-                              'ceilometer-agent-notification',
-                              'ceilometer-agent-central',
-                              'ceilometer-api',
+      $ceilometer_packages = ["ceilometer-common",
+                              "ceilometer-backend-package",
+                              "ceilometer-collector",
+                              "ceilometer-agent-notification",
+                              "ceilometer-agent-central",
+                              "ceilometer-api",
                               $ceilometer_compute ]
     } else {
       $ceilometer_packages = []
     }
-    $pkg_list_a = ["${keystone::params::package_name}",
+    $pkg_list_b = ["${keystone::params::package_name}",
                           "${glance::params::api_package_name}",
                           "${glance::params::registry_package_name}",
                           "${cinder::params::package_name}",
-                          "${cinder::params::scheduler_package}",
                           "${heat::params::api_package_name}",
                           "${heat::params::engine_package_name}",
                           "${heat::params::common_package_name}",
@@ -77,6 +76,13 @@ class contrail::profile::openstack_controller (
                           "python-keystone",
                           "python-cinderclient",
                           $ceilometer_packages]
+    
+    # scheduler_package is false in case of Centos
+    if $::cinder::params::scheduler_package {
+        $pkg_list_a = [$pkg_list_b, "${cinder::params::scheduler_package}"]
+    } else {
+        $pkg_list_a = $pkg_list_b
+    }
     # api_package is false in case of Centos
     if $::cinder::params::api_package {
         $pkg_list = [$pkg_list_a, "${cinder::params::api_package}"]
