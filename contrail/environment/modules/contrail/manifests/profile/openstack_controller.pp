@@ -47,7 +47,7 @@ class contrail::profile::openstack_controller (
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
     if ($enable_ceilometer) {
       if ('compute' in $host_roles) {
-        $ceilometer_compute = "ceilometer-agent-compute"
+        $ceilometer_compute = [ "ceilometer-agent-compute" ]
       } else {
         $ceilometer_compute = []
       }
