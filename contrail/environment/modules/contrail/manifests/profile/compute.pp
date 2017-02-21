@@ -21,6 +21,7 @@ class contrail::profile::compute (
   $keystone_version   = $::contrail::params::keystone_version,
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
   $metering_secret    = $::contrail::params::os_metering_secret,
+  $package_sku        = $::contrail::params::package_sku,
   $ceilometer_password        = $::contrail::params::os_ceilometer_password,
   $is_there_roles_to_delete   = $::contrail::params::is_there_roles_to_delete,
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
@@ -51,13 +52,22 @@ class contrail::profile::compute (
         }
       }
       class { '::ceilometer::agent::compute': }
-      class { '::ceilometer::agent::auth':
-        auth_url         => $auth_url,
-        auth_password    => $auth_password,
-        auth_tenant_name => $auth_tenant_name,
-        auth_user        => $auth_username,
-        auth_project_domain_name => $domain_name,
-        auth_user_domain_name => $domain_name
+      if ( $package_sku =~ /13\.0/) {
+        class { '::ceilometer::agent::auth':
+          auth_url         => $auth_url,
+          auth_password    => $auth_password,
+          auth_tenant_name => $auth_tenant_name,
+          auth_user        => $auth_username,
+          auth_project_domain_name => $domain_name,
+          auth_user_domain_name => $domain_name
+        }
+      } else {
+        class { '::ceilometer::agent::auth':
+          auth_url         => $auth_url,
+          auth_password    => $auth_password,
+          auth_tenant_name => $auth_tenant_name,
+          auth_user        => $auth_username,
+        }
       }
       ceilometer_config {
         'service_credentials/os_auth_url' : value => $auth_url;
