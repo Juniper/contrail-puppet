@@ -119,8 +119,8 @@ class contrail::collector::config (
       'DEFAULT/analytics_config_audit_ttl' : value => $analytics_config_audit_ttl;
       'DEFAULT/analytics_statistics_ttl'   : value => $analytics_statistics_ttl;
       'DEFAULT/analytics_flow_ttl' : value => $analytics_flow_ttl;
-      'DEFAULT/api_server_list'  : value => $api_server_list;
       'COLLECTOR/port'           : value => '8086';
+      'API_SERVER/api_server_list'  : value => $api_server_list;
       'REDIS/port'               : value => '6379';
       'REDIS/server'             : value => '127.0.0.1';
     } ->
@@ -133,8 +133,8 @@ class contrail::collector::config (
       'DEFAULTS/scan_frequency'     : value => $snmp_scan_frequency;
       'DEFAULTS/fast_scan_frequency': value => $snmp_fast_scan_frequency;
       'DEFAULTS/http_server_port'   : value => '5920';
-      'DEFAULTS/api_server_list'    : value => $api_server_list;
       'DEFAULTS/collectors'         : value => $collector_ip_port_list;
+      'API_SERVER/api_server_list'  : value => $api_server_list;
     } ->
 
     contrail_analytics_nodemgr_config {
@@ -154,9 +154,9 @@ class contrail::collector::config (
       'DEFAULTS/log_local'          : value => '1';
       'DEFAULTS/log_level'          : value => 'SYS_NOTICE';
       'DEFAULTS/log_file'           : value => '/var/log/contrail/contrail-alarm-gen.log';
-      'DEFAULTS/api_server_list'    : value => $api_server_list;
       'DEFAULTS/collectors'         : value => $collector_ip_port_list;
       'REDIS/redis_uve_list'        : value => $redis_server_list;
+      'API_SERVER/api_server_list'  : value => $api_server_list;
     } ->
 
     contrail_topology_config {
@@ -165,8 +165,8 @@ class contrail::collector::config (
       'DEFAULTS/log_level'          : value => 'SYS_NOTICE';
       'DEFAULTS/log_file'           : value => '/var/log/contrail/contrail-topology.log';
       'DEFAULTS/scan_frequency'     : value => $topology_scan_frequency;
-      'DEFAULTS/api_server_list'    : value => $api_server_list;
       'DEFAULTS/collectors'         : value => $collector_ip_port_list;
+      'API_SERVER/api_server_list'  : value => $api_server_list;
     } ->
 
     contrail_alarm_gen_ini_config {
