@@ -41,16 +41,10 @@ class contrail::collector::config (
 
     $analytics_api_server_to_use = "${config_ip_to_use}:8082"
 
-    $contrail_snmp_collector_ini_command ="/usr/bin/contrail-snmp-collector --conf_file /etc/contrail/contrail-snmp-collector.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
-    $contrail_topology_ini_command ="/usr/bin/contrail-topology --conf_file /etc/contrail/contrail-topology.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
-    $contrail_analytics_api_ini_command ="/usr/bin/contrail-analytics-api --conf_file /etc/contrail/contrail-analytics-api.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
-    $contrail_alarm_gen_ini_command ="/usr/bin/contrail-alarm-gen --conf_file /etc/contrail/contrail-alarm-gen.conf --conf_file /etc/contrail/contrail-keystone-auth.conf"
-
     $redis_augeas_lens_to_use = 'spacevars.lns'
 
     if ($redis_password != "" ) {
         $redis_config = { 'redis_conf' => { 'requirepass' => $redis_password,},}
-        Contrail_topology_ini_config['program:contrail-topology/user'] ->
         contrail_analytics_api_config { 'REDIS/redis_password' : value => $redis_password; } ->
         contrail_collector_config { 'REDIS/password': value => $redis_password; } ->
         contrail_query_engine_config { 'REDIS/password': value => $redis_password; } ->
@@ -61,7 +55,6 @@ class contrail::collector::config (
         } ->
         Contrail::Lib::Augeas_conf_rm["remove_bind"]
     } else {
-        Contrail_topology_ini_config['program:contrail-topology/user'] ->
         contrail_analytics_api_config { 'REDIS/redis_password' : ensure => absent; } ->
         contrail_collector_config { 'REDIS/password': ensure => absent; } ->
         contrail_query_engine_config { 'REDIS/password': ensure => absent; } ->
@@ -172,66 +165,6 @@ class contrail::collector::config (
       'DEFAULTS/api_server'         : value => $analytics_api_server_to_use;
       'DISCOVERY/disc_server_ip'    : value => $config_ip_to_use;
       'DISCOVERY/disc_server_port'  : value => '5998';
-    } ->
-
-    contrail_alarm_gen_ini_config {
-      'program:contrail-alarm-gen/command' : value => $contrail_alarm_gen_ini_command;
-      'program:contrail-alarm-gen/priority' : value => '440';
-      'program:contrail-alarm-gen/autostart' : value => 'true';
-      'program:contrail-alarm-gen/killasgroup' : value => 'true';
-      'program:contrail-alarm-gen/stopsignal' : value => 'KILL';
-      'program:contrail-alarm-gen/stdout_capture_maxbytes' : value => '1MB';
-      'program:contrail-alarm-gen/redirect_stderr' : value => 'true';
-      'program:contrail-alarm-gen/stdout_logfile' : value => '/var/log/contrail/contrail-alarm-gen-stdout.log';
-      'program:contrail-alarm-gen/stderr_logfile' : value => '/var/log/contrail/contrail-alarm-gen-stderr.log';
-      'program:contrail-alarm-gen/startsecs' : value => '5';
-      'program:contrail-alarm-gen/exitcodes' : value => '0';
-      'program:contrail-alarm-gen/user' : value => 'contrail';
-    } ->
-
-    contrail_analytics_api_ini_config {
-      'program:contrail-analytics-api/command' : value => $contrail_analytics_api_ini_command;
-      'program:contrail-analytics-api/priority' : value => '440';
-      'program:contrail-analytics-api/autostart' : value => 'true';
-      'program:contrail-analytics-api/killasgroup' : value => 'true';
-      'program:contrail-analytics-api/stopsignal' : value => 'KILL';
-      'program:contrail-analytics-api/stdout_capture_maxbytes' : value => '1MB';
-      'program:contrail-analytics-api/redirect_stderr' : value => 'true';
-      'program:contrail-analytics-api/stdout_logfile' : value => '/var/log/contrail/contrail-analytics-api-stdout.log';
-      'program:contrail-analytics-api/stderr_logfile' : value => '/var/log/contrail/contrail-analytics-api-stderr.log';
-      'program:contrail-analytics-api/startsecs' : value => '5';
-      'program:contrail-analytics-api/exitcodes' : value => '0';
-      'program:contrail-analytics-api/user' : value => 'contrail';
-    } ->
-
-    contrail_snmp_collector_ini_config {
-      'program:contrail-snmp-collector/command' : value => $contrail_snmp_collector_ini_command;
-      'program:contrail-snmp-collector/priority' : value => '340';
-      'program:contrail-snmp-collector/autostart' : value => 'true';
-      'program:contrail-snmp-collector/killasgroup' : value => 'true';
-      'program:contrail-snmp-collector/stopsignal' : value => 'KILL';
-      'program:contrail-snmp-collector/stdout_capture_maxbytes' : value => '1MB';
-      'program:contrail-snmp-collector/redirect_stderr' : value => 'true';
-      'program:contrail-snmp-collector/stdout_logfile' : value => '/var/log/contrail/contrail-snmp-collector-stdout.log';
-      'program:contrail-snmp-collector/stderr_logfile' : value => '/var/log/contrail/contrail-snmp-collector-stderr.log';
-      'program:contrail-snmp-collector/startsecs' : value => '5';
-      'program:contrail-snmp-collector/exitcodes' : value => '0';
-      'program:contrail-snmp-collector/user' : value => 'contrail';
-    } ->
-
-    contrail_topology_ini_config {
-      'program:contrail-topology/command' : value => $contrail_topology_ini_command;
-      'program:contrail-topology/priority' : value => '340';
-      'program:contrail-topology/autostart' : value => 'true';
-      'program:contrail-topology/killasgroup' : value => 'true';
-      'program:contrail-topology/stopsignal' : value => 'KILL';
-      'program:contrail-topology/stdout_capture_maxbytes' : value => '1MB';
-      'program:contrail-topology/redirect_stderr' : value => 'true';
-      'program:contrail-topology/stdout_logfile' : value => '/var/log/contrail/contrail-snmp-collector-stdout.log';
-      'program:contrail-topology/stderr_logfile' : value => '/var/log/contrail/contrail-snmp-collector-stderr.log';
-      'program:contrail-topology/startsecs' : value => '5';
-      'program:contrail-topology/exitcodes' : value => '0';
-      'program:contrail-topology/user' : value => 'contrail';
     } ->
 
     contrail::lib::augeas_conf_rm { "remove_bind":
