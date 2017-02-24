@@ -65,6 +65,7 @@ class contrail::database::config (
             'zookeeper.connect' => $zk_ip_port_list_str,
             'default.replication.factor' => $replication_factor,
             'port' => '9092',
+            'num.partitions' => '30',
             'log.retention.bytes' => '268435456',
             'log.retention.hours' => '24',
             'log.cleaner.enable' => 'true',
