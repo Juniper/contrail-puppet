@@ -3,6 +3,7 @@ class contrail::collector::config (
     $database_ip_list = $::contrail::params::database_ip_list,
     $database_ip_port = $::contrail::params::database_ip_port,
     $collector_ip_list = $::contrail::params::collector_ip_list,
+    $collector_ip_port_list = $::contrail::params::collector_ip_port_list,
     $analytics_data_ttl = $::contrail::params::analytics_data_ttl,
     $analytics_config_audit_ttl = $::contrail::params::analytics_config_audit_ttl,
     $analytics_statistics_ttl = $::contrail::params::analytics_statistics_ttl,
@@ -74,7 +75,6 @@ class contrail::collector::config (
 
     contrail_analytics_api_config {
       'DEFAULTS/host_ip'          : value => $host_control_ip;
-      'DEFAULTS/collectors'       : ensure => 'absent';
       'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
       'DEFAULTS/rest_api_port'    : value => $rest_api_port_to_use;
       'DEFAULTS/http_server_port' : value => '8090';
@@ -89,8 +89,7 @@ class contrail::collector::config (
       'DEFAULTS/aaa_mode' : value => 'cloud-admin';
       'DEFAULTS/api_server' : value => $analytics_api_server_to_use;
       'DEFAULTS/zk_list'           : value => $zk_ip_list;
-      'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
-      'DISCOVERY/disc_server_port' : value => '5998';
+      'DEFAULTS/collectors'        : value => $collector_ip_port_list;
       'REDIS/redis_query_port'     : value => '6379';
       'REDIS/redis_uve_list'       : value => $redis_server_list;
     } ->
@@ -98,14 +97,12 @@ class contrail::collector::config (
     contrail_query_engine_config {
       'DEFAULT/hostip'          : value => $host_control_ip;
       'DEFAULT/cassandra_server_list'       : value => "$cassandra_server_list";
-      'DEFAULT/collectors'       : ensure => 'absent';
       'DEFAULT/log_local'        : value => '1';
       'DEFAULT/log_level'        : value => 'SYS_NOTICE';
       'DEFAULT/log_file'         : value => '/var/log/contrail/contrail-query-engine.log';
+      'DEFAULT/collectors'       : value => $collector_ip_port_list;
       'REDIS/port'               : value => '6379';
       'REDIS/server'             : value => '127.0.0.1';
-      'DISCOVERY/server'         : value => $config_ip_to_use;
-      'DISCOVERY/port'           : value => '5998';
     } ->
 
     contrail_collector_config {
@@ -124,7 +121,6 @@ class contrail::collector::config (
       'DEFAULT/analytics_flow_ttl' : value => $analytics_flow_ttl;
       'DEFAULT/api_server_list'  : value => $api_server_list;
       'COLLECTOR/port'           : value => '8086';
-      'DISCOVERY/server'         : value => $config_ip_to_use;
       'REDIS/port'               : value => '6379';
       'REDIS/server'             : value => '127.0.0.1';
     } ->
@@ -138,14 +134,11 @@ class contrail::collector::config (
       'DEFAULTS/fast_scan_frequency': value => $snmp_fast_scan_frequency;
       'DEFAULTS/http_server_port'   : value => '5920';
       'DEFAULTS/api_server_list'    : value => $api_server_list;
-      'DISCOVERY/disc_server_port' : value => '5998';
-      'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
+      'DEFAULTS/collectors'         : value => $collector_ip_port_list;
     } ->
 
     contrail_analytics_nodemgr_config {
-      'DEFAULT/server' : value => $config_ip_to_use;
-      'DEFAULT/port'   : value => '5998';
-      'DISCOVERY/server': value => $config_ip_to_use;
+      'COLLECTOR/server_list': value => $collector_ip_port_list;
     } ->
 
     contrail_alarm_gen_config {
@@ -161,10 +154,9 @@ class contrail::collector::config (
       'DEFAULTS/log_local'          : value => '1';
       'DEFAULTS/log_level'          : value => 'SYS_NOTICE';
       'DEFAULTS/log_file'           : value => '/var/log/contrail/contrail-alarm-gen.log';
-      'DEFAULTS/api_server_list'   : value => $api_server_list;
-      'DISCOVERY/disc_server_port' : value => '5998';
-      'DISCOVERY/disc_server_ip'   : value => $config_ip_to_use;
-      'REDIS/redis_uve_list'       : value => $redis_server_list;
+      'DEFAULTS/api_server_list'    : value => $api_server_list;
+      'DEFAULTS/collectors'         : value => $collector_ip_port_list;
+      'REDIS/redis_uve_list'        : value => $redis_server_list;
     } ->
 
     contrail_topology_config {
@@ -174,8 +166,7 @@ class contrail::collector::config (
       'DEFAULTS/log_file'           : value => '/var/log/contrail/contrail-topology.log';
       'DEFAULTS/scan_frequency'     : value => $topology_scan_frequency;
       'DEFAULTS/api_server_list'    : value => $api_server_list;
-      'DISCOVERY/disc_server_ip'    : value => $config_ip_to_use;
-      'DISCOVERY/disc_server_port'  : value => '5998';
+      'DEFAULTS/collectors'         : value => $collector_ip_port_list;
     } ->
 
     contrail_alarm_gen_ini_config {

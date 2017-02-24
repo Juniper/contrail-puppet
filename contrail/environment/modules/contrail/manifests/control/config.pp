@@ -1,5 +1,6 @@
 class contrail::control::config (
     $host_control_ip = $::contrail::params::host_ip,
+    $collector_ip_port_list = $::contrail::params::collector_ip_port_list,
     $config_ip = $::contrail::params::config_ip_list[0],
     $internal_vip = $::contrail::params::internal_vip,
     $contrail_internal_vip = $::contrail::params::contrail_internal_vip,
@@ -41,7 +42,7 @@ class contrail::control::config (
       'DEFAULT/log_file'  : value => '/var/log/contrail/dns.log';
       'DEFAULT/log_level' : value => 'SYS_NOTICE';
       'DEFAULT/log_local' : value => '1';
-      'DISCOVERY/server'  : value => $config_ip_to_use;
+      'DEFAULT/collectors': value => $collector_ip_port_list;
       'IFMAP/user'        : value => "$host_control_ip.dns";
       'IFMAP/password'    : value => "$host_control_ip.dns";
       'IFMAP/certs_store' : value => "$certs_store";
@@ -52,14 +53,13 @@ class contrail::control::config (
       'DEFAULT/log_file'  : value => '/var/log/contrail/contrail-control.log';
       'DEFAULT/log_level' : value => 'SYS_NOTICE';
       'DEFAULT/log_local' : value => '1';
-      'DISCOVERY/server'  : value => $config_ip_to_use;
+      'DEFAULT/collectors': value => $collector_ip_port_list;
       'IFMAP/user'        : value => "$host_control_ip";
       'IFMAP/password'    : value => "$host_control_ip";
       'IFMAP/certs_store' : value => "$certs_store";
     } ->
     contrail_control_nodemgr_config {
-      'DISCOVERY/server'  : value => $config_ip_to_use;
-      'DISCOVERY/port'    : value => '5998';
+      'COLLECTOR/server_list'  : value => $collector_ip_port_list;
     } ->
     Class['::contrail::xmpp_cert_files']
 }
