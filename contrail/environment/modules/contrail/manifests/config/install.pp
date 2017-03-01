@@ -12,15 +12,21 @@ class contrail::config::install(
   if ($contrail_internal_vip == "" and ($internal_vip == "" or !('openstack' in $contrail_host_roles))) {
 
       if ($::operatingsystem == 'Ubuntu') {
-          if ($lsbdistrelease == "14.04") {
+          case $lsbdistrelease {
+            16.04: {
               $keepalived_pkg = '1.2.13-0~276~ubuntu14.04.1'
-          } else {
-              $keepalived_pkg = '1:1.2.13-1~bpo70+1'
+            }
+            14.04: {
+              $keepalived_pkg = '1.2.13-0~276~ubuntu14.04.1'
+            }
+            default: {
+              $keepalived_pkg = '1.2.13-0~276~ubuntu14.04.1'
+            }
           }
 
-          package { 'keepalived' :
-              ensure => $keepalived_pkg,
-          }
+        package { 'keepalived' :
+          ensure => $keepalived_pkg,
+        }
       }
       service { "keepalived" :
           enable => false,

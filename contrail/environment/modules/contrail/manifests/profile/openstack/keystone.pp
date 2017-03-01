@@ -65,6 +65,37 @@ class contrail::profile::openstack::keystone(
   $paste_config =  ''
 
   case $package_sku {
+    /14\.0/: {
+      class { '::keystone':
+        database_connection => $keystone_db_conn,
+        service_name    => 'httpd',
+        admin_token     => $admin_token,
+        public_port     => $keystone_public_port,
+        admin_port      => $keystone_admin_port,
+        rabbit_hosts    => $openstack_rabbit_servers,
+        verbose         => $openstack_verbose,
+        debug           => $openstack_debug,
+        sync_db         => $sync_db,
+        database_idle_timeout   => '180',
+        database_min_pool_size  => "100",
+        database_max_pool_size  => "700",
+        database_max_overflow   => "100",
+        database_retry_interval => "-1",
+        database_max_retries    => "-1",
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile,
+        enable_bootstrap   => $bootstrap_keystone
+      }
+
+      if ($keystone_version == "v3") {
+        keystone_config {
+          'oslo_policy/policy_file' : value => "policy.v3cloudsample.json";
+        }
+      }
+    }
+
     /13\.0/: {
       class { '::keystone':
         database_connection => $keystone_db_conn,

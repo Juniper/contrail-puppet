@@ -25,7 +25,9 @@ class contrail::profile::openstack::provision (
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
-  if ( $package_sku =~ /13\.0/) {
+  if ( $package_sku =~ /14\.0/) {
+    $tenant_id = ""
+  } elsif  ( $package_sku =~ /13\.0/) {
     $tenant_id = ""
   } else {
     $tenant_id = "/%(tenant_id)s"

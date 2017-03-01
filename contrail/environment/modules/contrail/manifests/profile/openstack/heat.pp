@@ -56,6 +56,23 @@ class contrail::profile::openstack::heat (
   }
 
   case $package_sku {
+    /14\.0/: {
+      class { '::heat':
+        database_connection => $keystone_db_conn,
+        rabbit_hosts       => $openstack_rabbit_servers,
+        rabbit_userid      => $rabbitmq_user,
+        rabbit_password    => $rabbitmq_password,
+        verbose            => $openstack_verbose,
+        debug              => $openstack_debug,
+        sync_db            => $sync_db,
+        keystone_password  => $heat_password,
+        auth_uri           => $auth_uri,
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+      }
+    }
     /13\.0/: {
       class { '::heat':
         database_connection => $keystone_db_conn,

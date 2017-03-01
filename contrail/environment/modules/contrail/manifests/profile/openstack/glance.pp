@@ -46,6 +46,52 @@ class contrail::profile::openstack::glance(
   $keystone_db_conn = join(["mysql://glance:",$database_credentials, $mysql_port_url],'')
 
   case $package_sku {
+    /14\.0/: {
+      class { '::glance::api':
+        keystone_password => $glance_password,
+        keystone_tenant   => 'services',
+        keystone_user     => 'glance',
+        database_connection  => $keystone_db_conn,
+        registry_host     => $openstack_ip_to_use,
+        verbose           => $openstack_verbose,
+        debug             => $openstack_debug,
+        enabled           => true,
+        database_idle_timeout => '180',
+        bind_port         => $bind_port,
+        auth_uri          => $auth_uri,
+        os_region_name    => $keystone_region_name,
+        database_min_pool_size => "100",
+        database_max_pool_size => "700",
+        database_max_overflow  => "1080",
+        database_retry_interval => "-1",
+        database_max_retries   => "-1",
+      }
+      #glance_api_config {
+        #'database/db_retry_interval':        value => "1";
+        #'database/connection_debug':         value => "10";
+        #'database/pool_timeout':             value => "120";
+      #}
+      #glance_registry_config {
+        #'database/db_retry_interval':        value => "1";
+        #'database/connection_debug':         value => "10";
+        #'database/pool_timeout':             value => "120";
+      #}
+      class { '::glance::registry':
+        keystone_password     => $glance_password,
+        database_connection   => $keystone_db_conn,
+        keystone_tenant       => 'services',
+        keystone_user         => 'glance',
+        verbose               => $openstack_verbose,
+        debug                 => $openstack_debug,
+        database_idle_timeout => '180',
+        sync_db               => $sync_db,
+        database_min_pool_size => "100",
+        database_max_pool_size => "700",
+        database_max_overflow  => "1080",
+        database_retry_interval => "-1",
+        database_max_retries   => "-1",
+      }
+    }
     /13\.0/: {
       class { '::glance::api':
         keystone_password => $glance_password,

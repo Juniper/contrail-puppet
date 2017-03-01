@@ -88,6 +88,74 @@ class contrail::profile::openstack::nova(
   $keystone_db_conn = join(["mysql://nova:",$database_credentials,$mysql_port_url],'')
 
   case $package_sku {
+    /14\.0/: {
+      $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials, $mysql_port_url_api],'')
+      class { '::nova':
+        database_connection => $keystone_db_conn,
+        glance_api_servers  => "http://${openstack_ip_to_use}:9292",
+        memcached_servers   => [$memcache_ip_ports],
+        rabbit_hosts        => $openstack_rabbit_servers,
+        rabbit_userid       => $rabbitmq_user,
+        rabbit_password     => $rabbitmq_password,
+        verbose             => $openstack_verbose,
+        debug               => $openstack_debug,
+        notification_driver => "nova.openstack.common.notifier.rpc_notifier",
+        api_database_connection => $nova_api_db_conn,
+        database_idle_timeout   => $database_idle_timeout,
+        database_min_pool_size  => "100",
+        database_max_pool_size  => "350",
+        database_max_overflow   => "700",
+        database_retry_interval => "5",
+        database_max_retries    => "-1",
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+      }
+
+      class { '::nova::api':
+        osapi_compute_listen_port            => $nova_api_port,
+        metadata_listen_port                 => $metadata_port,
+        admin_password                       => $nova_password,
+        auth_uri                             => $auth_uri,
+        enabled                              => 'true',
+        neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
+        sync_db                              => $sync_db,
+        osapi_compute_workers                => $osapi_compute_workers,
+        enabled_apis                         => $enabled_apis
+      }
+
+      class { '::nova::network::neutron':
+        neutron_admin_password => $neutron_password,
+        neutron_region_name    => $region_name,
+        neutron_admin_auth_url => "http://${keystone_ip_to_use}:35357/",
+        neutron_url            => "http://${neutron_ip_to_use}:9696",
+        vif_plugging_is_fatal  => false,
+        vif_plugging_timeout   => '0',
+      }
+      nova_config {
+        'DEFAULT/scheduler_max_attempts':        value => '10';
+        'DEFAULT/disable_process_locking':       value => 'True';
+        'DEFAULT/rabbit_retry_interval':         value => '1';
+        'DEFAULT/rabbit_retry_backoff':          value => '2';
+        'DEFAULT/rabbit_max_retries':            value => '0';
+        'DEFAULT/rabbit_interval':               value => '15';
+        'DEFAULT/pool_timeout':                  value => '120';
+        #'database/db_max_retries':               value => '3';
+        #'database/db_retry_interval':            value => '1';
+        #'database/connection_debug':             value => '10';
+        'neutron/admin_auth_url'    :  value => "http://${keystone_ip_to_use}:35357/" ;
+        'neutron/admin_tenant_name' : value => 'services';
+        'neutron/admin_username'    : value => 'neutron';
+        #'neutron/auth_type'         : value => 'password';
+        'neutron/admin_password'    : value => "${keystone_admin_password}";
+        'neutron/url_timeout'       : value => "300";
+        'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
+        'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
+        'DEFAULT/novncproxy_base_url' : value => "http://${host_control_ip}:5999/vnc_auto.html";
+      }
+    }
+
     /13\.0/: {
       $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials, $mysql_port_url_api],'')
       class { '::nova':
@@ -203,10 +271,6 @@ class contrail::profile::openstack::nova(
         'DEFAULT/rabbit_max_retries':            value => '0';
         'DEFAULT/rabbit_interval':               value => '15';
         'DEFAULT/pool_timeout':                  value => '120';
-        'neutron/username':                      value => 'neutron';
-        'neutron/password':                      value => $neutron_password;
-        'neutron/auth_plugin':                   value => 'password';
-        'neutron/auth_url':                      value => "http://${keystone_ip_to_use}:5000/";
         'database/min_pool_size':                value => '100';
         'database/max_pool_size':                value => '350';
         'database/max_overflow':                 value => '700';

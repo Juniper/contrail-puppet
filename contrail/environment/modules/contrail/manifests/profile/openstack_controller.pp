@@ -29,12 +29,12 @@ class contrail::profile::openstack_controller (
   $manage_neutron     = $::contrail::params::manage_neutron
 ) {
 
-  include ::keystone::params
-  include ::glance::params
-  include ::cinder::params
-  include ::heat::params
-  include ::nova::params
-  include ::mysql::params
+  #include ::keystone::params
+  #include ::glance::params
+  #include ::cinder::params
+  #include ::heat::params
+  #include ::nova::params
+  #include ::mysql::params
 
   if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
     $local_settings_file = "/etc/openstack-dashboard/local_settings"
@@ -46,46 +46,47 @@ class contrail::profile::openstack_controller (
   $processor_count_str = "${::processorcount}"
 
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
-    if ($manage_neutron == false) {
-      $neutron_packages = ['neutron-server']
-    } else {
-      $neutron_packages = []
-    }
+    #if ($manage_neutron == false) {
+      #$neutron_packages = ['neutron-server']
+    #} else {
+      #$neutron_packages = []
+    #}
 
-    if ($enable_ceilometer) {
-      $ceilometer_packages = ['ceilometer-common',
-                              'ceilometer-backend-package',
-                              'ceilometer-agent-central',
-                              'ceilometer-api']
-    } else {
-      $ceilometer_packages = []
-    }
-    $pkg_list_a = ["${keystone::params::package_name}",
-                          "${glance::params::api_package_name}",
-                          "${glance::params::registry_package_name}",
-                          "${cinder::params::package_name}",
-                          "${heat::params::api_package_name}",
-                          "${heat::params::engine_package_name}",
-                          "${heat::params::common_package_name}",
-                          "${heat::params::api_cfn_package_name}",
-                          "${nova::params::common_package_name}",
-                          "${nova::params::numpy_package_name}",
-                          "${mysql::params::python_package_name}",
-                          "python-nova",
-                          "python-keystone", "python-cinderclient",
-                          $ceilometer_packages,
-                          $neutron_packages ]
+    #fail("OPENSTAK_STARTED")
+    #if ($enable_ceilometer) {
+      #$ceilometer_packages = ['ceilometer-common',
+                              #'ceilometer-backend-package',
+                              #'ceilometer-agent-central',
+                              #'ceilometer-api']
+    #} else {
+      #$ceilometer_packages = []
+    #}
+    #$pkg_list_a = ["${keystone::params::package_name}",
+                          #"${glance::params::api_package_name}",
+                          #"${glance::params::registry_package_name}",
+                          #"${cinder::params::package_name}",
+                          #"${heat::params::api_package_name}",
+                          #"${heat::params::engine_package_name}",
+                          #"${heat::params::common_package_name}",
+                          #"${heat::params::api_cfn_package_name}",
+                          #"${nova::params::common_package_name}",
+                          ##"${nova::params::numpy_package_name}",
+                          #"${mysql::params::python_package_name}",
+                          #"python-nova",
+                          #"python-cinderclient",
+                          #$ceilometer_packages,
+                          #$neutron_packages ]
     # api_package is false in case of Centos
-    if $::cinder::params::api_package {
-        $pkg_list = [$pkg_list_a, "${cinder::params::api_package}"]
-    } else {
-        $pkg_list = $pkg_list_a
-    }
+    #if $::cinder::params::api_package {
+        #$pkg_list = [$pkg_list_a, "${cinder::params::api_package}"]
+    #} else {
+        #$pkg_list = $pkg_list_a
+    #}
     contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
+    Package[contrail-openstack] -> Package <|tag == 'openstack'|>
     package {'contrail-openstack' :
       ensure => latest,
-      before => [ Class['::mysql::server'],
-                  Package[$pkg_list]]
+      before => [ Class['::mysql::server']]
     } ->
     class { 'memcached':
         processorcount => $processor_count_str

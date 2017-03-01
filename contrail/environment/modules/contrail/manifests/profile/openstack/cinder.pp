@@ -45,6 +45,39 @@ class contrail::profile::openstack::cinder(
   }
 
   case $package_sku {
+    /14\.0/: {
+      class { '::cinder':
+        database_connection    => $keystone_db_conn,
+        rabbit_hosts           => $openstack_rabbit_servers,
+        rabbit_userid          => $rabbitmq_user,
+        rabbit_password        => $rabbitmq_password,
+        debug                  => $openstack_debug,
+        verbose                => $openstack_verbose,
+        database_idle_timeout  => '180',
+        database_min_pool_size => '100',
+        database_max_pool_size => '700',
+        database_max_retries   => '-1',
+        database_retry_interval=> "5",
+        database_max_overflow  => "1080",
+        rabbit_use_ssl     => $rabbit_use_ssl,
+        kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
+        kombu_ssl_certfile => $kombu_ssl_certfile,
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+      }
+      class { '::cinder::api':
+        keystone_password => $cinder_password,
+        auth_uri          => "http://${keystone_ip_to_use}:5000/",
+        sync_db           => $sync_db,
+        osapi_volume_listen_port => $osapi_volume_port
+      }
+
+      #cinder_config {
+        #'database/db_max_retries':           value => "3";
+        #'database/db_retry_interval':        value => "1";
+        #'database/connection_debug':         value => "10";
+        #'database/pool_timeout':             value => "120";
+      #}
+    }
     /13\.0/: {
       class { '::cinder':
         database_connection    => $keystone_db_conn,
@@ -71,6 +104,11 @@ class contrail::profile::openstack::cinder(
         'database/db_retry_interval':        value => "1";
         'database/connection_debug':         value => "10";
         'database/pool_timeout':             value => "120";
+      }
+      class { '::cinder::api':
+        keystone_password => $cinder_password,
+        auth_uri          => "http://${keystone_ip_to_use}:5000/",
+        sync_db           => $sync_db
       }
     }
     default: {
@@ -103,6 +141,11 @@ class contrail::profile::openstack::cinder(
       cinder_config {
         'oslo_messaging_rabbit/heartbeat_timeout_threshold' :  value => '0';
       }
+      class { '::cinder::api':
+        keystone_password => $cinder_password,
+        auth_uri          => "http://${keystone_ip_to_use}:5000/",
+        sync_db           => $sync_db
+      }
     }
   }
 
@@ -120,10 +163,5 @@ class contrail::profile::openstack::cinder(
     glance_api_servers => [ $glance_api_server ],
   }
 
-  class { '::cinder::api':
-    keystone_password => $cinder_password,
-    auth_uri          => "http://${keystone_ip_to_use}:5000/",
-    sync_db           => $sync_db
-  }
 
 }

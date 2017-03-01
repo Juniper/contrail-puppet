@@ -71,6 +71,27 @@ class contrail::config::neutron (
   }
 
   case $package_sku {
+    /14\.0/: {
+      notice("PASSWORD => $neutron_password")
+      class {'::neutron::keystone::authtoken':
+        password => $neutron_password,
+        auth_url => $keystone_identity_uri,
+        auth_uri => $keystone_auth_uri,
+      }
+      class { '::neutron::server':
+        #$password            => $neutron_password,
+        #auth_uri            => $keystone_auth_uri,
+        #identity_uri        => $keystone_identity_uri,
+        database_connection => $keystone_db_conn,
+        service_providers   => ['LOADBALANCER:Opencontrail:neutron_plugin_contrail.plugins.opencontrail.loadbalancer.driver.OpencontrailLoadbalancerDriver:default']
+      }
+      neutron_config {
+        'keystone_authtoken/auth_host'    : value => "$keystone_ip_to_use";
+        'keystone_authtoken/auth_port'    : value => "35357";
+        'keystone_authtoken/auth_protocol': value => "http";
+      }
+    }
+
     /13\.0/: {
       class { '::neutron::server':
         auth_password       => $neutron_password,
