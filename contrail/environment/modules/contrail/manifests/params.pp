@@ -894,6 +894,8 @@ class contrail::params (
 
     if (size($contrail_amqp_ip_list) > 0) {
       $contrail_rabbit_ip_list = $contrail_amqp_ip_list
+    } elsif ($openstack_manage_amqp) {
+      $contrail_rabbit_ip_list = $openstack_ip_list
     } else {
       $contrail_rabbit_ip_list = $config_ip_list
     }
