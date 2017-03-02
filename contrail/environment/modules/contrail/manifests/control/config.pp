@@ -43,9 +43,6 @@ class contrail::control::config (
       'DEFAULT/log_level' : value => 'SYS_NOTICE';
       'DEFAULT/log_local' : value => '1';
       'DEFAULT/collectors': value => $collector_ip_port_list;
-      'IFMAP/user'        : value => "$host_control_ip.dns";
-      'IFMAP/password'    : value => "$host_control_ip.dns";
-      'IFMAP/certs_store' : value => "$certs_store";
     } ->
     contrail_control_config {
       'DEFAULT/xmpp_auth_enable' : value => "$xmpp_auth_enable";
@@ -54,9 +51,6 @@ class contrail::control::config (
       'DEFAULT/log_level' : value => 'SYS_NOTICE';
       'DEFAULT/log_local' : value => '1';
       'DEFAULT/collectors': value => $collector_ip_port_list;
-      'IFMAP/user'        : value => "$host_control_ip";
-      'IFMAP/password'    : value => "$host_control_ip";
-      'IFMAP/certs_store' : value => "$certs_store";
     } ->
     contrail_control_nodemgr_config {
       'COLLECTOR/server_list'  : value => $collector_ip_port_list;

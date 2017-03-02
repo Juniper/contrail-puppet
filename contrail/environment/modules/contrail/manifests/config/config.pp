@@ -53,11 +53,6 @@ class contrail::config::config (
   $keystone_version   = $::contrail::params::keystone_version,
 ) {
   # Main code for class starts here
-  if $use_certs == true {
-    $ifmap_server_port = '8444'
-  } else {
-    $ifmap_server_port = '8443'
-  }
 
   if (!('database' in $host_roles) and $config_manage_db == true) {
     $database_ip_list_to_use = $config_ip_list
@@ -149,54 +144,6 @@ class contrail::config::config (
     }
   }
 
-  $log4j_properties_file = '/etc/ifmap-server/log4j.properties'
-  $log4j_properties_config = { 'log4j_properties' => {
-    'log4j.rootLogger' => "TRACE, CONSOLE",
-    'log4j.logger.de.fhhannover.inform.irond.proc' => "TRACE, A1, A2",
-    'log4j.additivity.de.fhhannover.inform.irond.proc' => 'false',
-    'log4j.appender.A1' => 'org.apache.log4j.ConsoleAppender',
-    'log4j.appender.A1.layout' => 'org.apache.log4j.PatternLayout',
-    'log4j.appender.A1.layout.ConversionPattern' => "%d [%t] %-5p %x - %m%n",
-    'log4j.appender.A2' => 'org.apache.log4j.FileAppender',
-    'log4j.appender.A2.File' => '/var/log/contrail/ifmap-server.log',
-    'log4j.appender.A2.layout' => 'org.apache.log4j.PatternLayout',
-    'log4j.appender.A2.layout.ConversionPattern' => "%d [%t] %-5p %x - %m%n",
-    'log4j.logger.de.fhhannover.inform.irond.rawrequests' => "TRACE, A3",
-    'log4j.additivity.de.fhhannover.inform.irond.rawrequests' => 'false',
-    'log4j.appender.A3' => 'org.apache.log4j.FileAppender',
-    'log4j.appender.A3.file' => 'irond_raw.log',
-    'log4j.appender.A3.layout' => 'org.apache.log4j.PatternLayout',
-    'log4j.appender.A3.layout.ConversionPattern' => "%d %-5p %x - %m%n",
-    'log4j.appender.CONSOLE' => 'org.apache.log4j.ConsoleAppender',
-    'log4j.appender.CONSOLE.layout' => 'org.apache.log4j.PatternLayout',
-    'log4j.appender.CONSOLE.layout.ConversionPattern' => "%-8r [%t] %-5p %C{1} %x - %m%n",
-    },
-  }
-  $log4j_augeas_lens_to_use = 'properties.lns'
-  $authorizaion_properties_file = '/etc/ifmap-server/authorization.properties'
-  $authorizaion_properties_config = { 'authorizaion_properties' => {'reader' => 'ro',},}
-  $authorizaion_augeas_lens_to_use = 'properties.lns'
-  $publisher_properties_file = '/etc/ifmap-server/publisher.properties'
-  $publisher_properties_config = { 'publisher_properties' => {
-    'visual' => 'visual--1877135140-1',
-    'test' => 'test--1870931913-1',
-    'test2' => 'test2--1870931914-1',
-    'test3' => 'test3--1870931915-1',
-    'api-server' => 'api-server-1--0000000001-1',
-    'control-node-1' => 'control-node-1--1870931921-1',
-    'control-node-2' => 'control-node-1--1870931922-1',
-    'control-node-3' => 'control-node-1--1870931923-1',
-    'control-node-4' => 'control-node-1--1870931924-1',
-    'control-node-5' => 'control-node-1--1870931925-1',
-    'control-node-6' => 'control-node-1--1870931926-1',
-    'control-node-7' => 'control-node-1--1870931927-1',
-    'control-node-8' => 'control-node-1--1870931928-1',
-    'control-node-9' => 'control-node-1--1870931929-1',
-    'control-node-10' => 'control-node-10--1870931930-1',
-    },
-  }
-  $publisher_augeas_lens_to_use = 'properties.lns'
-
   $config_sysctl_settings = {
     'net.ipv4.tcp_keepalive_time' => { value => 5 },
     'net.ipv4.tcp_keepalive_probes' => { value => 5 },
@@ -240,42 +187,9 @@ class contrail::config::config (
     group  => root,
     source => "puppet:///modules/${module_name}/contrail_sudoers"
   } ->
-  # Ensure log4j.properties file is present with right content.
-  contrail::lib::augeas_conf_set { 'log4j_properties_keys':
-    config_file => $log4j_properties_file,
-    settings_hash => $log4j_properties_config['log4j_properties'],
-    lens_to_use => $log4j_augeas_lens_to_use,
-  } ->
-  contrail::lib::augeas_conf_rm { 'remove_key_log4j.appender.A1.File':
-    key => 'log4j.appender.A1.File',
-    config_file => $log4j_properties_file,
-    lens_to_use => $log4j_augeas_lens_to_use,
-  } ->
 
-  # Ensure authorization.properties file is present with right content.
-  contrail::lib::augeas_conf_set { 'authorizaion_properties_keys':
-    config_file => $authorizaion_properties_file,
-    settings_hash => $authorizaion_properties_config['authorizaion_properties'],
-    lens_to_use => $authorizaion_augeas_lens_to_use,
-  } ->
-
-  # Ensure basicauthusers.proprties file is present with right content.
-  file { '/etc/ifmap-server/basicauthusers.properties' :
-    content => template("${module_name}/basicauthusers.properties.erb"),
-  } ->
-
-  # Ensure publisher.properties file is present with right content.
-  contrail::lib::augeas_conf_set { 'publisher_properties_keys':
-    config_file => $publisher_properties_file,
-    settings_hash => $publisher_properties_config['publisher_properties'],
-    lens_to_use => $publisher_augeas_lens_to_use,
-  } ->
   # Ensure all config files with correct content are present.
   contrail_api_config {
-    'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
-    'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
-    'DEFAULTS/ifmap_username'       : value => 'api-server';
-    'DEFAULTS/ifmap_password'       : value => 'api-server';
     'DEFAULTS/cassandra_server_list': value => "$cassandra_server_list";
     'DEFAULTS/listen_ip_addr'       : value => '0.0.0.0';
     'DEFAULTS/listen_port'          : value => '8082';
@@ -300,10 +214,6 @@ class contrail::config::config (
     'COLLECTOR/server_list': value => $collector_ip_port_list;
   } ->
   contrail_schema_config {
-    'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
-    'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
-    'DEFAULTS/ifmap_username'       : value => 'schema-transformer';
-    'DEFAULTS/ifmap_password'       : value => 'schema-transformer';
     'DEFAULTS/api_server_ip'        : value => "$config_ip";
     'DEFAULTS/api_server_port'      : value => '8082';
     'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
@@ -323,10 +233,6 @@ class contrail::config::config (
     'SECURITY/ca_certs'             : value => '/etc/contrail/ssl/certs/ca.pem';
   } ->
   contrail_svc_monitor_config {
-    'DEFAULTS/ifmap_server_ip'      : value => "$host_control_ip";
-    'DEFAULTS/ifmap_server_port'    : value => "$ifmap_server_port";
-    'DEFAULTS/ifmap_username'       : value => 'svc-monitor';
-    'DEFAULTS/ifmap_password'       : value => 'svc-monitor';
     'DEFAULTS/api_server_ip'        : value => "$config_ip";
     'DEFAULTS/api_server_port'      : value => '8082';
     'DEFAULTS/zk_server_ip'         : value => "$zk_ip_port_list";
