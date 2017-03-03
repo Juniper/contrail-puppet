@@ -41,17 +41,6 @@ class contrail::profile::openstack::nova(
     allowed_hosts => $allowed_hosts,
   }
 
-  if ( $package_sku =~ /13\.0/) {
-    ## TODO: Remove once we move to mitaka modules
-    class {'::nova::db::mysql_api':
-      password      => $service_password,
-      allowed_hosts => $allowed_hosts,
-    }
-    $enabled_apis = ['osapi_compute,metadata']
-  }
-  else {
-    $enabled_apis = ['ec2,osapi_compute,metadata']
-  }
 
   $compute_ip_list = $::contrail::params::compute_ip_list
   $tmp_index = inline_template('<%= @compute_ip_list.index(@host_control_ip) %>')
@@ -90,6 +79,10 @@ class contrail::profile::openstack::nova(
   case $package_sku {
     /14\.0/: {
       $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials, $mysql_port_url_api],'')
+      class {'::nova::db::mysql_api':
+        password      => $service_password,
+        allowed_hosts => $allowed_hosts,
+      }
       class { '::nova':
         database_connection => $keystone_db_conn,
         glance_api_servers  => "http://${openstack_ip_to_use}:9292",
@@ -122,7 +115,6 @@ class contrail::profile::openstack::nova(
         neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
         sync_db                              => $sync_db,
         osapi_compute_workers                => $osapi_compute_workers,
-        enabled_apis                         => $enabled_apis
       }
 
       class { '::nova::network::neutron':
@@ -141,13 +133,9 @@ class contrail::profile::openstack::nova(
         'DEFAULT/rabbit_max_retries':            value => '0';
         'DEFAULT/rabbit_interval':               value => '15';
         'DEFAULT/pool_timeout':                  value => '120';
-        #'database/db_max_retries':               value => '3';
-        #'database/db_retry_interval':            value => '1';
-        #'database/connection_debug':             value => '10';
         'neutron/admin_auth_url'    :  value => "http://${keystone_ip_to_use}:35357/" ;
         'neutron/admin_tenant_name' : value => 'services';
         'neutron/admin_username'    : value => 'neutron';
-        #'neutron/auth_type'         : value => 'password';
         'neutron/admin_password'    : value => "${keystone_admin_password}";
         'neutron/url_timeout'       : value => "300";
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
@@ -158,6 +146,11 @@ class contrail::profile::openstack::nova(
 
     /13\.0/: {
       $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials, $mysql_port_url_api],'')
+      class {'::nova::db::mysql_api':
+        password      => $service_password,
+        allowed_hosts => $allowed_hosts,
+      }
+      $enabled_apis = ['osapi_compute,metadata']
       class { '::nova':
         database_connection => $keystone_db_conn,
         glance_api_servers  => "http://${openstack_ip_to_use}:9292",
@@ -225,6 +218,7 @@ class contrail::profile::openstack::nova(
     }
 
     default: {
+      $enabled_apis = ['ec2,osapi_compute,metadata']
       class { '::nova':
         database_connection => $keystone_db_conn,
         glance_api_servers  => "http://${openstack_ip_to_use}:9292",
