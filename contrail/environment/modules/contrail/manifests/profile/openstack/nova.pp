@@ -30,7 +30,8 @@ class contrail::profile::openstack::nova(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
-  $vncproxy_port      = $::contrail::params::vncproxy_port
+  $vncproxy_port      = $::contrail::params::vncproxy_port,
+  $nova_compute_rabbit_hosts = $::contrail::params::nova_compute_rabbit_hosts,
 ) {
 
   $auth_uri = "http://${keystone_ip_to_use}:5000/"
