@@ -1023,6 +1023,10 @@ class contrail::params (
       $vncproxy_host = $openstack_mgmt_ip_list_to_use[0]
     }
     $vncproxy_base_url = "http://${vncproxy_host}:${base_url_port}/vnc_auto.html"
+    $nova_compute_rabbit_hosts = pick($nova_rabbit_hosts,
+                                    $openstack_rabbit_servers,
+                                    $contrail_rabbit_servers)
+
 
     if ( ($package_sku =~ /13\.0/) and ($::operatingsystem == 'Centos')) {
       $zookeeper_conf_dir= "/etc/zookeeper"

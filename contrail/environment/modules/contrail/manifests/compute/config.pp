@@ -61,6 +61,7 @@ class contrail::compute::config(
   $uio_driver         = $::contrail::params::uio_driver,
   $vncproxy_url       = $::contrail::params::vncproxy_base_url,
   $keystone_version   = $::contrail::params::keystone_version,
+  $nova_compute_rabbit_hosts = $::contrail::params::nova_compute_rabbit_hosts,
 ){
   $config_ip_to_use = $::contrail::params::config_ip_to_use
   $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use
@@ -194,10 +195,6 @@ class contrail::compute::config(
     -> Class['::contrail::compute::create_nfs']
     -> Nova_config['neutron/admin_auth_url']
   }
-
-  $nova_compute_rabbit_hosts = pick($nova_rabbit_hosts,
-                                    $openstack_rabbit_servers,
-                                    $contrail_rabbit_servers)
 
   $nova_params = {
     'neutron/admin_auth_url'    => { value => "http://${keystone_ip_to_use}:35357/" },
