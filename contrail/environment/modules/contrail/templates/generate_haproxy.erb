@@ -76,7 +76,8 @@ $__toragent_ha_proxy
 """%(stats_cmd,err_str))
 
 collector_ha_template = string.Template("""#contrail-collector-marker-start
-listen contrail-collector-stats :5938
+listen contrail-collector-stats
+   bind :5938
    mode http
    stats enable
    stats uri /
@@ -95,13 +96,15 @@ $__contrail_analytics_api_backend_servers__
 """)
 
 openstack_ha_template = string.Template("""#contrail-openstack-marker-start
-listen contrail-openstack-stats :5936
+listen contrail-openstack-stats 
+   bind :5936
    mode http
    stats enable
    stats uri /
    stats auth $__contrail_hap_user__:$__contrail_hap_passwd__
 
-frontend openstack-keystone *:5000
+frontend openstack-keystone 
+    bind :5000
     default_backend    keystone-backend
 
 backend keystone-backend
@@ -127,7 +130,8 @@ backend keystone-backend
 
 $__keystone_backend_servers__
 
-frontend openstack-keystone-admin *:35357
+frontend openstack-keystone-admin
+    bind :35357
     default_backend    keystone-admin-backend
 
 backend keystone-admin-backend
@@ -153,7 +157,8 @@ backend keystone-admin-backend
 
 $__keystone_admin_backend_servers__
 
-frontend openstack-glance *:9292
+frontend openstack-glance
+    bind :9292
     default_backend    glance-backend
 
 backend glance-backend
@@ -178,7 +183,8 @@ backend glance-backend
     default-server error-limit 1 on-error mark-down
 $__glance_backend_servers__
 
-frontend openstack-cinder *:8776
+frontend openstack-cinder 
+    bind :8776
     default_backend  cinder-backend
 
 backend cinder-backend
@@ -188,7 +194,8 @@ backend cinder-backend
     balance   roundrobin
 $__cinder_backend_servers__
 
-frontend ceph-rest-api-server *:5005
+frontend ceph-rest-api-server 
+    bind :5005
     default_backend  ceph-rest-api-server-backend
 
 backend ceph-rest-api-server-backend
@@ -199,7 +206,8 @@ backend ceph-rest-api-server-backend
 $__ceph_restapi_backend_servers__
 
 
-frontend openstack-nova-api *:8774
+frontend openstack-nova-api 
+    bind :8774
     default_backend  nova-api-backend
 
 backend nova-api-backend
@@ -225,7 +233,8 @@ backend nova-api-backend
 
 $__nova_api_backend_servers__
 
-frontend openstack-nova-meta *:8775
+frontend openstack-nova-meta 
+    bind :8775
     default_backend  nova-meta-backend
 
 backend nova-meta-backend
@@ -251,7 +260,8 @@ backend nova-meta-backend
 
 $__nova_meta_backend_servers__
 
-frontend openstack-nova-vnc *:6080
+frontend openstack-nova-vnc 
+    bind :6080
     default_backend  nova-vnc-backend
 
 backend nova-vnc-backend
@@ -261,10 +271,12 @@ backend nova-vnc-backend
     balance  roundrobin
     $__nova_vnc_backend_servers__
 
-frontend heat-cfn *:8000
+frontend heat-cfn
+    bind :8000
     default_backend heat-cfn-api-backend
 
-frontend heat-srv *:8004
+frontend heat-srv
+    bind:8004
     default_backend heat-api-backend
 
 backend heat-api-backend
@@ -309,7 +321,8 @@ backend heat-cfn-api-backend
     tcp-check connect port 8001
 $__heat_cfn_api_backend_servers__
 
-listen memcached 0.0.0.0:11222
+listen memcached 
+   bind :11222
    mode tcp
    balance roundrobin
    option tcplog
@@ -322,7 +335,8 @@ listen memcached 0.0.0.0:11222
    timeout server 48h
 $__memcached_servers__
 
-listen  mysql 0.0.0.0:33306
+listen  mysql 
+    bind :33306
     mode tcp
     balance leastconn
     option tcpka
@@ -341,47 +355,47 @@ $__mysql_servers__
 
 config_ha_template = string.Template("""
 #contrail-config-marker-start
-listen contrail-config-stats :5937
+listen contrail-config-stats
+   bind :5937
    mode http
    stats enable
    stats uri /
    stats auth $__contrail_hap_user__:$__contrail_hap_passwd__
 
-frontend quantum-server *:9696
+frontend quantum-server
+    bind :9696
     default_backend    quantum-server-backend
 
-frontend  contrail-api *:8082
+frontend  contrail-api
+    bind :8082
     default_backend    contrail-api-backend
 
-frontend  contrail-discovery *:5998
+frontend  contrail-discovery 
+    bind :5998
     default_backend    contrail-discovery-backend
 
 backend quantum-server-backend
     option nolinger
     balance     roundrobin
 $__contrail_quantum_servers__
-    #server  10.84.14.2 10.84.14.2:9697 check
 
 backend contrail-api-backend
     option nolinger
     balance     roundrobin
 $__contrail_api_backend_servers__
-    #server  10.84.14.2 10.84.14.2:9100 check
-    #server  10.84.14.2 10.84.14.2:9101 check
 
 backend contrail-discovery-backend
     option nolinger
     balance     roundrobin
 $__contrail_disc_backend_servers__
-    #server  10.84.14.2 10.84.14.2:9110 check
-    #server  10.84.14.2 10.84.14.2:9111 check
 
 #contrail-config-marker-end
 """)
 
 global_controller_ha_template = string.Template("""
 #contrail-global-controller-marker-start
-listen contrail-global-controller-stats :5938
+listen contrail-global-controller-stats 
+   bind :5938
    mode http
    stats enable
    stats uri /
