@@ -44,6 +44,9 @@ class contrail::config::neutron (
   if ( $package_sku =~ /12\.0./) {
     $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
     $lbaas_plugin = 'neutron_plugin_contrail.plugins.opencontrail.loadbalancer.v2.plugin.LoadBalancerPluginV2'
+  } elsif ( $package_sku =~ /14\.0./) {
+    $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+    $lbaas_plugin = 'neutron_plugin_contrail.plugins.opencontrail.loadbalancer.v2.plugin.LoadBalancerPluginV2'
   } elsif ( $package_sku =~ /13\.0./) {
     $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
     $lbaas_plugin = 'neutron_plugin_contrail.plugins.opencontrail.loadbalancer.v2.plugin.LoadBalancerPluginV2'
