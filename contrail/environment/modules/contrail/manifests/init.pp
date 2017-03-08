@@ -652,7 +652,7 @@ class contrail (
     $keystone_insecure_flag = false,
     $api_nworkers = 1,
     $haproxy_flag = false,
-    $manage_neutron = true,
+    $manage_neutron = false,
     $openstack_manage_amqp = false,
     $amqp_server_ip = '',
     $zk_ip_port = 2181,

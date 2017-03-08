@@ -90,9 +90,9 @@ class contrail::profile::openstack::provision (
     public_url       => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
     admin_url        => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
     internal_url     => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
-    ec2_public_url   => "http://${openstack_ip_to_use}:8773/services/Cloud",
-    ec2_admin_url    => "http://${openstack_ip_to_use}:8773/services/Admin",
-    ec2_internal_url => "http://${openstack_ip_to_use}:8773/services/Cloud",
+    #ec2_public_url   => "http://${openstack_ip_to_use}:8773/services/Cloud",
+    #ec2_admin_url    => "http://${openstack_ip_to_use}:8773/services/Admin",
+    #ec2_internal_url => "http://${openstack_ip_to_use}:8773/services/Cloud",
     public_url_v3    => "http://${openstack_ip_to_use}:8774/v3",
     admin_url_v3     => "http://${openstack_ip_to_use}:8774/v3",
     internal_url_v3  => "http://${openstack_ip_to_use}:8774/v3",
@@ -100,30 +100,30 @@ class contrail::profile::openstack::provision (
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,
-    public_address   => $neutron_ip_to_use,
-    admin_address    => $neutron_ip_to_use,
-    internal_address => $neutron_ip_to_use,
+    public_url       => "http://$neutron_ip_to_use:9696",
+    admin_url        => "http://$neutron_ip_to_use:9696",
+    internal_url     => "http://$neutron_ip_to_use:9696",
     region           => $region_name,
   } ->
   class { '::ceilometer::keystone::auth':
     password         => $ceilometer_password,
-    public_address   => $openstack_ip_to_use,
-    admin_address    => $openstack_ip_to_use,
-    internal_address => $openstack_ip_to_use,
+    public_url       => "http://$openstack_ip_to_use:8777",
+    admin_url        => "http://$openstack_ip_to_use:8777",
+    internal_url     => "http://$openstack_ip_to_use:8777",
     region           => $region_name,
   } ->
   class { '::heat::keystone::auth':
     password         => $heat_password,
-    public_address   => $openstack_ip_to_use,
-    admin_address    => $openstack_ip_to_use,
-    internal_address => $openstack_ip_to_use,
+    public_url       => "http://$openstack_ip_to_use:8004/v1/%(tenant_id)s",
+    admin_url        => "http://$openstack_ip_to_use:8004/v1/%(tenant_id)s",
+    internal_url     => "http://$openstack_ip_to_use:8004/v1/%(tenant_id)s",
     region           => $region_name,
   } ->
   class { '::heat::keystone::auth_cfn':
     password         => $heat_password,
-    public_address   => $openstack_ip_to_use,
-    admin_address    => $openstack_ip_to_use,
-    internal_address => $openstack_ip_to_use,
+    public_url       => "http://$openstack_ip_to_use:8000/v1",
+    admin_url        => "http://$openstack_ip_to_use:8000/v1",
+    internal_url     => "http://$openstack_ip_to_use:8000/v1",
     region           => $region_name,
   }
   # if cluster has global-controller referenced provision these endpoints
