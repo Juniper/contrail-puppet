@@ -39,7 +39,7 @@ class contrail::compute::install(
     #TODO add DPDK support here
 
     if ($::operatingsystem == 'Ubuntu'){
-      if ($::lsbdistrelease == '14.04') {
+      if ($::lsbdistrelease == '14.04' or $::lsbdistrelease == '16.04') {
         notify {"compute_notify_6": name => "enable_dpdk = ${enable_dpdk}"; }
           if ($enable_dpdk == true ) {
             $vrouter_pkg = 'contrail-vrouter-dpdk-init'
