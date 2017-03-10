@@ -171,6 +171,13 @@ define contrail::lib::storage_common(
     inject         => $inject_keys,
   }
 
+  if $contrail_num_storage_hosts > 1 {
+      $contrail_storage_replica_size = 3
+  } else {
+      $contrail_storage_replica_size = 1
+  }
+
+
     if 'storage-compute' in $contrail_host_roles {
       if $contrail_storage_osd_disks != '' {
         contrail::lib::storage_disk { $contrail_storage_osd_disks:}
@@ -180,7 +187,7 @@ define contrail::lib::storage_common(
         $contrail_pool_map = join($pool_data, "', '")
         $host_num_disk = size($contrail_storage_osd_disks)
 
-        ceph::pool {'internal': size => 1 } ->
+        ceph::pool {'internal': size => $contrail_storage_replica_size } ->
         file { 'compute_pool_config' :
           path    => '/opt/contrail/bin/compute_pool_config.py',
           content => template("${module_name}/compute-pool-config.erb"),
@@ -297,12 +304,6 @@ define contrail::lib::storage_common(
               }
               Exec['setup_storage_chassis_config']-> Ceph::Pool['data']
               Exec['setup_storage_chassis_config']-> Exec['setup-config-storage-openstack']
-        }
-
-        if $contrail_num_storage_hosts > 1 {
-            $contrail_storage_replica_size = 2
-        } else {
-            $contrail_storage_replica_size = 1
         }
 
         $contrail_ceph_pg_num = 32 * $contrail_storage_num_osd
