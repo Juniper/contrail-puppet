@@ -48,6 +48,11 @@ define contrail::lib::storage_disk(
   ->
   ceph::osd { $ready_disk_name:
     require => Contrail::Lib::Prepare_disk[$ready_disk_name]
+  } ->
+  exec {"hdparm_$ready_disk_name":
+    command   => "/sbin/hdparm -z ${disk_details[0]} || true",
+    provider  => shell,
+    logoutput => true,
   }
 }
 #contrail::lib::storage_disk {'/dev/sda':}
