@@ -89,15 +89,17 @@ class contrail::profile::openstack::neutron(
       verbose               => $openstack_verbose,
       debug                 => $openstack_debug,
       api_extensions_path   => "extensions:${::python_dist}/neutron_plugin_contrail/extensions${neutron_extensions}",
-      service_plugins       => ['neutron_plugin_contrail.plugins.opencontrail.loadbalancer.plugin.LoadBalancerPlugin'],
+      service_plugins       => ['neutron_plugin_contrail.plugins.opencontrail.loadbalancer.v2.plugin.LoadBalancerPluginV2'],
     }
 
     case $package_sku {
       /14\.0/: {
+        class {'::neutron::keystone::authtoken':
+          password => $neutron_password,
+          auth_url => $keystone_identity_uri,
+          auth_uri => $keystone_auth_uri,
+        }
         class { '::neutron::server':
-          auth_password       => $neutron_password,
-          auth_uri            => $keystone_auth_uri,
-          identity_uri        => $keystone_identity_uri,
           database_connection => $keystone_db_conn,
           service_providers   => ['LOADBALANCER:Opencontrail:neutron_plugin_contrail.plugins.opencontrail.loadbalancer.driver.OpencontrailLoadbalancerDriver:default']
         }

@@ -29,13 +29,6 @@ class contrail::profile::openstack_controller (
   $manage_neutron     = $::contrail::params::manage_neutron
 ) {
 
-  #include ::keystone::params
-  #include ::glance::params
-  #include ::cinder::params
-  #include ::heat::params
-  #include ::nova::params
-  #include ::mysql::params
-
   if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
     $local_settings_file = "/etc/openstack-dashboard/local_settings"
     $content_file = "local_settings_centos.erb"
@@ -46,44 +39,10 @@ class contrail::profile::openstack_controller (
   $processor_count_str = "${::processorcount}"
 
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
-    #if ($manage_neutron == false) {
-      #$neutron_packages = ['neutron-server']
-    #} else {
-      #$neutron_packages = []
-    #}
+    contrail::lib::report_status { 'openstack_started': }
+    -> Package[contrail-openstack]
+    -> Package <|tag == 'openstack'|>
 
-    #fail("OPENSTAK_STARTED")
-    #if ($enable_ceilometer) {
-      #$ceilometer_packages = ['ceilometer-common',
-                              #'ceilometer-backend-package',
-                              #'ceilometer-agent-central',
-                              #'ceilometer-api']
-    #} else {
-      #$ceilometer_packages = []
-    #}
-    #$pkg_list_a = ["${keystone::params::package_name}",
-                          #"${glance::params::api_package_name}",
-                          #"${glance::params::registry_package_name}",
-                          #"${cinder::params::package_name}",
-                          #"${heat::params::api_package_name}",
-                          #"${heat::params::engine_package_name}",
-                          #"${heat::params::common_package_name}",
-                          #"${heat::params::api_cfn_package_name}",
-                          #"${nova::params::common_package_name}",
-                          ##"${nova::params::numpy_package_name}",
-                          #"${mysql::params::python_package_name}",
-                          #"python-nova",
-                          #"python-cinderclient",
-                          #$ceilometer_packages,
-                          #$neutron_packages ]
-    # api_package is false in case of Centos
-    #if $::cinder::params::api_package {
-        #$pkg_list = [$pkg_list_a, "${cinder::params::api_package}"]
-    #} else {
-        #$pkg_list = $pkg_list_a
-    #}
-    contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
-    Package[contrail-openstack] -> Package <|tag == 'openstack'|>
     package {'contrail-openstack' :
       ensure => latest,
       before => [ Class['::mysql::server']]
@@ -114,7 +73,6 @@ class contrail::profile::openstack_controller (
     ->
     contrail::lib::report_status { 'openstack_completed':
       state => 'openstack_completed' ,
-      #require => [Class['keystone::endpoint'], Keystone_role['admin']]
     }
 
     if $keystone_version == "v3" {
@@ -142,8 +100,12 @@ class contrail::profile::openstack_controller (
          rabbit_use_ssl => $rabbit_use_ssl }
     -> Contrail::Lib::Report_status['openstack_completed']
 
-    if ($::operatingsystem == 'Ubuntu') {
-      service { 'supervisor-openstack': enable => true, ensure => running }
+    if ($::operatingsystem == 'Ubuntu' and $::lsbdistrelease != '16.04') {
+      service { 'supervisor-openstack':
+        enable => true,
+        ensure => running
+      }
+
       Class['::contrail::profile::openstack::cinder']
       -> Service['supervisor-openstack']
       -> Class['::contrail::profile::openstack::nova']

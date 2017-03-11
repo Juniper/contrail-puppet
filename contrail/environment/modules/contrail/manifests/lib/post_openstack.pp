@@ -73,11 +73,15 @@ define contrail::lib::post_openstack(
       $config_restart_cmd = "service supervisor-config restart"
     }
 
-    if 'openstack' in $host_roles {
+    if ('openstack' in $host_roles and $::lsbdistrelease != '16.04') {
       exec { 'supervisor-openstack-restart':
         command   => $openstack_restart_command,
         provider  => shell,
         logoutput => $contrail_logoutput,
+      }
+    } else {
+      exec { 'supervisor-openstack-restart':
+        command => "/bin/true"
       }
     }
 

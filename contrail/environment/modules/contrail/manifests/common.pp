@@ -58,7 +58,7 @@ class contrail::common(
     create_resources(host, $contrail_hostnames)
     Contrail::Lib::Contrail_setup_repo <||> -> Package<||>
     if ($::operatingsystem == 'Ubuntu'){
-      if ($::lsbdistrelease == '14.04') {
+      if ($::lsbdistrelease == '14.04' or $::lsbdistrelease == '16.04') {
         if ($enable_dpdk == true ) {
           contrail::lib::setup_dpdk_depends{ 'dpdk_depends':}
         }
@@ -94,7 +94,6 @@ class contrail::common(
       contrail_kernel_upgrade => $::contrail::params::kernel_upgrade,
       contrail_logoutput      => $contrail_logoutput
     } ->
-    package { $ssl_package : ensure => present,} ->
     sysctl::value { 
       'kernel.core_pattern': value => '/var/crashes/core.%e.%p.%h.%t';
       'net.ipv4.ip_forward': value => '1';
@@ -105,6 +104,19 @@ class contrail::common(
         ensure => 'directory',
     } ->
     Class['::contrail::enable_kernel_core']
+
+    if ($::lsbdistrelease != '16.04') {
+      package { $ssl_package :
+        ensure => present,
+      }
+      Contrail::Lib::Upgrade_kernel['kernel_upgrade']
+      -> Package[$ssl_package]
+      -> Sysctl::Value['kernel.core_pattern']
+
+      Package[$ssl_package]
+      -> Class['::contrail::disable_ufw']
+    }
+
     # Disable SELINUX on boot, if not already disabled.
     if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
         Package[$ssl_package]->
@@ -115,11 +127,6 @@ class contrail::common(
              lens_to_use => 'properties.lns',
         } ->
         Class['::contrail::disable_selinux']->
-        # Disable iptables
-        service { 'iptables' :
-            ensure => stopped,
-            enable => false,
-        } ->
         Class['::contrail::flush_iptables'] ->
         # Remove any core limit configured
         contrail::lib::augeas_conf_set { 'DAEMON_COREFILE_LIMIT':
@@ -140,7 +147,7 @@ class contrail::common(
     }
 
     if ($::operatingsystem == 'Ubuntu') {
-        Package['libssl0.9.8']->Class['::contrail::disable_ufw']->
+        Class['::contrail::disable_ufw']->
         # Create symbolic link to chkconfig. This does not exist on Ubuntu.
         file { '/sbin/chkconfig':
             ensure => link,
