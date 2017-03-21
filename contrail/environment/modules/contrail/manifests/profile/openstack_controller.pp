@@ -89,11 +89,13 @@ class contrail::profile::openstack_controller (
     } else {
         $pkg_list = $pkg_list_a
     }
-    contrail::lib::report_status { 'openstack_started': state => 'openstack_started' } ->
+    contrail::lib::report_status { 'openstack_started': }
+    -> Package[contrail-openstack]
+    -> Package <|tag == 'openstack'|>
+
     package {'contrail-openstack' :
       ensure => latest,
-      before => [ Class['::mysql::server'],
-                  Package[$pkg_list]]
+      before => [ Class['::mysql::server']]
     } ->
     class { 'memcached':
         processorcount => $processor_count_str
