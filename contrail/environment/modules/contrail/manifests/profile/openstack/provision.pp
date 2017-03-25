@@ -66,9 +66,10 @@ class contrail::profile::openstack::provision (
       'roles' => ['admin'],
     })
 
-    keystone_role { ['_member_', 'cloud-admin', 'KeystoneAdmin', 'netadmin', 'sysadmin', 'KeystoneServiceAdmin', 'Member']:
-      ensure => present,
-    }
+  }
+
+  keystone_role { ['_member_', 'cloud-admin', 'KeystoneAdmin', 'netadmin', 'sysadmin', 'KeystoneServiceAdmin', 'Member']:
+    ensure => present,
   }
 
   class { '::cinder::keystone::auth':
