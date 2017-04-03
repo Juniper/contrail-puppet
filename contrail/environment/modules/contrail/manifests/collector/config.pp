@@ -79,7 +79,7 @@ class contrail::collector::config (
       'DEFAULTS/analytics_config_audit_ttl' : value => $analytics_config_audit_ttl;
       'DEFAULTS/analytics_statistics_ttl'   : value => $analytics_statistics_ttl;
       'DEFAULTS/analytics_flow_ttl' : value => $analytics_flow_ttl;
-      'DEFAULTS/aaa_mode' : value => 'cloud-admin';
+      'DEFAULTS/aaa_mode' : value => 'rbac';
       'DEFAULTS/api_server' : value => $analytics_api_server_to_use;
       'DEFAULTS/zk_list'           : value => $zk_ip_list;
       'DEFAULTS/collectors'        : value => $collector_ip_port_list;
