@@ -414,6 +414,7 @@ def main(args_str=None):
     global_controller_stanza = ""
     collector_stanza = ""
     openstack_stanza = ""
+    generate_contrail_haproxy_cfg = <%=@generate_haproxy_for_contrail%>
 
     host_ip = "<%=@host_ip%>"
     internal_vip = "<%=@ha_internal_vip%>"
@@ -448,16 +449,17 @@ def main(args_str=None):
     global_controller_ip_list = global_controller_ip_list_str.split(",")
 
     toragent_stanza = tor_agent_ha_config(tor_details)
-    if host_ip in config_ip_list:
+    if (generate_contrail_haproxy_cfg and (host_ip in config_ip_list)):
         config_stanza = generate_config_ha_config(config_ip_list, openstack_ip_list, host_ip, internal_vip, contrail_internal_vip)
 
-    if host_ip in config_ip_list and (internal_vip != "none" or contrail_internal_vip != "none"):
+    if (generate_contrail_haproxy_cfg and host_ip in config_ip_list and
+        (internal_vip != "none" or contrail_internal_vip != "none")):
         collector_stanza = generate_collector_ha_config(collector_ip_list, host_ip)
 
     if (internal_vip != "none") and (host_ip in openstack_ip_list):
         openstack_stanza = generate_openstack_ha_config(openstack_ip_list, host_ip)
 
-    if host_ip in global_controller_ip_list:
+    if (generate_contrail_haproxy_cfg and host_ip in global_controller_ip_list):
         global_controller_stanza = generate_global_controller_ha_config(global_controller_ip_list)
 
     haproxy_config = haproxy_template.safe_substitute({

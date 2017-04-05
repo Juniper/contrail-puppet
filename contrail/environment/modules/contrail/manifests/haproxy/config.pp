@@ -11,9 +11,15 @@ class contrail::haproxy::config(
     $internal_vip =  $::contrail::params::internal_vip,
     $host_ip = $::contrail::params::host_ip,
     $contrail_logoutput = $::contrail::params::contrail_logoutput,
-    $tor_ha_proxy_config = $::contrail::params::tor_ha_config
+    $tor_ha_proxy_config = $::contrail::params::tor_ha_config,
+    $host_roles = $::contrail::params::host_roles
 ) {
-
+    if 'config' in $host_roles {
+        $generate_haproxy_for_contrail = "True"
+    }
+    else {
+        $generate_haproxy_for_contrail = "False"
+    }
     $ha_internal_vip = pick($internal_vip, 'none')
     $ha_contrail_internal_vip = pick($contrail_internal_vip, 'none')
     $openstack_ip_list_shell   = join($openstack_ip_list, ",")

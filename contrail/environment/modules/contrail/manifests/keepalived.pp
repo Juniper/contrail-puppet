@@ -33,7 +33,8 @@ class contrail::keepalived(
     $contrail_internal_virtual_router_id = $::contrail::params::contrail_internal_virtual_router_id,
     $external_virtual_router_id = $::contrail::params::external_virtual_router_id,
     $contrail_external_virtual_router_id = $::contrail::params::contrail_external_virtual_router_id,
-    $openstack_ip_list = $::contrail::params::openstack_ip_list
+    $openstack_ip_list = $::contrail::params::openstack_ip_list,
+    $host_roles = $::contrail::params::host_roles
 )  {
 
     notify { "Keepalived - host_control_ip = ${host_control_ip}":; } ->
@@ -65,7 +66,7 @@ class contrail::keepalived(
         }
     }
 
-    if ($host_control_ip in $config_ip_list and $contrail_internal_vip != '') {
+    if ('config' in $host_roles and $host_control_ip in $config_ip_list and $contrail_internal_vip != '') {
         Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
         contrail::keepalived::keepalived{'contrail_internal_ip':
             contrail_ip_list  => $config_ip_list,
@@ -74,7 +75,7 @@ class contrail::keepalived(
         }
     }
 
-    if ($host_control_ip in $config_ip_list and $contrail_external_vip != '') {
+    if ('config' in $host_roles and $host_control_ip in $config_ip_list and $contrail_external_vip != '') {
         Notify["Keepalived - openstack_ip_list = ${openstack_ip_list}"]->
         contrail::keepalived::keepalived{'contrail_external_ip':
             contrail_ip_list  => $config_ip_list,
