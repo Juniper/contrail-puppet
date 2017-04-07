@@ -18,7 +18,7 @@ class contrail::config::database_install (
           command => $cassandra_upgrade_cmd,
           provider => shell,
           logoutput => $contrail_logoutput,
-          before => Package['contrail-openstack-database'],
+          before => Package['contrail-database-common'],
       } ->
       notify { "executed contrail Upgrade Cassandra Command : ${cassandra_upgrade_cmd}":; } ->
       package {'cassandra':
