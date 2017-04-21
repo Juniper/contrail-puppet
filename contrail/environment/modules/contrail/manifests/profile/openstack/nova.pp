@@ -226,7 +226,6 @@ class contrail::profile::openstack::nova(
   }
 
   class { '::nova::vncproxy':
-    host    => $vncproxy_host,
     enabled => 'true',
     port    => $vncproxy_port,
   }
