@@ -64,7 +64,7 @@ define contrail::lib::storage_common(
   file { 'ceph-log-rotate':
     ensure  => present,
     path    => '/etc/logrotate.d/ceph',
-    mode    => '0755',
+    mode    => '0644',
     owner   => root,
     group   => root,
     source  => "puppet:///modules/${module_name}/config-storage-ceph-log-rotate",

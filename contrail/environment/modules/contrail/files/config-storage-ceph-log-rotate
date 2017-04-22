@@ -2,6 +2,7 @@
 ## DON'T CHANGE ANYTHING HERE. 
 ## ANY CHANGES MADE WILL BE OVER-WRITTEN
 /var/log/ceph/*.log {
+    su ceph
     rotate 7
     daily
     size 500M
