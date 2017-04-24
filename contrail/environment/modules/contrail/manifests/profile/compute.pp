@@ -61,6 +61,12 @@ class contrail::profile::compute (
           auth_project_domain_name => $domain_name,
           auth_user_domain_name => $domain_name
         }
+        ceilometer_config {
+          'service_credentials/os_auth_url' : value => $auth_url;
+          'service_credentials/os_username' : value => $auth_username;
+          'service_credentials/os_password' : value => $auth_password;
+          'service_credentials/os_tenant_name' : value => $auth_tenant_name;
+        }
       } else {
         class { '::ceilometer::agent::auth':
           auth_url         => $auth_url,
@@ -70,10 +76,6 @@ class contrail::profile::compute (
         }
       }
       ceilometer_config {
-        'service_credentials/os_auth_url' : value => $auth_url;
-        'service_credentials/os_username' : value => $auth_username;
-        'service_credentials/os_password' : value => $auth_password;
-        'service_credentials/os_tenant_name' : value => $auth_tenant_name;
         'keystone_authtoken/auth_uri'     : value => $auth_url;
         'keystone_authtoken/identity_uri' : value => $identity_uri;
         'keystone_authtoken/admin_tenant_name' : value => $auth_tenant_name;
