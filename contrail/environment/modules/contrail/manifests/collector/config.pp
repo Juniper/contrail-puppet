@@ -178,12 +178,6 @@ class contrail::collector::config (
                 lens_to_use => $redis_augeas_lens_to_use,
     } ->
 
-    file { '/etc/snmp':
-       ensure  => directory,
-    } ->
-    file { '/etc/snmp/snmp.conf':
-      content => 'mibs +ALL'
-    }
     if (!('config' in $host_roles)) {
         contain ::contrail::keystone
     }
