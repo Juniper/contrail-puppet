@@ -63,14 +63,14 @@ class contrail::profile::openstack_controller (
     class {'::contrail::profile::openstack::neutron' : } ->
     class {'::contrail::profile::openstack::heat' : } ->
     class {'::contrail::profile::openstack::auth_file' : } ->
-    package { 'openstack-dashboard': ensure => present } ->
+    package { 'openstack-dashboard': ensure => latest } ->
     file { $local_settings_file :
       ensure => present,
       mode   => '0755',
       group  => root,
       content => template("${module_name}/${content_file}")
-    }
-    ->
+    } -> 
+    package { 'contrail-openstack-dashboard': ensure => latest } ->
     contrail::lib::report_status { 'openstack_completed':
       state => 'openstack_completed' ,
     }

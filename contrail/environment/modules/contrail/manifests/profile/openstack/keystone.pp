@@ -88,6 +88,11 @@ class contrail::profile::openstack::keystone(
         kombu_ssl_keyfile  => $kombu_ssl_keyfile,
         enable_bootstrap   => $bootstrap_keystone
       }
+      class { keystone::wsgi::apache: 
+        public_port => $keystone_public_port,
+        admin_port  => $keystone_admin_port,
+        ssl         => false
+      }
 
       if ($keystone_version == "v3") {
         keystone_config {
