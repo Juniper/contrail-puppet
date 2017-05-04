@@ -2,7 +2,13 @@
 define contrail::lib::contrail_install_repo(
   $contrail_logoutput = false,
 ) {
-    package { ['contrail-fabric-utils', 'contrail-setup' ] :
+    if ($::lsbdistrelease == '16.04') {
+        $package_list = ['contrail-setup', 'python-paramiko' ]
+    } else {
+        $package_list = ['contrail-fabric-utils', 'contrail-setup' ]
+    }
+
+    package { $package_list :
         ensure => latest
     }
     case $::operatingsystem {
