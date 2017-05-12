@@ -77,6 +77,12 @@ class contrail::profile::openstack::provision (
     public_url   => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
     admin_url    => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
     internal_url => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+    public_url_v2   => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+    admin_url_v2    => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+    internal_url_v2 => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+    public_url_v3   => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
+    admin_url_v3    => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
+    internal_url_v3 => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
     region       => $region_name,
   } ->
   class  { '::glance::keystone::auth':
