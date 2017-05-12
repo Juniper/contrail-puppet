@@ -769,7 +769,9 @@ class contrail (
     $rabbit_ssl_support = false,
     $config_amqp_use_ssl = undef,
     $os_amqp_use_ssl = undef,
-    $config_hostnames = {'hostnames' => {}}
+    $config_hostnames = {'hostnames' => {}},
+    $storage_pool_data = {'data' => {} },
+    $storage_pool_names = ''
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -960,7 +962,7 @@ class contrail (
 	storage_cluster_network =>		hiera(contrail::storage::storage_cluster_network, hiera(contrail::params::storage_cluster_network, $storage_cluster_network)),
 	storage_pool_config           => hiera(contrail::storage::pool_config, hiera(contrail::params::pool_config, $storage_pool_config)),
 	storage_compute_name_list     => hiera(contrail::storage-compute::storage-compute_name_list, $storage_compute_name_list),
-	storage_master_name_list      => hiera(contrail::storage-master::storage-master_name_list, $storage_master_name_list),
+	storage_master_name_list      => hiera(contrail::contrail-ceph-controller::contrail-ceph-controller_name_list, $storage_master_name_list),
         #Webui Parameters
         webui_key_file_path =>                  hiera(contrail::webui::key_file_path, $webui_key_file_path),
         webui_cert_file_path =>                 hiera(contrail::webui::cert_file_path, $webui_cert_file_path),
@@ -997,6 +999,8 @@ class contrail (
         user_heat_config       => hiera(openstack::heat::override_config, $heat_override_config),
         user_ceilometer_config => hiera(openstack::ceilometer::override_config, $ceilometer_override_config),
         user_ceph_config       => hiera(openstack::ceph::override_config, $ceph_override_config),
-        hostnames              => hiera(contrail::system, $config_hostnames)
+        hostnames              => hiera(contrail::system, $config_hostnames),
+        storage_pool_data      => hiera(contrail::storage::pool_data, $storage_pool_data),
+        storage_pool_names     => hiera(contrail::storage::pool_names, $storage_pool_names)
     }
 }

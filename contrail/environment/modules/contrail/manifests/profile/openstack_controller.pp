@@ -26,7 +26,8 @@ class contrail::profile::openstack_controller (
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
-  $manage_neutron     = $::contrail::params::manage_neutron
+  $manage_neutron     = $::contrail::params::manage_neutron,
+  $storage_enabled    = $::contrail::params::storage_enabled
 ) {
 
   if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
@@ -73,6 +74,11 @@ class contrail::profile::openstack_controller (
     package { 'contrail-openstack-dashboard': ensure => latest } ->
     contrail::lib::report_status { 'openstack_completed':
       state => 'openstack_completed' ,
+    }
+    if ($storage_enabled != "0") {
+      Contrail::Lib::Report_status['openstack_started'] ->
+      class {'::contrail::profile::openstack::storage' : } ->
+        Contrail::Lib::Report_status['openstack_completed']
     }
 
     if $keystone_version == "v3" {
