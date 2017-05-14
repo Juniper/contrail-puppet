@@ -70,14 +70,8 @@ class contrail::profile::openstack::cinder(
         sync_db           => $sync_db,
         osapi_volume_listen_port => $osapi_volume_port
       }
-
-      #cinder_config {
-        #'database/db_max_retries':           value => "3";
-        #'database/db_retry_interval':        value => "1";
-        #'database/connection_debug':         value => "10";
-        #'database/pool_timeout':             value => "120";
-      #}
     }
+
     /13\.0/: {
       class { '::cinder':
         database_connection    => $keystone_db_conn,
@@ -111,6 +105,7 @@ class contrail::profile::openstack::cinder(
         sync_db           => $sync_db
       }
     }
+
     default: {
       class { '::cinder':
         database_connection    => $keystone_db_conn,
