@@ -43,7 +43,7 @@ class contrail::profile::openstack::glance(
     $mysql_ip_address  = $host_control_ip
   }
 
-  if ($storage_enabled != "0") {
+  if ($storage_enabled) {
     $workers = "120"
     $show_image_url = True
     $stores = ['glance.store.rbd.Store','glance.store.filesystem.Store','glance.store.http.Store']
