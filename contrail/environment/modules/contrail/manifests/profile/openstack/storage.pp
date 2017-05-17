@@ -74,16 +74,14 @@ class contrail::profile::openstack::storage(
 
   cinder_config {
     'DEFAULT/enabled_backends': value => join($pool_names, ",");
+    'DEFAULT/rados_connection_retries' : value => '10000';
   }
   create_resources('contrail::lib::storage_os_config', $pool_config, {})
-  #glance_api_config {
-    #'DEFAULT/workers'                  : value => '120';
-    #'DEFAULT/show_image_direct_url'    : value => 'True';
-    #'glance_store/default_store'       : value => 'rbd';
-    #'glance_store/rbd_store_ceph_conf' : value => '/etc/ceph/ceph.conf';
-    #'glance_store/rbd_store_user'      : value => 'images';
-    #'glance_store/rbd_store_pool'      : value => 'images';
-    #'glance_store/rbd_store_chunk_size': value => '8';
-    #'glance_store/stores'              : value => 'glance.store.rbd.Store,glance.store.filesystem.Store,glance.store.http.Store';
-  #}
+  Contrail::Lib::Storage_os_config <| |> ~> Service['cinder-volume']
+  class {'cinder::volume':}
+
+  class { 'glance::backend::rbd': 
+    rbd_store_user => 'images',
+    multi_store    => true
+  }
 }

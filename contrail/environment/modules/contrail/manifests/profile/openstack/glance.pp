@@ -23,6 +23,7 @@ class contrail::profile::openstack::glance(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $storage_enabled    = $::contrail::params::storage_enabled
 ) {
 
   $auth_uri = "http://${keystone_ip_to_use}:5000/"
@@ -40,6 +41,20 @@ class contrail::profile::openstack::glance(
     $mysql_port_url = "/glance"
     $bind_port      = "9292"
     $mysql_ip_address  = $host_control_ip
+  }
+
+  if ($storage_enabled != "0") {
+    $workers = "120"
+    $show_image_url = True
+    $stores = ['glance.store.rbd.Store','glance.store.filesystem.Store','glance.store.http.Store']
+    $default_store = 'rbd'
+    $multi_store = True
+  } else {
+    $workers = $::processorcount
+    $show_image_url = False
+    $stores = false
+    $default_store = undef
+    $multi_store = False
   }
 
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
@@ -65,17 +80,12 @@ class contrail::profile::openstack::glance(
         database_max_overflow  => "1080",
         database_retry_interval => "-1",
         database_max_retries   => "-1",
+        stores                => $stores,
+        default_store         => $default_store,
+        multi_store           => $multi_store,
+        workers               => $workers,
+        show_image_direct_url => $show_image_url
       }
-      #glance_api_config {
-        #'database/db_retry_interval':        value => "1";
-        #'database/connection_debug':         value => "10";
-        #'database/pool_timeout':             value => "120";
-      #}
-      #glance_registry_config {
-        #'database/db_retry_interval':        value => "1";
-        #'database/connection_debug':         value => "10";
-        #'database/pool_timeout':             value => "120";
-      #}
       class { '::glance::registry':
         keystone_password     => $glance_password,
         database_connection   => $keystone_db_conn,
@@ -111,6 +121,11 @@ class contrail::profile::openstack::glance(
         database_max_overflow  => "1080",
         database_retry_interval => "-1",
         database_max_retries   => "-1",
+        stores                => $stores,
+        default_store         => $default_store,
+        multi_store           => $multi_store,
+        workers               => $workers,
+        show_image_direct_url => $show_image_url
       }
       glance_api_config {
         'database/db_retry_interval':        value => "1";
@@ -194,7 +209,9 @@ class contrail::profile::openstack::glance(
     }
   }
 
-  class { '::glance::backend::file': } ->
+  class { '::glance::backend::file':
+    multi_store => $multi_store
+   } ->
   class { '::glance::notify::rabbitmq':
     rabbit_userid    => $rabbitmq_user,
     rabbit_password  => $rabbitmq_password,
