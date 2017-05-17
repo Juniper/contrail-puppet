@@ -220,6 +220,36 @@ class contrail::profile::openstack::neutron(
           'DEFAULT/rpc_response_timeout'    : value => '60';
           'service_providers/service_provider': value => 'LOADBALANCER:Opencontrail:neutron_plugin_contrail.plugins.opencontrail.loadbalancer.driver.OpencontrailLoadbalancerDriver:default';
         }
+        contrail_plugin_ini {
+          'APISERVER/api_server_ip'   : value => "$config_ip";
+          'APISERVER/api_server_port' : value => '8082';
+          'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
+          'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None,service-interface:None,vf-binding:None';
+          'KEYSTONE/auth_url'         : value => "$keystone_auth_uri";
+          'KEYSTONE/admin_user'       : value => "$keystone_admin_user";
+          'KEYSTONE/admin_password'   : value => "$keystone_admin_password";
+          'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
+          'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
+        } ->
+        # contrail plugin for opencontrail
+        opencontrail_plugin_ini {
+          'APISERVER/api_server_ip'   : value => "$config_ip";
+          'APISERVER/api_server_port' : value => '8082';
+          'APISERVER/multi_tenancy'   : value => "$multi_tenancy";
+          'APISERVER/contrail_extensions': value => 'ipam:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_ipam.NeutronPluginContrailIpam,policy:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_policy.NeutronPluginContrailPolicy,route-table:neutron_plugin_contrail.plugins.opencontrail.contrail_plugin_vpc.NeutronPluginContrailVpc,contrail:None';
+          'KEYSTONE/auth_url'         : value => "$keystone_auth_uri";
+          'KEYSTONE/admin_user'       : value => "$keystone_admin_user";
+          'KEYSTONE/admin_password'   : value => "$keystone_admin_password";
+          'KEYSTONE/auth_user'        : value => "$keystone_admin_user";
+          'KEYSTONE/admin_tenant_name': value => "$keystone_admin_tenant";
+          'COLLECTOR/analytics_api_ip': value => "$collector_ip";
+          'COLLECTOR/analytics_api_port': value => "8081";
+        } ->
+        contrail::lib::augeas_conf_set { 'NEUTRON_PLUGIN_CONFIG':
+          config_file => '/etc/default/neutron-server',
+          settings_hash => { 'NEUTRON_PLUGIN_CONFIG' => $contrail_plugin_location, },
+          lens_to_use => 'properties.lns',
+        }
       }
     }
 
