@@ -312,7 +312,6 @@ class contrail::ha_config (
               'net.netfilter.nf_conntrack_max' => { value => 256000 },
               'net.netfilter.nf_conntrack_tcp_timeout_time_wait' => { value => 30 },
               'net.ipv4.tcp_syncookies' => { value => 1 },
-              'net.ipv4.tcp_tw_recycle' => { value => 1 },
               'net.ipv4.tcp_tw_reuse' => { value => 1 },
               'net.ipv4.tcp_fin_timeout' => { value => 30 },
               'net.unix.max_dgram_qlen' => { value => 1000 },
