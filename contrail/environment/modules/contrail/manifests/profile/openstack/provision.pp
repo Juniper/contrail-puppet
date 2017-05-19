@@ -65,26 +65,40 @@ class contrail::profile::openstack::provision (
     ensure_resource('keystone_user_role', "admin::Default@::Default", {
       'roles' => ['admin'],
     })
-
   }
 
   keystone_role { ['_member_', 'cloud-admin', 'KeystoneAdmin', 'netadmin', 'sysadmin', 'KeystoneServiceAdmin', 'Member']:
     ensure => present,
   }
 
-  class { '::cinder::keystone::auth':
-    password     => $cinder_password,
-    public_url   => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
-    admin_url    => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
-    internal_url => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
-    public_url_v2   => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
-    admin_url_v2    => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
-    internal_url_v2 => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
-    public_url_v3   => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
-    admin_url_v3    => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
-    internal_url_v3 => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
-    region       => $region_name,
-  } ->
+  # mitaka/newton support v3
+  if ( $package_sku =~ /14\.0/ or $package_sku =~ /13\.0/ ) {
+    class { '::cinder::keystone::auth':
+      password        => $cinder_password,
+      public_url      => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      admin_url       => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      internal_url    => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      public_url_v2   => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      admin_url_v2    => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      internal_url_v2 => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      public_url_v3   => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
+      admin_url_v3    => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
+      internal_url_v3 => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
+      region          => $region_name,
+    }
+  } else {
+    class { '::cinder::keystone::auth':
+      password        => $cinder_password,
+      public_url      => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      admin_url       => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      internal_url    => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      public_url_v2   => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      admin_url_v2    => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      internal_url_v2 => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      region          => $region_name,
+    }
+  }
+  Class['::cinder::keystone::auth'] ->
   class  { '::glance::keystone::auth':
     password     => $glance_password,
     public_url   => "http://${openstack_ip_to_use}:9292",
@@ -97,9 +111,6 @@ class contrail::profile::openstack::provision (
     public_url       => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
     admin_url        => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
     internal_url     => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
-    #ec2_public_url   => "http://${openstack_ip_to_use}:8773/services/Cloud",
-    #ec2_admin_url    => "http://${openstack_ip_to_use}:8773/services/Admin",
-    #ec2_internal_url => "http://${openstack_ip_to_use}:8773/services/Cloud",
     public_url_v3    => "http://${openstack_ip_to_use}:8774/v3",
     admin_url_v3     => "http://${openstack_ip_to_use}:8774/v3",
     internal_url_v3  => "http://${openstack_ip_to_use}:8774/v3",
