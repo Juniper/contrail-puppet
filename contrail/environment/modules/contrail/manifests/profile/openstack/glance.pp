@@ -101,6 +101,9 @@ class contrail::profile::openstack::glance(
         database_retry_interval => "-1",
         database_max_retries   => "-1",
       }
+      class { '::glance::backend::file':
+        multi_store => $multi_store
+       }
     }
     /13\.0/: {
       class { '::glance::api':
@@ -152,6 +155,9 @@ class contrail::profile::openstack::glance(
         database_retry_interval => "-1",
         database_max_retries   => "-1",
       }
+      class { '::glance::backend::file':
+        multi_store => $multi_store
+       }
     }
 
     # Non-mitaka support
@@ -206,12 +212,12 @@ class contrail::profile::openstack::glance(
         'database/connection_debug':         value => "10";
         'database/pool_timeout':             value => "120";
       }
+      class { '::glance::backend::file':
+      }
     }
   }
 
-  class { '::glance::backend::file':
-    multi_store => $multi_store
-   } ->
+  Class [ '::glance::backend::file' ] ->
   class { '::glance::notify::rabbitmq':
     rabbit_userid    => $rabbitmq_user,
     rabbit_password  => $rabbitmq_password,
