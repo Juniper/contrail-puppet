@@ -1,0 +1,29 @@
+# ************************************
+# Vhost template in module puppetlabs-apache
+# Managed by Puppet
+# ************************************
+
+<VirtualHost *:<%= @keystone_public_port %>>
+  ServerName <%= @fqdn %>
+
+  ## Vhost docroot
+  DocumentRoot "/usr/lib/cgi-bin/keystone"
+
+  ## Directories, there should at least be a declaration for /usr/lib/cgi-bin/keystone
+
+  <Directory "/usr/lib/cgi-bin/keystone">
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride None
+    Require all granted
+  </Directory>
+
+  ## Logging
+  ErrorLog "/var/log/apache2/keystone_wsgi_main_error.log"
+  ServerSignature Off
+  CustomLog "/var/log/apache2/keystone_wsgi_main_access.log" combined 
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIDaemonProcess keystone_main display-name=keystone-main group=keystone processes=1 threads=12 user=keystone
+  WSGIProcessGroup keystone_main
+  WSGIScriptAlias / "/usr/lib/cgi-bin/keystone/keystone-public"
+  WSGIPassAuthorization On
+</VirtualHost>
