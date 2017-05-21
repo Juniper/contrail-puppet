@@ -17,7 +17,8 @@ class contrail::profile::openstack::keystone(
   $keystone_version   = $::contrail::params::keystone_version,
   $openstack_rabbit_servers        = $::contrail::params::openstack_rabbit_ip_list,
   $keystone_mysql_service_password = $::contrail::params::keystone_mysql_service_password,
-  $global_controller_ip_list       = $::contrail::params::global_controller_ip_list
+  $global_controller_ip_list       = $::contrail::params::global_controller_ip_list,
+  $sites_enabled = $sites_enabled
 ) {
 
   if ($keystone_mysql_service_password != "") {
@@ -88,10 +89,40 @@ class contrail::profile::openstack::keystone(
         kombu_ssl_keyfile  => $kombu_ssl_keyfile,
         enable_bootstrap   => $bootstrap_keystone
       }
-      class { keystone::wsgi::apache: 
+      # KP: backup the site conf files for case where openstack colocated with SM
+      if ($sites_enabled) {
+        file { "/tmp/sites-available":
+          ensure => "directory",
+          source => "/etc/apache2/sites-available/",
+          sourceselect => all,
+          recurse => true
+        }
+        # copy the existing sites to tmp
+        File["/tmp/sites-available"] ->
+        class { keystone::wsgi::apache:
         public_port => $keystone_public_port,
         admin_port  => $keystone_admin_port,
         ssl         => false
+        } ->
+        # fix horizon by adding conf-enabled includeoption
+        file_line { 'include_option_conf' :
+          path => "/etc/apache2/apache2.conf",
+          line => 'IncludeOptional "/etc/apache2/conf-enabled/*.conf"'
+        }
+        # copy back the existing sites to apache
+        # enable the pre-existing sites
+        class {'contrail::profile::openstack::enable_sites':}
+      } else {
+        class { keystone::wsgi::apache:
+        public_port => $keystone_public_port,
+        admin_port  => $keystone_admin_port,
+        ssl         => false
+        } ->
+        # fix horizon by adding conf-enabled includeoption
+        file_line { 'include_option_conf' :
+          path => "/etc/apache2/apache2.conf",
+          line => 'IncludeOptional "/etc/apache2/conf-enabled/*.conf"'
+        }
       }
 
       if ($keystone_version == "v3") {

@@ -11,6 +11,12 @@ Facter.add(:contrail_gateway) do
     end
 end
 
+Facter.add(:sites_enabled) do
+    setcode do
+        Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'sites_enabled.sh'))
+    end
+end
+
 Facter.add(:contrail_interface) do
     setcode do
         Facter::Util::Resolution.exec(File.join(File.dirname(__FILE__), 'interface.sh'))
