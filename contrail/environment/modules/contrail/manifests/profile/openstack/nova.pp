@@ -123,6 +123,7 @@ class contrail::profile::openstack::nova(
         neutron_region_name    => $region_name,
         neutron_admin_auth_url => "http://${keystone_ip_to_use}:35357/",
         neutron_url            => "http://${neutron_ip_to_use}:9696",
+        neutron_auth_type      => 'password',
         vif_plugging_is_fatal  => false,
         vif_plugging_timeout   => '0',
       }
