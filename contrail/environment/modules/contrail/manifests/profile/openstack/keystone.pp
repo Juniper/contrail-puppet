@@ -102,7 +102,7 @@ class contrail::profile::openstack::keystone(
         group   => 'keystone',
         mode    => '0644',
         require => File['/usr/lib/cgi-bin/keystone'],
-      }
+      } ->
       file { "keystone-public wsgi":
         path    => "/usr/lib/cgi-bin/keystone/keystone-public",
         source  => "/usr/bin/keystone-wsgi-public",
@@ -111,36 +111,35 @@ class contrail::profile::openstack::keystone(
         group   => 'keystone',
         mode    => '0644',
         require => File['/usr/lib/cgi-bin/keystone'],
-      }
-
-     file { 'keystone_main_site' :
+      } ->
+      file { 'keystone_main_site' :
         path    => '/etc/apache2/sites-available/10-keystone_wsgi_main.conf',
         content => template("${module_name}/10-keystone_wsgi_main.erb"),
-     } ->
-     file { 'keystone_admin_site' :
+      } ->
+      file { 'keystone_admin_site' :
         path    => '/etc/apache2/sites-available/10-keystone_wsgi_admin.conf',
         content => template("${module_name}/10-keystone_wsgi_admin.erb"),
+      } ->
+      file { "10-keystone_wsgi_main.conf symlink":
+        ensure  => link,
+        path    => "/etc/apache2/sites-enabled/10-keystone_wsgi_main.conf",
+        target  => "/etc/apache2/sites-available/10-keystone_wsgi_main.conf",
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+      } ->
+      file { "10-keystone_wsgi_admin.conf symlink":
+        ensure  => link,
+        path    => "/etc/apache2/sites-enabled/10-keystone_wsgi_admin.conf",
+        target  => "/etc/apache2/sites-available/10-keystone_wsgi_admin.conf",
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+      } ->
+      exec {'apache2 restart':
+        command => "service apache2 restart",
+        provider => shell,
       }
-    file { "10-keystone_wsgi_main.conf symlink":
-      ensure  => link,
-      path    => "/etc/apache2/sites-enabled/10-keystone_wsgi_main.conf",
-      target  => "/etc/apache2/sites-available/10-keystone_wsgi_main.conf",
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-    } ->
-    file { "10-keystone_wsgi_admin.conf symlink":
-      ensure  => link,
-      path    => "/etc/apache2/sites-enabled/10-keystone_wsgi_admin.conf",
-      target  => "/etc/apache2/sites-available/10-keystone_wsgi_admin.conf",
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-    } ->
-    exec {'apache2 restart':
-      command => "service apache2 restart",
-      provider => shell,
-    }
 
       if ($keystone_version == "v3") {
         keystone_config {
