@@ -57,6 +57,13 @@ def main(argv):
     user_name = sys.argv[3]
     passwd = sys.argv[4]
 
+    status,output = commands.getstatusoutput("ssh  -o stricthostkeychecking=no %s@%s ls /etc/keystone/ssl " % \
+                                          (user_name, master))
+    print output
+    print "/etc/keystone/ssl doesn't exist"
+    if status != 0:
+        sys.exit(0)
+
     status,output = commands.getstatusoutput("scp -o stricthostkeychecking=no -r %s@%s:/etc/keystone/ssl /etc/keystone/" % \
                                       (user_name, master))
     print output

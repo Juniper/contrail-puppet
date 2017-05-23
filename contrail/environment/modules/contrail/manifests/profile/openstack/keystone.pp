@@ -89,11 +89,15 @@ class contrail::profile::openstack::keystone(
         kombu_ssl_keyfile  => $kombu_ssl_keyfile,
         enable_bootstrap   => $bootstrap_keystone
       } ->
+      exec {'keystone disable default site':
+        command => "a2dissite keystone",
+        provider => shell
+      } ->
       file { '/usr/lib/cgi-bin/keystone':
         ensure  => directory,
         owner   => 'keystone',
         group   => 'keystone',
-      }
+      } ->
       file { "keystone-admin wsgi":
         path    => "/usr/lib/cgi-bin/keystone/keystone-admin",
         source  => "/usr/bin/keystone-wsgi-admin",
@@ -102,7 +106,7 @@ class contrail::profile::openstack::keystone(
         group   => 'keystone',
         mode    => '0644',
         require => File['/usr/lib/cgi-bin/keystone'],
-      }
+      } ->
       file { "keystone-public wsgi":
         path    => "/usr/lib/cgi-bin/keystone/keystone-public",
         source  => "/usr/bin/keystone-wsgi-public",
@@ -111,8 +115,7 @@ class contrail::profile::openstack::keystone(
         group   => 'keystone',
         mode    => '0644',
         require => File['/usr/lib/cgi-bin/keystone'],
-      }
-
+      } ->
      file { 'keystone_main_site' :
         path    => '/etc/apache2/sites-available/10-keystone_wsgi_main.conf',
         content => template("${module_name}/10-keystone_wsgi_main.erb"),
@@ -120,7 +123,7 @@ class contrail::profile::openstack::keystone(
      file { 'keystone_admin_site' :
         path    => '/etc/apache2/sites-available/10-keystone_wsgi_admin.conf',
         content => template("${module_name}/10-keystone_wsgi_admin.erb"),
-      }
+      } ->
     file { "10-keystone_wsgi_main.conf symlink":
       ensure  => link,
       path    => "/etc/apache2/sites-enabled/10-keystone_wsgi_main.conf",

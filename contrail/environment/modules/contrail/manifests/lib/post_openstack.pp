@@ -12,10 +12,12 @@ define contrail::lib::post_openstack(
   if ($host_control_ip in $openstack_ip_list) {
     #Make ha-mon start later
     if($internal_vip != '') {
-        exec { 'ha-mon-restart':
-            command   => 'service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
-            provider  => shell,
-            logoutput => $contrail_logoutput,
+        if ( $::lsbdistrelease != '16.04') {
+          exec { 'ha-mon-restart':
+              command   => 'service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
+              provider  => shell,
+              logoutput => $contrail_logoutput,
+          }
         }
       # Set mysql cpnnection string at the end
       # as setting before will result in provision failure.
