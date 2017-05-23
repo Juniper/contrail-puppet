@@ -12,14 +12,22 @@ import commands
 from fabric.api import local,run
 from fabric.context_managers import lcd, hide, settings
 from fabric.operations import get, put
+import platform
+from distutils.version import LooseVersion
 
 
 from contrail_provisioning.common.base import ContrailSetup
 from contrail_provisioning.openstack.ha.templates import galera_param_template
 from contrail_provisioning.openstack.ha.templates import cmon_param_template
 from contrail_provisioning.openstack.ha.templates import cmon_conf_template
-from contrail_provisioning.openstack.ha.templates import wsrep_conf_template
 from contrail_provisioning.openstack.ha.templates import wsrep_conf_centos_template
+if LooseVersion("14.04") == LooseVersion(platform.dist()[1]):
+    from contrail_provisioning.openstack.ha.templates\
+        import wsrep_conf_template_ubuntu_1404 as wsrep_conf_template
+else:
+    from contrail_provisioning.openstack.ha.templates\
+        import wsrep_conf_template_ubuntu_1604 as wsrep_conf_template
+
 
 
 class GaleraSetup(ContrailSetup):
@@ -106,6 +114,8 @@ class GaleraSetup(ContrailSetup):
         parser.add_argument("--cmon_user", help = "Cmon user")
         parser.add_argument("--cmon_pass", help = "Cmon pass")
         parser.add_argument("--monitor_galera", help = "Monitor Galera. Value can be boolean in string True / False")
+        parser.add_argument("--install_mysql_db", help = "Run MySQL Install script", type=bool, default = True)
+
         self._args = parser.parse_args(self.remaining_argv)
 
     def fixup_config_files(self):
@@ -157,14 +167,18 @@ class GaleraSetup(ContrailSetup):
             wsrep_template = wsrep_conf_centos_template.template
         self.mysql_token_file = '/etc/contrail/mysql.token'
 
+        print "INSTALLED 1"
         self.install_mysql_db()
+        print "INSTALLED 4"
         if self._args.openstack_index == 1:
             self.create_mysql_token_file()
         else:
             self.get_mysql_token_file()
+        print "INSTALLED 2"
         self.set_mysql_root_password()
         self.setup_grants()
         self.setup_cron()
+        print "INSTALLED 3"
         # fixup mysql/wsrep config
         """
         local('sed -i -e "s/bind-address/#bind-address/" %s' % self.mysql_conf)
@@ -224,12 +238,17 @@ class GaleraSetup(ContrailSetup):
     def install_mysql_db(self):
         local('chkconfig %s on' % self.mysql_svc)
         local('chown -R mysql:mysql /var/lib/mysql/')
+        print "INSTALLED 5"
         with settings(warn_only=True):
             install_db = local("service %s restart" % self.mysql_svc).failed
         if install_db:
+            print "INSTALLED 7"
             local('mysql_install_db --user=mysql --ldata=/var/lib/mysql')
+            print "INSTALLED 8"
             self.cleanup_redo_log()
             local("service %s restart" % self.mysql_svc)
+            print "INSTALLED 9"
+        print "INSTALLED 6"
 
     def create_mysql_token_file(self):
         # Use MYSQL_ROOT_PW from the environment or generate a new password
@@ -290,6 +309,13 @@ class GaleraSetup(ContrailSetup):
 
     def run_services(self):
         print "run_services"
+	if self.pdist in ['Ubuntu']:
+            self.wsrep_conf = '/etc/mysql/conf.d/wsrep.cnf'
+            self.mysql_svc = 'mysql'
+        elif self.pdist in ['centos', 'redhat']:
+            self.wsrep_conf = '/etc/my.cnf'
+            self.mysql_svc = 'mysqld'
+        
         if self.is_cluster_synced( ):
             local("service %s restart" % self.mysql_svc)
         if self.is_clustered(self._args.galera_ip_list, self._args.self_ip):
@@ -300,8 +326,13 @@ class GaleraSetup(ContrailSetup):
             print "Mysql cluster already present for '%s'" % self._args.galera_ip_list[1:]
             local("service %s restart" % self.mysql_svc)
         elif self._args.openstack_index == 1:
-            local("service %s stop" % self.mysql_svc)
-            local("service %s start --wsrep_cluster_address=gcomm://" % self.mysql_svc)
+
+            #local("service %s stop" % self.mysql_svc)
+            #local("service %s start --wsrep_cluster_address=gcomm://" % self.mysql_svc)
+            local('sed -ibak "s#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://#g" %s' % (self.wsrep_conf))
+            local("service %s restart" % self.mysql_svc)
+            wsrep_cluster_address = (':4567,'.join(self._args.galera_ip_list) + ':4567')
+            local('sed -ibak "s#wsrep_cluster_address=.*#wsrep_cluster_address=gcomm://%s#g" %s' % (wsrep_cluster_address, self.wsrep_conf))
         else:
             cmd = "mysql -h%s -uroot -p%s " % (self._args.galera_ip_list[0], self.mysql_token)
             cmd += "-e \"show global status where variable_name='wsrep_local_state'\" | awk '{print $2}' | sed '1d'"
