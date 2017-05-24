@@ -23,7 +23,7 @@ Listen <%= @keystone_admin_port %>
   ServerSignature Off
   CustomLog "/var/log/apache2/keystone_wsgi_admin_access.log" combined 
   WSGIApplicationGroup %{GLOBAL}
-  WSGIDaemonProcess keystone_admin display-name=keystone-admin group=keystone processes=1 threads=12 user=keystone
+  WSGIDaemonProcess keystone_admin display-name=keystone-admin group=keystone processes=<%=@processorcount%> threads=12 user=keystone
   WSGIProcessGroup keystone_admin
   WSGIScriptAlias / "/usr/lib/cgi-bin/keystone/keystone-admin"
   WSGIPassAuthorization On
