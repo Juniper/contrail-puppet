@@ -171,7 +171,13 @@ class contrail::ha_config (
             $monitor_galera_cmd = ""
         }
 
-        $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=$mysql_root_password setup-vnc-galera --self_ip $host_control_ip --keystone_ip $keystone_ip_to_use --galera_ip_list $openstack_ip_list_shell --internal_vip $internal_vip ${external_vip_cmd} ${zk_ip_list_cmd} ${keystone_db_user_cmd} ${keystone_db_pass_cmd} ${cmon_db_user_cmd} ${cmon_db_pass_cmd} ${monitor_galera_cmd} --openstack_index $openstack_index && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
+        if ($::lsbdistrelease != '16.04') {
+            $install_db = True
+        } else {
+            # don't call for 16.04
+            $install_db = False
+        }
+        $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=$mysql_root_password setup-vnc-galera --self_ip $host_control_ip --keystone_ip $keystone_ip_to_use --galera_ip_list $openstack_ip_list_shell --internal_vip $internal_vip ${external_vip_cmd} ${zk_ip_list_cmd} ${keystone_db_user_cmd} ${keystone_db_pass_cmd} ${cmon_db_user_cmd} ${cmon_db_pass_cmd} ${monitor_galera_cmd} --openstack_index $openstack_index --install_mysql_db $install_db && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
 
         $contrail_exec_check_wsrep = "python check-wsrep-status.py ${openstack_mgmt_ip_list_shell}  && echo check-wsrep >> /etc/contrail/contrail_openstack_exec.out"
         $contrail_exec_setup_cmon_schema = "python setup-cmon-schema.py ${os_master} ${host_control_ip} ${internal_vip} ${openstack_mgmt_ip_list_shell} && echo exec_setup_cmon_schema >> /etc/contrail/contrail_openstack_exec.out"

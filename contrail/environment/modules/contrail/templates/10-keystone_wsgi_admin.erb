@@ -3,6 +3,7 @@
 # Managed by Puppet
 # ************************************
 
+Listen <%= @keystone_admin_port %>
 <VirtualHost *:<%= @keystone_admin_port %>>
   ServerName <%= @fqdn %>
 

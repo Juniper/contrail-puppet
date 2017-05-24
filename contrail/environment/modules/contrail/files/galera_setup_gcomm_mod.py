@@ -242,8 +242,9 @@ class GaleraSetup(ContrailSetup):
         with settings(warn_only=True):
             install_db = local("service %s restart" % self.mysql_svc).failed
         if install_db:
-            print "INSTALLED 7"
-            local('mysql_install_db --user=mysql --ldata=/var/lib/mysql')
+            if self._args.install_mysql_db == True:
+                print "INSTALLED 7"
+                local('mysql_install_db --user=mysql --ldata=/var/lib/mysql')
             print "INSTALLED 8"
             self.cleanup_redo_log()
             local("service %s restart" % self.mysql_svc)
@@ -347,7 +348,10 @@ class GaleraSetup(ContrailSetup):
                 raise RuntimeError("Unable able to bring up galera in first node, please verify and continue.")
             local("service %s restart" % self.mysql_svc)
         local("sudo update-rc.d -f mysql remove")
-        local("sudo update-rc.d mysql defaults")
+        if LooseVersion("16.04") == LooseVersion(platform.dist()[1]):
+            local("sudo systemctl enable mysql")
+        else:
+            local("sudo update-rc.d -f mysql defaults")
 
     def cleanup_redo_log(self):
         # Delete the default initially created redo log file
