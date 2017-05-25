@@ -72,6 +72,10 @@ class contrail::profile::openstack::heat (
         kombu_ssl_certfile => $kombu_ssl_certfile,
         kombu_ssl_keyfile  => $kombu_ssl_keyfile
       }
+      heat_config {
+        "resource/admin_project_name"        : value => "admin";
+        "resource/admin_project_domain_name" : value => "Default"
+      }
     }
     /13\.0/: {
       class { '::heat':
