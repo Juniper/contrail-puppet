@@ -36,25 +36,14 @@ end
 Facter.add(:contrail_version) do
     setcode do
        operatingsystem = Facter.value('operatingsystem')
-       version = ''
-       packages = ["contrail-lib", "contrail-openstack-dashboard"]
            case operatingsystem
                when "CentOS"
-                  packages.each do |pkg|
-                    version = Facter::Util::Resolution.exec("yum list installed | grep #{pkg} | awk \'{ printf $2}\' | awk -F \'.e\' \'{printf $1}\'")
-                    if not version.empty?
-                      break
-                    end
-                  end
+                  # need to check installed version, one below check the version in repo
+                  # need for upgrade check
+                  Facter::Util::Resolution.exec('yum list installed | grep contrail-lib | awk \'{ printf $2}\' | awk -F \'.e\' \'{printf $1}\'')
                when "Ubuntu"
-                  packages.each do |pkg|
-                    version = Facter::Util::Resolution.exec("dpkg -s #{pkg} |grep Version |awk \'{print $2}\'").chomp
-                    if not version.empty?
-                      break
-                    end
-                  end
+                   Facter::Util::Resolution.exec('dpkg -l contrail-lib | grep contrail-lib | awk \'{ printf $3}\'')
            end
-       version
     end
 end
 Facter.add(:conductor_idx) do

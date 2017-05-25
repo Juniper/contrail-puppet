@@ -54,11 +54,6 @@ class contrail::common(
       'ceph'            => { ensure => present, uid => '496', gid => '496', home => '/var/lib/ceph',  managehome => true}
     }
 
-    if ($upgrade_needed != 1) {
-      $contrail_group_details['glance'] = { gid => '495'}
-      $contrail_users_details['glance'] = { ensure => present, uid => '495', gid => '495', home => '/var/lib/glance',  managehome => true }
-    }
-
     create_resources(group, $contrail_group_details)
     create_resources(user, $contrail_users_details)
     create_resources(host, $contrail_hostnames)
