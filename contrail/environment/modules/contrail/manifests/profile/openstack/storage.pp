@@ -77,7 +77,6 @@ class contrail::profile::openstack::storage(
     'DEFAULT/rados_connection_retries' : value => '10000';
   }
   create_resources('contrail::lib::storage_os_config', $pool_config, {})
-  Contrail::Lib::Storage_os_config <| |> ~> Service['cinder-volume']
   class {'cinder::volume':}
 
   class { 'glance::backend::rbd': 
