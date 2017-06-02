@@ -30,13 +30,6 @@ class contrail::profile::openstack_controller (
   $storage_enabled    = $::contrail::params::storage_enabled
 ) {
 
-  if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-    $local_settings_file = "/etc/openstack-dashboard/local_settings"
-    $content_file = "local_settings_centos.erb"
-  } else {
-    $local_settings_file = "/etc/openstack-dashboard/local_settings.py"
-    $content_file = "local_settings.py.erb"
-  }
   $processor_count_str = "${::processorcount}"
 
   if ($enable_module and 'openstack' in $host_roles and $is_there_roles_to_delete == false) {
@@ -63,18 +56,12 @@ class contrail::profile::openstack_controller (
     class {'::contrail::profile::openstack::nova' : } ->
     class {'::contrail::profile::openstack::neutron' : } ->
     class {'::contrail::profile::openstack::heat' : } ->
+    class {'::contrail::profile::openstack::horizon' : } ->
     class {'::contrail::profile::openstack::auth_file' : } ->
-    package { 'openstack-dashboard': ensure => latest } ->
-    file { $local_settings_file :
-      ensure => present,
-      mode   => '0755',
-      group  => root,
-      content => template("${module_name}/${content_file}")
-    } -> 
-    package { 'contrail-openstack-dashboard': ensure => latest } ->
     contrail::lib::report_status { 'openstack_completed':
       state => 'openstack_completed' ,
     }
+    
     if ($storage_enabled ) {
       Contrail::Lib::Report_status['openstack_started'] ->
       class {'::contrail::profile::openstack::storage' : } ->
@@ -100,6 +87,7 @@ class contrail::profile::openstack_controller (
     contain ::contrail::profile::openstack::nova
     contain ::contrail::profile::openstack::neutron
     contain ::contrail::profile::openstack::heat
+    contain ::contrail::profile::openstack::horizon
 
     Package ['contrail-openstack']
     -> contrail::lib::rabbitmq_ssl{'openstack_rabbitmq':
