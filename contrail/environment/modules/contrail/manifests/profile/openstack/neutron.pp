@@ -55,7 +55,11 @@ class contrail::profile::openstack::neutron(
     database_connection => $keystone_db_conn
   }
   if ($manage_neutron == false) {
-    # Params from quantum-server-setup.sh are now set here
+    if ($internal_vip != "" and $internal_vip != undef) {
+      $neutron_port = "9697"
+    } else {
+      $neutron_port = "9696"
+    }
 
     # Neutron needs to authenticate with keystone but doesn't need keystone installed
     # keystone_authtoken params
@@ -80,7 +84,7 @@ class contrail::profile::openstack::neutron(
       kombu_ssl_ca_certs    => $kombu_ssl_ca_certs,
       kombu_ssl_certfile    => $kombu_ssl_certfile,
       kombu_ssl_keyfile     => $kombu_ssl_keyfile,
-      bind_port             => '9696',
+      bind_port             => $neutron_port,
       auth_strategy         => 'keystone',
       core_plugin           => 'neutron_plugin_contrail.plugins.opencontrail.contrail_plugin.NeutronPluginContrailCoreV2',
       allow_overlapping_ips => true,
