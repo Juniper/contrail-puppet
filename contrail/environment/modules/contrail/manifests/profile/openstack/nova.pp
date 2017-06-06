@@ -318,16 +318,12 @@ class contrail::profile::openstack::nova(
 
 
   if ($sriov_enable) {
-    file_line_after {
+    file_line {
       'scheduler_default_filters':
-        line   => 'scheduler_default_filters=PciPassthroughFilter',
+        line   => 'scheduler_default_filters=RetryFilter, AvailabilityZoneFilter, RamFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, PciPassthroughFilter',
         path   => '/etc/nova/nova.conf',
         after  => '^\s*\[DEFAULT\]';
       'scheduler_available_filters':
-        line   => 'scheduler_available_filters=nova.scheduler.filters.pci_passthrough_filter.PciPassthroughFilter',
-        path   => '/etc/nova/nova.conf',
-        after  => '^\s*\[DEFAULT\]';
-      'scheduler_available_filters2':
         line   => 'scheduler_available_filters=nova.scheduler.filters.all_filters',
         path   => '/etc/nova/nova.conf',
         after  => '^\s*\[DEFAULT\]';
