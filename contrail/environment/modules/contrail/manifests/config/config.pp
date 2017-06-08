@@ -50,6 +50,8 @@ class contrail::config::config (
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $keystone_version   = $::contrail::params::keystone_version,
+  $zookeeper_conf_dir = $::contrail::params::zookeeper_conf_dir,
+  $zk_ip_port         = $::contrail::params::zk_ip_port,
 ) {
   # Main code for class starts here
   if $use_certs == true {
@@ -57,6 +59,22 @@ class contrail::config::config (
   } else {
     $ifmap_server_port = '8443'
   }
+  if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+    $zk_myid_file = '/var/lib/zookeeper/myid'
+  } else {
+    $zk_myid_file = '/etc/zookeeper/conf/myid'
+  }
+
+  $zk_ip_list_for_shell = join($zookeeper_ip_list, ' ')
+  $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
+  $zk_ip_port_list_str = join($zookeeper_ip_port_list, ',')
+  $zk_ip_list_len = size($zookeeper_ip_list)
+  if ($zk_ip_list_len > 1) {
+    $replication_factor = 2
+  } else {
+    $replication_factor = 1
+  }
+  $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh ${::operatingsystem} ${database_index} ${zk_ip_list_for_shell} && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
 
   if (!('database' in $host_roles) and $config_manage_db == true) {
     $database_ip_list_to_use = $config_ip_list
@@ -202,6 +220,15 @@ class contrail::config::config (
     'net.ipv4.tcp_keepalive_intvl' => { value => 1 },
   }
   create_resources(sysctl::value, $config_sysctl_settings, {} )
+
+  file { "${zookeeper_conf_dir}/zoo.cfg":
+    ensure  => present,
+    content => template("${module_name}/zoo.cfg.erb"),
+  } ->
+  class {'::contrail::config_zk_files_setup':
+    database_index => $database_index,
+    zk_myid_file   => $zk_myid_file
+  } ->
   contrail_api_ini {
     'program:contrail-api/command'      : value => "$api_command_to_use";
     'program:contrail-api/numprocs'     : value => "$api_nworkers";
@@ -440,8 +467,16 @@ class contrail::config::config (
     contain ::contrail::config::setup_pki
     Contrail::Lib::Augeas_conf_set['NEUTRON_PLUGIN_CONFIG']->Class['::contrail::config::setup_pki']->File['/usr/bin/nodejs']
   }
+  # Below is temporary to work-around in Ubuntu as Service resource fails
+  # as upstart is not correctly linked to /etc/init.d/service-name
+  if ($::operatingsystem == 'Ubuntu') {
+    File["${zookeeper_conf_dir}/zoo.cfg"] ->
+    File ["${zookeeper_conf_dir}/log4j.properties"] -> File ["${zookeeper_conf_dir}/environment"] ->
+    File [$zk_myid_file] ~> Service['zookeeper']
+  }
   contain ::contrail::openstackrc
   contain ::contrail::keystone
+  contain ::contrail::config_zk_files_setup
   #contain ::contrail::config::config_neutron_server
   contain ::contrail::config::setup_quantum_server_setup
 }
