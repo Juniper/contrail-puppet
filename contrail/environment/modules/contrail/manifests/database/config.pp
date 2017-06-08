@@ -26,12 +26,6 @@ class contrail::database::config (
         }
     }
 
-    if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
-        $zk_myid_file = '/var/lib/zookeeper/myid'
-    } else {
-        $zk_myid_file = '/etc/zookeeper/conf/myid'
-    }
-
     # set database_index
     $tmp_index = inline_template('<%= @database_ip_list.index(@host_control_ip) %>')
     if ($tmp_index == undef) {
@@ -47,16 +41,8 @@ class contrail::database::config (
         $cassandra_seeds = $database_ip_list
     }
 
-    $zk_ip_list_for_shell = join($zookeeper_ip_list, ' ')
     $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
     $zk_ip_port_list_str = join($zookeeper_ip_port_list, ',')
-    $zk_ip_list_len = size($zookeeper_ip_list)
-    if ($zk_ip_list_len > 1) {
-      $replication_factor = 2
-    } else {
-      $replication_factor = 1
-    }
-    $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh ${::operatingsystem} ${database_index} ${zk_ip_list_for_shell} && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
 
     $kafka_server_properties_file = '/usr/share/kafka/config/server.properties'
     $kafka_server_properties_config = { 'kafka_server_properties' => {
@@ -132,14 +118,6 @@ class contrail::database::config (
             settings_hash => $kafka_log4j_properties_config['kafka_log4j_properties'],
             lens_to_use => $kafka_log4j_augeas_lens_to_use,
     } ->
-    file { "${zookeeper_conf_dir}/zoo.cfg":
-        ensure  => present,
-        content => template("${module_name}/zoo.cfg.erb"),
-    } ->
-    class {'::contrail::config_zk_files_setup':
-        database_index => $database_index,
-        zk_myid_file   => $zk_myid_file
-    } ->
     contrail_database_nodemgr_config {
       'DEFAULT/hostip': value => $host_control_ip;
       'DEFAULT/minimum_diskGB' : value => $database_minimum_diskGB;
@@ -187,19 +165,7 @@ class contrail::database::config (
             group   => cassandra,
         }
     }
-    # Below is temporary to work-around in Ubuntu as Service resource fails
-    # as upstart is not correctly linked to /etc/init.d/service-name
-    if ($::operatingsystem == 'Ubuntu') {
-        File["${zookeeper_conf_dir}/zoo.cfg"] ->
-        file { '/etc/init.d/supervisord-contrail-database':
-            ensure  => link,
-            target  => '/lib/init/upstart-job',
-        } ->
-        File ["${zookeeper_conf_dir}/log4j.properties"] -> File ["${zookeeper_conf_dir}/environment"] ->
-        File [$zk_myid_file] ~> Service['zookeeper']
-    }
     contain ::contrail::config_cassandra
-    contain ::contrail::config_zk_files_setup
 
     $database_sysctl_settings = {
       'fs.file-max' => { value => 165535 },

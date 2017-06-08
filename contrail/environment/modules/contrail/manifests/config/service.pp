@@ -1,6 +1,12 @@
 class contrail::config::service(
-    $vip = $::contrail::params::vip_to_use,
+  $vip = $::contrail::params::vip_to_use,
+  $zookeeper_conf_dir = $::contrail::params::zookeeper_conf_dir,
 ) {
+    service { 'zookeeper':
+        ensure => running,
+        enable => true,
+        subscribe => File["${zookeeper_conf_dir}/zoo.cfg"],
+    } ->
     service { 'supervisor-config':
         ensure  => running,
         enable  => true,
