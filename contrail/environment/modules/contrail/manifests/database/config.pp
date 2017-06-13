@@ -44,6 +44,13 @@ class contrail::database::config (
     $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
     $zk_ip_port_list_str = join($zookeeper_ip_port_list, ',')
 
+    $db_ip_list_len = size($database_ip_list)
+    if ($db_ip_list_len > 1) {
+      $replication_factor = 2
+    } else {
+      $replication_factor = 1
+    }
+
     $kafka_server_properties_file = '/usr/share/kafka/config/server.properties'
     $kafka_server_properties_config = { 'kafka_server_properties' => {
             'broker.id' => $tmp_index,
