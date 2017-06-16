@@ -65,6 +65,12 @@ class contrail::config::config (
     $zk_myid_file = '/etc/zookeeper/conf/myid'
   }
 
+  # set database_index
+  $tmp_index = inline_template('<%= @config_ip_list.index(@host_control_ip) %>')
+  if ($tmp_index == undef) {
+    fail("Host ${host_control_ip} not found in servers of config roles")
+  }
+  $config_index = $tmp_index + 1
   $zk_ip_list_for_shell = join($zookeeper_ip_list, ' ')
   $zookeeper_ip_port_list = suffix($zookeeper_ip_list, ":$zk_ip_port")
   $zk_ip_port_list_str = join($zookeeper_ip_port_list, ',')
@@ -74,7 +80,7 @@ class contrail::config::config (
   } else {
     $replication_factor = 1
   }
-  $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh ${::operatingsystem} ${database_index} ${zk_ip_list_for_shell} && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
+  $contrail_zk_exec_cmd = "/bin/bash /etc/contrail/contrail_setup_utils/config-zk-files-setup.sh ${::operatingsystem} ${config_index} ${zk_ip_list_for_shell} && echo setup-config-zk-files-setup >> /etc/contrail/contrail-config-exec.out"
 
   if (!('database' in $host_roles) and $config_manage_db == true) {
     $database_ip_list_to_use = $config_ip_list
@@ -226,7 +232,7 @@ class contrail::config::config (
     content => template("${module_name}/zoo.cfg.erb"),
   } ->
   class {'::contrail::config_zk_files_setup':
-    database_index => $database_index,
+    database_index => $config_index,
     zk_myid_file   => $zk_myid_file
   } ->
   contrail_api_ini {
