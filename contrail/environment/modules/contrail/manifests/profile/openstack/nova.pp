@@ -207,6 +207,7 @@ class contrail::profile::openstack::nova(
         'neutron/password':                      value => $neutron_password;
         'neutron/auth_plugin':                   value => 'password';
         'neutron/auth_url':                      value => "http://${keystone_ip_to_use}:5000/";
+        'neutron/tenant_name':                   value => 'services';
         'database/min_pool_size':                value => '100';
         'database/max_pool_size':                value => '350';
         'database/max_overflow':                 value => '700';
