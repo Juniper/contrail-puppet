@@ -110,7 +110,7 @@ class contrail::profile::openstack::neutron(
         neutron_config {
           'keystone_authtoken/auth_host'    : value => "$keystone_ip_to_use";
           'keystone_authtoken/auth_port'    : value => "35357";
-          'keystone_authtoken/auth_protocol': value => "http";
+          'keystone_authtoken/auth_protocol': value => "${keystone_auth_protocol}";
           'keystone_authtoken/admin_user'   : value => "$keystone_admin_user";
           'keystone_authtoken/admin_password'   : value => "$keystone_admin_password";
           'keystone_authtoken/admin_tenant_name': value => "$keystone_admin_tenant";
@@ -172,7 +172,7 @@ class contrail::profile::openstack::neutron(
         neutron_config {
           'keystone_authtoken/auth_host'    : value => "$keystone_ip_to_use";
           'keystone_authtoken/auth_port'    : value => "35357";
-          'keystone_authtoken/auth_protocol': value => "http";
+          'keystone_authtoken/auth_protocol': value => "${keystone_auth_protocol}";
         }
         contrail_plugin_ini {
           'APISERVER/api_server_ip'   : value => "$config_ip";
@@ -259,7 +259,7 @@ class contrail::profile::openstack::neutron(
 
     class { '::neutron::server::notifications':
       nova_url            => "http://${controller_mgmt_address}:8774/v2/",
-      nova_admin_auth_url => "http://${keystone_ip_to_use}:35357/v2.0/",
+      nova_admin_auth_url => "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/v2.0/",
       nova_admin_password => $nova_password,
       nova_region_name    => $region_name,
       nova_admin_tenant_id => 'services'

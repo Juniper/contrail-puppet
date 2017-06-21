@@ -20,7 +20,8 @@ class contrail::profile::openstack::provision (
   $package_sku       = $::contrail::params::package_sku,
   $keystone_ip_to_use  = $::contrail::params::keystone_ip_to_use,
   $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
-  $neutron_ip_to_use   = $::contrail::params::neutron_ip_to_use
+  $neutron_ip_to_use   = $::contrail::params::neutron_ip_to_use,
+  $keystone_auth_protocol    = $::contrail::params::keystone_auth_protocol
 ) {
   $internal_vip = $::contrail::params::internal_vip
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
@@ -41,9 +42,9 @@ class contrail::profile::openstack::provision (
   }
 
   class { 'keystone::endpoint':
-    public_url   => "http://${keystone_ip_to_use}:5000",
-    admin_url    => "http://${keystone_ip_to_use}:35357",
-    internal_url => "http://${keystone_ip_to_use}:5000",
+    public_url   => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000",
+    admin_url    => "${keystone_auth_protocol}://${keystone_ip_to_use}:35357",
+    internal_url => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000",
     region       => $region_name,
   } ->
   class { '::keystone::roles::admin':
