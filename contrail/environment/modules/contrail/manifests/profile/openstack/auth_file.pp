@@ -13,6 +13,7 @@ class contrail::profile::openstack::auth_file(
   $keystone_endpoint_type   = 'publicURL',
   $nova_endpoint_type       = 'publicURL',
   $neutron_endpoint_type    = 'publicURL',
+  $keystone_auth_protocol   = $::contrail::params::keystone_auth_protocol
 ) {
   if ($internal_vip != '' and $internal_vip != undef) {
     $controller_node = $::contrail::params::internal_vip

@@ -23,10 +23,18 @@ class contrail::profile::openstack::glance(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
-  $storage_enabled    = $::contrail::params::storage_enabled
+  $storage_enabled    = $::contrail::params::storage_enabled,
+  $keystone_auth_protocol     = $::contrail::params::keystone_auth_protocol
 ) {
 
-  $auth_uri = "http://${keystone_ip_to_use}:5000/"
+  $auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/"
+  $identity_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/"
+
+  if ($keystone_auth_protocol == "https") {
+    $insecure = true
+  } else {
+    $insecure = false
+  }
 
   class {'::glance::db::mysql':
     password => $service_password,

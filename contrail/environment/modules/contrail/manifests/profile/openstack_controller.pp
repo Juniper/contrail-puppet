@@ -125,12 +125,13 @@ class contrail::profile::openstack_controller (
       contain ::contrail::profile::openstack::ceilometer
     }
 
+    contain ::contrail::profile::openstack::auth_file
     if ($host_control_ip == $openstack_ip_list[0]) {
       class { '::contrail::profile::openstack::provision':}
 
       Class ['::contrail::profile::openstack::heat'] ->
-      Class ['::contrail::profile::openstack::provision'] ->
-      Class ['::contrail::profile::openstack::auth_file']
+      Class ['::contrail::profile::openstack::auth_file'] ->
+      Class ['::contrail::profile::openstack::provision']
 
       Class['keystone::endpoint'] -> Contrail::Lib::Report_status['openstack_completed']
       Keystone_role['admin'] -> Contrail::Lib::Report_status['openstack_completed']
@@ -142,7 +143,6 @@ class contrail::profile::openstack_controller (
       contain ::contrail::profile::openstack::provision
     }
 
-    contain ::contrail::profile::openstack::auth_file
     contain ::contrail::contrail_openstack
 
     if ($openstack_manage_amqp and !defined(Class['::contrail::rabbitmq']) ) {

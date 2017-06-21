@@ -17,7 +17,8 @@ class contrail::profile::openstack::keystone(
   $keystone_version   = $::contrail::params::keystone_version,
   $openstack_rabbit_servers        = $::contrail::params::openstack_rabbit_ip_list,
   $keystone_mysql_service_password = $::contrail::params::keystone_mysql_service_password,
-  $global_controller_ip_list       = $::contrail::params::global_controller_ip_list
+  $global_controller_ip_list       = $::contrail::params::global_controller_ip_list,
+  $keystone_auth_protocol          = $::contrail::params::keystone_auth_protocol
 ) {
 
   if ($keystone_mysql_service_password != "") {
@@ -36,6 +37,11 @@ class contrail::profile::openstack::keystone(
       ensure  => present,
       content => template("${module_name}/policy.v3cloudsample.json"),
     }
+  }
+  if ($keystone_auth_protocol == "https") {
+    $enable_keystone_ssl = true
+  } else {
+    $enable_keystone_ssl = false
   }
 
   if ($internal_vip != "" and $internal_vip != undef) {
