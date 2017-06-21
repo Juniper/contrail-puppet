@@ -149,7 +149,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #]
 
 OPENSTACK_HOST = "<%= @keystone_ip_to_use %>"
-OPENSTACK_KEYSTONE_URL = "http://%s:5000/<%= @keystone_version %>" % OPENSTACK_HOST
+OPENSTACK_KEYSTONE_URL = "<%= @keystone_auth_protocol%>://%s:5000/<%= @keystone_version %>" % OPENSTACK_HOST
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "_member_"
 
 # Enables keystone web single-sign-on if set to True.

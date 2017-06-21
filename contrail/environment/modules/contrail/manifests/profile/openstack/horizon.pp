@@ -1,6 +1,7 @@
 
 class contrail::profile::openstack::horizon(
   $package_sku        = $::contrail::params::package_sku,
+  $keystone_auth_protocol     = $::contrail::params::keystone_auth_protocol
 ) {
   if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
     $local_settings_file = "/etc/openstack-dashboard/local_settings"

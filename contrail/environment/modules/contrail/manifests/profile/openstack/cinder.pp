@@ -18,6 +18,7 @@ class contrail::profile::openstack::cinder(
   $openstack_rabbit_servers   = $::contrail::params::openstack_rabbit_hosts,
   $keystone_auth_host         = $::contrail::params::os_controller_mgmt_address,
   $glance_management_address  = $::contrail::params::os_glance_mgmt_address,
+  $keystone_auth_protocol     = $::contrail::params::keystone_auth_protocol,
   $rabbit_use_ssl     = $::contrail::params::os_amqp_ssl,
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
@@ -66,7 +67,7 @@ class contrail::profile::openstack::cinder(
       }
       class { '::cinder::api':
         keystone_password => $cinder_password,
-        auth_uri          => "http://${keystone_ip_to_use}:5000/",
+        auth_uri          => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/",
         sync_db           => $sync_db,
         osapi_volume_listen_port => $osapi_volume_port
       }
@@ -101,7 +102,7 @@ class contrail::profile::openstack::cinder(
       }
       class { '::cinder::api':
         keystone_password => $cinder_password,
-        auth_uri          => "http://${keystone_ip_to_use}:5000/",
+        auth_uri          => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/",
         sync_db           => $sync_db
       }
     }
@@ -138,7 +139,7 @@ class contrail::profile::openstack::cinder(
       }
       class { '::cinder::api':
         keystone_password => $cinder_password,
-        auth_uri          => "http://${keystone_ip_to_use}:5000/",
+        auth_uri          => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/",
         sync_db           => $sync_db
       }
     }
