@@ -82,6 +82,7 @@ class contrail::profile::openstack::glance(
         database_idle_timeout => '180',
         bind_port         => $bind_port,
         auth_uri          => $auth_uri,
+        identity_uri      => $identity_uri,
         os_region_name    => $keystone_region_name,
         database_min_pool_size => "100",
         database_max_pool_size => "700",
@@ -126,6 +127,7 @@ class contrail::profile::openstack::glance(
         database_idle_timeout => '180',
         bind_port         => $bind_port,
         auth_uri          => $auth_uri,
+        identity_uri      => $identity_uri,
         os_region_name    => $keystone_region_name,
         database_min_pool_size => "100",
         database_max_pool_size => "700",
@@ -142,11 +144,13 @@ class contrail::profile::openstack::glance(
         'database/db_retry_interval':        value => "1";
         'database/connection_debug':         value => "10";
         'database/pool_timeout':             value => "120";
+        'keystone_authtoken/insecure':       value => $insecure;
       }
       glance_registry_config {
         'database/db_retry_interval':        value => "1";
         'database/connection_debug':         value => "10";
         'database/pool_timeout':             value => "120";
+        'keystone_authtoken/insecure':       value => $insecure;
       }
       class { '::glance::registry':
         keystone_password     => $glance_password,
@@ -162,6 +166,8 @@ class contrail::profile::openstack::glance(
         database_max_overflow  => "1080",
         database_retry_interval => "-1",
         database_max_retries   => "-1",
+        auth_uri          => $auth_uri,
+        identity_uri      => $identity_uri,
       }
       class { '::glance::backend::file':
         multi_store => $multi_store

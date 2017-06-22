@@ -37,6 +37,12 @@ class contrail::profile::openstack::neutron(
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
   $keystone_db_conn = join(["mysql://neutron:",$database_credentials,"/neutron"],'')
 
+  if ($keystone_auth_protocol == "https") {
+    $insecure = true
+  } else {
+    $insecure = false
+  }
+
   if ($manage_neutron == false) {
     package { [ 'neutron-plugin-contrail', 'python-neutron-lbaas' ] :
       ensure => present
@@ -173,6 +179,7 @@ class contrail::profile::openstack::neutron(
           'keystone_authtoken/auth_host'    : value => "$keystone_ip_to_use";
           'keystone_authtoken/auth_port'    : value => "35357";
           'keystone_authtoken/auth_protocol': value => "${keystone_auth_protocol}";
+          'keystone_authtoken/insecure'     : value => "$insecure";
         }
         contrail_plugin_ini {
           'APISERVER/api_server_ip'   : value => "$config_ip";

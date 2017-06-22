@@ -37,6 +37,7 @@ class contrail::profile::openstack::nova(
 ) {
 
   $auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/"
+  $identity_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/"
 
   class {'::nova::db::mysql':
     password      => $service_password,
@@ -182,6 +183,7 @@ class contrail::profile::openstack::nova(
         metadata_listen_port                 => $metadata_port,
         admin_password                       => $nova_password,
         auth_uri                             => $auth_uri,
+        identity_uri                         => $identity_uri,
         enabled                              => 'true',
         neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
         sync_db                              => $sync_db,
@@ -217,6 +219,7 @@ class contrail::profile::openstack::nova(
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
         'DEFAULT/novncproxy_base_url' : value => "http://${host_control_ip}:5999/vnc_auto.html";
+        'keystone_authtoken/insecure' : value => "True";
       }
     }
 

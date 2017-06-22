@@ -159,6 +159,22 @@ class contrail::profile::openstack::keystone(
     }
 
     /13\.0/: {
+      file { "/etc/keystone/ssl/certs/keystone.pem":
+        owner  => keystone,
+        group  => keystone,
+        source => "puppet:///ssl_certs/$hostname.pem"
+      }
+      file { "/etc/keystone/ssl/private/keystonekey.pem":
+        owner  => keystone,
+        group  => keystone,
+        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+      }
+      file { "/etc/keystone/ssl/certs/ca.pem":
+        owner  => keystone,
+        group  => keystone,
+        source => "puppet:///ssl_certs/ca-cert.pem"
+      }
+      
       class { '::keystone':
         database_connection => $keystone_db_conn,
         admin_token     => $admin_token,
@@ -178,7 +194,11 @@ class contrail::profile::openstack::keystone(
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
         kombu_ssl_keyfile  => $kombu_ssl_keyfile,
-        enable_bootstrap   => $bootstrap_keystone
+        enable_bootstrap   => $bootstrap_keystone,
+        enable_ssl         => $enable_keystone_ssl,
+        ssl_cert_subject   => "/C=US/ST=Unset/L=Unset/O=Unset/CN=$::fqdn",
+        public_endpoint    => "$keystone_auth_protocol://$keystone_ip_to_use:$keystone_public_port/",
+        admin_endpoint     => "$keystone_auth_protocol://$keystone_ip_to_use:$keystone_admin_port/",
       }
 
       if ($keystone_version == "v3") {
