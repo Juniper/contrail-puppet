@@ -9,6 +9,7 @@ export OS_USERNAME='<%= @admin_user %>'
 export OS_PASSWORD='<%= @admin_password.gsub(/'/){ %q(\') } %>'
 export OS_AUTH_URL='<%= @keystone_auth_protocol %>://<%= @controller_node %>:5000/<%= @keystone_version %>/'
 export OS_AUTH_STRATEGY='keystone'
+export OS_CACERT=/etc/keystone/ssl/certs/ca.pem
 export OS_REGION_NAME='<%= @region_name %>'
 export CINDER_ENDPOINT_TYPE='<%= @cinder_endpoint_type %>'
 export GLANCE_ENDPOINT_TYPE='<%= @glance_endpoint_type %>'
