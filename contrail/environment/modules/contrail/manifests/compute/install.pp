@@ -71,6 +71,11 @@ class contrail::compute::install(
       }
     } else {
       $vrouter_pkg = 'contrail-vrouter'
+      package { 'contrail-vrouter-init' :
+        ensure => latest,
+        notify => Service['supervisor-vrouter']
+      } ->
+      Package[$vrouter_pkg, 'contrail-openstack-vrouter']
     }
     # Main code for class starts here
     # Ensure all needed packages are latest
