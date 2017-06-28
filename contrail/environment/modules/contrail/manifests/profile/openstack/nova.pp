@@ -31,6 +31,8 @@ class contrail::profile::openstack::nova(
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $vncproxy_port      = $::contrail::params::vncproxy_port,
+  $vncproxy_host      = $::contrail::params::vncproxy_host,
+  $vncproxy_url       = $::contrail::params::vncproxy_base_url,
   $nova_compute_rabbit_hosts = $::contrail::params::nova_compute_rabbit_hosts,
   $keystone_auth_protocol    = $::contrail::params::keystone_auth_protocol,
   $neutron_ip_to_use  = $::contrail::params::neutron_ip_to_use
@@ -57,7 +59,6 @@ class contrail::profile::openstack::nova(
   $memcache_ip_ports = suffix($openstack_ip_list, ":11211")
 
   if ($internal_vip != "" and $internal_vip != undef) {
-    $vncproxy_host = $host_control_ip
     $osapi_compute_workers = '40'
     $database_idle_timeout = '180'
     $nova_api_port         = '9774'
@@ -66,7 +67,6 @@ class contrail::profile::openstack::nova(
     $mysql_port_url        = ":33306/nova"
     $mysql_port_url_api    = ":33306/nova_api"
   } else {
-    $vncproxy_host = $openstack_ip_to_use
     $osapi_compute_workers = $::processorcount
     $database_idle_timeout = '3600'
     $nova_api_port         = '8774'
@@ -144,7 +144,7 @@ class contrail::profile::openstack::nova(
         'neutron/url_timeout'       : value => "300";
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
-        'DEFAULT/novncproxy_base_url' : value => "http://${host_control_ip}:5999/vnc_auto.html";
+        'DEFAULT/novncproxy_base_url' : value => "${vncproxy_url}";
       }
     }
 
@@ -218,7 +218,7 @@ class contrail::profile::openstack::nova(
         'neutron/url_timeout'       : value => "300";
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
-        'DEFAULT/novncproxy_base_url' : value => "http://${host_control_ip}:5999/vnc_auto.html";
+        'DEFAULT/novncproxy_base_url' : value => "${vncproxy_url}";
         'keystone_authtoken/insecure' : value => "True";
       }
     }
@@ -308,7 +308,7 @@ class contrail::profile::openstack::nova(
       enabled                       => $contrail_is_compute,
       vnc_enabled                   => true,
       vncserver_proxyclient_address => $management_address,
-      vncproxy_host                 => $openstack_ip_to_use,
+      vncproxy_host                 => $vncproxy_host,
       instance_usage_audit          => $instance_usage_audit,
       instance_usage_audit_period   => $instance_usage_audit_period
     }
