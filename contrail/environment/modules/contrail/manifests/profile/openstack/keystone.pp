@@ -73,6 +73,26 @@ class contrail::profile::openstack::keystone(
   case $package_sku {
     /14\.0/: {
       include keystone::params
+      file {["/etc/keystone/ssl", "/etc/keystone/ssl/certs", "/etc/keystone/ssl/private"]:
+        owner  => keystone,
+        group  => keystone,
+        ensure  => directory,
+      }
+      file { "/etc/keystone/ssl/certs/keystone.pem":
+        owner  => keystone,
+        group  => keystone,
+        source => "puppet:///ssl_certs/$hostname.pem"
+      }
+      file { "/etc/keystone/ssl/private/keystonekey.pem":
+        owner  => keystone,
+        group  => keystone,
+        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+      }
+      file { "/etc/keystone/ssl/certs/ca.pem":
+        owner  => keystone,
+        group  => keystone,
+        source => "puppet:///ssl_certs/ca-cert.pem"
+      }
       class { '::keystone':
         database_connection => $keystone_db_conn,
         service_name    => 'httpd',
@@ -93,7 +113,11 @@ class contrail::profile::openstack::keystone(
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
         kombu_ssl_keyfile  => $kombu_ssl_keyfile,
-        enable_bootstrap   => $bootstrap_keystone
+        enable_bootstrap   => $bootstrap_keystone,
+        enable_ssl         => $enable_keystone_ssl,
+        ssl_cert_subject   => "/C=US/ST=Unset/L=Unset/O=Unset/CN=$::fqdn",
+        public_endpoint    => "$keystone_auth_protocol://$keystone_ip_to_use:$keystone_public_port/",
+        admin_endpoint     => "$keystone_auth_protocol://$keystone_ip_to_use:$keystone_admin_port/",
       } ->
       exec {'keystone disable default site':
         command => "a2dissite keystone",
@@ -145,6 +169,10 @@ class contrail::profile::openstack::keystone(
       owner   => 'root',
       group   => 'root',
       mode    => '0644',
+    } ->
+    exec {'enable mod-ssl':
+      command => "a2enmod ssl",
+      provider => shell,
     } ->
     exec {'apache2 restart':
       command => "service apache2 restart",

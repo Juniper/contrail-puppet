@@ -18,6 +18,13 @@ Listen <%= @keystone_admin_port %>
     Require all granted
   </Directory>
 
+<%- if @keystone_auth_protocol == "https" -%>
+  SSLEngine on
+  SSLCertificateFile      "/etc/keystone/ssl/certs/keystone.pem"
+  SSLCertificateKeyFile   "/etc/keystone/ssl/private/keystonekey.pem"
+  SSLCACertificateFile    "/etc/keystone/ssl/certs/ca.pem"
+<%- end %>
+
   ## Logging
   ErrorLog "/var/log/apache2/keystone_wsgi_admin_error.log"
   ServerSignature Off
