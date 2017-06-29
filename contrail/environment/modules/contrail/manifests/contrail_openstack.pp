@@ -80,17 +80,6 @@ class contrail::contrail_openstack (
 
     #select the novncproxy based on presence of internal_vip
 
-    if ($external_vip != '') {
-        $vnc_base_url_port = '6080'
-        $vnc_base_url_ip = $external_vip
-    } elsif ($internal_vip != '' ) {
-        $vnc_base_url_port = '6080'
-        $vnc_base_url_ip = $internal_vip
-    } else {
-        $vnc_base_url_port = '5999'
-        $vnc_base_url_ip = $openstack_mgmt_ip
-    }
-
     include ::contrail::openstackrc
     # Create mysql token file.
     file { '/etc/contrail/mysql.token' :
@@ -107,7 +96,6 @@ class contrail::contrail_openstack (
     class {'::contrail::exec_create_ec2rc_file':}
 
     $nova_params =  {
-      #'DEFAULT/novncproxy_base_url' => { value => "http://${vnc_base_url_ip}:${vnc_base_url_port}/vnc_auto.html"},
       'DEFAULT/ec2_private_dns_show_ip' => { value => 'False' },
     }
     create_resources(nova_config,$nova_params, {} )
