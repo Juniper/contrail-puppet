@@ -13,6 +13,7 @@ class contrail::rabbitmq (
   $contrail_amqp_ip_list   = $::contrail::params::contrail_amqp_ip_list,
   $openstack_manage_amqp   = $::contrail::params::openstack_manage_amqp,
   $contrail_rabbit_servers = $::contrail::params::contrail_rabbit_servers,
+  $rabbitmq_password       = $::contrail::params::os_rabbitmq_password,
   $contrail_logoutput      = $::contrail::params::contrail_logoutput,
   $contrail_amqp_ssl       = $::contrail::params::contrail_amqp_ssl,
   $os_amqp_ssl             = $::contrail::params::os_amqp_ssl,

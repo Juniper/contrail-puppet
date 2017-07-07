@@ -16,6 +16,7 @@ class contrail::profile::openstack::ceilometer (
   $sync_db           = $::contrail::params::os_sync_db,
   $package_sku        = $::contrail::params::package_sku,
   $ceilometer_password        = $::contrail::params::os_ceilometer_password,
+  $rabbitmq_password          = $::contrail::params::os_rabbitmq_password,
   $openstack_rabbit_hosts     = $::contrail::params::openstack_rabbit_hosts,
   $openstack_rabbit_port      = $::contrail::params::rabbit_port_real,
   $controller_mgmt_address    = $::contrail::params::os_controller_mgmt_address,
@@ -34,7 +35,6 @@ class contrail::profile::openstack::ceilometer (
   $auth_password = $ceilometer_password
   $auth_tenant_name = 'services'
   $auth_username = 'ceilometer'
-  $rabbit_password = 'guest'
   $telemetry_secret = $metering_secret
   if (internal_vip!='') {
     $coordination_url = join(["kazoo://", $database_ip_to_use, ':2181'])
@@ -68,7 +68,7 @@ class contrail::profile::openstack::ceilometer (
     kombu_ssl_certfile => $kombu_ssl_certfile,
     kombu_ssl_keyfile  => $kombu_ssl_keyfile,
     rpc_backend        => 'rabbit',
-    rabbit_password    => $rabbit_password
+    rabbit_password    => $rabbitmq_password
   } ->
   file { '/etc/ceilometer/pipeline.yaml':
     ensure => file,
