@@ -774,7 +774,9 @@ class contrail::params (
     $openstack_amqp_ssl,
     $hostnames,
     $storage_pool_data,
-    $storage_pool_names
+    $storage_pool_names,
+    $ceilometer_ttl,
+    $ceilometer_polling_interval,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or
