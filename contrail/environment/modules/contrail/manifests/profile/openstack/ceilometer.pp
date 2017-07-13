@@ -27,6 +27,8 @@ class contrail::profile::openstack::ceilometer (
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $keystone_version   = $::contrail::params::keystone_version,
   $host_roles         = $::contrail::params::host_roles,
+  $ceilometer_polling_interval = $::contrail::params::ceilometer_polling_interval,
+  $ceilometer_ttl     = $::contrail::params::ceilometer_ttl,
 ) {
   $database_ip_to_use = $database_ip_list[0]
   $mongo_connection = join([ "mongodb://ceilometer:", $mongo_password, "@", join($database_ip_list,':27017,') ,":27017/ceilometer?replicaSet=rs-ceilometer" ],'')
@@ -75,7 +77,7 @@ class contrail::profile::openstack::ceilometer (
     content => template('contrail/pipeline.yaml.erb'),
   } ->
   ceilometer_config {
-    'database/time_to_live'      : value => '7200';
+    'database/time_to_live'      : value => $ceilometer_ttl;
     #'publisher/telemetry_secret' : value => $metering_secret;
     'DEFAULT/auth_strategy'      : value => 'keystone';
   } ->

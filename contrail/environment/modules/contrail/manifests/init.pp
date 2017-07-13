@@ -771,7 +771,9 @@ class contrail (
     $os_amqp_use_ssl = undef,
     $config_hostnames = {'hostnames' => {}},
     $storage_pool_data = {'data' => {} },
-    $storage_pool_names = ''
+    $storage_pool_names = '',
+    $ceilometer_ttl = '7200',
+    $ceilometer_polling_interval = '600'
 ) {
     class { '::contrail::params':
         # Common Parameters
@@ -895,6 +897,8 @@ class contrail (
     os_mongo_password         => hiera(openstack::ceilometer::mongo, $os_mongo_password),
     os_metering_secret        => hiera(openstack::ceilometer::meteringsecret, $os_metering_secret),
     os_ceilometer_password    => hiera(openstack::ceilometer::password, $os_ceilometer_password),
+    ceilometer_ttl            => hiera(openstack::ceilometer::ttl, $ceilometer_ttl),
+    ceilometer_polling_interval => hiera(openstack::ceilometer::polling_interval, $ceilometer_polling_interval),
 
     nova_private_key          => hiera(openstack::nova::ssh_private_key, $nova_private_key),
     nova_public_key           => hiera(openstack::nova::ssh_public_key, $nova_public_key),
