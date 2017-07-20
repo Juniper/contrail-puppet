@@ -4,8 +4,8 @@
 #
 class contrail::profile::mongodb {
       $controller_address_management = $::contrail::params::controller_address_management
-      $database_ip_list          = $::contrail::params::database_ip_list
-      $primary_db_ip             = $::contrail::params::database_ip_list[0]
+      $database_ip_list          = $::contrail::params::openstack_ip_list
+      $primary_db_ip             = $::contrail::params::openstack_ip_list[0]
       # Mongo DB Replset members are primary_db + slave_members below - All database nodes
       $mongo_slave_ip_list_str   = inline_template('<%= @database_ip_list.delete_if {|x| x == @primary_db_ip }.join(";") %>')
       $mongo_slave_ip_list       = split($mongo_slave_ip_list_str, ';')
@@ -19,10 +19,10 @@ class contrail::profile::mongodb {
       define add_rs_members ($primary_db_ip) {
         # Mongo DB Add RS members
         exec { "exec_mongo_add_rs_member ${name}":
-          command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.add(\"${name}:27017\").ok\' && echo \"exec_mongo_add_rs_member ${name}\" >> /etc/contrail/contrail_database_exec.out",
+          command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.add(\"${name}:27017\").ok\' && echo \"exec_mongo_add_rs_member ${name}\" >> /etc/contrail/contrail_mongodb_exec.out",
           logoutput => $contrail_logoutput,
           returns   => 0,
-          unless    => "/bin/grep -qx \"exec_mongo_add_rs_member ${name}\" /etc/contrail/contrail_database_exec.out",
+          unless    => "/bin/grep -qx \"exec_mongo_add_rs_member ${name}\" /etc/contrail/contrail_mongodb_exec.out",
         }
       }
 
@@ -48,11 +48,11 @@ class contrail::profile::mongodb {
         } ->
         # Setup MongoDb replicaSet
         exec { 'exec_mongo_create_replset':
-            command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.initiate({_id:\"rs-ceilometer\", members:[{_id:0, host:\"${primary_db_ip}:27017\"}]}).ok\' && echo exec_mongo_create_replset >> /etc/contrail/contrail_database_exec.out",
+            command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.initiate({_id:\"rs-ceilometer\", members:[{_id:0, host:\"${primary_db_ip}:27017\"}]}).ok\' && echo exec_mongo_create_replset >> /etc/contrail/contrail_mongodb_exec.out",
             logoutput => $contrail_logoutput,
             returns   => 0,
             tries     => 5,
-            unless    => '/bin/grep -qx exec_mongo_create_replset /etc/contrail/contrail_database_exec.out',
+            unless    => '/bin/grep -qx exec_mongo_create_replset /etc/contrail/contrail_mongodb_exec.out',
             try_sleep => 15,
         } ->
         # Check Mongodb Primary is Master
@@ -81,12 +81,12 @@ class contrail::profile::mongodb {
         } ->
         # Add MongoDb user ceilometer
         exec { 'exec_add_user_ceilometer':
-            command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'db = db.getSiblingDB(\"ceilometer\"); db.addUser({user: \"ceilometer\", pwd: \"${ceilometer_mongo_password}\", roles: [ \"readWrite\", \"dbAdmin\" ]})\' && echo exec_add_user_ceilometer >> /etc/contrail/contrail_database_exec.out",
+            command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'db = db.getSiblingDB(\"ceilometer\"); db.addUser({user: \"ceilometer\", pwd: \"${ceilometer_mongo_password}\", roles: [ \"readWrite\", \"dbAdmin\" ]})\' && echo exec_add_user_ceilometer >> /etc/contrail/contrail_mongodb_exec.out",
             logoutput => $contrail_logoutput,
             returns   => 0,
             tries     => 5,
             try_sleep => 15,
-            unless    => '/bin/grep -qx exec_add_user_ceilometer /etc/contrail/contrail_database_exec.out',
+            unless    => '/bin/grep -qx exec_add_user_ceilometer /etc/contrail/contrail_mongodb_exec.out',
         }
       }
 }
