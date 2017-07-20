@@ -28,7 +28,7 @@ def main(argv):
     key_dir = ''
     user_nane = ''
     passwd = ''
-
+    restart_keystone = False
     """
     try:
         opts, args = getopt.getopt(argv,"m:k:u:p",["master=","key_dir=","user_name=","passwd="])
@@ -56,6 +56,7 @@ def main(argv):
     key_dir = sys.argv[2]
     user_name = sys.argv[3]
     passwd = sys.argv[4]
+    restart_keystone = sys.argv[5]
 
     status,output = commands.getstatusoutput("ssh  -o stricthostkeychecking=no %s@%s ls /etc/keystone/ssl " % \
                                           (user_name, master))
@@ -88,7 +89,10 @@ def main(argv):
         sys.exit(1)
 
 
-    status,output = commands.getstatusoutput("service keystone restart")
+    if restart_keystone == "True":
+        status,output = commands.getstatusoutput("service keystone restart")
+    else:
+        status,output = commands.getstatusoutput("service apache2 restart")
     print output
     if status != 0:
         sys.exit(1)
