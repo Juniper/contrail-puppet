@@ -173,9 +173,11 @@ class contrail::ha_config (
 
         if ($::lsbdistrelease != '16.04') {
             $install_db = True
+            $restart_keystone = True
         } else {
             # don't call for 16.04
             $install_db = False
+            $restart_keystone = False
         }
         $contrail_exec_vnc_galera = "MYSQL_ROOT_PW=$mysql_root_password setup-vnc-galera --self_ip $host_control_ip --keystone_ip $keystone_ip_to_use --galera_ip_list $openstack_ip_list_shell --internal_vip $internal_vip ${external_vip_cmd} ${zk_ip_list_cmd} ${keystone_db_user_cmd} ${keystone_db_pass_cmd} ${cmon_db_user_cmd} ${cmon_db_pass_cmd} ${monitor_galera_cmd} --openstack_index $openstack_index --install_mysql_db $install_db && echo exec_vnc_galera >> /etc/contrail/contrail_openstack_exec.out"
 
@@ -365,7 +367,7 @@ class contrail::ha_config (
             }
             ->
             exec { 'exec-transfer-keys':
-                command   => "python /opt/contrail/bin/transfer_keys.py ${os_master} \"/etc/ssl/\" ${os_username} ${os_passwd} && echo exec-transfer-keys >> /etc/contrail/contrail_openstack_exec.out",
+                command   => "python /opt/contrail/bin/transfer_keys.py ${os_master} \"/etc/ssl/\" ${os_username} ${os_passwd} $restart_keystone && echo exec-transfer-keys >> /etc/contrail/contrail_openstack_exec.out",
                 provider  => shell,
                 logoutput => true,
             } ->
