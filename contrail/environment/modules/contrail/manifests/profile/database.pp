@@ -16,15 +16,8 @@ class contrail::profile::database (
     $host_roles = $::contrail::params::host_roles,
     $is_there_roles_to_delete = $::contrail::params::is_there_roles_to_delete,
     $ansible_provision = $::contrail::params::ansible_provision,
-    $enable_ceilometer = $::contrail::params::enable_ceilometer
 ) {
-    if ($enable_module and "database" in $host_roles and $is_there_roles_to_delete == false) {
-        contain ::contrail::database
-        if ($enable_ceilometer) {
-            contain ::contrail::profile::mongodb
-            Class['::contrail::database']->Class['::contrail::profile::mongodb']
-        }
-    } elsif ((!("database" in $host_roles)) and ($contrail_roles["database"] == true) and ($ansible_provision == false)) {
+    if ((!("database" in $host_roles)) and ($contrail_roles["database"] == true) and ($ansible_provision == false)) {
         contain ::contrail::uninstall_database
         notify { "uninstalling database":; } ->
         Class['::contrail::uninstall_database']
