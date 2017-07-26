@@ -227,14 +227,18 @@ class contrail::config::config (
   }
   create_resources(sysctl::value, $config_sysctl_settings, {} )
 
-  file { "${zookeeper_conf_dir}/zoo.cfg":
-    ensure  => present,
-    content => template("${module_name}/zoo.cfg.erb"),
-  } ->
-  class {'::contrail::config_zk_files_setup':
-    database_index => $config_index,
-    zk_myid_file   => $zk_myid_file
-  } ->
+  if (!('database' in $host_roles) and $config_manage_db == true) {
+    notify {"SLPIT DB":;}
+    } else {
+      file { "${zookeeper_conf_dir}/zoo.cfg":
+      ensure  => present,
+      content => template("${module_name}/zoo.cfg.erb"),
+    } ->
+    class {'::contrail::config_zk_files_setup':
+      database_index => $config_index,
+      zk_myid_file   => $zk_myid_file
+    }
+  }
   contrail_api_ini {
     'program:contrail-api/command'      : value => "$api_command_to_use";
     'program:contrail-api/numprocs'     : value => "$api_nworkers";
