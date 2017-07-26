@@ -145,6 +145,14 @@ class contrail::profile::openstack::cinder(
     }
   }
 
+  if ($internal_vip != '' and $internal_vip != undef) {
+      cinder_config {
+        'oslo_messaging_rabbit/rabbit_retry_interval' :  value => '1';
+        'oslo_messaging_rabbit/rabbit_retry_backoff' :  value => '2';
+        'oslo_messaging_rabbit/rabbit_max_retries' :  value => '0';
+      }
+  }
+
   class { '::cinder::scheduler': }
 
   contrail::lib::augeas_conf_rm { "cinder_rpc_backend":
