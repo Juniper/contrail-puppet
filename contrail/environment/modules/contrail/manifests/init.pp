@@ -708,6 +708,7 @@ class contrail (
     $external_bgp = '',
     $sync_db = '',
     $contrail_plugin_location  = '/etc/neutron/plugins/opencontrail/ContrailPlugin.ini',
+    $os_neutron_shared_secret = '',
     $contrail_logoutput = false,
     $contrail_upgrade = false,
     $enable_lbaas = false,

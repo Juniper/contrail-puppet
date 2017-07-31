@@ -32,6 +32,7 @@ class contrail::profile::openstack::neutron(
   $keystone_ip_to_use      = $::contrail::params::keystone_ip_to_use,
   $neutron_mysql_ip        = $::contrail::params::neutron_mysql_to_use,
   $manage_neutron          = $::contrail::params::manage_neutron,
+  $neutron_shared_secret   = $::contrail::params::os_neutron_shared_secret,
 ) {
 
   $database_credentials = join([$service_password, "@", $host_control_ip],'')
@@ -100,6 +101,12 @@ class contrail::profile::openstack::neutron(
       debug                 => $openstack_debug,
       api_extensions_path   => "extensions:${::python_dist}/neutron_plugin_contrail/extensions${neutron_extensions}",
       service_plugins       => ['neutron_plugin_contrail.plugins.opencontrail.loadbalancer.v2.plugin.LoadBalancerPluginV2'],
+    }
+
+    if ($neutron_shared_secret != "") {
+      class { '::neutron::agents::metadata':
+          shared_secret       => $neutron_shared_secret,
+      }
     }
 
     case $package_sku {
