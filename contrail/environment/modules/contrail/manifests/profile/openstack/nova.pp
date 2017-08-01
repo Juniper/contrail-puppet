@@ -144,7 +144,7 @@ class contrail::profile::openstack::nova(
         'neutron/url_timeout'       : value => "300";
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
-        'DEFAULT/novncproxy_base_url' : value => "${vncproxy_url}";
+        'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
       }
     }
 
@@ -218,7 +218,7 @@ class contrail::profile::openstack::nova(
         'neutron/url_timeout'       : value => "300";
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
-        'DEFAULT/novncproxy_base_url' : value => "${vncproxy_url}";
+        'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
         'keystone_authtoken/insecure' : value => "True";
       }
     }
