@@ -118,8 +118,10 @@ class contrail::profile::openstack_controller (
       }
     }
     if ($enable_ceilometer) {
-      contain ::contrail::profile::mongodb
-      Class['::contrail::profile::openstack::ceilometer']->Class['::contrail::profile::mongodb']
+      ## TODO: commenting out code. This is causing many other issues and
+      ## TODO: blocking normal provisioning
+      #contain ::contrail::profile::mongodb
+      #Class['::contrail::profile::openstack::ceilometer']->Class['::contrail::profile::mongodb']
       class {'::contrail::profile::openstack::ceilometer' : 
         ## NOTE: no dependency on heat, it cant be before provision
         before => Class['::contrail::profile::openstack::heat']
