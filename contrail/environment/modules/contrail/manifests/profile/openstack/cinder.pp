@@ -52,6 +52,9 @@ class contrail::profile::openstack::cinder(
         rabbit_hosts           => $openstack_rabbit_servers,
         rabbit_userid          => $rabbitmq_user,
         rabbit_password        => $rabbitmq_password,
+        rabbit_retry_interval  => "1",
+        rabbit_retry_backoff   => "2",
+        rabbit_max_retries     => "0",
         debug                  => $openstack_debug,
         verbose                => $openstack_verbose,
         database_idle_timeout  => '180',
@@ -100,6 +103,14 @@ class contrail::profile::openstack::cinder(
         'database/connection_debug':         value => "10";
         'database/pool_timeout':             value => "120";
       }
+      if ($internal_vip != '' and $internal_vip != undef) {
+        cinder_config {
+          'oslo_messaging_rabbit/rabbit_retry_interval' :  value => '1';
+          'oslo_messaging_rabbit/rabbit_retry_backoff' :  value => '2';
+          'oslo_messaging_rabbit/rabbit_max_retries' :  value => '0';
+        }
+      }
+
       class { '::cinder::api':
         keystone_password => $cinder_password,
         auth_uri          => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/",
@@ -137,20 +148,20 @@ class contrail::profile::openstack::cinder(
       cinder_config {
         'oslo_messaging_rabbit/heartbeat_timeout_threshold' :  value => '0';
       }
+      if ($internal_vip != '' and $internal_vip != undef) {
+        cinder_config {
+          'oslo_messaging_rabbit/rabbit_retry_interval' :  value => '1';
+          'oslo_messaging_rabbit/rabbit_retry_backoff' :  value => '2';
+          'oslo_messaging_rabbit/rabbit_max_retries' :  value => '0';
+        }
+      }
+
       class { '::cinder::api':
         keystone_password => $cinder_password,
         auth_uri          => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/",
         sync_db           => $sync_db
       }
     }
-  }
-
-  if ($internal_vip != '' and $internal_vip != undef) {
-      cinder_config {
-        'oslo_messaging_rabbit/rabbit_retry_interval' :  value => '1';
-        'oslo_messaging_rabbit/rabbit_retry_backoff' :  value => '2';
-        'oslo_messaging_rabbit/rabbit_max_retries' :  value => '0';
-      }
   }
 
   class { '::cinder::scheduler': }
