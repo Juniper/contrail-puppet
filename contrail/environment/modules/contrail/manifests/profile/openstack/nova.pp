@@ -152,7 +152,7 @@ class contrail::profile::openstack::nova(
         'neutron/url_timeout'       : value => "300";
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
-        'DEFAULT/novncproxy_base_url' : value => "http://${host_control_ip}:5999/vnc_auto.html";
+        'vnc/novncproxy_base_url' : value => "http://${host_control_ip}:5999/vnc_auto.html";
       }
     }
 
