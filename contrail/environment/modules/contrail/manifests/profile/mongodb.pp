@@ -2,29 +2,17 @@
 # The puppet module to set up mongodb::server and mongodb::client on database node
 #
 #
-class contrail::profile::mongodb {
-      $controller_address_management = $::contrail::params::controller_address_management
-      $database_ip_list          = $::contrail::params::openstack_ip_list
-      $primary_db_ip             = $::contrail::params::openstack_ip_list[0]
-      # Mongo DB Replset members are primary_db + slave_members below - All database nodes
-      $mongo_slave_ip_list_str   = inline_template('<%= @database_ip_list.delete_if {|x| x == @primary_db_ip }.join(";") %>')
-      $mongo_slave_ip_list       = split($mongo_slave_ip_list_str, ';')
-      $ceilometer_mongo_password = $::contrail::params::os_mongo_password
-      $ceilometer_password       = $::contrail::params::os_ceilometer_password
-      $ceilometer_meteringsecret = $::contrail::params::os_metering_secret
-      $mongodb_bind_address      = $::contrail::params::host_ip
-      $contrail_logoutput        = $::contrail::params::contrail_logoutput
-
-      # TODO: Document the function
-      define add_rs_members ($primary_db_ip) {
-        # Mongo DB Add RS members
-        exec { "exec_mongo_add_rs_member ${name}":
-          command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.add(\"${name}:27017\").ok\' && echo \"exec_mongo_add_rs_member ${name}\" >> /etc/contrail/contrail_mongodb_exec.out",
-          logoutput => $contrail_logoutput,
-          returns   => 0,
-          unless    => "/bin/grep -qx \"exec_mongo_add_rs_member ${name}\" /etc/contrail/contrail_mongodb_exec.out",
-        }
-      }
+class contrail::profile::mongodb(
+      $controller_address_management = $::contrail::params::controller_address_management,
+      $database_ip_list          = $::contrail::params::openstack_ip_list,
+      $primary_db_ip             = $::contrail::params::openstack_ip_list[0],
+      $ceilometer_mongo_password = $::contrail::params::os_mongo_password,
+      $ceilometer_password       = $::contrail::params::os_ceilometer_password,
+      $ceilometer_meteringsecret = $::contrail::params::os_metering_secret,
+      $mongodb_bind_address      = $::contrail::params::host_ip,
+      $contrail_logoutput        = $::contrail::params::contrail_logoutput,
+) {
+      $mongo_slave_ip_list       = delete($database_ip_list, $primary_db_ip)
 
       class { '::mongodb::server':
             bind_ip => ['127.0.0.1', $mongodb_bind_address],
@@ -61,9 +49,11 @@ class contrail::profile::mongodb {
             logoutput => $contrail_logoutput,
             returns   => 0,
         } ->
-        add_rs_members {
-          $mongo_slave_ip_list:
-          primary_db_ip => $primary_db_ip,
+        exec { "exec_mongo_add_rs_member ${mongo_slave_ip_list}":
+          command   => "/usr/bin/mongo --host ${primary_db_ip} --quiet --eval \'rs.add(\"${mongo_slave_ip_list}:27017\").ok\' && echo \"exec_mongo_add_rs_member ${mongo_slave_ip_list}\" >> /etc/contrail/contrail_mongodb_exec.out",
+          logoutput => $contrail_logoutput,
+          returns   => 0,
+          unless    => "/bin/grep -qx \"exec_mongo_add_rs_member ${mongo_slave_ip_list}\" /etc/contrail/contrail_mongodb_exec.out",
         } ->
         # Verify Replica set status and members
         exec { 'exec_verify_rs_status':
