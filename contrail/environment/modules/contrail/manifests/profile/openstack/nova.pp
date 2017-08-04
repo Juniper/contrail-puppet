@@ -93,6 +93,9 @@ class contrail::profile::openstack::nova(
         rabbit_hosts        => $openstack_rabbit_servers,
         rabbit_userid       => $rabbitmq_user,
         rabbit_password     => $rabbitmq_password,
+        rabbit_retry_interval  => "1",
+        rabbit_retry_backoff   => "2",
+        rabbit_max_retries     => "0",
         verbose             => $openstack_verbose,
         debug               => $openstack_debug,
         notification_driver => "nova.openstack.common.notifier.rpc_notifier",
@@ -132,9 +135,6 @@ class contrail::profile::openstack::nova(
       nova_config {
         'DEFAULT/scheduler_max_attempts':        value => '10';
         'DEFAULT/disable_process_locking':       value => 'True';
-        'DEFAULT/rabbit_retry_interval':         value => '1';
-        'DEFAULT/rabbit_retry_backoff':          value => '2';
-        'DEFAULT/rabbit_max_retries':            value => '0';
         'DEFAULT/rabbit_interval':               value => '15';
         'DEFAULT/pool_timeout':                  value => '120';
         'neutron/admin_auth_url'    :  value => "http://${keystone_ip_to_use}:35357/" ;
@@ -202,9 +202,9 @@ class contrail::profile::openstack::nova(
       nova_config {
         'DEFAULT/scheduler_max_attempts':        value => '10';
         'DEFAULT/disable_process_locking':       value => 'True';
-        'DEFAULT/rabbit_retry_interval':         value => '1';
-        'DEFAULT/rabbit_retry_backoff':          value => '2';
-        'DEFAULT/rabbit_max_retries':            value => '0';
+        'oslo_messaging_rabbit/rabbit_retry_interval':         value => '1';
+        'oslo_messaging_rabbit/rabbit_retry_backoff':          value => '2';
+        'oslo_messaging_rabbit/rabbit_max_retries':            value => '0';
         'DEFAULT/rabbit_interval':               value => '15';
         'DEFAULT/pool_timeout':                  value => '120';
         'database/db_max_retries':               value => '3';
