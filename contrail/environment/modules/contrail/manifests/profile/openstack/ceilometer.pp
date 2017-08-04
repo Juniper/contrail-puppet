@@ -8,7 +8,7 @@ class contrail::profile::openstack::ceilometer (
   $region_name       = $::contrail::params::os_region,
   $mongo_password    = $::contrail::params::os_mongo_password,
   $metering_secret   = $::contrail::params::os_metering_secret,
-  $database_ip_list  = $::contrail::params::database_ip_list,
+  $database_ip_list  = $::contrail::params::openstack_ip_list,
   $internal_vip      = $::contrail::params::internal_vip,
   $analytics_node_ip = $::contrail::params::collector_ip_to_use,
   $service_password  = $::contrail::params::os_mysql_service_password,
@@ -39,7 +39,7 @@ class contrail::profile::openstack::ceilometer (
   $auth_tenant_name = 'services'
   $auth_username = 'ceilometer'
   $telemetry_secret = $metering_secret
-  if (internal_vip!='') {
+  if ($internal_vip!='') {
     $coordination_url = join(["kazoo://", $database_ip_to_use, ':2181'])
     Class['::ceilometer']->
     ceilometer_config {

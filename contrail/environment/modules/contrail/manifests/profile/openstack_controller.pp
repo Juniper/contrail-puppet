@@ -117,13 +117,22 @@ class contrail::profile::openstack_controller (
         enable  => true,
       }
     }
+
     if ($enable_ceilometer) {
-      contain ::contrail::profile::mongodb
-      Class['::contrail::profile::openstack::ceilometer']->Class['::contrail::profile::mongodb']
-      class {'::contrail::profile::openstack::ceilometer' : 
-        ## NOTE: no dependency on heat, it cant be before provision
-        before => Class['::contrail::profile::openstack::heat']
+      Contrail::Lib::Report_status['openstack_started'] ->
+      Package ['contrail-openstack'] ->
+      Package['mongodb_server']
+
+      Class['::contrail::profile::mongodb'] ->
+      Class['::contrail::profile::openstack::ceilometer']
+
+      Contrail::Lib::Report_status['openstack_started'] ->
+      Class['::Mongodb::Server']
+
+      class {'::contrail::profile::openstack::ceilometer' :
+        before => Contrail::Lib::Report_status['openstack_completed']
       }
+      contain ::contrail::profile::mongodb
       contain ::contrail::profile::openstack::ceilometer
     }
 
@@ -151,6 +160,8 @@ class contrail::profile::openstack_controller (
       contain ::contrail::rabbitmq
       Package['contrail-openstack'] -> Class['::contrail::rabbitmq'] -> Class['::contrail::profile::openstack::cinder']
     }
+
+
   } elsif ((!('openstack' in $host_roles)) and ($contrail_roles['openstack'] == true)) {
     contain ::contrail::uninstall_openstack
   }
