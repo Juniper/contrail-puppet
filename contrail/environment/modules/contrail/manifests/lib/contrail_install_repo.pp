@@ -1,5 +1,6 @@
 #TODO: Document the class
 define contrail::lib::contrail_install_repo(
+  $keystone_auth_protocol    = $::contrail::params::keystone_auth_protocol,
   $contrail_logoutput = false,
 ) {
     if ($::lsbdistrelease == '16.04') {
@@ -24,6 +25,17 @@ define contrail::lib::contrail_install_repo(
                 command => "echo 'sun-java6-plugin shared/accepted-sun-dlj-v1-1 boolean true' | /usr/bin/debconf-set-selections; echo 'sun-java6-bin shared/accepted-sun-dlj-v1-1 boolean true' | /usr/bin/debconf-set-selections; echo 'sun-java6-jre shared/accepted-sun-dlj-v1-1 boolean true' | /usr/bin/debconf-set-selections; echo 'debconf shared/accepted-oracle-license-v1-1 select true' | sudo debconf-set-selections; echo 'debconf shared/accepted-oracle-license-v1-1 seen true' | sudo debconf-set-selections",
                 provider => shell,
                 logoutput => $contrail_logoutput
+            }
+            if ($keystone_auth_protocol == "https") {
+              Exec['exec-disable-jre-prompts'] ->
+              exec {'pip install urllib3==1.18 --upgrade':
+                  provider => shell,
+                  logoutput => $contrail_logoutput
+              } ->
+              exec {'pip install backports.ssl-match-hostname==3.5.0.1 --upgrade':
+                  provider => shell,
+                  logoutput => $contrail_logoutput
+              }
             }
         }
         'Centos', 'Fedora' : {
