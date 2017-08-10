@@ -211,7 +211,6 @@ class contrail::compute::config(
     'compute/compute_driver'    => { value => "libvirt.LibvirtDriver" },
     'DEFAULT/rabbit_hosts'      => { value => "${nova_compute_rabbit_hosts}"},
     'keystone_authtoken/admin_password' => { value => "${keystone_admin_password}" },
-    'DEFAULT/novncproxy_base_url' => { value => "${vncproxy_url}" },
     'DEFAULT/my_ip'             => { value => "$host_control_ip" },
     'oslo_messaging_rabbit/heartbeat_timeout_threshold' => { value => '0'},
   }
@@ -244,6 +243,8 @@ class contrail::compute::config(
   if (!('openstack' in $host_roles)){
     nova_config { 'glance/api_servers':
       value => "http://${openstack_ip_to_use}:9292"}
+    $nova_params['DEFAULT/novncproxy_base_url'] = {value => $vncproxy_url }
+    $nova_params['vnc/novncproxy_base_url'] = {value => $vncproxy_url }
   }
   create_resources(nova_config, $nova_params, {} )
 

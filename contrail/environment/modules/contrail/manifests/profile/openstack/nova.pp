@@ -31,6 +31,7 @@ class contrail::profile::openstack::nova(
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $vncproxy_port      = $::contrail::params::vncproxy_port,
+  $vncproxy_url       = $::contrail::params::vncproxy_base_url,
   $nova_compute_rabbit_hosts = $::contrail::params::nova_compute_rabbit_hosts,
 ) {
 
@@ -152,7 +153,7 @@ class contrail::profile::openstack::nova(
         'neutron/url_timeout'       : value => "300";
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
-        'vnc/novncproxy_base_url' : value => "http://${host_control_ip}:5999/vnc_auto.html";
+        'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
       }
     }
 
