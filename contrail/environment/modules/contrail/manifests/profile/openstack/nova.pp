@@ -118,7 +118,6 @@ class contrail::profile::openstack::nova(
         admin_password                       => $nova_password,
         auth_uri                             => $auth_uri,
         enabled                              => 'true',
-        neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
         sync_db                              => $sync_db,
         osapi_compute_workers                => $osapi_compute_workers,
       }
@@ -146,6 +145,14 @@ class contrail::profile::openstack::nova(
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
         'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
       }
+
+      if ($neutron_shared_secret){
+        nova_config {
+          'neutron/metadata_proxy_shared_secret':
+            value => $neutron_shared_secret;
+        }
+      }
+
     }
 
     /13\.0/: {
@@ -185,7 +192,6 @@ class contrail::profile::openstack::nova(
         auth_uri                             => $auth_uri,
         identity_uri                         => $identity_uri,
         enabled                              => 'true',
-        neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
         sync_db                              => $sync_db,
         osapi_compute_workers                => $osapi_compute_workers,
         enabled_apis                         => $enabled_apis
@@ -221,6 +227,14 @@ class contrail::profile::openstack::nova(
         'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
         'keystone_authtoken/insecure' : value => "True";
       }
+
+      if ($neutron_shared_secret){
+        nova_config {
+          'neutron/metadata_proxy_shared_secret':
+            value => $neutron_shared_secret;
+        }
+      }
+
     }
 
     default: {
@@ -246,7 +260,6 @@ class contrail::profile::openstack::nova(
         auth_host                            => $keystone_ip_to_use,
         auth_uri                             => $auth_uri,
         enabled                              => 'true',
-        neutron_metadata_proxy_shared_secret => $neutron_shared_secret,
         sync_db                              => $sync_db,
         osapi_compute_workers                => $osapi_compute_workers,
         enabled_apis                         => $enabled_apis
@@ -280,6 +293,14 @@ class contrail::profile::openstack::nova(
         'database/db_retry_interval':            value => '1';
         'database/connection_debug':             value => '10';
       }
+
+      if ($neutron_shared_secret){
+        nova_config {
+          'neutron/metadata_proxy_shared_secret':
+            value => $neutron_shared_secret;
+        }
+      }
+
     }
   }
 
