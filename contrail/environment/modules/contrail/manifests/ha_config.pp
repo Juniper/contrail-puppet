@@ -172,7 +172,7 @@ class contrail::ha_config (
         }
 
         if ($::lsbdistrelease != '16.04') {
-            $install_db = True
+            $install_db = False
             $restart_keystone = True
         } else {
             # don't call for 16.04
