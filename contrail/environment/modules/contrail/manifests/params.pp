@@ -533,6 +533,10 @@
 #     Flag for enabling xmpp dns autherization via cert exchange between agent and control.
 #     (optional) - Defaults to false.
 #
+# [*metadata_ssl_enable*]
+#     Flag for enabling SSL autherization for metadata service
+#     (optional) - Defaults to false.
+#
 # [*contrail_amqp_ip_list*]
 #     User provided list of amqp server ips which have already been provisioned with rabbit instead of config nodes
 #     (optional) - Defaults to ''.
@@ -714,6 +718,7 @@ class contrail::params (
     $contrail_version,
     $xmpp_auth_enable,
     $xmpp_dns_auth_enable,
+    $metadata_ssl_enable,
     $huge_pages,
     $core_mask,
     $uio_driver,
