@@ -539,6 +539,10 @@
 #     Flag for enabling xmpp dns autherization via cert exchange between agent and control.
 #     (optional) - Defaults to false.
 #
+# [*metadata_ssl_enable*]
+#     Flag for enabling SSL autherization for metadata service
+#     (optional) - Defaults to false.
+#
 # [*contrail_amqp_ip_list*]
 #     User provided list of amqp server ips which have already been provisioned with rabbit instead of config nodes
 #     (optional) - Defaults to ''.
@@ -742,6 +746,7 @@ class contrail (
     $contrail_version = '',
     $xmpp_auth_enable = false,
     $xmpp_dns_auth_enable = false,
+    $metadata_ssl_enable = false,
     $package_sku = "juno",
     $core_mask = '',
     $huge_pages = '',
@@ -795,6 +800,7 @@ class contrail (
 	enable_lbaas =>				hiera(contrail::enable_lbaas, hiera(contrail::params::enable_lbaas, $enable_lbaas)),
 	xmpp_auth_enable =>			hiera(contrail::xmpp_auth_enable, hiera(contrail::params::xmpp_auth_enable, $xmpp_auth_enable)),
 	xmpp_dns_auth_enable =>			hiera(contrail::xmpp_dns_auth_enable, hiera(contrail::params::xmpp_dns_auth_enable, $xmpp_dns_auth_enable)),
+	metadata_ssl_enable =>			hiera(contrail::global_config::metadata_ssl_enable, $metadata_ssl_enable),
         package_sku =>        hiera(contrail::package_sku, $package_sku),
         # HA Parameters
 	haproxy_flag =>				hiera(contrail::ha::haproxy_enable, hiera(contrail::params::haproxy_flag, $haproxy_flag)),
