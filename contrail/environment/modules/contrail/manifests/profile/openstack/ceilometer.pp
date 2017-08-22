@@ -31,6 +31,9 @@ class contrail::profile::openstack::ceilometer (
   $ceilometer_polling_interval = $::contrail::params::ceilometer_polling_interval,
   $ceilometer_ttl     = $::contrail::params::ceilometer_ttl,
 ) {
+  package { [ 'ceilometer-plugin-contrail' ] :
+    ensure => present
+  }
   $database_ip_to_use = $database_ip_list[0]
   $mongo_connection = join([ "mongodb://ceilometer:", $mongo_password, "@", join($database_ip_list,':27017,') ,":27017/ceilometer?replicaSet=rs-ceilometer" ],'')
   $auth_url = "http://${keystone_ip_to_use}:5000/${keystone_version}"
