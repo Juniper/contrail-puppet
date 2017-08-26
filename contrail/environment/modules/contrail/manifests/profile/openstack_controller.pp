@@ -62,7 +62,7 @@ class contrail::profile::openstack_controller (
       state => 'openstack_completed' ,
     }
     
-    if ($storage_enabled ) {
+    if ($storage_enabled  > 0 ) {
       Contrail::Lib::Report_status['openstack_started'] ->
       class {'::contrail::profile::openstack::storage' : } ->
         Contrail::Lib::Report_status['openstack_completed']
