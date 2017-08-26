@@ -694,7 +694,7 @@ class contrail (
     $storage_monitor_hosts = '',
     $storage_ip_list = '',
     $storage_osd_disks = '',
-    $storage_enabled = '',
+    $storage_enabled = 0,
     $storage_chassis_config = '',
     $storage_hostnames = '',
     $live_migration_host = '',
