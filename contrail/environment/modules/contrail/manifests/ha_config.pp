@@ -277,7 +277,8 @@ class contrail::ha_config (
                 }
             }
             #This will be skipped if there is an external nfs server
-            if $is_storage_master != true { if ($contrail_nfs_server == $host_control_ip) {
+            # if storage is disabled, then only enabling nfs_server make sense
+            if $is_storage_master != "1" { if ($contrail_nfs_server == $host_control_ip) {
                 Contrail::Lib::Report_status['post_exec_vnc_galera_started'] ->
                 package { 'nfs-kernel-server':
                     ensure  => present,
