@@ -673,7 +673,7 @@ class contrail (
     $contrail_repo_ip = $serverip,
     $kernel_upgrade = false,
     $kernel_version = '',
-    $default_trusty_kernel = '3.13.0-106',
+    $default_trusty_kernel = '3.13.0-110',
     $redis_password = '',
     $storage_num_osd = '',
     $storage_fsid = '',
