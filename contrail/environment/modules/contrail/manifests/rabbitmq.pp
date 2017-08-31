@@ -86,9 +86,10 @@ class contrail::rabbitmq (
     } ->
 
     class {'::contrail::verify_rabbitmq':
-      master => $master,
+      master          => $master,
       host_control_ip => $host_control_ip,
-      amqp_ip_list => $amqp_ip_list
+      amqp_ip_list    => $amqp_ip_list,
+      amqp_name_list  => $amqp_name_list
     }
     contain ::contrail::verify_rabbitmq
     contain ::contrail::add_etc_hosts
