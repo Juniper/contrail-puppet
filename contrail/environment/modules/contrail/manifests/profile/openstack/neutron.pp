@@ -77,12 +77,16 @@ class contrail::profile::openstack::neutron(
     # sku pattern for ubuntu is 2:12.0.1-0ubuntu1~cloud0.1contrail
     if ( $package_sku =~ /12\.0./) {
       $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+      $set_neutron_auth_pass = true
     } elsif ( $package_sku =~ /13\.0./) {
       $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+      $set_neutron_auth_pass = false
     } elsif ( $package_sku =~ /14\.0./) {
       $neutron_extensions = ":${::python_dist}/neutron_lbaas/extensions"
+      $set_neutron_auth_pass = false
     } else {
       $neutron_extensions = ""
+      $set_neutron_auth_pass = true
     }
 
     class { '::neutron':
@@ -104,8 +108,15 @@ class contrail::profile::openstack::neutron(
     }
 
     if ($neutron_shared_secret != "") {
-      class { '::neutron::agents::metadata':
-          shared_secret       => $neutron_shared_secret,
+      if ($set_neutron_auth_pass == true){
+          class { '::neutron::agents::metadata':
+              auth_password => $neutron_password,
+              shared_secret       => $neutron_shared_secret,
+          }
+      } else {
+          class { '::neutron::agents::metadata':
+              shared_secret       => $neutron_shared_secret,
+          }
       }
     }
 
