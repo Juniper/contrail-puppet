@@ -3,6 +3,7 @@ define contrail::lib::rabbitmq_ssl(
   $kombu_ssl_ca_certs = $::contrail::params::kombu_ssl_ca_certs,
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
+  $hostname_lower          = $::contrail::params::hostname_lower
 ){
   if ($rabbit_use_ssl) {
     if !defined(File['/etc/rabbitmq']) {
@@ -17,12 +18,12 @@ define contrail::lib::rabbitmq_ssl(
     }
     if !defined(File[$kombu_ssl_certfile]) {
       file { $kombu_ssl_certfile:
-        source => "puppet:///ssl_certs/$hostname.pem"
+        source => "puppet:///ssl_certs/${hostname_lower}.pem"
       }
     }
     if !defined(File[$kombu_ssl_keyfile]) {
       file { $kombu_ssl_keyfile :
-        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+        source => "puppet:///ssl_certs/${hostname_lower}-privkey.pem"
       }
     }
     if !defined(File[$kombu_ssl_ca_certs]) {
