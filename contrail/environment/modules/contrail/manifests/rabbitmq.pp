@@ -18,6 +18,7 @@ class contrail::rabbitmq (
   $contrail_logoutput      = $::contrail::params::contrail_logoutput,
   $contrail_amqp_ssl       = $::contrail::params::contrail_amqp_ssl,
   $os_amqp_ssl             = $::contrail::params::os_amqp_ssl,
+  $hostname_lower          = $::contrail::params::hostname_lower
 ) {
   # Check to see if amqp_ip_list was passed by user. If yes, rabbitmq provisioning can be skipped
   if ((size($contrail_amqp_ip_list) == 0) or ($openstack_manage_amqp and ($host_control_ip in $openstack_ip_list)) ) {
@@ -42,7 +43,7 @@ class contrail::rabbitmq (
 
     $amqp_ip_list_shell = join($amqp_ip_list,",")
     $amqp_name_list_shell = join($amqp_name_list, ",")
-    $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${::hostname}ctrl\n"
+    $rabbit_env = "NODE_IP_ADDRESS=${host_control_ip}\nNODENAME=rabbit@${hostname_lower}ctrl\n"
 
     contrail::lib::rabbitmq_ssl{'rabbit_setup':rabbit_use_ssl => $rabbit_use_ssl}
 

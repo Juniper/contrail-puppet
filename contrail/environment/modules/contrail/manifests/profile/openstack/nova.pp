@@ -36,7 +36,8 @@ class contrail::profile::openstack::nova(
   $nova_compute_rabbit_hosts = $::contrail::params::nova_compute_rabbit_hosts,
   $keystone_auth_protocol    = $::contrail::params::keystone_auth_protocol,
   $neutron_ip_to_use  = $::contrail::params::neutron_ip_to_use,
-  $metadata_ssl_enable = $::contrail::params::metadata_ssl_enable
+  $metadata_ssl_enable = $::contrail::params::metadata_ssl_enable,
+  $hostname_lower          = $::contrail::params::hostname_lower
 ) {
 
   $auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/"
@@ -333,12 +334,12 @@ class contrail::profile::openstack::nova(
     file { "/etc/nova/ssl/certs/nova.pem":
       owner  => nova,
       group  => nova,
-      source => "puppet:///ssl_certs/$hostname.pem"
+      source => "puppet:///ssl_certs/${hostname_lower}.pem"
     }
     file { "/etc/nova/ssl/private/novakey.pem":
       owner  => nova,
       group  => nova,
-      source => "puppet:///ssl_certs/$hostname-privkey.pem"
+      source => "puppet:///ssl_certs/${hostname_lower}-privkey.pem"
     }
     file { "/etc/nova/ssl/certs/ca.pem":
       owner  => nova,

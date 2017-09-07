@@ -1075,4 +1075,5 @@ class contrail::params (
      } else {
        $os_sync_db = false
      }
+  $hostname_lower = downcase($::hostname)
 }
