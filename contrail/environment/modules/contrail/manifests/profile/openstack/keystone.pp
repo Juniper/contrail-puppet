@@ -18,7 +18,8 @@ class contrail::profile::openstack::keystone(
   $openstack_rabbit_servers        = $::contrail::params::openstack_rabbit_ip_list,
   $keystone_mysql_service_password = $::contrail::params::keystone_mysql_service_password,
   $global_controller_ip_list       = $::contrail::params::global_controller_ip_list,
-  $keystone_auth_protocol          = $::contrail::params::keystone_auth_protocol
+  $keystone_auth_protocol          = $::contrail::params::keystone_auth_protocol,
+  $hostname_lower                  = $::contrail::params::hostname_lower
 ) {
 
   if ($keystone_mysql_service_password != "") {
@@ -81,12 +82,12 @@ class contrail::profile::openstack::keystone(
       file { "/etc/keystone/ssl/certs/keystone.pem":
         owner  => keystone,
         group  => keystone,
-        source => "puppet:///ssl_certs/$hostname.pem"
+        source => "puppet:///ssl_certs/${hostname_lower}.pem"
       }
       file { "/etc/keystone/ssl/private/keystonekey.pem":
         owner  => keystone,
         group  => keystone,
-        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+        source => "puppet:///ssl_certs/${hostname_lower}-privkey.pem"
       }
       file { "/etc/keystone/ssl/certs/ca.pem":
         owner  => keystone,
@@ -190,12 +191,12 @@ class contrail::profile::openstack::keystone(
       file { "/etc/keystone/ssl/certs/keystone.pem":
         owner  => keystone,
         group  => keystone,
-        source => "puppet:///ssl_certs/$hostname.pem"
+        source => "puppet:///ssl_certs/${hostname_lower}.pem"
       }
       file { "/etc/keystone/ssl/private/keystonekey.pem":
         owner  => keystone,
         group  => keystone,
-        source => "puppet:///ssl_certs/$hostname-privkey.pem"
+        source => "puppet:///ssl_certs/${hostname_lower}-privkey.pem"
       }
       file { "/etc/keystone/ssl/certs/ca.pem":
         owner  => keystone,
