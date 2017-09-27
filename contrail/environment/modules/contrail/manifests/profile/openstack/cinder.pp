@@ -57,6 +57,8 @@ class contrail::profile::openstack::cinder(
         rabbit_max_retries     => "0",
         debug                  => $openstack_debug,
         verbose                => $openstack_verbose,
+        use_syslog             => false,
+        use_stderr             => false,
         database_idle_timeout  => '180',
         database_min_pool_size => '100',
         database_max_pool_size => '700',
