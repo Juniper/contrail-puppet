@@ -84,6 +84,18 @@ define contrail::lib::post_openstack(
     } else {
       exec { 'supervisor-openstack-restart':
         command => "/bin/true"
+      } ->
+      exec { 'service nova-console restart':
+        provider  => shell,
+        logoutput => $contrail_logoutput,
+      } ->
+      exec { 'service heat-engine restart':
+        provider  => shell,
+        logoutput => $contrail_logoutput,
+      } ->
+      exec { 'service barbican-worker stop':
+        provider  => shell,
+        logoutput => $contrail_logoutput,
       }
     }
 

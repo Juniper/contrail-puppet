@@ -103,6 +103,8 @@ class contrail::profile::openstack::keystone(
         rabbit_hosts    => $openstack_rabbit_servers,
         verbose         => $openstack_verbose,
         debug           => $openstack_debug,
+        use_syslog      => false,
+        use_stderr      => false,
         sync_db         => $sync_db,
         database_idle_timeout   => '180',
         database_min_pool_size  => "100",

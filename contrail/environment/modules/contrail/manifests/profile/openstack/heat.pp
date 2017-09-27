@@ -64,6 +64,8 @@ class contrail::profile::openstack::heat (
         rabbit_password    => $rabbitmq_password,
         verbose            => $openstack_verbose,
         debug              => $openstack_debug,
+        use_syslog         => false,
+        use_stderr         => false,
         sync_db            => $sync_db,
         keystone_password  => $heat_password,
         auth_uri           => $auth_uri,

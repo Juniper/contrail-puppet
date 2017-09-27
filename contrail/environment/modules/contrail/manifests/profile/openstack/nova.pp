@@ -100,6 +100,8 @@ class contrail::profile::openstack::nova(
         rabbit_max_retries     => "0",
         verbose             => $openstack_verbose,
         debug               => $openstack_debug,
+        use_syslog          => false,
+        use_stderr          => false,
         notification_driver => "nova.openstack.common.notifier.rpc_notifier",
         api_database_connection => $nova_api_db_conn,
         database_idle_timeout   => $database_idle_timeout,

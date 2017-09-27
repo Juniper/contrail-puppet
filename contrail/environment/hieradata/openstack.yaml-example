@@ -99,5 +99,5 @@ openstack::tempest::heat_available      : false
 openstack::tempest::swift_available     : false
 
 ######## Log levels
-openstack::verbose: 'True'
-openstack::debug: 'True'
+openstack::verbose: 'False'
+openstack::debug: 'False'
