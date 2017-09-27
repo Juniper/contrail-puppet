@@ -68,6 +68,8 @@ class contrail::profile::openstack::ceilometer (
     metering_secret => $metering_secret,
     debug           => $openstack_verbose,
     verbose         => $openstack_debug,
+    use_syslog      => false,
+    use_stderr      => false,
     rabbit_hosts    => $openstack_rabbit_hosts,
     rabbit_use_ssl     => $rabbit_use_ssl,
     kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
