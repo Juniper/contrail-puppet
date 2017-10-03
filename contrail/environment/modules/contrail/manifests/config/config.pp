@@ -416,7 +416,7 @@ class contrail::config::config (
     'DEFAULTS/ttl_min'              : value => '300';
     'DEFAULTS/ttl_max'              : value => '1800';
     'DEFAULTS/hc_interval'          : value => "$hc_interval";
-    'DEFAULTS/hc_max_miss'          : value => '3';
+    'DEFAULTS/hc_max_miss'          : value => '7';
     'DEFAULTS/ttl_short'            : value => '1';
     'DNS-SERVER/policy'             : value => 'fixed';
   } ->
