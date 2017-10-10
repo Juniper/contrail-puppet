@@ -20,6 +20,13 @@ class contrail::keystone (
     'KEYSTONE/admin_tenant_name' : value => $keystone_admin_tenant;
     'KEYSTONE/insecure' :  value => $keystone_insecure_flag;
   }
+  if ($keystone_version == "v3") {
+    contrail_keystone_auth_config {
+      'KEYSTONE/auth_type'           : value => "password";
+      'KEYSTONE/user_domain_name'    : value => "Default";
+      'KEYSTONE/project_domain_name' : value => "Default";
+    }
+  }
   if (($multi_tenancy == true) and ('config' in $host_roles)) {
     contrail_keystone_auth_config {
       'KEYSTONE/memcache_servers' : value => '127.0.0.1:11211'

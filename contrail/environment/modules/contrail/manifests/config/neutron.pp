@@ -26,7 +26,8 @@ class contrail::config::neutron (
   $controller_mgmt_address = $::contrail::params::os_controller_mgmt_address,
   $package_sku             = $::contrail::params::package_sku,
   $keystone_ip_to_use      = $::contrail::params::keystone_ip_to_use,
-  $neutron_mysql_ip        = $::contrail::params::neutron_mysql_to_use
+  $neutron_mysql_ip        = $::contrail::params::neutron_mysql_to_use,
+  $keystone_version        = $::contrail::params::keystone_version
 ){
 
   # Params from quantum-server-setup.sh are now set here
@@ -83,6 +84,24 @@ class contrail::config::neutron (
         'keystone_authtoken/auth_host'    : value => "$keystone_ip_to_use";
         'keystone_authtoken/auth_port'    : value => "35357";
         'keystone_authtoken/auth_protocol': value => "http";
+      }
+      if ($keystone_version == "v3") {
+        neutron_config {
+          'keystone_authtoken/user_domain_name'    : value => "Default";
+          'keystone_authtoken/project_domain_name' : value => "Default";
+          'keystone_authtoken/project_name'        : value => "services";
+          'keystone_authtoken/password'            : value => $neutron_password;
+          'keystone_authtoken/username'            : value => "neutron";
+          'keystone_authtoken/auth_type'           : value => "password";
+          'keystone_authtoken/auth_url'            : value => "${keystone_identity_uri}";
+          'nova/user_domain_name'                  : value => "Default";
+          'nova/project_domain_name'               : value => "Default";
+          'nova/project_name'                      : value => "services";
+          'nova/password'                          : value => $neutron_password;
+          'nova/username'                          : value => "nova";
+          'nova/auth_type'                         : value => "password";
+          'nova/auth_url'                          : value => "${keystone_identity_uri}/${keystone_version}/";
+        }
       }
     }
 
