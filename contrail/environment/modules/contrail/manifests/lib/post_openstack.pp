@@ -12,9 +12,15 @@ define contrail::lib::post_openstack(
   if ($host_control_ip in $openstack_ip_list) {
     #Make ha-mon start later
     if($internal_vip != '') {
-        if ( $::lsbdistrelease != '16.04') {
+        if ( $::lsbdistrelease == '14.04') {
           exec { 'ha-mon-restart':
               command   => 'service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
+              provider  => shell,
+              logoutput => $contrail_logoutput,
+          }
+        } else {
+          exec { 'ha-mon-restart':
+              command   => 'service enable contrail-hamon && service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
               provider  => shell,
               logoutput => $contrail_logoutput,
           }
