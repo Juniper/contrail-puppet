@@ -104,10 +104,12 @@ listen contrail-openstack-stats
    stats auth $__contrail_hap_user__:$__contrail_hap_passwd__
 
 frontend openstack-keystone 
+    mode tcp
     bind :5000
     default_backend    keystone-backend
 
 backend keystone-backend
+    mode tcp
     option tcpka
     option nolinger
     timeout server 24h
@@ -131,10 +133,12 @@ backend keystone-backend
 $__keystone_backend_servers__
 
 frontend openstack-keystone-admin
+    mode tcp
     bind :35357
     default_backend    keystone-admin-backend
 
 backend keystone-admin-backend
+    mode tcp
     option tcpka
     option nolinger
     timeout server 24h
