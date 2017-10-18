@@ -20,7 +20,7 @@ define contrail::lib::post_openstack(
           }
         } else {
           exec { 'ha-mon-restart':
-              command   => 'service enable contrail-hamon && service contrail-hamon restart && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
+              command   => 'systemctl enable contrail-hamon && systemctl start contrail-hamon && echo contrail-ha-mon >> /etc/contrail/contrail_openstack_exec.out',
               provider  => shell,
               logoutput => $contrail_logoutput,
           }
