@@ -39,6 +39,7 @@ class contrail::profile::openstack::cinder(
 
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://cinder:",$database_credentials, $mysql_port_url],'')
+  $identity_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/"
 
   class {'::cinder::db::mysql':
     password      => $service_password,
@@ -74,6 +75,7 @@ class contrail::profile::openstack::cinder(
         keystone_password => $cinder_password,
         auth_uri          => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/",
         sync_db           => $sync_db,
+        identity_uri      => $identity_uri,
         osapi_volume_listen_port => $osapi_volume_port
       }
     }

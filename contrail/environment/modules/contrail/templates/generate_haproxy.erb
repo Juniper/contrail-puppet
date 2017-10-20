@@ -119,12 +119,12 @@ backend keystone-backend
     tcp-check connect port 3306
     default-server error-limit 1 on-error mark-down
 
-    #option tcp-check
-    #option httpchk
-    #tcp-check connect port 3337
-    #tcp-check send Host:localhost
-    #http-check expect ! rstatus ^5
-    #default-server error-limit 1 on-error mark-down
+    option tcp-check
+    option httpchk
+    tcp-check connect port 3337
+    tcp-check send Host:localhost
+    http-check expect ! rstatus ^5
+    default-server error-limit 1 on-error mark-down
 
     option tcp-check
     tcp-check connect port 6000
