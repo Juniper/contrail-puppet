@@ -27,7 +27,8 @@ class contrail::profile::openstack_controller (
   $kombu_ssl_certfile = $::contrail::params::kombu_ssl_certfile,
   $kombu_ssl_keyfile  = $::contrail::params::kombu_ssl_keyfile,
   $manage_neutron     = $::contrail::params::manage_neutron,
-  $storage_enabled    = $::contrail::params::storage_enabled
+  $storage_enabled    = $::contrail::params::storage_enabled,
+  $internal_vip       = $::contrail::params::internal_vip,
 ) {
 
   $processor_count_str = "${::processorcount}"
@@ -37,6 +38,22 @@ class contrail::profile::openstack_controller (
     -> Package[contrail-openstack]
     -> Package <|tag == 'openstack'|>
 
+    if ($internal_vip != "" and $internal_vip != undef) {
+      Package[contrail-openstack] ->
+      package { 'contrail-openstack-ha' :
+        ensure => latest,
+      } ->
+      service {'xinetd':
+        ensure  => running,
+        enable => true,
+      } ->
+      #restarting using exec as contrail-mysqlprobe is from different package.
+      exec {"restart xinetd service":
+          command  => "service xinetd restart",
+          provider => shell
+      } ->
+      Class ['::contrail::profile::openstack::horizon']
+    }
     package {'contrail-openstack' :
       ensure => latest,
       before => [ Class['::mysql::server']]
