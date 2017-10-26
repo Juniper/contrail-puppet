@@ -35,9 +35,9 @@ class contrail::profile::openstack::nova(
   $vncproxy_url       = $::contrail::params::vncproxy_base_url,
   $nova_compute_rabbit_hosts = $::contrail::params::nova_compute_rabbit_hosts,
   $keystone_auth_protocol    = $::contrail::params::keystone_auth_protocol,
-  $neutron_ip_to_use  = $::contrail::params::neutron_ip_to_use,
+  $neutron_ip_to_use   = $::contrail::params::neutron_ip_to_use,
   $metadata_ssl_enable = $::contrail::params::metadata_ssl_enable,
-  $hostname_lower          = $::contrail::params::hostname_lower
+  $hostname_lower      = $::contrail::params::hostname_lower
 ) {
 
   $auth_uri = "${keystone_auth_protocol}://${keystone_ip_to_use}:5000/"
@@ -81,6 +81,28 @@ class contrail::profile::openstack::nova(
   $database_credentials = join([$service_password, "@", $mysql_ip_address],'')
   $keystone_db_conn = join(["mysql://nova:",$database_credentials,$mysql_port_url],'')
 
+  if ($metadata_ssl_enable){
+    file {["/etc/nova/ssl", "/etc/nova/ssl/certs", "/etc/nova/ssl/private"]:
+      owner  => nova,
+      group  => nova,
+      ensure  => directory,
+    }
+    file { "/etc/nova/ssl/certs/nova.pem":
+      owner  => nova,
+      group  => nova,
+      source => "puppet:///ssl_certs/${hostname_lower}.pem"
+    }
+    file { "/etc/nova/ssl/private/novakey.pem":
+      owner  => nova,
+      group  => nova,
+      source => "puppet:///ssl_certs/${hostname_lower}-privkey.pem"
+    }
+    file { "/etc/nova/ssl/certs/ca.pem":
+      owner  => nova,
+      group  => nova,
+      source => "puppet:///ssl_certs/ca-cert.pem"
+    }
+  }
   case $package_sku {
     /14\.0/: {
       $nova_api_db_conn = join(["mysql://nova_api:",$database_credentials, $mysql_port_url_api],'')
@@ -113,7 +135,12 @@ class contrail::profile::openstack::nova(
         rabbit_use_ssl     => $rabbit_use_ssl,
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
-        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile,
+        ## enabled_ssl_apis is default to ['metadata', 'osapi_compute']
+        use_ssl            => $metadata_ssl_enable,
+        cert_file          => "/etc/nova/ssl/certs/nova.pem",
+        key_file           => "/etc/nova/ssl/private/novakey.pem",
+        ca_file            => "/etc/nova/ssl/certs/ca.pem",
       }
 
       class { '::nova::api':
@@ -148,6 +175,8 @@ class contrail::profile::openstack::nova(
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
         'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
+        'DEFAULT/nova_metadata_protocol': value => "https";
+        'DEFAULT/nova_metadata_insecure': value => "True";
       }
 
       if ($neutron_shared_secret){
@@ -186,7 +215,12 @@ class contrail::profile::openstack::nova(
         rabbit_use_ssl     => $rabbit_use_ssl,
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
-        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile,
+        ## enabled_ssl_apis is default to ['metadata', 'osapi_compute']
+        use_ssl            => $metadata_ssl_enable,
+        cert_file          => "/etc/nova/ssl/certs/nova.pem",
+        key_file           => "/etc/nova/ssl/private/novakey.pem",
+        ca_file            => "/etc/nova/ssl/certs/ca.pem",
       }
 
       class { '::nova::api':
@@ -257,7 +291,12 @@ class contrail::profile::openstack::nova(
         rabbit_use_ssl     => $rabbit_use_ssl,
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
-        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile,
+        ## enabled_ssl_apis is default to ['metadata', 'osapi_compute']
+        use_ssl            => $metadata_ssl_enable,
+        cert_file          => "/etc/nova/ssl/certs/nova.pem",
+        key_file           => "/etc/nova/ssl/private/novakey.pem",
+        ca_file            => "/etc/nova/ssl/certs/ca.pem",
       }
       class { '::nova::api':
         admin_password                       => $nova_password,
@@ -304,7 +343,6 @@ class contrail::profile::openstack::nova(
             value => $neutron_shared_secret;
         }
       }
-
     }
   }
 
@@ -327,36 +365,6 @@ class contrail::profile::openstack::nova(
     enabled => 'true',
   }
 
-  if ($metadata_ssl_enable){
-    file {["/etc/nova/ssl", "/etc/nova/ssl/certs", "/etc/nova/ssl/private"]:
-      owner  => nova,
-      group  => nova,
-      ensure  => directory,
-    }
-    file { "/etc/nova/ssl/certs/nova.pem":
-      owner  => nova,
-      group  => nova,
-      source => "puppet:///ssl_certs/${hostname_lower}.pem"
-    }
-    file { "/etc/nova/ssl/private/novakey.pem":
-      owner  => nova,
-      group  => nova,
-      source => "puppet:///ssl_certs/${hostname_lower}-privkey.pem"
-    }
-    file { "/etc/nova/ssl/certs/ca.pem":
-      owner  => nova,
-      group  => nova,
-      source => "puppet:///ssl_certs/ca-cert.pem"
-    }
-    nova_config {
-      'DEFAULT/enabled_ssl_apis': value => "metadata";
-      'DEFAULT/nova_metadata_protocol': value => "https";
-      'DEFAULT/nova_metadata_insecure': value => "True";
-      'DEFAULT/ssl_cert_file': value => "/etc/nova/ssl/certs/nova.pem";
-      'DEFAULT/ssl_key_file': value => "/etc/nova/ssl/private/novakey.pem";
-      'DEFAULT/ssl_ca_file': value => "/etc/nova/ssl/certs/ca.pem";
-    }
-  }
 
   if ('compute' in $host_roles) {
     # TODO: it's important to set up the vnc properly
