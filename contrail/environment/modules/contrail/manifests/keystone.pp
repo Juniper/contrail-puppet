@@ -24,7 +24,7 @@ class contrail::keystone (
     contrail_keystone_auth_config {
       'KEYSTONE/auth_type'           : value => "password";
       'KEYSTONE/user_domain_name'    : value => "Default";
-      'KEYSTONE/project_domain_name' : value => "Default";
+      'KEYSTONE/domain_id'           : value => "default";
     }
   }
   if (($multi_tenancy == true) and ('config' in $host_roles)) {
