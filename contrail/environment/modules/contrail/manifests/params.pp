@@ -661,6 +661,7 @@ class contrail::params (
     $kernel_upgrade,
     $kernel_version,
     $default_trusty_kernel,
+    $default_xenial_kernel,
     $redis_password,
     $storage_num_osd,
     $storage_fsid,
@@ -968,6 +969,8 @@ class contrail::params (
     } else {
        if ($lsbdistrelease == "14.04") {
            $contrail_dist_kernel_version = $default_trusty_kernel
+       } elsif ($lsbdistrelease == "16.04") {
+           $contrail_dist_kernel_version = $default_xenial_kernel
        } else {
            $contrail_dist_kernel_version = "3.13.0-34"
        }
