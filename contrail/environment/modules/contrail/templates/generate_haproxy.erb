@@ -198,16 +198,6 @@ backend cinder-backend
     balance   roundrobin
 $__cinder_backend_servers__
 
-frontend ceph-rest-api-server 
-    bind :5005
-    default_backend  ceph-rest-api-server-backend
-
-backend ceph-rest-api-server-backend
-    option tcpka
-    option nolinger
-    timeout server 24h
-    balance   roundrobin
-$__ceph_restapi_backend_servers__
 
 frontend neutron-server
     bind :9696
@@ -681,7 +671,6 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
     keystone_admin_server_lines = ''
     glance_server_lines = ''
     cinder_server_lines = ''
-    ceph_restapi_server_lines = ''
     neutron_server_server_lines = ''
     nova_api_server_lines = ''
     nova_meta_server_lines = ''
@@ -704,9 +693,6 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
              % (space, host_ip, host_ip)
         cinder_server_lines +=\
             '%s server %s %s:9776 check inter 2000 rise 2 fall 3\n'\
-             % (space, host_ip, host_ip)
-        ceph_restapi_server_lines +=\
-            '%s server %s %s:5006 check inter 2000 rise 2 fall 3\n'\
              % (space, host_ip, host_ip)
         neutron_server_server_lines +=\
             '%s server %s %s:9697 check inter 2000 rise 2 fall 3\n'\
@@ -745,7 +731,6 @@ def generate_openstack_ha_config(openstack_ip_list, mgmt_host_ip):
 	'__keystone_admin_backend_servers__' : keystone_admin_server_lines,
 	'__glance_backend_servers__' : glance_server_lines,
 	'__cinder_backend_servers__' : cinder_server_lines,
-	'__ceph_restapi_backend_servers__' : ceph_restapi_server_lines,
 	'__openstack_neutron_servers__' : neutron_server_server_lines,
 	'__nova_api_backend_servers__' : nova_api_server_lines,
 	'__nova_meta_backend_servers__' : nova_meta_server_lines,
