@@ -344,6 +344,13 @@ class contrail::profile::openstack::nova(
     }
   }
 
+  if ($metadata_ssl_enable){
+    nova_config {
+      'DEFAULT/nova_metadata_protocol' : value => "https";
+      'DEFAULT/nova_metadata_insecure': value => "True";
+    }
+  }
+
 
   if ($enable_ceilometer) {
     $instance_usage_audit = 'True'
