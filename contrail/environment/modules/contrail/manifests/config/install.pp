@@ -12,7 +12,7 @@ class contrail::config::install(
 
       if ($::operatingsystem == 'Ubuntu') {
           if ($lsbdistrelease == "14.04") {
-              $keepalived_pkg = '1.2.13-0~276~ubuntu14.04.1'
+              $keepalived_pkg = '1:1.2.23~ubuntu14.04.1'
           } else {
               $keepalived_pkg = '1:1.2.13-1~bpo70+1'
           }
