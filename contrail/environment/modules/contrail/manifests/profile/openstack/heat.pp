@@ -70,7 +70,8 @@ class contrail::profile::openstack::heat (
         rabbit_use_ssl     => $rabbit_use_ssl,
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
-        kombu_ssl_keyfile  => $kombu_ssl_keyfile
+        kombu_ssl_keyfile  => $kombu_ssl_keyfile,
+        rpc_response_timeout => '300'
       }
     }
 
@@ -90,6 +91,9 @@ class contrail::profile::openstack::heat (
         kombu_ssl_ca_certs => $kombu_ssl_ca_certs,
         kombu_ssl_certfile => $kombu_ssl_certfile,
         kombu_ssl_keyfile  => $kombu_ssl_keyfile
+      }
+      heat_config {
+        'DEFAULT/rpc_response_timeout': value => '300';
       }
     }
   }
