@@ -3,6 +3,7 @@ class contrail::profile::openstack::auth_file(
   $admin_password           = $::contrail::params::keystone_admin_password,
   $keystone_admin_token     = $::contrail::params::os_keystone_admin_token,
   $internal_vip             = $::contrail::params::internal_vip,
+  $external_vip             = $::contrail::params::external_vip,
   $admin_user               = 'admin',
   $admin_tenant             = 'admin',
   $region_name              = $::contrail::params::os_region,
@@ -15,7 +16,9 @@ class contrail::profile::openstack::auth_file(
   $neutron_endpoint_type    = 'publicURL',
   $keystone_auth_protocol   = $::contrail::params::keystone_auth_protocol
 ) {
-  if ($internal_vip != '' and $internal_vip != undef) {
+  if ($external_vip != '' and $external_vip != undef) {
+    $controller_node = $external_vip
+  } elsif ($internal_vip != '' and $internal_vip != undef) {
     $controller_node = $::contrail::params::internal_vip
   } else {
     $controller_node = $::contrail::params::os_controller_api_address

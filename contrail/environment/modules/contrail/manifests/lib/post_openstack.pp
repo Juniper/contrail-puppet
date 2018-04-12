@@ -8,6 +8,8 @@ define contrail::lib::post_openstack(
     $keystone_ip = $::contrail::params::keystone_ip,
     $keystone_ip_to_use = $::contrail::params::keystone_ip_to_use,
     $host_roles = $::contrail::params::host_roles,
+    $keystone_mgmt_ip     = $::contrail::params::keystone_mgmt_ip,
+    $keystone_auth_protocol          = $::contrail::params::keystone_auth_protocol,
 ) {
   if ($host_control_ip in $openstack_ip_list) {
     #Make ha-mon start later
@@ -45,6 +47,8 @@ define contrail::lib::post_openstack(
       keystone_config {
         'DATABASE/connection'   : value => $keystone_db_conn;
         'SQL/connection'        : value => $keystone_db_conn;
+        'DEFAULT/public_endpoint':value => "$keystone_auth_protocol://$keystone_mgmt_ip:5000/";
+        'DEFAULT/admin_endpoint': value => "$keystone_auth_protocol://$keystone_ip_to_use:35357/";
       }
       cinder_config {
         'DATABASE/connection'   : value => $cinder_db_conn;
@@ -102,6 +106,13 @@ define contrail::lib::post_openstack(
       exec { 'service barbican-worker stop':
         provider  => shell,
         logoutput => $contrail_logoutput,
+      }
+      if ('openstack' in $host_roles and $::lsbdistrelease == '16.04') {
+        exec { 'restart apache2 for keystone':
+          command   => "service apache2 restart",
+          provider  => shell,
+          logoutput => $contrail_logoutput,
+        }
       }
     }
 
