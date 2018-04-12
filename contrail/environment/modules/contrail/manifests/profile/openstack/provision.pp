@@ -21,9 +21,11 @@ class contrail::profile::openstack::provision (
   $keystone_ip_to_use  = $::contrail::params::keystone_ip_to_use,
   $openstack_ip_to_use = $::contrail::params::openstack_ip_to_use,
   $neutron_ip_to_use   = $::contrail::params::neutron_ip_to_use,
+  $keystone_mgmt_ip    = $::contrail::params::keystone_mgmt_ip,
   $keystone_auth_protocol    = $::contrail::params::keystone_auth_protocol
 ) {
   $internal_vip = $::contrail::params::internal_vip
+  $external_vip = pick($::contrail::params::external_vip, $::contrail::params::openstack_mgmt_ip_list_to_use[0] )
   $contrail_internal_vip = $::contrail::params::contrail_internal_vip
 
   if ( $package_sku =~ /14\.0/) {
@@ -42,7 +44,7 @@ class contrail::profile::openstack::provision (
   }
 
   class { 'keystone::endpoint':
-    public_url   => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000",
+    public_url   => "${keystone_auth_protocol}://${keystone_mgmt_ip}:5000",
     admin_url    => "${keystone_auth_protocol}://${keystone_ip_to_use}:35357",
     internal_url => "${keystone_auth_protocol}://${keystone_ip_to_use}:5000",
     region       => $region_name,
@@ -76,13 +78,13 @@ class contrail::profile::openstack::provision (
   if ( $package_sku =~ /14\.0/ or $package_sku =~ /13\.0/ ) {
     class { '::cinder::keystone::auth':
       password        => $cinder_password,
-      public_url      => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      public_url      => "http://${external_vip}:8776/v1/%(tenant_id)s",
       admin_url       => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
       internal_url    => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
-      public_url_v2   => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      public_url_v2   => "http://${external_vip}:8776/v2/%(tenant_id)s",
       admin_url_v2    => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
       internal_url_v2 => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
-      public_url_v3   => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
+      public_url_v3   => "http://${external_vip}:8776/v3/%(tenant_id)s",
       admin_url_v3    => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
       internal_url_v3 => "http://${openstack_ip_to_use}:8776/v3/%(tenant_id)s",
       region          => $region_name,
@@ -90,10 +92,10 @@ class contrail::profile::openstack::provision (
   } else {
     class { '::cinder::keystone::auth':
       password        => $cinder_password,
-      public_url      => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
+      public_url      => "http://${external_vip}:8776/v1/%(tenant_id)s",
       admin_url       => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
       internal_url    => "http://${openstack_ip_to_use}:8776/v1/%(tenant_id)s",
-      public_url_v2   => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
+      public_url_v2   => "http://${external_vip}:8776/v2/%(tenant_id)s",
       admin_url_v2    => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
       internal_url_v2 => "http://${openstack_ip_to_use}:8776/v2/%(tenant_id)s",
       region          => $region_name,
@@ -102,45 +104,45 @@ class contrail::profile::openstack::provision (
   Class['::cinder::keystone::auth'] ->
   class  { '::glance::keystone::auth':
     password     => $glance_password,
-    public_url   => "http://${openstack_ip_to_use}:9292",
+    public_url   => "http://${external_vip}:9292",
     admin_url    => "http://${openstack_ip_to_use}:9292",
     internal_url => "http://${openstack_ip_to_use}:9292",
     region       => $region_name,
   } ->
   class { '::nova::keystone::auth':
     password         => $nova_password,
-    public_url       => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
+    public_url       => "http://${external_vip}:8774/${endpoint_version}${tenant_id}",
     admin_url        => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
     internal_url     => "http://${openstack_ip_to_use}:8774/${endpoint_version}${tenant_id}",
-    public_url_v3    => "http://${openstack_ip_to_use}:8774/v3",
+    public_url_v3    => "http://${external_vip}:8774/v3",
     admin_url_v3     => "http://${openstack_ip_to_use}:8774/v3",
     internal_url_v3  => "http://${openstack_ip_to_use}:8774/v3",
     region           => $region_name,
   } ->
   class { '::neutron::keystone::auth':
     password         => $neutron_password,
-    public_url       => "http://$neutron_ip_to_use:9696",
+    public_url       => "http://$external_vip:9696",
     admin_url        => "http://$neutron_ip_to_use:9696",
     internal_url     => "http://$neutron_ip_to_use:9696",
     region           => $region_name,
   } ->
   class { '::ceilometer::keystone::auth':
     password         => $ceilometer_password,
-    public_url       => "http://$openstack_ip_to_use:8777",
+    public_url       => "http://$external_vip:8777",
     admin_url        => "http://$openstack_ip_to_use:8777",
     internal_url     => "http://$openstack_ip_to_use:8777",
     region           => $region_name,
   } ->
   class { '::heat::keystone::auth':
     password         => $heat_password,
-    public_url       => "http://$openstack_ip_to_use:8004/v1/%(tenant_id)s",
+    public_url       => "http://$external_vip:8004/v1/%(tenant_id)s",
     admin_url        => "http://$openstack_ip_to_use:8004/v1/%(tenant_id)s",
     internal_url     => "http://$openstack_ip_to_use:8004/v1/%(tenant_id)s",
     region           => $region_name,
   } ->
   class { '::heat::keystone::auth_cfn':
     password         => $heat_password,
-    public_url       => "http://$openstack_ip_to_use:8000/v1",
+    public_url       => "http://$external_vip:8000/v1",
     admin_url        => "http://$openstack_ip_to_use:8000/v1",
     internal_url     => "http://$openstack_ip_to_use:8000/v1",
     region           => $region_name,
