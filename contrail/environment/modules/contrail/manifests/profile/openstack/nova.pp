@@ -161,6 +161,7 @@ class contrail::profile::openstack::nova(
         neutron_auth_type      => 'password',
         vif_plugging_is_fatal  => false,
         vif_plugging_timeout   => '0',
+        neutron_url_timeout    => "300"
       }
       nova_config {
         'DEFAULT/scheduler_max_attempts':        value => '10';
@@ -171,7 +172,7 @@ class contrail::profile::openstack::nova(
         'neutron/admin_tenant_name' : value => 'services';
         'neutron/admin_username'    : value => 'neutron';
         'neutron/admin_password'    : value => "${keystone_admin_password}";
-        'neutron/url_timeout'       : value => "300";
+        'neutron/url_timeout'       : ensure => absent;
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
         'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
@@ -240,6 +241,7 @@ class contrail::profile::openstack::nova(
         neutron_url            => "http://${neutron_ip_to_use}:9696",
         vif_plugging_is_fatal  => false,
         vif_plugging_timeout   => '0',
+        neutron_url_timeout    => "300"
       }
       nova_config {
         'DEFAULT/scheduler_max_attempts':        value => '10';
@@ -257,7 +259,7 @@ class contrail::profile::openstack::nova(
         'neutron/admin_username'    : value => 'neutron';
         'neutron/auth_type'         : value => 'password';
         'neutron/admin_password'    : value => "${keystone_admin_password}";
-        'neutron/url_timeout'       : value => "300";
+        'neutron/url_timeout'       : ensure => absent;
         'compute/compute_driver'    : value => "libvirt.LibvirtDriver";
         'DEFAULT/rabbit_hosts'      : value => "${nova_compute_rabbit_hosts}";
         'vnc/novncproxy_base_url' : value => "${vncproxy_url}";
