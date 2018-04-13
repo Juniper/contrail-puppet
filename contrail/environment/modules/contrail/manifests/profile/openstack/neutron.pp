@@ -287,7 +287,9 @@ class contrail::profile::openstack::neutron(
       nova_admin_auth_url => "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/v2.0/",
       nova_admin_password => $nova_password,
       nova_region_name    => $region_name,
-      nova_admin_tenant_id => 'services'
+      nova_admin_tenant_id => 'services',
+      password            => $nova_password,
+      auth_url            => "${keystone_auth_protocol}://${keystone_ip_to_use}:35357/",
     }
 
     # Contrail specific neutron config
