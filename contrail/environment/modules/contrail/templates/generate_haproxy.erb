@@ -117,6 +117,7 @@ backend keystone-backend
 
     option tcp-check
     tcp-check connect port 3306
+    tcp-check send Host:localhost
     default-server error-limit 1 on-error mark-down
 
     option tcp-check
@@ -128,6 +129,7 @@ backend keystone-backend
 
     option tcp-check
     tcp-check connect port 6000
+    tcp-check send Host:localhost
     default-server error-limit 1 on-error mark-down
 
 $__keystone_backend_servers__
@@ -146,6 +148,7 @@ backend keystone-admin-backend
 
     option tcp-check
     tcp-check connect port 3306
+    tcp-check send Host:localhost
     default-server error-limit 1 on-error mark-down
 
     option tcp-check
@@ -157,6 +160,7 @@ backend keystone-admin-backend
 
     option tcp-check
     tcp-check connect port 35358
+    tcp-check send Host:localhost
     default-server error-limit 1 on-error mark-down
 
 $__keystone_admin_backend_servers__
