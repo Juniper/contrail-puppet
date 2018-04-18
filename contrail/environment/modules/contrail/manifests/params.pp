@@ -783,6 +783,7 @@ class contrail::params (
     $storage_pool_names,
     $ceilometer_ttl,
     $ceilometer_polling_interval,
+    $enable_fernet_token,
 ) {
     if (($contrail_internal_vip != '') or
         ($internal_vip != '') or

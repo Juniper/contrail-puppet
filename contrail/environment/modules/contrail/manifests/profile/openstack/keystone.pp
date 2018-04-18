@@ -19,7 +19,11 @@ class contrail::profile::openstack::keystone(
   $keystone_mysql_service_password = $::contrail::params::keystone_mysql_service_password,
   $global_controller_ip_list       = $::contrail::params::global_controller_ip_list,
   $keystone_auth_protocol          = $::contrail::params::keystone_auth_protocol,
-  $hostname_lower                  = $::contrail::params::hostname_lower
+  $hostname_lower                  = $::contrail::params::hostname_lower,
+  $enable_fernet_token             = $::contrail::params::enable_fernet_token,
+  $openstack_mgmt_ip_list = $::contrail::params::openstack_mgmt_ip_list_to_use,
+  $openstack_user_list = $::contrail::params::openstack_user_list,
+  $openstack_passwd_list = $::contrail::params::openstack_passwd_list
 ) {
 
   if ($keystone_mysql_service_password != "") {
@@ -71,6 +75,45 @@ class contrail::profile::openstack::keystone(
   }
   $paste_config =  ''
 
+  if ($enable_fernet_token) {
+    if ($openstack_index == '1' ) {
+        $enable_keystone_fernet = true
+    } else {
+        $enable_keystone_fernet = false
+    }
+    $revoke_by_id = false
+    $token_provider = 'fernet'
+    $fernet_max_active_keys = '5'
+  } else {
+    $enable_keystone_fernet = false
+    $revoke_by_id = true
+    $token_provider = 'uuid'
+    $fernet_max_active_keys = ''
+  }
+
+    # setup password less acces in openstack nodes, for fernet setup
+    if ( $enable_fernet_token and ((size($openstack_mgmt_ip_list)) > 1) ) {
+        $openstack_mgmt_ip_list_shell = inline_template('<%= @openstack_mgmt_ip_list.map{ |ip| "#{ip}" }.join(",") %>')
+        $openstack_user_list_shell = inline_template('<%= openstack_user_list.map{ |ip| "#{ip}" }.join(",") %>')
+        $openstack_passwd_list_shell = inline_template('<%= openstack_passwd_list.map{ |ip| "#{ip}" }.join(",") %>')
+        $contrail_exec_password_less_ssh = "python /opt/contrail/bin/setup_passwordless_ssh.py ${openstack_mgmt_ip_list_shell} ${openstack_user_list_shell} ${openstack_passwd_list_shell} && echo exec_passwordless > /etc/contrail/exec_passwordless.out"
+        file { '/opt/contrail/bin/setup_passwordless_ssh.py' :
+            ensure => present,
+            mode   => '0755',
+            group  => root,
+            source => "puppet:///modules/${module_name}/setup_passwordless_ssh.py"
+        }
+        ->
+        exec { 'exec_password_less_ssh' :
+            command   => $contrail_exec_password_less_ssh,
+            cwd       => '/opt/contrail/bin/',
+            provider  => shell,
+            logoutput => $contrail_logoutput,
+            unless    => 'grep -qx exec_passwordless /etc/contrail/exec_passwordless.out'
+        } ->
+        Class['::keystone']
+    }
+
   case $package_sku {
     /14\.0/: {
       include keystone::params
@@ -95,6 +138,10 @@ class contrail::profile::openstack::keystone(
         source => "puppet:///ssl_certs/ca-cert.pem"
       }
       class { '::keystone':
+        enable_fernet_setup => $enable_keystone_fernet,
+        token_provider  => $token_provider,
+        revoke_by_id    => $revoke_by_id,
+        fernet_max_active_keys => $fernet_max_active_keys,
         database_connection => $keystone_db_conn,
         service_name    => 'httpd',
         admin_token     => $admin_token,
@@ -187,6 +234,16 @@ class contrail::profile::openstack::keystone(
           'oslo_policy/policy_file' : value => "policy.v3cloudsample.json";
         }
       }
+    # Copy fernet keys from first node to other openstack nodes
+      if ($enable_fernet_token and ($openstack_index != 1)) {
+        Exec['enable mod-ssl'] ->
+        class { '::contrail::profile::openstack::fernet_keys':
+            openstack_ip => $openstack_ip_list[0]
+        } ->
+        Exec['apache2 restart']
+        contain ::contrail::profile::openstack::fernet_keys
+      }
+
     }
 
     /13\.0/: {

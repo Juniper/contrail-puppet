@@ -204,6 +204,11 @@
 #     (optional) valid values : v2.0 and v3
 #     Defaults to v2.0
 #
+# [*enable_fernet_token*]
+#     enable fernet token for keystone
+#     (optional) valid values : true and false
+#     Defaults to false
+#
 # [*multi_tenancy*]
 #     Flag to indicate if multi tenancy is enabled for openstack.
 #     (optional) - Defaults to true.
@@ -646,6 +651,7 @@ class contrail (
     $keystone_service_tenant = 'services',
     $keystone_region_name = 'RegionOne',
     $keystone_version = "v2.0",
+    $enable_fernet_token = false,
     $multi_tenancy = true,
     $zookeeper_ip_list = undef,
     $quantum_port = 9697,
@@ -869,6 +875,7 @@ class contrail (
 	keystone_auth_protocol =>		hiera(openstack::keystone::auth_protocol, hiera(contrail::params::keystone_auth_protocol, $keystone_auth_protocol)),
 	keystone_auth_port =>			hiera(openstack::keystone::auth_port, hiera(contrail::params::keystone_auth_port, $keystone_auth_port)),
 	keystone_insecure_flag =>		hiera(openstack::keystone::insecure_flag, hiera(contrail::params::keystone_insecure_flag, $keystone_insecure_flag)),
+	enable_fernet_token =>			hiera(openstack::keystone::enable_fernet_token, $enable_fernet_token),
 	quantum_port =>				hiera(openstack::neutron::port, hiera(contrail::params::quantum_port, $quantum_port)),
 	quantum_service_protocol =>		hiera(openstack::neutron::service_protocol, hiera(contrail::params::quantum_service_protocol, $quantum_service_protocol)),
 	neutron_service_protocol =>		hiera(openstack::neutron::service_protocol, hiera(contrail::params::neutron_service_protocol, $neutron_service_protocol)),
