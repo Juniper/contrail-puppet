@@ -21,8 +21,7 @@ class contrail::verify_rabbitmq (
      source => "puppet:///modules/${module_name}/form_rmq_cluster.sh"
   } ->
   exec { 'verify-rabbitmq' :
-    command   => "/etc/contrail/form_rmq_cluster.sh ${master} ${host_control_ip} ${amqp_ip_list} ; echo verify-rabbitmq >> /etc/contrail/contrail_config_exec.out",
-    unless    => 'grep -qx verify-rabbitmq /etc/contrail/contrail_config_exec.out',
+    command   => "/etc/contrail/form_rmq_cluster.sh ${master} ${host_control_ip} ${amqp_ip_list}",
     provider  => shell,
     logoutput => true,
     notify    => Service['rabbitmq-server'],
