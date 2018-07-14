@@ -117,9 +117,9 @@ class contrail::ha_config (
         }
 
         $cmon_db_user = "cmon"
-        $cmon_db_pass = "cmon"
+        $cmon_db_pass = hiera('cmon_db_pwd')
         $keystone_db_user = "keystone"
-        $keystone_db_pass = "keystone"
+        $keystone_db_pass = hiera('keystone_db_pwd')
         # Hard-coded to true because this code runs only when internal vip is defined
         $monitor_galera="True"
 
