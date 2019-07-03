@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAdn//zR8\u003d",
+        "filename": "contrail/environment/hieradata/contrail.yaml-example",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 79
+      },
+      "writtenOn": "2019-07-03T17:09:19Z",
+      "side": 1,
+      "message": "host_roles serves different purpose. This tell about the roles a server holds. This is used by storage for checking if it has openstack role or compute role. based on that different scripts are triggered.",
+      "parentUuid": "AAAAdX//xQU\u003d",
+      "revId": "2cc96ae64f8090e9e9c9035178138e5e21d74f39",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAdX//xP0\u003d",
         "filename": "contrail/environment/modules/contrail/manifests/lib/contrail-install-repo.pp",
         "patchSetId": 1
