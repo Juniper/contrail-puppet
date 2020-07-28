@@ -6,7 +6,7 @@ GEM
     hiera (2.0.0)
       json_pure
     hiera-puppet-helper (1.0.1)
-    json (1.8.3)
+    json (2.3.1)
     json_pure (1.8.2)
     metaclass (0.0.4)
     metadata-json-lint (0.0.6)
